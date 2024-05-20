@@ -1,0 +1,20 @@
+{
+  "name": "uptime-monitoring",
+  "version": "0.0.0",
+  "scripts": {
+    "build": "rspack build --config assets/rspack.config.mjs"
+  },
+  "devDependencies": {
+    "@fullhuman/postcss-purgecss": "^6.0.0",
+    "@rspack/cli": "^0.6.5",
+    "autoprefixer": "^10.4.19",
+    "postcss": "^8.4.38",
+    "postcss-loader": "^8.1.1",
+    "rspack-manifest-plugin": "^5.0.0",
+    "sass": "^1.77.2",
+    "sass-loader": "^14.2.1"
+  },
+  "dependencies": {
+    "bootstrap": "^5.3.3"
+  }
+}
