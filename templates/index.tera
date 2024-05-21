@@ -6,8 +6,19 @@
 
 {% include "partials/navbar.tera" %}
 
-<h1>Index</h1>
-<p class="important">
-    Welcome to my awesome homepage.
-</p>
+<div class="bg-body-tertiary py-5">
+    <div class="container mt-5">
+        <h1 class="mt-3">Dirt cheap, dead simple monitoring for every project</h1>
+        <p class="fs-4 mt-3">
+            We can monitor your websites, APIs and cronjobs and notify you when anyhting goes offline.<br />
+            It's easy to get started.
+        </p>
+        <p class="mt-4">
+            <a href="" class="btn btn-primary btn-lg rounded-pill">
+                Start monitoring
+            </a>
+        </p>
+    </div>
+</div>
+
 {% endblock body %}

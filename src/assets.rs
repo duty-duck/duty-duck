@@ -5,7 +5,7 @@ use axum::{
 use rust_embed::Embed;
 
 #[derive(Embed)]
-#[folder = "assets/out"]
+#[folder = "target/assets"]
 struct Asset;
 
 pub async fn assets_handler(uri: Uri) -> impl IntoResponse {

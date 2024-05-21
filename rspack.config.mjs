@@ -1,15 +1,15 @@
 // @ts-check
 
-import * as sass from "sass";
+import * as sass from "sass-embedded";
 import { defineConfig } from "@rspack/cli";
 import { RspackManifestPlugin } from "rspack-manifest-plugin";
 
 const config = defineConfig({
   entry: {
-    index: ["./assets/src/index.js", "./assets/src/index.scss"],
+    index: ["./assets/index.js", "./assets/index.scss"],
   },
   output: {
-    path: "./assets/out",
+    path: "./target/assets",
     filename: "[name].js",
     clean: true,
   },
