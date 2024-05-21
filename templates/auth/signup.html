@@ -1,0 +1,33 @@
+{% extends "layouts/auth.html" %}
+{% block title %}Login{% endblock title %}
+
+{% block content %}
+
+{% let active_page = "Sign up" -%}
+
+{% call super() %}
+<h1 class="fs-2 text-center mb-4">Start monitoring your website today</h1>
+<div class="card">
+    <form class="card-body">
+        <p>
+            <a href="/auth/login">
+                <i data-feather="user"></i> Already have an account?
+            </a>
+        </p>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email address</label>
+            <input type="email" class="form-control" id="email">
+        </div>
+        <div class="mb-4">
+            <label for="password" class="form-label">Password</label>
+            <input type="password" class="form-control" id="password">
+        </div>
+        <div class="text-center">
+            <p>
+                <button type="submit" class="btn btn-primary rounded-pill">Sign up</button>
+            </p>
+        </div>
+    </form>
+</div>
+
+{% endblock content %}

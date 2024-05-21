@@ -1,7 +1,8 @@
 <nav class="navbar sticky-top navbar-expand-lg bg-secondary py-0" data-bs-theme="dark">
   <div class="container">
-    <a class="navbar-brand overflow-hidden d-flex align-items-center" style="height: 4.2rem;" href="#">
-      <img style="height: 4rem; position: relative; top: 10px;" class="me-2" src="/assets/static/navbar-duck.png" alt="Duty Duck logo">
+    <a class="navbar-brand overflow-hidden d-flex align-items-center" style="height: 4.2rem;" href="/">
+      <img style="height: 4rem; position: relative; top: 10px;" class="me-2" src="/assets/static/navbar-duck.png"
+        alt="Duty Duck logo">
       Duty Duck
     </a>
     <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbar"
@@ -11,14 +12,14 @@
     <div class="collapse navbar-collapse" id="navbar">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="#">Home</a>
+          <a class="nav-link {{ " active"|only(active_page=="index" ) }}" aria-current="page" href="/">Home</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link" href="#">Link</a>
+          <a class="nav-link {{ " active"|only(active_page=="pricing" ) }}" href="/pricing">Pricing</a>
         </li>
       </ul>
       <div>
-        <a href="#" class="btn btn-primary">Login</a>
+        <a href="/auth/login" class="btn btn-primary">Log in</a>
       </div>
     </div>
   </div>

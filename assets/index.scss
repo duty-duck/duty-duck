@@ -2,10 +2,26 @@
 @import "../node_modules/bootstrap/scss/bootstrap.scss";
 @import "./bootswatch";
 
+.bg-green {
+    background-color: $green;
+}
 
 .navbar .navbar-collapse.show {
     padding-bottom: 1rem;
     @include media-breakpoint-up(lg) { 
         padding-bottom: 0;
      }
+}
+
+.form-control {
+    background-color: $body-tertiary-bg;
+}
+
+.auth-page-container {
+    margin: 4rem auto 0 auto;
+    @include media-breakpoint-up(lg) { 
+        padding-top: 6rem;
+     }
+    max-width: 560px;
+    padding: 1rem;
 }

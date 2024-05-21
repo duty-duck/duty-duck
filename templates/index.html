@@ -1,10 +1,10 @@
-{% extends "layouts/base.tera" %}
+{% extends "layouts/base.html" %}
 {% block title %}Index{% endblock title %}
 
 {% block body %}
 
-
-{% include "partials/navbar.tera" %}
+{% let active_page = "index" -%}
+{% include "partials/navbar.html" %}
 
 <div class="bg-body-tertiary py-5">
     <div class="container mt-5">
