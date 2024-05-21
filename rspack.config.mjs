@@ -2,6 +2,7 @@
 
 import * as sass from "sass-embedded";
 import { defineConfig } from "@rspack/cli";
+import rspack from "@rspack/core";
 import { RspackManifestPlugin } from "rspack-manifest-plugin";
 
 const config = defineConfig({
@@ -44,6 +45,14 @@ const config = defineConfig({
     new RspackManifestPlugin({
       publicPath: "/assets",
     }),
+    new rspack.CopyRspackPlugin({
+      patterns: [
+        { 
+          from: "assets/static",
+          to: "static"
+        }
+      ]
+    })
   ],
 });
 

@@ -1,3 +1,11 @@
 @import "./variables";
 @import "../node_modules/bootstrap/scss/bootstrap.scss";
 @import "./bootswatch";
+
+
+.navbar .navbar-collapse.show {
+    padding-bottom: 1rem;
+    @include media-breakpoint-up(lg) { 
+        padding-bottom: 0;
+     }
+}
