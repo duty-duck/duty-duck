@@ -94,24 +94,6 @@ legend {
   }
 }
 
-// Indicators
-
-.alert {
-  a,
-  .alert-link {
-    color: $white;
-  }
-
-  &-light {
-
-    &,
-    a:not(.btn),
-    .alert-link {
-      color: $body-color;
-    }
-  }
-}
-
 .badge {
   color: $white;
 

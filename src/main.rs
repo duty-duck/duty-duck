@@ -3,10 +3,10 @@ mod state;
 
 use std::sync::Arc;
 
-use axum::{routing::get, Router};
+use axum::Router;
 use tracing::info;
 
-use crate::{routes::assets::assets_handler, state::AppState};
+use crate::state::AppState;
 
 #[tokio::main]
 async fn main() {
@@ -15,7 +15,6 @@ async fn main() {
 
     // build our application with a route
     let app = Router::new()
-        .route("/assets/*file", get(assets_handler))
         .nest("/", routes::public_site_router())
         .with_state(Arc::new(AppState::new()));
 

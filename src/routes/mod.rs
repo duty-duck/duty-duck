@@ -1,11 +1,19 @@
 pub mod assets;
+mod auth;
 mod filters;
 
 use askama_axum::*;
-use axum::{routing::get, Router};
+use axum::{
+    http::{header::CACHE_CONTROL, HeaderValue},
+    routing::get,
+    Router,
+};
 use std::sync::Arc;
+use tower_http::set_header::SetResponseHeaderLayer;
 
 use crate::state::AppState;
+
+use self::{assets::assets_handler, auth::auth_router};
 
 #[derive(Template)]
 #[template(path = "index.html")]
@@ -15,14 +23,6 @@ struct IndexTemplate;
 #[template(path = "pricing.html")]
 struct PricingTemplate;
 
-#[derive(Template)]
-#[template(path = "auth/login.html")]
-struct LoginTemplate;
-
-#[derive(Template)]
-#[template(path = "auth/signup.html")]
-struct SignupTemplate;
-
 async fn root() -> impl IntoResponse {
     IndexTemplate
 }
@@ -31,18 +31,22 @@ async fn pricing() -> impl IntoResponse {
     PricingTemplate
 }
 
-async fn login() -> impl IntoResponse {
-    LoginTemplate
-}
-
-async fn signup() -> impl IntoResponse {
-    SignupTemplate
-}
-
 pub fn public_site_router() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", get(root))
         .route("/pricing", get(pricing))
-        .route("/auth/login", get(login))
-        .route("/auth/signup", get(signup))
+        .nest("/auth", auth_router())
+        .layer(SetResponseHeaderLayer::if_not_present(
+            CACHE_CONTROL,
+            HeaderValue::from_static("max-age=1800"),
+        ))
+        .route(
+            "/assets/*file",
+            get(assets_handler)
+                // Serve static assets with aggressive HTTP caching
+                .route_layer(SetResponseHeaderLayer::if_not_present(
+                    CACHE_CONTROL,
+                    HeaderValue::from_static("max-age=172800"),
+                )),
+        )
 }

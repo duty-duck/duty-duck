@@ -19,7 +19,7 @@
 
 .auth-page-container {
     margin: 4rem auto 0 auto;
-    @include media-breakpoint-up(lg) { 
+    @include media-breakpoint-up(lg) {
         padding-top: 6rem;
      }
     max-width: 560px;
