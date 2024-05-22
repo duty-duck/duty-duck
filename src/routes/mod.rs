@@ -11,7 +11,7 @@ use axum::{
 use std::sync::Arc;
 use tower_http::set_header::SetResponseHeaderLayer;
 
-use crate::state::AppState;
+use crate::app_env::AppEnv;
 
 use self::{assets::assets_handler, auth::auth_router};
 
@@ -31,7 +31,7 @@ async fn pricing() -> impl IntoResponse {
     PricingTemplate
 }
 
-pub fn public_site_router() -> Router<Arc<AppState>> {
+pub fn public_site_router() -> Router<Arc<AppEnv>> {
     Router::new()
         .route("/", get(root))
         .route("/pricing", get(pricing))

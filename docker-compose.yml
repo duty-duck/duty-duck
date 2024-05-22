@@ -1,0 +1,22 @@
+services:
+  database:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=dutyduck
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - dutyduck-database:/var/lib/postgresql/data 
+    ports: 
+      - 5432:5432
+  adminer:
+    image: adminer
+    ports:
+      - 8080:8080
+  mailserver:
+    image: maildev/maildev
+    ports:
+      - 1025:1025
+      - 1080:1080
+volumes:
+  dutyduck-database: {}

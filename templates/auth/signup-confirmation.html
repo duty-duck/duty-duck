@@ -1,0 +1,35 @@
+{% extends "layouts/auth.html" %}
+{% block title %}Welcome, please confirm your e-mail{% endblock title %}
+
+{% block content %}
+
+{% let active_page = "Sign up" -%}
+
+{% call super() %}
+<div class="card">
+    <div class="card-body">
+        {% match result %}
+        {% when Ok with (_) %}
+            <h3>Welcome!</h3>
+            <p>Thank you for registering. Your are just a moment away from securing your website against unnoticed breakdowns.</p>
+            <p>A confirmation e-mail has been sent to your inbox. You must visit the provided URL to finish your registration.</p>
+            <div class="d-flex align-items-center justify-content-between mt-2">
+                <span>Did not receive the confirmation e-mail ?</span>
+                <a href="#" class="btn btn-primary">
+                    <i data-feather="send"></i>
+                    Resend
+                </a>
+            </div>
+        {% when Err with (crate::services::auth::SignUpError::UserAlreadyExists) %}
+            <h3>Welcome back!</h3>
+            <p>It seems that a user account already exists for this e-mail address.</p>
+            <p>
+                <a href="/auth/login" class="btn btn-outline-primary">Go to the login page</a>
+            </p>
+        {% when Err with (_) %}
+            Technical error
+      {% endmatch %}
+    </div>
+</div>
+
+{% endblock content %}

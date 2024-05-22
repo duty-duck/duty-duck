@@ -1,5 +1,5 @@
 {% extends "layouts/auth.html" %}
-{% block title %}Login{% endblock title %}
+{% block title %}Sign up{% endblock title %}
 
 {% block content %}
 
@@ -8,24 +8,63 @@
 {% call super() %}
 <h1 class="fs-2 text-center mb-4">Start monitoring your website today</h1>
 <div class="card">
-    <form class="card-body">
+    <form class="card-body" method="post" action="/auth/signup">
         <p>
             <a href="/auth/login">
                 <i data-feather="user"></i> Already have an account?
             </a>
         </p>
+        {% if let Some(e) = error %}
+        <div class="alert alert-warning">
+            {{ e|linebreaks|safe }}
+        </div>
+        {% endif %}
+
+        <div class="mb-3">
+            <label for="name"  class="form-label">Full name</label>
+            <input 
+                type="text" 
+                name="name"
+                class="form-control {{ " is-invalid"|only(error_field==Some("name")) }}"
+                id="name" 
+                value="{{ form.name }}"
+                required
+            >
+        </div>
         <div class="mb-3">
             <label for="email" class="form-label">Email address</label>
-            <input type="email" class="form-control" id="email">
+            <input
+                type="email" 
+                name="email" 
+                class="form-control {{ " is-invalid"|only(error_field==Some("email")) }}"
+                id="email"
+                value="{{ form.email }}"
+                required
+            >
         </div>
-        <div class="mb-4">
-            <label for="password" class="form-label">Password</label>
-            <input type="password" class="form-control" id="password">
+        <div class="row mb-4">
+            <div class="col-lg-6">
+                <label for="password" class="form-label">Password</label>
+                <input 
+                    type="password" 
+                    name="password"
+                    class="form-control {{ "is-invalid"|only(error_field==Some("password")) }}"
+                    id="password" 
+                    required
+                 />
+            </div>
+            <div class="col-lg-6">
+                <label for="password_confirm" class="form-label">Confirm your password</label>
+                <input type="password" name="password_confirm" class="form-control {{ "is-invalid"|only(error_field==Some("password_confirm")) }}" id="password_confirm" required>
+            </div>
         </div>
         <div class="text-center">
             <p>
                 <button type="submit" class="btn btn-primary rounded-pill">Sign up</button>
             </p>
+            <hr>
+            Is your company already using Duty Duck? Create an account for every member in your organization, then you can invite
+            everyone to collaborate.
         </div>
     </form>
 </div>
