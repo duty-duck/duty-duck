@@ -44,6 +44,7 @@ itertools = "0.13.0"
 rusty_paseto = "0.6.1"
 url = "2.5.0"
 urlencoding = "2.1.3"
+cucumber = "0.21.0"
 
 [workspace.dependencies]
 serde = "1.0.202"
@@ -55,3 +56,7 @@ sea-orm = { version = "0.12", features = [
     "with-chrono",
     "with-uuid",
 ] }
+
+[[test]]
+name = "end_to_end"
+harness = false 
