@@ -5,6 +5,7 @@ mod filters;
 use askama_axum::*;
 use axum::{
     http::{header::CACHE_CONTROL, HeaderValue},
+    response::IntoResponse,
     routing::get,
     Router,
 };

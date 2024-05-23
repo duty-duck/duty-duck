@@ -1,3 +1,5 @@
+mod email_confirmation;
+
 use anyhow::{anyhow, Context};
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
@@ -5,9 +7,10 @@ use argon2::{
 };
 use askama::Template;
 use chrono::Utc;
+use email_address::EmailAddress;
 use entity::user_account;
 use rusty_paseto::core::{Local, PasetoSymmetricKey, V4};
-use sea_orm::{ActiveModelTrait, DatabaseConnection, EntityTrait, Set, SqlErr, TryIntoModel};
+use sea_orm::{ActiveModelTrait, DatabaseConnection, Set, SqlErr};
 use thiserror::Error;
 
 use crate::mailer::Mailer;
@@ -19,9 +22,10 @@ pub struct AuthService {
     argon: Argon2<'static>,
 }
 
+/// Params used to create a new user
 pub struct SignUpParams {
     pub full_name: String,
-    pub email: String,
+    pub email: EmailAddress,
     pub password: String,
 }
 
@@ -42,7 +46,11 @@ pub enum SignUpError {
 pub type SignUpResult = Result<(), SignUpError>;
 
 impl AuthService {
-    pub fn new(db: DatabaseConnection, mailer: Mailer, paseto_key: PasetoSymmetricKey<V4, Local>) -> Self {
+    pub fn new(
+        db: DatabaseConnection,
+        mailer: Mailer,
+        paseto_key: PasetoSymmetricKey<V4, Local>,
+    ) -> Self {
         Self {
             db,
             mailer,
@@ -62,7 +70,7 @@ impl AuthService {
         let user = user_account::ActiveModel {
             full_name: Set(params.full_name),
             password: Set(password_hash.to_string()),
-            email: Set(params.email),
+            email: Set(params.email.to_string()),
             updated_at: Set(now),
             created_at: Set(now),
             ..Default::default()

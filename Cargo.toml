@@ -16,7 +16,6 @@ migration = { path = "migration" } # depends on your needs
 # Crates.io depend
 anyhow = "1.0.86"
 axum = "0.7.5"
-askama = "0.12.1"
 tower-http = { version = "0.5.2", features = ["fs", "set-header"] }
 tracing = "0.1.40"
 tracing-subscriber = "0.3.18"
@@ -24,7 +23,8 @@ rust-embed = "8.4.0"
 mime_guess = "2.0.4"
 serde.workspace = true
 serde_json = "1.0.117"
-askama_axum = "0.4.0"
+askama_axum = { git = "https://github.com/djc/askama", rev = "627d58bc3b93c484f190d0711a4f9a9e26bc062c" }
+askama = { git = "https://github.com/djc/askama", rev = "627d58bc3b93c484f190d0711a4f9a9e26bc062c" }
 chrono = "0.4.38"
 uuid = { version = "1.8.0", features = ["v4"] }
 sea-orm.workspace = true

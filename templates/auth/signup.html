@@ -3,12 +3,10 @@
 
 {% block content %}
 
-{% let active_page = "Sign up" -%}
-
 {% call super() %}
 <h1 class="fs-2 text-center mb-4">Start monitoring your website today</h1>
 <div class="card">
-    <form class="card-body" method="post" action="/auth/signup">
+    <form class="card-body" hx-post="/auth/signup" hx-target="#auth-page-container">
         <p>
             <a href="/auth/login">
                 <i data-feather="user"></i> Already have an account?
@@ -60,7 +58,11 @@
         </div>
         <div class="text-center">
             <p>
-                <button type="submit" class="btn btn-primary rounded-pill">Sign up</button>
+                <button type="submit" class="btn btn-primary rounded-pill d-inline-flex align-items-center" data-loading-disable>
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" data-loading></span>
+                    <span class="visually-hidden" data-loading>Loading...</span>
+                    Sign up
+                </button>
             </p>
             <hr>
             Is your company already using Duty Duck? Create an account for every member in your organization, then you can invite
