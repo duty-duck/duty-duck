@@ -6,9 +6,9 @@
 {% call super() %}
 <h1 class="fs-2 text-center mb-4">Start monitoring your website today</h1>
 <div class="card">
-    <form class="card-body" hx-post="/auth/signup" hx-target="#auth-page-container">
+    <form class="card-body" hx-post="/auth/signup" hx-target="#auth-page-container" hx-swap="outerHTML">
         <p>
-            <a href="/auth/login">
+            <a href="/auth/login" hx-target="unset">
                 <i data-feather="user"></i> Already have an account?
             </a>
         </p>

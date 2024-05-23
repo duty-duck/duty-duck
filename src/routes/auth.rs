@@ -1,19 +1,24 @@
 use askama_axum::*;
-use axum::response::IntoResponse;
+use axum::extract::Path;
+use axum::response::{IntoResponse, Redirect};
+use axum::routing::post;
 use axum::{routing::get, Form, Router};
 use email_address::EmailAddress;
 use itertools::Itertools;
 use serde::Deserialize;
 use std::str::FromStr;
 use std::sync::Arc;
+use templates::HandleSignupConfirmation;
 use tracing::error;
+use uuid::Uuid;
 use zxcvbn::zxcvbn;
 
 use crate::app_env::{AppEnv, ExtractAppEnv};
-use crate::services::auth::{SignUpError, SignUpParams, SignUpResult};
+use crate::services::auth::email_confirmation::EmailConfirmationToken;
+use crate::services::auth::{ConfirmEmailError, SignUpError, SignUpParams, SignUpResult};
 
 mod templates {
-    use crate::routes::filters;
+    use crate::{routes::filters, services::auth::ConfirmEmailError};
     use askama_axum::*;
 
     /// The complete login page
@@ -46,6 +51,14 @@ mod templates {
     #[template(path = "auth/signup-confirmation.html", block = "content")]
     pub struct HandleSignupConfirmation {
         pub result: super::SignUpResult,
+        pub confirmation_email_resent: bool,
+    }
+
+    /// A template returned as a result from the confirm_email route
+    #[derive(Template)]
+    #[template(path = "auth/email-confirmation.html")]
+    pub struct ConfirmEmail {
+        pub result: Result<(), ConfirmEmailError>,
     }
 }
 
@@ -168,9 +181,47 @@ async fn handle_signup(state: ExtractAppEnv, form: Form<SignupForm>) -> impl Int
                 error!(error = ?e, "Failed to sign up a new user");
             }
 
-            templates::HandleSignupConfirmation { result }.into_response()
+            templates::HandleSignupConfirmation {
+                result,
+                confirmation_email_resent: false,
+            }
+            .into_response()
         }
         Err(e) => e.into_response(),
+    }
+}
+
+#[derive(Deserialize)]
+struct ResendConfirmationForm {
+    user_id: Uuid,
+}
+
+async fn resend_confirmation(
+    env: ExtractAppEnv,
+    form: Form<ResendConfirmationForm>,
+) -> impl IntoResponse {
+    let result = match env
+        .auth_service
+        .resend_confirmation_email(form.user_id)
+        .await
+    {
+        Ok(_) => Ok(form.user_id),
+        Err(e) => Err(SignUpError::TechnicalError(e)),
+    };
+    HandleSignupConfirmation {
+        confirmation_email_resent: result.is_ok(),
+        result,
+    }
+}
+
+async fn confirm_email(env: ExtractAppEnv, Path(token): Path<String>) -> impl IntoResponse {
+    match env
+        .auth_service
+        .confirm_email(EmailConfirmationToken { value: token })
+        .await
+    {
+        Err(ConfirmEmailError::UserAlreadyConfirmed) => Redirect::to("/").into_response(),
+        result => templates::ConfirmEmail { result }.into_response(),
     }
 }
 
@@ -178,4 +229,6 @@ pub fn auth_router() -> Router<Arc<AppEnv>> {
     Router::new()
         .route("/login", get(login))
         .route("/signup", get(signup).post(handle_signup))
+        .route("/resend-confirmation", post(resend_confirmation))
+        .route("/confirm/:token", get(confirm_email))
 }

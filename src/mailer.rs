@@ -1,10 +1,9 @@
-use std::env;
-
-use anyhow::Context;
 use lettre::{
     message::{header::ContentType, MessageBuilder},
     AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor,
 };
+
+use crate::app_env::AppConfig;
 
 #[derive(Clone)]
 pub struct Mailer {
@@ -12,23 +11,15 @@ pub struct Mailer {
 }
 
 impl Mailer {
-    pub fn new() -> anyhow::Result<Self> {
-        let host = env::var("SMTP_SERVER_HOST").unwrap_or("localhost".to_string());
-        let port = match env::var("SMTP_SERVER_PORT") {
-            Ok(var) => var
-                .parse::<u16>()
-                .with_context(|| "Failed to parse SMTP_SERVER_PORT")?,
-            _ => 25,
-        };
-        let skip_tls = env::var("SMTP_SKIP_TLS") == Ok("true".to_string());
+    pub fn new(config: &AppConfig) -> anyhow::Result<Self> {
         Ok(Self {
-            inner: if skip_tls {
-                AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(&host)
-                    .port(port)
+            inner: if config.smtp_disable_tls {
+                AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(&config.smtp_server_host)
+                    .port(config.smtp_server_port)
                     .build()
             } else {
-                AsyncSmtpTransport::<Tokio1Executor>::relay(&host)?
-                    .port(port)
+                AsyncSmtpTransport::<Tokio1Executor>::relay(&config.smtp_server_host)?
+                    .port(config.smtp_server_port)
                     .build()
             },
         })

@@ -1,5 +1,6 @@
-mod email_confirmation;
+pub mod email_confirmation;
 
+use ::entity::user_account;
 use anyhow::{anyhow, Context};
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
@@ -8,16 +9,18 @@ use argon2::{
 use askama::Template;
 use chrono::Utc;
 use email_address::EmailAddress;
-use entity::user_account;
-use rusty_paseto::core::{Local, PasetoSymmetricKey, V4};
-use sea_orm::{ActiveModelTrait, DatabaseConnection, Set, SqlErr};
+use email_confirmation::EmailConfirmationToken;
+use sea_orm::*;
+use std::sync::Arc;
 use thiserror::Error;
+use url::Url;
+use uuid::Uuid;
 
-use crate::mailer::Mailer;
+use crate::{app_env::AppConfig, mailer::Mailer};
 
 pub struct AuthService {
+    app_config: Arc<AppConfig>,
     db: DatabaseConnection,
-    paseto_key: PasetoSymmetricKey<V4, Local>,
     mailer: Mailer,
     argon: Argon2<'static>,
 }
@@ -31,35 +34,54 @@ pub struct SignUpParams {
 
 #[derive(Template)]
 #[template(path = "emails/signup-confirmation.html")]
-struct SignupConfirmationEmail<'u> {
-    user: &'u user_account::ActiveModel,
+struct SignupConfirmationEmail {
+    email_confirmation_url: Url,
 }
 
 #[derive(Error, Debug)]
 pub enum SignUpError {
     #[error("User already exists")]
     UserAlreadyExists,
+    #[error("User already exists but their e-mail needs to be confirmed")]
+    UnconfirmedUserAlreadyExists { user_id: Uuid },
     #[error(transparent)]
     TechnicalError(#[from] anyhow::Error),
 }
 
-pub type SignUpResult = Result<(), SignUpError>;
+pub type SignUpResult = Result<Uuid, SignUpError>;
+
+pub enum ConfirmEmailError {
+    UserAlreadyConfirmed,
+    InvalidToken,
+    TechnicalIssue,
+}
 
 impl AuthService {
-    pub fn new(
-        db: DatabaseConnection,
-        mailer: Mailer,
-        paseto_key: PasetoSymmetricKey<V4, Local>,
-    ) -> Self {
+    pub fn new(app_config: Arc<AppConfig>, db: DatabaseConnection, mailer: Mailer) -> Self {
         Self {
             db,
             mailer,
-            paseto_key,
+            app_config,
             argon: Argon2::default(),
         }
     }
 
     pub async fn sign_up(&self, params: SignUpParams) -> SignUpResult {
+        let existing_user = user_account::Entity::find()
+            .filter(user_account::Column::Email.eq(params.email.as_str()))
+            .one(&self.db)
+            .await
+            .map_err(|e| SignUpError::TechnicalError(e.into()))?;
+
+        if let Some(existing_user) = existing_user {
+            if existing_user.email_confirmed_at.is_none() {
+                return Err(SignUpError::UnconfirmedUserAlreadyExists {
+                    user_id: existing_user.id,
+                });
+            }
+            return Err(SignUpError::UserAlreadyExists);
+        }
+
         let salt = SaltString::generate(&mut OsRng);
         let password_hash = self
             .argon
@@ -76,14 +98,61 @@ impl AuthService {
             ..Default::default()
         };
 
-        let user = user.save(&self.db).await.map_err(|e| match e.sql_err() {
-            Some(SqlErr::UniqueConstraintViolation(_)) => SignUpError::UserAlreadyExists,
-            _ => SignUpError::TechnicalError(e.into()),
-        })?;
+        let user = user_account::Entity::insert(user)
+            .exec_with_returning(&self.db)
+            .await
+            .map_err(|e| SignUpError::TechnicalError(e.into()))?;
 
-        self.send_confirmation_email(&user)
+        let confirmation_token =
+            EmailConfirmationToken::build(&self.app_config.paseto_key, &user.id, &params.email)
+                .with_context(|| "Failed to build e-mail confirmation token")?;
+
+        self.send_confirmation_email(&user, &confirmation_token)
             .await
             .with_context(|| "Failed to send confirmation e-mail")?;
+
+        Ok(user.id)
+    }
+
+    pub async fn resend_confirmation_email(&self, user_id: Uuid) -> anyhow::Result<()> {
+        let existing_user = user_account::Entity::find_by_id(user_id)
+            .one(&self.db)
+            .await?
+            .with_context(|| "Cannot find user")?;
+        let email = existing_user.email.parse::<EmailAddress>()?;
+
+        let confirmation_token =
+            EmailConfirmationToken::build(&self.app_config.paseto_key, &existing_user.id, &email)
+                .with_context(|| "Failed to build e-mail confirmation token")?;
+
+        self.send_confirmation_email(&existing_user, &confirmation_token)
+            .await
+    }
+
+    pub async fn confirm_email(
+        &self,
+        token: EmailConfirmationToken,
+    ) -> Result<(), ConfirmEmailError> {
+        let deciphered_token = EmailConfirmationToken::decipher(&self.app_config.paseto_key, token)
+            .map_err(|_| ConfirmEmailError::InvalidToken)?;
+
+        let user = user_account::Entity::find_by_id(deciphered_token.user_id)
+            .one(&self.db)
+            .await
+            .ok()
+            .flatten()
+            .ok_or(ConfirmEmailError::InvalidToken)?;
+
+        if user.email_confirmed_at.is_some() {
+            return Err(ConfirmEmailError::UserAlreadyConfirmed);
+        }
+
+        let mut user = user_account::ActiveModel::from(user);
+
+        user.email_confirmed_at = Set(Some(Utc::now()));
+        user.update(&self.db)
+            .await
+            .map_err(|_| ConfirmEmailError::TechnicalIssue)?;
 
         Ok(())
     }
@@ -99,12 +168,19 @@ impl AuthService {
 
     async fn send_confirmation_email(
         &self,
-        user: &user_account::ActiveModel,
+        user: &user_account::Model,
+        confirmation_token: &EmailConfirmationToken,
     ) -> anyhow::Result<()> {
-        let body = SignupConfirmationEmail { user }.render()?;
+        let body = SignupConfirmationEmail {
+            email_confirmation_url: EmailConfirmationToken::url(
+                &self.app_config,
+                confirmation_token,
+            ),
+        }
+        .render()?;
         let message = Mailer::builder()
             .subject("Confirm your Duty Duck registration")
-            .to(format!("{} <{}>", user.full_name.as_ref(), user.email.as_ref()).parse()?)
+            .to(format!("{} <{}>", user.full_name, user.email).parse()?)
             .body(body)?;
         self.mailer.send(message).await
     }

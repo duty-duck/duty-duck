@@ -3,23 +3,49 @@
 
 {% block content %}
 
-{% let active_page = "Sign up" -%}
-
 {% call super() %}
 <div class="card">
     <div class="card-body">
         {% match result %}
-        {% when Ok with (_) %}
+        {% when Ok with (user_id) %}
             <h3>Welcome!</h3>
             <p>Thank you for registering. Your are just a moment away from securing your website against unnoticed breakdowns.</p>
             <p>A confirmation e-mail has been sent to your inbox. You must visit the provided URL to finish your registration.</p>
-            <div class="d-flex align-items-center justify-content-between mt-2">
-                <span>Did not receive the confirmation e-mail ?</span>
-                <a href="#" class="btn btn-primary">
-                    <i data-feather="send"></i>
-                    Resend
-                </a>
-            </div>
+            {% if confirmation_email_resent %}
+            <p>
+                <button type="button" class="btn btn-outline-primary" disabled>
+                    E-mail sent!
+                </button>
+            </p>
+            {% else %}
+            <p>
+                <b>Did not receive the confirmation e-mail ?</b>
+                <form hx-post="/auth/resend-confirmation" hx-target="#auth-page-container">
+                    <input type="hidden" name="user_id" value="{{ user_id }}">
+                    <button type="submit" class="btn btn-outline-primary" data-loading-disable>
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" data-loading></span>
+                        <span class="visually-hidden" data-loading>Loading...</span>
+                        Send confirmation e-mail
+                    </button>
+                </form>
+            </p>
+            {% endif %}
+
+        {% when Err with (crate::services::auth::SignUpError::UnconfirmedUserAlreadyExists { user_id }) %}
+            <h3>You're almost there!</h3>
+            <p>
+                It seems that you have already signed up, but we need to confirm your e-mail address. You should have received an e-mail with
+                a confirmation link to complete your registration.
+            </p>
+            <p>You didn't receive the e-mail?</p>
+            <form hx-post="/auth/resend-confirmation" hx-target="#auth-page-container">
+                <input type="hidden" name="user_id" value="{{ user_id }}">
+                <button type="submit" class="btn btn-outline-primary" data-loading-disable>
+                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" data-loading></span>
+                    <span class="visually-hidden" data-loading>Loading...</span>
+                    Send confirmation e-mail
+                </button>
+            </form>
         {% when Err with (crate::services::auth::SignUpError::UserAlreadyExists) %}
             <h3>Welcome back!</h3>
             <p>It seems that a user account already exists for this e-mail address.</p>
