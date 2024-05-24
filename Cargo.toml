@@ -31,7 +31,6 @@ sea-orm.workspace = true
 tokio.workspace = true
 email_address = "0.2.4"
 zxcvbn = "2.2.2"
-dotenv = "0.15.0"
 thiserror = "1.0.61"
 argon2 = "0.5.3"
 lettre = { version = "0.11.7", features = [
@@ -45,12 +44,16 @@ rusty_paseto = "0.6.1"
 url = "2.5.0"
 urlencoding = "2.1.3"
 cucumber = "0.21.0"
+dotenv.workspace = true
 
 [dev-dependencies]
+entity = { path = "entity" }
 thirtyfour = "0.32.0"
 once_cell = "1.19"
+dotenv.workspace = true
 
 [workspace.dependencies]
+dotenv = "0.15.0"
 serde = "1.0.202"
 tokio = { version = "1.37.0", features = ["full"] }
 sea-orm = { version = "0.12", features = [
@@ -63,4 +66,4 @@ sea-orm = { version = "0.12", features = [
 
 [[test]]
 name = "end_to_end"
-harness = false 
+harness = false
