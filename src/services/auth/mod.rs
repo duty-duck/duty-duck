@@ -13,6 +13,7 @@ use email_confirmation::EmailConfirmationToken;
 use sea_orm::*;
 use std::sync::Arc;
 use thiserror::Error;
+use tracing::debug;
 use url::Url;
 use uuid::Uuid;
 
@@ -51,7 +52,7 @@ pub enum SignUpError {
 pub type SignUpResult = Result<Uuid, SignUpError>;
 
 pub enum ConfirmEmailError {
-    UserAlreadyConfirmed,
+    UserAlreadyConfirmed { user_id: Uuid },
     InvalidToken,
     TechnicalIssue,
 }
@@ -64,6 +65,10 @@ impl AuthService {
             app_config,
             argon: Argon2::default(),
         }
+    }
+
+    pub async fn get_user_by_id(&self, id: Uuid) -> anyhow::Result<Option<user_account::Model>> {
+        Ok(user_account::Entity::find_by_id(id).one(&self.db).await?)
     }
 
     pub async fn sign_up(&self, params: SignUpParams) -> SignUpResult {
@@ -132,29 +137,42 @@ impl AuthService {
     pub async fn confirm_email(
         &self,
         token: EmailConfirmationToken,
-    ) -> Result<(), ConfirmEmailError> {
+    ) -> Result<Uuid, ConfirmEmailError> {
         let deciphered_token = EmailConfirmationToken::decipher(&self.app_config.paseto_key, token)
-            .map_err(|_| ConfirmEmailError::InvalidToken)?;
+            .map_err(|e| match e {
+                email_confirmation::Error::InvalidToken { details } => {
+                    debug!(details = details, "An invalid token was supplied");
+                    ConfirmEmailError::InvalidToken
+                }
+                email_confirmation::Error::ExpiredToken => {
+                    debug!("An expired token was supplied");
+                    ConfirmEmailError::InvalidToken
+                }
+            })?;
 
         let user = user_account::Entity::find_by_id(deciphered_token.user_id)
             .one(&self.db)
             .await
             .ok()
             .flatten()
-            .ok_or(ConfirmEmailError::InvalidToken)?;
+            .ok_or_else(|| {
+                debug!("A valid confirmation token was suppliged but the user cannot be found in the database");
+                ConfirmEmailError::InvalidToken
+            })?;
 
         if user.email_confirmed_at.is_some() {
-            return Err(ConfirmEmailError::UserAlreadyConfirmed);
+            return Err(ConfirmEmailError::UserAlreadyConfirmed { user_id: user.id });
         }
 
         let mut user = user_account::ActiveModel::from(user);
 
         user.email_confirmed_at = Set(Some(Utc::now()));
-        user.update(&self.db)
+        let user = user
+            .update(&self.db)
             .await
             .map_err(|_| ConfirmEmailError::TechnicalIssue)?;
 
-        Ok(())
+        Ok(user.id)
     }
 
     fn check_password(&self, hashed_password: &str, password_input: &[u8]) -> anyhow::Result<bool> {

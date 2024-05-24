@@ -18,8 +18,17 @@
           <a class="nav-link {{ " active"|only(active_page=="pricing" ) }}" href="/pricing">Pricing</a>
         </li>
       </ul>
-      <div>
+      <div class="d-flex align-items-center">
+        {% match current_user %}
+        {% when Some with (user) %}
+        <div class="text-white text-center me-3" style="font-size: .65rem;">
+          Logged in as<br>{{ user.full_name }}
+        </div>
+        <a href="/dashboard" class="btn btn-info">Dashboard</a>
+        {% when None %}
         <a href="/auth/login" class="btn btn-primary">Log in</a>
+        {% endmatch %}
+
       </div>
     </div>
   </div>

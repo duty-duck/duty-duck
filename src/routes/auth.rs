@@ -16,6 +16,7 @@ use zxcvbn::zxcvbn;
 use crate::app_env::{AppEnv, ExtractAppEnv};
 use crate::services::auth::email_confirmation::EmailConfirmationToken;
 use crate::services::auth::{ConfirmEmailError, SignUpError, SignUpParams, SignUpResult};
+use crate::session::{Session, SetSession};
 
 mod templates {
     use crate::{routes::filters, services::auth::ConfirmEmailError};
@@ -220,8 +221,19 @@ async fn confirm_email(env: ExtractAppEnv, Path(token): Path<String>) -> impl In
         .confirm_email(EmailConfirmationToken { value: token })
         .await
     {
-        Err(ConfirmEmailError::UserAlreadyConfirmed) => Redirect::to("/").into_response(),
-        result => templates::ConfirmEmail { result }.into_response(),
+        Err(ConfirmEmailError::UserAlreadyConfirmed { user_id }) => {
+            let session = Session { user_id };
+            (SetSession(session, &env.config), Redirect::to("/")).into_response()
+        }
+        Err(e) => templates::ConfirmEmail { result: Err(e) }.into_response(),
+        Ok(user_id) => {
+            let session = Session { user_id };
+            (
+                SetSession(session, &env.config),
+                templates::ConfirmEmail { result: Ok(()) },
+            )
+                .into_response()
+        }
     }
 }
 

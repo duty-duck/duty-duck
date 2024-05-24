@@ -27,7 +27,7 @@ pub enum Error {
     #[error("the token has expired, a new token must be generated")]
     ExpiredToken,
     #[error("the token is invalid")]
-    InvalidToken,
+    InvalidToken { details: &'static str },
 }
 
 impl EmailConfirmationToken {
@@ -47,7 +47,7 @@ impl EmailConfirmationToken {
         let token = PasetoBuilder::<V4, Local>::default()
             .set_claim(SubjectClaim::from(sub.as_str()))
             .set_claim(CustomClaim::try_from(("email", email.as_str()))?)
-            .set_claim(AudienceClaim::from("dutyduck-email-verification"))
+            .set_claim(AudienceClaim::from("email-verification"))
             .build(key)?;
         let token = urlencoding::encode(&token).into_owned();
 
@@ -58,19 +58,21 @@ impl EmailConfirmationToken {
         key: &PasetoSymmetricKey<V4, Local>,
         token: Self,
     ) -> Result<DecipheredConfirmationToken, Error> {
-        let token = urlencoding::decode(&token.value).map_err(|_| Error::InvalidToken)?;
+        let token = urlencoding::decode(&token.value).map_err(|_| Error::InvalidToken {
+            details: "failed to url decode",
+        })?;
         let value = PasetoParser::<V4, Local>::default()
-            .check_claim(AudienceClaim::from("dutyduck-email-verification"))
+            .check_claim(AudienceClaim::from("email-verification"))
             .parse(&token, key)
             .map_err(|e| match e {
                 GenericParserError::ClaimError {
                     source: PasetoClaimError::Expired,
                 } => Error::ExpiredToken,
-                _ => Error::InvalidToken,
+                _ => Error::InvalidToken { details: "failed to parse PASETO token"},
             })?;
 
         serde_json::from_value::<DecipheredConfirmationToken>(value)
-            .map_err(|_| Error::InvalidToken)
+            .map_err(|_| Error::InvalidToken { details: "failed to deserialized the token's payload" })
     }
 }
 

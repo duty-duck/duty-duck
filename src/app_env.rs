@@ -58,6 +58,7 @@ impl AppConfig {
 
 pub struct AppEnv {
     pub auth_service: AuthService,
+    pub config: Arc<AppConfig>,
 }
 
 pub type ExtractAppEnv = State<Arc<AppEnv>>;
@@ -65,6 +66,7 @@ pub type ExtractAppEnv = State<Arc<AppEnv>>;
 impl AppEnv {
     pub fn new(app_config: Arc<AppConfig>, db: DatabaseConnection, mailer: Mailer) -> Self {
         Self {
+            config: app_config.clone(),
             auth_service: AuthService::new(app_config.clone(), db.clone(), mailer.clone()),
         }
     }

@@ -1,7 +1,9 @@
 mod app_env;
+mod filters;
 mod mailer;
 mod routes;
 mod services;
+mod session;
 
 use std::sync::Arc;
 
@@ -40,7 +42,7 @@ async fn main() {
     let mailer = Mailer::new(&config).expect("Failed to initialize mailer");
 
     let app = Router::new()
-        .nest("/", routes::public_site_router())
+        .nest("/", routes::all())
         .with_state(Arc::new(AppEnv::new(config, db, mailer)));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
