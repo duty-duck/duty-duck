@@ -1,9 +1,10 @@
 use axum::extract::Path;
-use axum::response::{IntoResponse, Redirect};
+use axum::response::{AppendHeaders, IntoResponse, Redirect};
 use axum::routing::post;
 use axum::{routing::get, Form, Router};
 use serde::Deserialize;
 use std::sync::Arc;
+use std::time::Duration;
 use tracing::error;
 use uuid::Uuid;
 
@@ -28,13 +29,21 @@ async fn handle_login(
     match env.auth_service.log_in(&form.email, &form.password).await {
         Ok(user) => {
             let session = Session { user_id: user.id };
-            (SetSession(session, &env.config), Redirect::to("/dashboard")).into_response()
+            (
+                SetSession(session, &env.config),
+                Redirect::to("/dashboard"),
+            )
+                .into_response()
         }
-        Err(e) => views::auth::HandleLogin {
-            error: Some(e),
-            ..Default::default()
+        Err(e) => {
+            // Delay the response for a few seconds to avoid malicious users from making too many attempts
+            tokio::time::sleep(Duration::from_secs(2)).await;
+            views::auth::HandleLogin {
+                error: Some(e),
+                ..Default::default()
+            }
+            .into_response()
         }
-        .into_response(),
     }
 }
 

@@ -18,8 +18,22 @@
                     <i data-feather="edit-2"></i> Sign up
                 </a>
               </div>
-            {% when Some with (LoginError::UserNotConfirmed) %}
-
+            {% when Some with (LoginError::UserNotConfirmed { user_id }) %}
+            <div class="alert-alert-info">
+                <p>
+                    We need to confirm your e-mail address before you can log in. You should have received an e-mail with
+                    a confirmation link to complete your registration.
+                </p>
+                <p>You didn't receive the e-mail?</p>
+                <form hx-post="/auth/resend-confirmation" hx-target="#auth-page-container">
+                    <input type="hidden" name="user_id" value="{{ user_id }}">
+                    <button type="submit" class="btn btn-outline-primary" data-loading-disable>
+                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" data-loading></span>
+                        <span class="visually-hidden" data-loading>Loading...</span>
+                        Send confirmation e-mail
+                    </button>
+                </form>
+            </div>
             {% when Some with (LoginError::UserNotFound) %}
             <div class="alert alert-danger">
                 We could not find any account for these credentials. Please verify your e-mail address or <a class="alert-link" href="/auth/signup" hx-target="unset">sign up</a>.

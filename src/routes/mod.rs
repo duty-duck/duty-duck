@@ -2,10 +2,7 @@ pub mod assets;
 mod auth;
 
 use axum::{
-    http::{header::CACHE_CONTROL, HeaderValue},
-    response::IntoResponse,
-    routing::get,
-    Router,
+    http::{header::CACHE_CONTROL, HeaderValue}, response::IntoResponse, routing::get, Json, Router
 };
 use std::sync::Arc;
 use tower_http::set_header::SetResponseHeaderLayer;
@@ -26,15 +23,17 @@ async fn pricing(user_opt: Option<CurrentUser>) -> impl IntoResponse {
     }
 }
 
+async fn dashboard(CurrentUser(user): CurrentUser) -> impl IntoResponse {
+    Json(user)
+}
+
 pub fn public_site_router() -> Router<Arc<AppEnv>> {
     Router::new()
         .route("/", get(root))
         .route("/pricing", get(pricing))
         .nest("/auth", auth_router())
-        .layer(SetResponseHeaderLayer::if_not_present(
-            CACHE_CONTROL,
-            HeaderValue::from_static("max-age=600"),
-        ))
+        // todo: remove this
+        .route("/dashboard", get(dashboard))
 }
 
 pub fn all() -> Router<Arc<AppEnv>> {

@@ -47,7 +47,7 @@ pub enum LoginError {
     #[error("Your credentials are invalid.")]
     InvalidPassword,
     #[error("We need to verify your e-mail address before you can log in.")]
-    UserNotConfirmed,
+    UserNotConfirmed { user_id: Uuid },
     #[error(transparent)]
     TechnicalError(#[from] anyhow::Error),
 }
@@ -130,7 +130,12 @@ impl AuthService {
 
         let password_is_valid = self.check_password(&user.password, password)?;
         if password_is_valid {
-            Ok(user)
+            let is_user_confirmed = user.email_confirmed_at.is_some();
+            if is_user_confirmed {
+                Ok(user)
+            } else {
+                Err(LoginError::UserNotConfirmed { user_id: user.id })
+            }
         } else {
             Err(LoginError::InvalidPassword)
         }
