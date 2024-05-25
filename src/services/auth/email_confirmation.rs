@@ -1,15 +1,112 @@
+use chrono::Utc;
+use ::entity::user_account;
+use anyhow::Context;
+use askama::Template;
 use email_address::EmailAddress;
 use rusty_paseto::{
     core::{Local, PasetoSymmetricKey, V4},
     generic::{AudienceClaim, CustomClaim, GenericParserError, PasetoClaimError, SubjectClaim},
     prelude::{PasetoBuilder, PasetoParser},
 };
+use sea_orm::*;
 use serde::Deserialize;
 use thiserror::Error;
+use tracing::*;
 use url::Url;
 use uuid::Uuid;
 
-use crate::app_env::AppConfig;
+use crate::{app_env::AppConfig, mailer::Mailer};
+
+use super::AuthService;
+
+#[derive(Template)]
+#[template(path = "emails/signup-confirmation.html")]
+struct SignupConfirmationEmail {
+    email_confirmation_url: Url,
+}
+
+pub enum ConfirmEmailError {
+    UserAlreadyConfirmed { user_id: Uuid },
+    InvalidToken,
+    TechnicalIssue,
+}
+
+impl AuthService {
+    pub async fn resend_confirmation_email(&self, user_id: Uuid) -> anyhow::Result<()> {
+        let existing_user = user_account::Entity::find_by_id(user_id)
+            .one(&self.db)
+            .await?
+            .with_context(|| "Cannot find user")?;
+        let email = existing_user.email.parse::<EmailAddress>()?;
+
+        let confirmation_token =
+            EmailConfirmationToken::build(&self.app_config.paseto_key, &existing_user.id, &email)
+                .with_context(|| "Failed to build e-mail confirmation token")?;
+
+        self.send_confirmation_email(&existing_user, &confirmation_token)
+            .await
+    }
+
+    pub async fn confirm_email(
+        &self,
+        token: EmailConfirmationToken,
+    ) -> Result<Uuid, ConfirmEmailError> {
+        let deciphered_token = EmailConfirmationToken::decipher(&self.app_config.paseto_key, token)
+            .map_err(|e| match e {
+                self::Error::InvalidToken { details } => {
+                    debug!(details = details, "An invalid token was supplied");
+                    ConfirmEmailError::InvalidToken
+                }
+                self::Error::ExpiredToken => {
+                    debug!("An expired token was supplied");
+                    ConfirmEmailError::InvalidToken
+                }
+            })?;
+
+        let user = user_account::Entity::find_by_id(deciphered_token.user_id)
+            .one(&self.db)
+            .await
+            .ok()
+            .flatten()
+            .ok_or_else(|| {
+                debug!("A valid confirmation token was suppliged but the user cannot be found in the database");
+                ConfirmEmailError::InvalidToken
+            })?;
+
+        if user.email_confirmed_at.is_some() {
+            return Err(ConfirmEmailError::UserAlreadyConfirmed { user_id: user.id });
+        }
+
+        let mut user = user_account::ActiveModel::from(user);
+
+        user.email_confirmed_at = Set(Some(Utc::now()));
+        let user = user
+            .update(&self.db)
+            .await
+            .map_err(|_| ConfirmEmailError::TechnicalIssue)?;
+
+        Ok(user.id)
+    }
+
+    pub(super) async fn send_confirmation_email(
+        &self,
+        user: &user_account::Model,
+        confirmation_token: &EmailConfirmationToken,
+    ) -> anyhow::Result<()> {
+        let body = SignupConfirmationEmail {
+            email_confirmation_url: EmailConfirmationToken::url(
+                &self.app_config,
+                confirmation_token,
+            ),
+        }
+        .render()?;
+        let message = Mailer::builder()
+            .subject("Confirm your Duty Duck registration")
+            .to(format!("{} <{}>", user.full_name, user.email).parse()?)
+            .body(body)?;
+        self.mailer.send(message).await
+    }
+}
 
 pub struct EmailConfirmationToken {
     pub value: String,
@@ -68,11 +165,16 @@ impl EmailConfirmationToken {
                 GenericParserError::ClaimError {
                     source: PasetoClaimError::Expired,
                 } => Error::ExpiredToken,
-                _ => Error::InvalidToken { details: "failed to parse PASETO token"},
+                _ => Error::InvalidToken {
+                    details: "failed to parse PASETO token",
+                },
             })?;
 
-        serde_json::from_value::<DecipheredConfirmationToken>(value)
-            .map_err(|_| Error::InvalidToken { details: "failed to deserialized the token's payload" })
+        serde_json::from_value::<DecipheredConfirmationToken>(value).map_err(|_| {
+            Error::InvalidToken {
+                details: "failed to deserialized the token's payload",
+            }
+        })
     }
 }
 

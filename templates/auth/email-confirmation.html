@@ -24,7 +24,7 @@
             <p>
                 <a href="/">Not redirected? Click here to go to the dashboard</a>
             </p>
-            {% when Err with (crate::services::auth::ConfirmEmailError::InvalidToken) %}
+            {% when Err with (ConfirmEmailError::InvalidToken) %}
             <h3>Uh-oh,</h3>
             <p>It looks like your e-mail confirmation token has expired. Please attempt to log in again and we will send you a new confirmation e-mail.</p>
             <p>

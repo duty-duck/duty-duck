@@ -6,15 +6,12 @@ use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
     Argon2,
 };
-use askama::Template;
 use chrono::Utc;
 use email_address::EmailAddress;
 use email_confirmation::EmailConfirmationToken;
 use sea_orm::*;
 use std::sync::Arc;
 use thiserror::Error;
-use tracing::debug;
-use url::Url;
 use uuid::Uuid;
 
 use crate::{app_env::AppConfig, mailer::Mailer};
@@ -33,12 +30,6 @@ pub struct SignUpParams {
     pub password: String,
 }
 
-#[derive(Template)]
-#[template(path = "emails/signup-confirmation.html")]
-struct SignupConfirmationEmail {
-    email_confirmation_url: Url,
-}
-
 #[derive(Error, Debug)]
 pub enum SignUpError {
     #[error("User already exists")]
@@ -49,13 +40,19 @@ pub enum SignUpError {
     TechnicalError(#[from] anyhow::Error),
 }
 
-pub type SignUpResult = Result<Uuid, SignUpError>;
-
-pub enum ConfirmEmailError {
-    UserAlreadyConfirmed { user_id: Uuid },
-    InvalidToken,
-    TechnicalIssue,
+#[derive(Error, Debug)]
+pub enum LoginError {
+    #[error("We could not find any account for these credentials. Please verify your e-mail address or sign up.")]
+    UserNotFound,
+    #[error("Your credentials are invalid.")]
+    InvalidPassword,
+    #[error("We need to verify your e-mail address before you can log in.")]
+    UserNotConfirmed,
+    #[error(transparent)]
+    TechnicalError(#[from] anyhow::Error),
 }
+
+pub type SignUpResult = Result<Uuid, SignUpError>;
 
 impl AuthService {
     pub fn new(app_config: Arc<AppConfig>, db: DatabaseConnection, mailer: Mailer) -> Self {
@@ -119,87 +116,32 @@ impl AuthService {
         Ok(user.id)
     }
 
-    pub async fn resend_confirmation_email(&self, user_id: Uuid) -> anyhow::Result<()> {
-        let existing_user = user_account::Entity::find_by_id(user_id)
-            .one(&self.db)
-            .await?
-            .with_context(|| "Cannot find user")?;
-        let email = existing_user.email.parse::<EmailAddress>()?;
-
-        let confirmation_token =
-            EmailConfirmationToken::build(&self.app_config.paseto_key, &existing_user.id, &email)
-                .with_context(|| "Failed to build e-mail confirmation token")?;
-
-        self.send_confirmation_email(&existing_user, &confirmation_token)
-            .await
-    }
-
-    pub async fn confirm_email(
+    pub async fn log_in(
         &self,
-        token: EmailConfirmationToken,
-    ) -> Result<Uuid, ConfirmEmailError> {
-        let deciphered_token = EmailConfirmationToken::decipher(&self.app_config.paseto_key, token)
-            .map_err(|e| match e {
-                email_confirmation::Error::InvalidToken { details } => {
-                    debug!(details = details, "An invalid token was supplied");
-                    ConfirmEmailError::InvalidToken
-                }
-                email_confirmation::Error::ExpiredToken => {
-                    debug!("An expired token was supplied");
-                    ConfirmEmailError::InvalidToken
-                }
-            })?;
-
-        let user = user_account::Entity::find_by_id(deciphered_token.user_id)
+        email: &str,
+        password: &str,
+    ) -> Result<user_account::Model, LoginError> {
+        let user = user_account::Entity::find()
+            .filter(user_account::Column::Email.eq(email))
             .one(&self.db)
             .await
-            .ok()
-            .flatten()
-            .ok_or_else(|| {
-                debug!("A valid confirmation token was suppliged but the user cannot be found in the database");
-                ConfirmEmailError::InvalidToken
-            })?;
+            .map_err(|e| LoginError::TechnicalError(anyhow!("SQL query failed: {e}")))?
+            .ok_or(LoginError::UserNotFound)?;
 
-        if user.email_confirmed_at.is_some() {
-            return Err(ConfirmEmailError::UserAlreadyConfirmed { user_id: user.id });
+        let password_is_valid = self.check_password(&user.password, password)?;
+        if password_is_valid {
+            Ok(user)
+        } else {
+            Err(LoginError::InvalidPassword)
         }
-
-        let mut user = user_account::ActiveModel::from(user);
-
-        user.email_confirmed_at = Set(Some(Utc::now()));
-        let user = user
-            .update(&self.db)
-            .await
-            .map_err(|_| ConfirmEmailError::TechnicalIssue)?;
-
-        Ok(user.id)
     }
 
-    fn check_password(&self, hashed_password: &str, password_input: &[u8]) -> anyhow::Result<bool> {
+    fn check_password(&self, hashed_password: &str, password_input: &str) -> anyhow::Result<bool> {
         let password = PasswordHash::new(hashed_password)
             .map_err(|_| anyhow!("Failed to parse stored password"))?;
         Ok(self
             .argon
-            .verify_password(password_input, &password)
+            .verify_password(password_input.as_bytes(), &password)
             .is_ok())
-    }
-
-    async fn send_confirmation_email(
-        &self,
-        user: &user_account::Model,
-        confirmation_token: &EmailConfirmationToken,
-    ) -> anyhow::Result<()> {
-        let body = SignupConfirmationEmail {
-            email_confirmation_url: EmailConfirmationToken::url(
-                &self.app_config,
-                confirmation_token,
-            ),
-        }
-        .render()?;
-        let message = Mailer::builder()
-            .subject("Confirm your Duty Duck registration")
-            .to(format!("{} <{}>", user.full_name, user.email).parse()?)
-            .body(body)?;
-        self.mailer.send(message).await
     }
 }

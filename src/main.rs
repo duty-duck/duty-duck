@@ -1,9 +1,9 @@
 mod app_env;
-mod filters;
 mod mailer;
 mod routes;
 mod services;
 mod session;
+mod views;
 
 use std::sync::Arc;
 
