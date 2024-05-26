@@ -1,5 +1,3 @@
-use std::path::Display;
-
 use axum::{
     async_trait,
     extract::FromRequestParts,
@@ -9,18 +7,18 @@ use axum::{
 use entity::user_account;
 use headers::{Cookie, HeaderMapExt};
 use rand::{
-    rngs::{OsRng, StdRng},
+    rngs::{OsRng},
     Rng,
 };
 use rusty_paseto::{
-    core::{Local, PasetoSymmetricKey, V4},
+    core::{Local, V4},
     generic::{AudienceClaim, SubjectClaim, TokenIdentifierClaim},
     prelude::{PasetoBuilder, PasetoParser},
 };
 use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::app_env::{AppConfig, AppEnv};
+use crate::{app_env::{AppConfig, AppEnv}, crypto::SymetricEncryptionKey};
 
 const SESSION_COOKIE_NAME: &str = "dutyducksession";
 
@@ -112,7 +110,7 @@ struct SessionToken {
 }
 
 impl SessionToken {
-    fn encode(key: &PasetoSymmetricKey<V4, Local>, session: Session) -> anyhow::Result<Self> {
+    fn encode(key: &SymetricEncryptionKey, session: Session) -> anyhow::Result<Self> {
         let sub = session.user_id.to_string();
         let jti = session.csrf_token.to_string();
         let value = PasetoBuilder::<V4, Local>::default()
@@ -124,7 +122,7 @@ impl SessionToken {
         Ok(Self { value })
     }
 
-    fn decode(key: &PasetoSymmetricKey<V4, Local>, token: Self) -> anyhow::Result<Session> {
+    fn decode(key: &SymetricEncryptionKey, token: Self) -> anyhow::Result<Session> {
         let token = urlencoding::decode(&token.value)?;
         let value = PasetoParser::<V4, Local>::default()
             .check_claim(AudienceClaim::from("session"))

@@ -1,10 +1,11 @@
 mod app_env;
+mod crypto;
+mod form;
 mod mailer;
 mod routes;
 mod services;
 mod session;
 mod views;
-mod form;
 
 use std::sync::Arc;
 

@@ -4,7 +4,7 @@ use askama::Template;
 use chrono::Utc;
 use email_address::EmailAddress;
 use rusty_paseto::{
-    core::{Local, PasetoSymmetricKey, V4},
+    core::{Local, V4},
     generic::{AudienceClaim, CustomClaim, GenericParserError, PasetoClaimError, SubjectClaim},
     prelude::{PasetoBuilder, PasetoParser},
 };
@@ -15,7 +15,7 @@ use tracing::*;
 use url::Url;
 use uuid::Uuid;
 
-use crate::{app_env::AppConfig, mailer::Mailer};
+use crate::{app_env::AppConfig, crypto::SymetricEncryptionKey, mailer::Mailer};
 
 use super::AuthService;
 
@@ -148,7 +148,7 @@ impl EmailConfirmationToken {
     }
 
     pub fn build(
-        key: &PasetoSymmetricKey<V4, Local>,
+        key: &SymetricEncryptionKey,
         user_id: &Uuid,
         email: &EmailAddress,
     ) -> anyhow::Result<Self> {
@@ -164,7 +164,7 @@ impl EmailConfirmationToken {
     }
 
     pub fn decipher(
-        key: &PasetoSymmetricKey<V4, Local>,
+        key: &SymetricEncryptionKey,
         token: Self,
     ) -> Result<DecipheredConfirmationToken, Error> {
         let token = urlencoding::decode(&token.value).map_err(|_| Error::InvalidToken {
@@ -195,15 +195,16 @@ mod tests {
     use std::str::FromStr;
 
     use email_address::EmailAddress;
-    use rusty_paseto::core::{Key, PasetoSymmetricKey};
     use uuid::Uuid;
+
+    use crate::crypto::SymetricEncryptionKey;
 
     use super::EmailConfirmationToken;
 
     #[test]
     fn test_create_and_decipher_a_token() {
         let email = EmailAddress::from_str("foo@bar.com").unwrap();
-        let key = PasetoSymmetricKey::from(Key::<32>::try_new_random().unwrap());
+        let key = SymetricEncryptionKey::new_random();
         let user_id = Uuid::new_v4();
         let confirmation_token = EmailConfirmationToken::build(&key, &user_id, &email).unwrap();
         let deciphered_token = EmailConfirmationToken::decipher(&key, confirmation_token).unwrap();
