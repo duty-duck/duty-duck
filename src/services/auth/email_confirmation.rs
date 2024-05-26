@@ -1,7 +1,7 @@
-use chrono::Utc;
 use ::entity::user_account;
 use anyhow::Context;
 use askama::Template;
+use chrono::Utc;
 use email_address::EmailAddress;
 use rusty_paseto::{
     core::{Local, PasetoSymmetricKey, V4},
@@ -37,6 +37,18 @@ impl AuthService {
             .one(&self.db)
             .await?
             .with_context(|| "Cannot find user")?;
+
+        // User is already validated, no need to send an email
+        // This would only happen if a user
+        //   1. Loads the "re-send confirmatio e-mail" button in their browser
+        //   2. Do click on the button
+        //   3. Validate their account using some prior confirmation e-mail
+        //   4. Attemps to click on the button once their account is already confirmed
+        // We could provide a more precise feedback for this scenario, but for now, treating it as a success will do fine
+        if existing_user.email_confirmed_at.is_some() {
+            return Ok(());
+        }
+
         let email = existing_user.email.parse::<EmailAddress>()?;
 
         let confirmation_token =

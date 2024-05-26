@@ -10,35 +10,35 @@ use uuid::Uuid;
 
 use crate::app_env::{AppEnv, ExtractAppEnv};
 use crate::services::auth::email_confirmation::{ConfirmEmailError, EmailConfirmationToken};
-use crate::services::auth::{LoginError, SignUpError};
+use crate::services::auth::SignUpError;
 use crate::session::{Session, SetSession};
 use crate::views;
 
 async fn login() -> impl IntoResponse {
-    views::auth::Login::default()
+    views::auth::LogInPage::default()
 }
 
 async fn signup() -> impl IntoResponse {
-    views::auth::Signup::default()
+    views::auth::SignUpPage::default()
 }
 
 async fn handle_login(
     env: ExtractAppEnv,
-    Form(form): Form<views::auth::LogInForm>,
+    Form(form): Form<views::auth::LogInFormData>,
 ) -> impl IntoResponse {
     match env.auth_service.log_in(&form.email, &form.password).await {
         Ok(user) => {
-            let session = Session { user_id: user.id };
+            let session = Session::new(user.id);
             (
                 SetSession(session, &env.config),
-                Redirect::to("/dashboard"),
+                AppendHeaders([("HX-Location", "/dashboard")]),
             )
                 .into_response()
         }
         Err(e) => {
             // Delay the response for a few seconds to avoid malicious users from making too many attempts
             tokio::time::sleep(Duration::from_secs(2)).await;
-            views::auth::HandleLogin {
+            views::auth::LogInForm {
                 error: Some(e),
                 ..Default::default()
             }
@@ -49,7 +49,7 @@ async fn handle_login(
 
 async fn handle_signup(
     state: ExtractAppEnv,
-    form: Form<views::auth::SignupForm>,
+    form: Form<views::auth::SignupFormData>,
 ) -> impl IntoResponse {
     match form.0.validate() {
         Ok(params) => {
@@ -61,7 +61,7 @@ async fn handle_signup(
 
             views::auth::HandleSignupConfirmation {
                 result,
-                confirmation_email_resent: false,
+                confirmation_email_sent: false,
             }
             .into_response()
         }
@@ -78,17 +78,20 @@ async fn resend_confirmation(
     env: ExtractAppEnv,
     form: Form<ResendConfirmationForm>,
 ) -> impl IntoResponse {
-    let result = match env
+    // Add an artificial dealy to prevent malicious users from spamming this endpoints
+    tokio::time::sleep(Duration::from_secs(1)).await;
+
+    match env
         .auth_service
         .resend_confirmation_email(form.user_id)
         .await
     {
-        Ok(_) => Ok(form.user_id),
-        Err(e) => Err(SignUpError::TechnicalError(e)),
-    };
-    views::auth::HandleSignupConfirmation {
-        confirmation_email_resent: result.is_ok(),
-        result,
+        Ok(_) => views::auth::SendEmailConfirmationButton {
+            confirmation_email_sent: true,
+            user_id: form.user_id,
+        }
+        .into_response(),
+        Err(_) => "Something went wrong".into_response(),
     }
 }
 
@@ -99,12 +102,12 @@ async fn confirm_email(env: ExtractAppEnv, Path(token): Path<String>) -> impl In
         .await
     {
         Err(ConfirmEmailError::UserAlreadyConfirmed { user_id }) => {
-            let session = Session { user_id };
+            let session = Session::new(user_id);
             (SetSession(session, &env.config), Redirect::to("/")).into_response()
         }
         Err(e) => views::auth::ConfirmEmail { result: Err(e) }.into_response(),
         Ok(user_id) => {
-            let session = Session { user_id };
+            let session = Session::new(user_id);
             (
                 SetSession(session, &env.config),
                 views::auth::ConfirmEmail { result: Ok(()) },

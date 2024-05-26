@@ -4352,6 +4352,7 @@ dependencies = [
  "migration",
  "mime_guess",
  "once_cell",
+ "rand",
  "rust-embed",
  "rusty_paseto",
  "sea-orm",

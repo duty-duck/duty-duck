@@ -1,0 +1,19 @@
+{% if confirmation_email_sent %}
+<button type="button" class="btn btn-outline-primary" disabled>
+    E-mail sent!
+</button>
+{% else %}
+<button 
+    type="submit"
+    class="btn btn-outline-primary" 
+    hx-post="/auth/resend-confirmation" 
+    hx-target="this"
+    hx-swap="outerHTML"
+    data-loading-disable 
+    hx-vals='{"user_id": "{{ user_id }}"}'
+>
+    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" data-loading></span>
+    <span class="visually-hidden" data-loading>Loading...</span>
+    Send confirmation e-mail
+</button>
+{% endif %}

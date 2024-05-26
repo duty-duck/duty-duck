@@ -1,3 +1,5 @@
+use std::path::Display;
+
 use axum::{
     async_trait,
     extract::FromRequestParts,
@@ -6,9 +8,13 @@ use axum::{
 };
 use entity::user_account;
 use headers::{Cookie, HeaderMapExt};
+use rand::{
+    rngs::{OsRng, StdRng},
+    Rng,
+};
 use rusty_paseto::{
     core::{Local, PasetoSymmetricKey, V4},
-    generic::{AudienceClaim, SubjectClaim},
+    generic::{AudienceClaim, SubjectClaim, TokenIdentifierClaim},
     prelude::{PasetoBuilder, PasetoParser},
 };
 use serde::Deserialize;
@@ -24,6 +30,17 @@ const SESSION_COOKIE_NAME: &str = "dutyducksession";
 pub struct Session {
     #[serde(rename = "sub")]
     pub user_id: Uuid,
+    #[serde(rename = "jti")]
+    pub csrf_token: CSRFToken,
+}
+
+impl Session {
+    pub fn new(user_id: Uuid) -> Self {
+        Self {
+            user_id,
+            csrf_token: CSRFToken::new(),
+        }
+    }
 }
 
 /// Can be used in an Axum response to update the current session
@@ -36,7 +53,6 @@ impl<'c> IntoResponseParts for SetSession<'c> {
         self,
         res: axum::response::ResponseParts,
     ) -> Result<axum::response::ResponseParts, Self::Error> {
-
         let session_token =
             SessionToken::encode(&self.1.paseto_key, self.0).map_err(|e| e.to_string())?;
         let header = (
@@ -78,7 +94,7 @@ impl FromRequestParts<std::sync::Arc<AppEnv>> for CurrentUser {
         parts: &mut Parts,
         state: &std::sync::Arc<AppEnv>,
     ) -> Result<Self, Self::Rejection> {
-        let Session { user_id } = FromRequestParts::from_request_parts(parts, state).await?;
+        let Session { user_id, .. } = FromRequestParts::from_request_parts(parts, state).await?;
         state
             .auth_service
             .get_user_by_id(user_id)
@@ -98,9 +114,11 @@ struct SessionToken {
 impl SessionToken {
     fn encode(key: &PasetoSymmetricKey<V4, Local>, session: Session) -> anyhow::Result<Self> {
         let sub = session.user_id.to_string();
+        let jti = session.csrf_token.to_string();
         let value = PasetoBuilder::<V4, Local>::default()
             .set_claim(SubjectClaim::from(sub.as_str()))
             .set_claim(AudienceClaim::from("session"))
+            .set_claim(TokenIdentifierClaim::from(jti.as_str()))
             .build(key)?;
         let value = urlencoding::encode(&value).into_owned();
         Ok(Self { value })
@@ -112,5 +130,26 @@ impl SessionToken {
             .check_claim(AudienceClaim::from("session"))
             .parse(&token, key)?;
         Ok(serde_json::from_value::<Session>(value)?)
+    }
+}
+
+/// A 128-bit randomly-generated "synchrnizer token" stored in the session and included
+/// in forms to prevent CSRF attacks
+/// [OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#synchronizer-token-pattern)
+/// provides good referecne on CSRF attacks and the available prevention methods
+#[derive(PartialEq, Eq, Deserialize)]
+#[serde(transparent)]
+pub struct CSRFToken(u128);
+
+impl std::fmt::Display for CSRFToken {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{:#x}", self.0)
+    }
+}
+
+impl CSRFToken {
+    pub fn new() -> Self {
+        let mut rng = OsRng::default();
+        Self(rng.gen())
     }
 }

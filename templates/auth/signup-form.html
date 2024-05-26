@@ -1,0 +1,63 @@
+<form class="card-body" hx-post="/auth/signup" hx-target="this" hx-swap="outerHTML">
+    <p>
+        <a href="/auth/login" hx-target="unset">
+            <i data-feather="user"></i> Already have an account?
+        </a>
+    </p>
+    {% if let Some(e) = error %}
+    <div class="alert alert-warning">
+        {{ e|linebreaks|safe }}
+    </div>
+    {% endif %}
+
+    <div class="mb-3">
+        <label for="name"  class="form-label">Full name</label>
+        <input 
+            type="text" 
+            name="name"
+            class="form-control {{ " is-invalid"|only(error_field==Some("name")) }}"
+            id="name" 
+            value="{{ form.name }}"
+            required
+        >
+    </div>
+    <div class="mb-3">
+        <label for="email" class="form-label">Email address</label>
+        <input
+            type="email" 
+            name="email" 
+            class="form-control {{ " is-invalid"|only(error_field==Some("email")) }}"
+            id="email"
+            value="{{ form.email }}"
+            required
+        >
+    </div>
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <label for="password" class="form-label">Password</label>
+            <input 
+                type="password" 
+                name="password"
+                class="form-control {{ "is-invalid"|only(error_field==Some("password")) }}"
+                id="password" 
+                required
+             />
+        </div>
+        <div class="col-lg-6">
+            <label for="password_confirm" class="form-label">Confirm your password</label>
+            <input type="password" name="password_confirm" class="form-control {{ "is-invalid"|only(error_field==Some("password_confirm")) }}" id="password_confirm" required>
+        </div>
+    </div>
+    <div class="text-center">
+        <p>
+            <button type="submit" class="btn btn-primary rounded-pill d-inline-flex align-items-center" data-loading-disable>
+                <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" data-loading></span>
+                <span class="visually-hidden" data-loading>Loading...</span>
+                Sign up
+            </button>
+        </p>
+        <hr>
+        Is your company already using Duty Duck? Create an account for every member in your organization, then you can invite
+        everyone to collaborate.
+    </div>
+</form>

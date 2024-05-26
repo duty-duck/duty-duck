@@ -9,65 +9,7 @@
     <div class="card-header">
         Log in
     </div>
-    <form class="card-body" hx-post="/auth/login" hx-target="#auth-page-container" hx-swap="innerHTML">
-        {% match error %}
-            {% when None %}
-            <div class="alert alert-info">
-                Don't have an account yet? Start monitoring your website today,
-                <a href="/auth/signup" class="alert-link"  hx-target="unset">
-                    <i data-feather="edit-2"></i> Sign up
-                </a>
-              </div>
-            {% when Some with (LoginError::UserNotConfirmed { user_id }) %}
-            <div class="alert-alert-info">
-                <p>
-                    We need to confirm your e-mail address before you can log in. You should have received an e-mail with
-                    a confirmation link to complete your registration.
-                </p>
-                <p>You didn't receive the e-mail?</p>
-                <form hx-post="/auth/resend-confirmation" hx-target="#auth-page-container">
-                    <input type="hidden" name="user_id" value="{{ user_id }}">
-                    <button type="submit" class="btn btn-outline-primary" data-loading-disable>
-                        <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" data-loading></span>
-                        <span class="visually-hidden" data-loading>Loading...</span>
-                        Send confirmation e-mail
-                    </button>
-                </form>
-            </div>
-            {% when Some with (LoginError::UserNotFound) %}
-            <div class="alert alert-danger">
-                We could not find any account for these credentials. Please verify your e-mail address or <a class="alert-link" href="/auth/signup" hx-target="unset">sign up</a>.
-            </div>
-            
-            {% when Some with (error) %}
-
-            <div class="alert alert-danger">
-                {{ error }}
-            </div>
-        {% endmatch %}
-
-
-        <div class="mb-3">
-            <label for="email" class="form-label">Enter your e-mail address to log in</label>
-            <input type="email" class="form-control" id="email" name="email">
-        </div>
-        <div class="mb-4">
-            <label for="password" class="form-label">Enter your password</label>
-            <input type="password" class="form-control" id="password" name="password">
-        </div>
-        <div class="text-center">
-            <p>
-                <button type="submit" class="btn btn-primary rounded-pill d-inline-flex align-items-center" data-loading-disable>
-                    <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true" data-loading></span>
-                    <span class="visually-hidden" data-loading>Loading...</span>
-                    Log in
-                </button>
-            </p>
-            <p>
-                <a href="##">Forgot your password? Click here to reset it</a>
-            </p>
-        </div>
-    </form>
+    {% include "login-form.html" %}
 </div>
 
 {% endblock content %}

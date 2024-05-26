@@ -7,30 +7,33 @@ use askama_axum::*;
 use email_address::EmailAddress;
 use itertools::Itertools;
 use serde::Deserialize;
+use uuid::Uuid;
 use zxcvbn::zxcvbn;
 
 /// The complete login page
 #[derive(Template, Default)]
 #[template(path = "auth/login.html")]
-pub struct Login {
-    pub form: LogInForm,
+pub struct LogInPage {
+    pub form: LogInFormData,
     pub error: Option<LoginError>,
+    pub confirmation_email_sent: bool,
 }
 
 /// A partial view of the log in page, intended to display a feedback
 /// when a login attempt fails
 #[derive(Template, Default)]
-#[template(path = "auth/login.html", block = "content")]
-pub struct HandleLogin {
-    pub form: LogInForm,
+#[template(path = "auth/login-form.html")]
+pub struct LogInForm {
+    pub form: LogInFormData,
     pub error: Option<LoginError>,
+    pub confirmation_email_sent: bool,
 }
 
-/// The complte signup page
+/// The complete sign up page
 #[derive(Template, Default)]
-#[template(path = "auth/signup.html")]
-pub struct Signup {
-    form: SignupForm,
+#[template(path = "auth/signup-page.html")]
+pub struct SignUpPage {
+    form: SignupFormData,
     error: Option<String>,
     error_field: Option<&'static str>,
 }
@@ -38,9 +41,9 @@ pub struct Signup {
 /// A partial template returned as a result from the handle_signup route
 /// when the provided form is invalid
 #[derive(Template, Default)]
-#[template(path = "auth/signup.html", block = "content")]
-pub struct HandleSignupInvalidForm {
-    pub form: SignupForm,
+#[template(path = "auth/signup-form.html")]
+pub struct SignUpForm {
+    pub form: SignupFormData,
     pub error: Option<String>,
     pub error_field: Option<&'static str>,
 }
@@ -48,10 +51,19 @@ pub struct HandleSignupInvalidForm {
 /// A partial template returned as a result from the handle_signup route
 /// when the provided form is valid and a signup attempt has been made
 #[derive(Template)]
-#[template(path = "auth/signup-confirmation.html", block = "content")]
+#[template(path = "auth/send-email-confirmation-button.html")]
+pub struct SendEmailConfirmationButton {
+    pub user_id: Uuid,
+    pub confirmation_email_sent: bool,
+}
+
+/// A partial template returned as a result from the handle_signup route
+/// when the provided form is valid and a signup attempt has been made
+#[derive(Template)]
+#[template(path = "auth/signup-confirmation.html")]
 pub struct HandleSignupConfirmation {
     pub result: SignUpResult,
-    pub confirmation_email_resent: bool,
+    pub confirmation_email_sent: bool,
 }
 
 /// A template returned as a result from the confirm_email route
@@ -62,21 +74,21 @@ pub struct ConfirmEmail {
 }
 
 #[derive(Deserialize, Default)]
-pub struct SignupForm {
+pub struct SignupFormData {
     name: String,
     email: String,
     password: String,
     password_confirm: String,
 }
 
-impl SignupForm {
-    pub fn validate(self) -> Result<SignUpParams, HandleSignupInvalidForm> {
+impl SignupFormData {
+    pub fn validate(self) -> Result<SignUpParams, SignUpForm> {
         let name = self.name.trim().to_string();
         if name.is_empty() {
-            return Err(HandleSignupInvalidForm {
+            return Err(SignUpForm {
                 error: Some("The Full Name field is mandatory to sign up".to_string()),
                 error_field: Some("name"),
-                form: SignupForm {
+                form: SignupFormData {
                     name,
                     email: self.email,
                     ..Default::default()
@@ -87,10 +99,10 @@ impl SignupForm {
         let email = match EmailAddress::from_str(&self.email) {
             Ok(email) => email,
             Err(_) => {
-                return Err(HandleSignupInvalidForm {
+                return Err(SignUpForm {
                     error: Some("The e-mail field is missing or invalid".to_string()),
                     error_field: Some("email"),
-                    form: SignupForm {
+                    form: SignupFormData {
                         name,
                         ..Default::default()
                     },
@@ -100,10 +112,10 @@ impl SignupForm {
 
         let password = self.password;
         if password.is_empty() {
-            return Err(HandleSignupInvalidForm {
+            return Err(SignUpForm {
                 error: Some("The password field is mandatory to sign up".to_string()),
                 error_field: Some("password"),
-                form: SignupForm {
+                form: SignupFormData {
                     name,
                     email: self.email,
                     ..Default::default()
@@ -112,10 +124,10 @@ impl SignupForm {
         }
         match zxcvbn(&password, &[&name, &self.email]) {
             Err(_) => {
-                return Err(HandleSignupInvalidForm {
+                return Err(SignUpForm {
                     error: Some("Failed to verify your password's strength. Please consider using another password".to_string()),
                     error_field: Some("password"),
-                    form: SignupForm {
+                    form: SignupFormData {
                         name,
                         email: self.email,
                         ..Default::default()
@@ -130,10 +142,10 @@ impl SignupForm {
                     },
                     _ => "Your password is too weak".to_string()
                 };
-                return Err(HandleSignupInvalidForm {
+                return Err(SignUpForm {
                     error: Some(message),
                     error_field: Some("password"),
-                    form: SignupForm {
+                    form: SignupFormData {
                         name,
                         email: self.email,
                         ..Default::default()
@@ -144,10 +156,10 @@ impl SignupForm {
         }
 
         if self.password_confirm != password {
-            return Err(HandleSignupInvalidForm {
+            return Err(SignUpForm {
                 error: Some("The password confirmation does not match the password".to_string()),
                 error_field: Some("password_confirm"),
-                form: SignupForm {
+                form: SignupFormData {
                     name,
                     email: self.email,
                     ..Default::default()
@@ -164,7 +176,7 @@ impl SignupForm {
 }
 
 #[derive(Deserialize, Default)]
-pub struct LogInForm {
+pub struct LogInFormData {
     pub email: String,
     pub password: String,
 }

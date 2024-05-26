@@ -17,6 +17,11 @@
         <li class="nav-item">
           <a class="nav-link {{ " active"|only(active_page=="pricing" ) }}" href="/pricing">Pricing</a>
         </li>
+        {% if current_user.is_none() %}
+        <li class="nav-item">
+          <a class="nav-link" href="/auth/signup">Sign up</a>
+        </li>
+        {% endif %}
       </ul>
       <div class="d-flex align-items-center">
         {% match current_user %}

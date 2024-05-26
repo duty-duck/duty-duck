@@ -4,6 +4,7 @@ mod routes;
 mod services;
 mod session;
 mod views;
+mod form;
 
 use std::sync::Arc;
 
