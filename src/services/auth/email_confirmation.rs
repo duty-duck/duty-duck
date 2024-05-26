@@ -92,6 +92,7 @@ impl AuthService {
         let mut user = user_account::ActiveModel::from(user);
 
         user.email_confirmed_at = Set(Some(Utc::now()));
+        user.updated_at = Set(Utc::now());
         let user = user
             .update(&self.db)
             .await
