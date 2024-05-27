@@ -29,7 +29,7 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(HttpMonitor::FirstPingAt).timestamp_with_time_zone())
                     .col(ColumnDef::new(HttpMonitor::NextPingAt).timestamp_with_time_zone())
                     .col(ColumnDef::new(HttpMonitor::LastPingAt).timestamp_with_time_zone())
-                    .col(ColumnDef::new(HttpMonitor::Interval).interval(None, None))
+                    .col(ColumnDef::new(HttpMonitor::Interval).interval(None, None).not_null())
                     .col(ColumnDef::new(HttpMonitor::LastHttpCode).small_integer())
                     .to_owned(),
             )

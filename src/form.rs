@@ -52,7 +52,7 @@ impl IntoResponse for SecureFormRejection {
 }
 
 #[async_trait]
-impl<T> FromRequest<std::sync::Arc<AppEnv>> for SecureForm<T>
+impl<T> FromRequest<AppEnv> for SecureForm<T>
 where
     T: DeserializeOwned + 'static,
 {
@@ -60,7 +60,7 @@ where
 
     async fn from_request(
         mut req: Request,
-        state: &std::sync::Arc<AppEnv>,
+        state: &AppEnv,
     ) -> Result<Self, Self::Rejection> {
         let session = req
             .extract_parts_with_state::<Session, _>(state)

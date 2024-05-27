@@ -1,11 +1,11 @@
-use std::{env, sync::Arc};
+use std::{env, ops::Deref, sync::Arc};
 
 use axum::extract::State;
 use sea_orm::DatabaseConnection;
 use tracing::info;
 use url::Url;
 
-use crate::{crypto::SymetricEncryptionKey, mailer::Mailer, services::auth::AuthService};
+use crate::{crypto::SymetricEncryptionKey, mailer::Mailer, services::{auth::AuthService, http_monitors::HttpMonitorsService}};
 
 pub struct AppConfig {
     pub public_url: Url,
@@ -53,18 +53,36 @@ impl AppConfig {
     }
 }
 
+#[derive(Clone)]
 pub struct AppEnv {
+    inner: Arc<AppEnvInner>,
+}
+
+pub struct AppEnvInner {
     pub auth_service: AuthService,
+    pub http_monitors_service: HttpMonitorsService,
     pub config: Arc<AppConfig>,
 }
 
-pub type ExtractAppEnv = State<Arc<AppEnv>>;
+pub type ExtractAppEnv = State<AppEnv>;
 
 impl AppEnv {
     pub fn new(app_config: Arc<AppConfig>, db: DatabaseConnection, mailer: Mailer) -> Self {
-        Self {
+        let inner = AppEnvInner {
             config: app_config.clone(),
             auth_service: AuthService::new(app_config.clone(), db.clone(), mailer.clone()),
+            http_monitors_service: HttpMonitorsService::new(app_config.clone(), db.clone())
+        };
+        Self {
+            inner: Arc::new(inner),
         }
+    }
+}
+
+impl Deref for AppEnv {
+    type Target = AppEnvInner;
+
+    fn deref(&self) -> &Self::Target {
+        &self.inner
     }
 }

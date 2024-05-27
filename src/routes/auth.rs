@@ -3,7 +3,6 @@ use axum::response::{AppendHeaders, IntoResponse, Redirect};
 use axum::routing::post;
 use axum::{routing::get, Form, Router};
 use serde::Deserialize;
-use std::sync::Arc;
 use std::time::Duration;
 use tracing::error;
 use uuid::Uuid;
@@ -117,7 +116,7 @@ async fn confirm_email(env: ExtractAppEnv, Path(token): Path<String>) -> impl In
     }
 }
 
-pub fn auth_router() -> Router<Arc<AppEnv>> {
+pub fn auth_router() -> Router<AppEnv> {
     Router::new()
         .route("/login", get(login).post(handle_login))
         .route("/signup", get(signup).post(handle_signup))

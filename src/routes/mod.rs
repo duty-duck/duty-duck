@@ -4,7 +4,6 @@ mod auth;
 use axum::{
     http::{header::CACHE_CONTROL, HeaderValue}, response::IntoResponse, routing::get, Json, Router
 };
-use std::sync::Arc;
 use tower_http::set_header::SetResponseHeaderLayer;
 
 use crate::{app_env::AppEnv, session::CurrentUser, views};
@@ -27,7 +26,7 @@ async fn dashboard(CurrentUser(user): CurrentUser) -> impl IntoResponse {
     Json(user)
 }
 
-pub fn public_site_router() -> Router<Arc<AppEnv>> {
+pub fn public_site_router() -> Router<AppEnv> {
     Router::new()
         .route("/", get(root))
         .route("/pricing", get(pricing))
@@ -36,7 +35,7 @@ pub fn public_site_router() -> Router<Arc<AppEnv>> {
         .route("/dashboard", get(dashboard))
 }
 
-pub fn all() -> Router<Arc<AppEnv>> {
+pub fn all() -> Router<AppEnv> {
     Router::new().nest("/", public_site_router()).route(
         "/assets/*file",
         get(assets_handler)

@@ -6,10 +6,7 @@ use axum::{
 };
 use entity::user_account;
 use headers::{Cookie, HeaderMapExt};
-use rand::{
-    rngs::{OsRng},
-    Rng,
-};
+use rand::{rngs::OsRng, Rng};
 use rusty_paseto::{
     core::{Local, V4},
     generic::{AudienceClaim, SubjectClaim, TokenIdentifierClaim},
@@ -18,7 +15,10 @@ use rusty_paseto::{
 use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::{app_env::{AppConfig, AppEnv}, crypto::SymetricEncryptionKey};
+use crate::{
+    app_env::{AppConfig, AppEnv},
+    crypto::SymetricEncryptionKey,
+};
 
 const SESSION_COOKIE_NAME: &str = "dutyducksession";
 
@@ -65,11 +65,11 @@ impl<'c> IntoResponseParts for SetSession<'c> {
 }
 
 #[async_trait]
-impl FromRequestParts<std::sync::Arc<AppEnv>> for Session {
+impl FromRequestParts<AppEnv> for Session {
     type Rejection = Redirect;
     async fn from_request_parts(
         parts: &mut Parts,
-        state: &std::sync::Arc<AppEnv>,
+        state: &AppEnv,
     ) -> Result<Self, Self::Rejection> {
         parts
             .headers
@@ -86,11 +86,11 @@ impl FromRequestParts<std::sync::Arc<AppEnv>> for Session {
 pub struct CurrentUser(pub user_account::Model);
 
 #[async_trait]
-impl FromRequestParts<std::sync::Arc<AppEnv>> for CurrentUser {
+impl FromRequestParts<AppEnv> for CurrentUser {
     type Rejection = Redirect;
     async fn from_request_parts(
         parts: &mut Parts,
-        state: &std::sync::Arc<AppEnv>,
+        state: &AppEnv,
     ) -> Result<Self, Self::Rejection> {
         let Session { user_id, .. } = FromRequestParts::from_request_parts(parts, state).await?;
         state
@@ -147,7 +147,6 @@ impl std::fmt::Display for CSRFToken {
 
 impl CSRFToken {
     pub fn new() -> Self {
-        let mut rng = OsRng::default();
-        Self(rng.gen())
+        Self(OsRng.gen())
     }
 }

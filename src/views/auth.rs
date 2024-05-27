@@ -82,6 +82,7 @@ pub struct SignupFormData {
 }
 
 impl SignupFormData {
+    #[allow(clippy::result_large_err)]
     pub fn validate(self) -> Result<SignUpParams, SignUpForm> {
         let name = self.name.trim().to_string();
         if name.is_empty() {

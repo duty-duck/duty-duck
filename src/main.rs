@@ -45,7 +45,7 @@ async fn main() {
 
     let app = Router::new()
         .nest("/", routes::all())
-        .with_state(Arc::new(AppEnv::new(config, db, mailer)));
+        .with_state(AppEnv::new(config, db, mailer));
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3000").await.unwrap();
     info!("Server is listening on port 3000 (http://localhost:3000)");
