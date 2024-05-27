@@ -1,6 +1,7 @@
 mod app_env;
 mod crypto;
 mod form;
+mod http_client;
 mod mailer;
 mod routes;
 mod services;
