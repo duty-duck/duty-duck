@@ -29,57 +29,17 @@ impl MigrationTrait for Migration {
                     .col(ColumnDef::new(HttpMonitor::FirstPingAt).timestamp_with_time_zone())
                     .col(ColumnDef::new(HttpMonitor::NextPingAt).timestamp_with_time_zone())
                     .col(ColumnDef::new(HttpMonitor::LastPingAt).timestamp_with_time_zone())
-                    .col(ColumnDef::new(HttpMonitor::Interval).interval(None, None).not_null())
-                    .col(ColumnDef::new(HttpMonitor::LastHttpCode).small_integer())
-                    .to_owned(),
-            )
-            .await?;
-
-        manager.create_index(
-            Index::create()
-                .table(HttpMonitor::Table)
-                .name("http_monitor_next_ping_at_idx")
-                .if_not_exists()
-                .col(HttpMonitor::NextPingAt)
-                .to_owned()
-        ).await?;
-
-        manager
-            .create_table(
-                Table::create()
-                    .table(HttpMonitorUserAccount::Table)
-                    .if_not_exists()
                     .col(
-                        ColumnDef::new(HttpMonitorUserAccount::HttpMonitor)
-                            .uuid()
+                        ColumnDef::new(HttpMonitor::IntervalSeconds)
+                            .unsigned()
                             .not_null(),
                     )
-                    .col(
-                        ColumnDef::new(HttpMonitorUserAccount::UserAccount)
-                            .uuid()
-                            .not_null(),
-                    )
-                    .primary_key(
-                        IndexCreateStatement::new()
-                            .col(HttpMonitorUserAccount::UserAccount)
-                            .col(HttpMonitorUserAccount::HttpMonitor),
-                    )
+                    .col(ColumnDef::new(HttpMonitor::LastHttpCode).tiny_unsigned())
+                    .col(ColumnDef::new(HttpMonitor::LastStatus).tiny_unsigned())
+                    .col(ColumnDef::new(HttpMonitor::OwnerUserAccount).uuid())
                     .foreign_key(
                         ForeignKeyCreateStatement::new()
-                            .from(
-                                HttpMonitorUserAccount::Table,
-                                HttpMonitorUserAccount::HttpMonitor,
-                            )
-                            .to(HttpMonitor::Table, HttpMonitor::Id)
-                            .on_delete(ForeignKeyAction::Cascade)
-                            .on_update(ForeignKeyAction::Cascade),
-                    )
-                    .foreign_key(
-                        ForeignKeyCreateStatement::new()
-                            .from(
-                                HttpMonitorUserAccount::Table,
-                                HttpMonitorUserAccount::UserAccount,
-                            )
+                            .from(HttpMonitor::Table, HttpMonitor::OwnerUserAccount)
                             .to(UserAccount::Table, UserAccount::Id)
                             .on_delete(ForeignKeyAction::Cascade)
                             .on_update(ForeignKeyAction::Cascade),
@@ -88,18 +48,21 @@ impl MigrationTrait for Migration {
             )
             .await?;
 
-        Ok(())
-    }
-
-    async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
-            .drop_table(
-                Table::drop()
-                    .table(HttpMonitorUserAccount::Table)
+            .create_index(
+                Index::create()
+                    .table(HttpMonitor::Table)
+                    .name("http_monitor_next_ping_at_idx")
+                    .if_not_exists()
+                    .col(HttpMonitor::NextPingAt)
                     .to_owned(),
             )
             .await?;
 
+        Ok(())
+    }
+
+    async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
             .drop_table(Table::drop().table(HttpMonitor::Table).to_owned())
             .await?;
@@ -117,13 +80,8 @@ enum HttpMonitor {
     CreatedAt,
     LastPingAt,
     NextPingAt,
-    Interval,
+    IntervalSeconds,
     LastHttpCode,
-}
-
-#[derive(DeriveIden)]
-pub enum HttpMonitorUserAccount {
-    Table,
-    HttpMonitor,
-    UserAccount,
+    LastStatus,
+    OwnerUserAccount,
 }
