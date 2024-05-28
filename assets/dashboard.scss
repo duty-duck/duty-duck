@@ -1,0 +1,50 @@
+@import "./_variables";
+@import "../node_modules/bootstrap/scss/variables";
+
+$navbar-height: 60px;
+
+#sidebar-brand {
+    height: $navbar-height;
+    box-shadow: rgba(154, 161, 171, 0.15) 0px 0px 35px 0px;
+    background-color: white;
+    position: relative;
+    overflow: hidden;
+    color: $primary;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: $headings-font-family;
+
+    img {
+        height: $navbar-height - 10px;
+        position: absolute;
+        bottom: -3px;
+        left: 10px;
+    }
+}
+
+#dashboard-navbar {
+    background-color: rgb(250, 250, 250);
+    height: $navbar-height;
+    box-shadow: rgba(154, 161, 171, 0.15) 0px 0px 35px 0px;
+
+    #auth-menu {
+        height: $navbar-height;
+        border-left: solid $gray-300 2px;
+        border-right: solid $gray-300 2px;
+        display: flex;
+        align-items: center;
+    }
+
+    .user-name {
+        font-size: $font-size-base * 0.8;
+    }
+}
+
+#dashboard-sidebar {
+    height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    // box-shadow: 3px 0px 4px rgba(0, 0, 0, .2);
+    z-index: 1;
+}

@@ -23,7 +23,9 @@ async fn pricing(user_opt: Option<CurrentUser>) -> impl IntoResponse {
 }
 
 async fn dashboard(CurrentUser(user): CurrentUser) -> impl IntoResponse {
-    Json(user)
+    views::dashboard::DashboardHome {
+        user
+    }
 }
 
 pub fn public_site_router() -> Router<AppEnv> {

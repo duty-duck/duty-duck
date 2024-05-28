@@ -1,14 +1,5 @@
 {% extends "layouts/base.html" %}
-{% block head %}
-{% call super() %}
-<style id="auth-style">
-    html,
-    body {
-        background-color: var(--bs-secondary-bg-subtle);
-    }
-</style>
-{% endblock head %}
-
+{% block body_class %}bg-secondary-subtle{% endblock body_class %}
 {% block body %}
 <div class="auth-page-container" id="auth-page-container">
     {% block content %}

@@ -2,7 +2,6 @@ use std::{env, ops::Deref, sync::Arc};
 
 use axum::extract::State;
 use sea_orm::DatabaseConnection;
-use tracing::info;
 use url::Url;
 
 use crate::{
@@ -35,16 +34,11 @@ impl AppConfig {
             .expect("Mising PUBLIC_URL variable")
             .parse::<Url>()
             .expect("Failed to parse PUBLIC_URL");
-        let paseto_key = match env::var("PASETO_SECRET_KEY").ok() {
-            None => {
-                info!("Env variable PASETO_SECRET_KEY is not set, using a randomly-generated key");
-                SymetricEncryptionKey::new_random()
-            }
-            Some(k) => {
-                info!("Paseto key laoded from PASETO_SECRET_KEY");
-                k.parse::<SymetricEncryptionKey>().unwrap()
-            }
-        };
+        let paseto_key = env::var("PASETO_SECRET_KEY")
+            .expect("Missing env variable PASETO_SECRET_KEY")
+            .parse::<SymetricEncryptionKey>()
+            .unwrap();
+
         let database_url = env::var("DATABASE_URL").expect("Missing env variable DATABASE_URL");
         let user_agent = env::var("USER_AGENT").unwrap_or_else(|_| {
             "Mozilla/5.0+(compatible; DutyDuck/2.0; http://ww.dutyduck.com/)".to_string()

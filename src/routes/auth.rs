@@ -1,4 +1,5 @@
-use axum::extract::Path;
+use axum::extract::{Path, Request};
+use axum::middleware::{self, Next};
 use axum::response::{AppendHeaders, IntoResponse, Redirect};
 use axum::routing::post;
 use axum::{routing::get, Form, Router};
@@ -10,15 +11,21 @@ use uuid::Uuid;
 use crate::app_env::{AppEnv, ExtractAppEnv};
 use crate::services::auth::email_confirmation::{ConfirmEmailError, EmailConfirmationToken};
 use crate::services::auth::SignUpError;
-use crate::session::{Session, SetSession};
+use crate::session::{ClearSession, Session, SetSession};
 use crate::views;
 
-async fn login() -> impl IntoResponse {
-    views::auth::LogInPage::default()
+async fn login(current_session: Option<Session>) -> impl IntoResponse {
+    if current_session.is_some() {
+        return Redirect::to("/dashboard").into_response();
+    }
+    views::auth::LogInPage::default().into_response()
 }
 
-async fn signup() -> impl IntoResponse {
-    views::auth::SignUpPage::default()
+async fn signup(current_session: Option<Session>) -> impl IntoResponse {
+    if current_session.is_some() {
+        return Redirect::to("/dashboard").into_response();
+    }
+    views::auth::SignUpPage::default().into_response()
 }
 
 async fn handle_login(
@@ -44,6 +51,10 @@ async fn handle_login(
             .into_response()
         }
     }
+}
+
+async fn handle_logout() -> impl IntoResponse {
+    (ClearSession, AppendHeaders([("HX-Location", "/")]))
 }
 
 async fn handle_signup(
@@ -119,6 +130,7 @@ async fn confirm_email(env: ExtractAppEnv, Path(token): Path<String>) -> impl In
 pub fn auth_router() -> Router<AppEnv> {
     Router::new()
         .route("/login", get(login).post(handle_login))
+        .route("/logout", post(handle_logout))
         .route("/signup", get(signup).post(handle_signup))
         .route("/resend-confirmation", post(resend_confirmation))
         .route("/confirm/:token", get(confirm_email))

@@ -1,6 +1,8 @@
 @import "./variables";
 @import "../node_modules/bootstrap/scss/bootstrap.scss";
 @import "./bootswatch";
+@import "./auth";
+@import "./dashboard";
 
 [data-loading] {
     display: none;
@@ -21,11 +23,3 @@
     background-color: $body-tertiary-bg;
 }
 
-.auth-page-container {
-    margin: 3rem auto 0 auto;
-    @include media-breakpoint-up(lg) {
-        padding-top: 6rem;
-     }
-    max-width: 560px;
-    padding: 1rem;
-}

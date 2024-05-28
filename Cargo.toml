@@ -30,7 +30,7 @@ uuid = { version = "1.8.0", features = ["v4"] }
 sea-orm.workspace = true
 tokio.workspace = true
 email_address = "0.2.4"
-zxcvbn = "2.2.2"
+zxcvbn = "3.0.1"
 thiserror = "1.0.61"
 argon2 = "0.5.3"
 lettre = { version = "0.11.7", features = [
@@ -48,6 +48,7 @@ dotenv.workspace = true
 headers = "0.4.0"
 rand = "0.8.5"
 reqwest = "0.12.4"
+hex = { version = "0.4.3", features = ["serde"] }
 
 [dev-dependencies]
 entity = { path = "entity" }

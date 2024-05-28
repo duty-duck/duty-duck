@@ -123,37 +123,24 @@ impl SignupFormData {
                 },
             });
         }
-        match zxcvbn(&password, &[&name, &self.email]) {
-            Err(_) => {
-                return Err(SignUpForm {
-                    error: Some("Failed to verify your password's strength. Please consider using another password".to_string()),
-                    error_field: Some("password"),
-                    form: SignupFormData {
-                        name,
-                        email: self.email,
-                        ..Default::default()
-                    },
-                })
-            },
-            Ok(estimate) if estimate.score() < 3 => {
-                let message = match estimate.feedback() {
-                    Some(feedback) if !feedback.suggestions().is_empty() => {
-                        let suggestions =  feedback.suggestions().iter().map(|s| format!("- {}", s)).join("\n");
-                        format!("Your password is too weak. Try the following suggestions:\n {}", suggestions)
-                    },
-                    _ => "Your password is too weak".to_string()
-                };
-                return Err(SignUpForm {
-                    error: Some(message),
-                    error_field: Some("password"),
-                    form: SignupFormData {
-                        name,
-                        email: self.email,
-                        ..Default::default()
-                    },
-                })
-            },
-            _ => ()
+        let entropy = zxcvbn(&password, &[&name, &self.email]);
+        if entropy.score() < zxcvbn::Score::Three {
+            let message = match entropy.feedback() {
+                Some(feedback) if !feedback.suggestions().is_empty() => {
+                    let suggestions =  feedback.suggestions().iter().map(|s| format!("- {}", s)).join("\n");
+                    format!("Your password is too weak. Try the following suggestions:\n {}", suggestions)
+                },
+                _ => "Your password is too weak".to_string()
+            };
+            return Err(SignUpForm {
+                error: Some(message),
+                error_field: Some("password"),
+                form: SignupFormData {
+                    name,
+                    email: self.email,
+                    ..Default::default()
+                },
+            })
         }
 
         if self.password_confirm != password {

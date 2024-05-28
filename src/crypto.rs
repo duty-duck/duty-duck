@@ -8,6 +8,7 @@ pub struct SymetricEncryptionKey {
 }
 
 impl SymetricEncryptionKey {
+    #[cfg(test)]
     pub fn new_random() -> Self {
         let random_key = Key::try_new_random().unwrap();
         let value = PasetoSymmetricKey::from(random_key);

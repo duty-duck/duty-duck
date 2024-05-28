@@ -1,3 +1,5 @@
+use std::str::FromStr;
+
 use axum::{
     async_trait,
     extract::FromRequestParts,
@@ -24,7 +26,7 @@ const SESSION_COOKIE_NAME: &str = "dutyducksession";
 
 /// The [Session] struct contains the id of the currently logged-in user
 /// It can be used directly as an extractor in Axum routes to access the current session
-#[derive(Deserialize)]
+#[derive(Deserialize, Debug)]
 pub struct Session {
     #[serde(rename = "sub")]
     pub user_id: Uuid,
@@ -64,6 +66,24 @@ impl<'c> IntoResponseParts for SetSession<'c> {
     }
 }
 
+/// Can be used in an Axum response to clear the current session
+pub struct ClearSession;
+
+impl IntoResponseParts for ClearSession {
+    type Error = String;
+
+    fn into_response_parts(
+        self,
+        res: axum::response::ResponseParts,
+    ) -> Result<axum::response::ResponseParts, Self::Error> {
+        let header = (
+            SET_COOKIE,
+            format!("{}=deleted; Secure; HttpOnly; Path=/;", SESSION_COOKIE_NAME,),
+        );
+        AppendHeaders::into_response_parts(AppendHeaders([header]), res).map_err(|e| e.to_string())
+    }
+}
+
 #[async_trait]
 impl FromRequestParts<AppEnv> for Session {
     type Rejection = Redirect;
@@ -71,14 +91,19 @@ impl FromRequestParts<AppEnv> for Session {
         parts: &mut Parts,
         state: &AppEnv,
     ) -> Result<Self, Self::Rejection> {
-        parts
+        let cookie = parts
             .headers
             .typed_get::<Cookie>()
-            .and_then(|c| c.get(SESSION_COOKIE_NAME).map(|v| v.to_string()))
-            .and_then(|value| {
-                SessionToken::decode(&state.config.paseto_key, SessionToken { value }).ok()
-            })
-            .ok_or(Redirect::to("/auth/login"))
+            .and_then(|c| c.get(SESSION_COOKIE_NAME).map(|v| v.to_string()));
+
+        match cookie {
+            Some(value) if value != "deleted" => {
+                SessionToken::decode(&state.config.paseto_key, SessionToken { value })
+                    .ok()
+                    .ok_or(Redirect::to("/auth/login"))
+            }
+            _ => Err(Redirect::to("/auth/login")),
+        }
     }
 }
 
@@ -135,18 +160,28 @@ impl SessionToken {
 /// in forms to prevent CSRF attacks
 /// [OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#synchronizer-token-pattern)
 /// provides good referecne on CSRF attacks and the available prevention methods
-#[derive(PartialEq, Eq, Deserialize)]
+#[derive(PartialEq, Eq, Deserialize, Debug)]
 #[serde(transparent)]
-pub struct CSRFToken(u128);
+pub struct CSRFToken(#[serde(with = "hex::serde")] [u8; 16]);
+
+impl FromStr for CSRFToken {
+    type Err = hex::FromHexError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut value = [0u8; 16];
+        hex::decode_to_slice(s, &mut value)?;
+        Ok(Self(value))
+    }
+}
 
 impl std::fmt::Display for CSRFToken {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{:#x}", self.0)
+        write!(f, "{}", hex::encode(self.0))
     }
 }
 
 impl CSRFToken {
     pub fn new() -> Self {
-        Self(OsRng.gen())
+        Self(OsRng.gen::<u128>().to_le_bytes())
     }
 }
