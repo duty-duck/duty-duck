@@ -1,4 +1,3 @@
-@import "./_variables";
 @import "../node_modules/bootstrap/scss/variables";
 
 $navbar-height: 60px;
@@ -12,14 +11,18 @@ $navbar-height: 60px;
     color: $primary;
     display: flex;
     align-items: center;
-    justify-content: center;
     font-family: $headings-font-family;
+    padding-left: $spacer;
+
+    span {
+        position: relative;
+        left: 10px;
+    }
 
     img {
         height: $navbar-height - 10px;
-        position: absolute;
-        bottom: -3px;
-        left: 10px;
+        position: relative;
+        bottom: -5px;
     }
 }
 

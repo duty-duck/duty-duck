@@ -4,56 +4,64 @@
 {% block body %}
 
 <div class="offcanvas offcanvas-start" tabindex="-1" id="dashboard-offcanvas">
-    <div class="offcanvas-header">
-      <h5 class="offcanvas-title">Offcanvas</h5>
-      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-    </div>
-    <div class="offcanvas-body">
-      Content for the offcanvas goes here. You can place just about any Bootstrap component or custom elements here.
-    </div>
+  <div class="offcanvas-header">
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
   </div>
+  <div class="offcanvas-body">
+    {% include "partials/dashboard-sidebar.html" %}
+  </div>
+</div>
 
 <div class="container-fluid g-0">
-    <div class="row g-0">
-        <div class="d-none d-lg-block col-lg-3 col-xl-2 d-flex" id="dashboard-sidebar">
-            <div id="dashboard-sidebar-content">
-              {% include "partials/dashboard-sidebar.html" %}
-            </div>
+  <div class="row g-0">
+    <div class="d-none d-lg-block col-lg-3 col-xl-2 d-flex" id="dashboard-sidebar">
+      <div id="dashboard-sidebar-content">
+        <div id="sidebar-brand">
+          <img src="/assets/static/navbar-duck.png" alt="Duty Duck logo">
+          <span>Duty Duck</span>
         </div>
-        <div class="col-lg-9 col-xl-10">
-            <nav class="navbar navbar-expand sticky-top" id="dashboard-navbar">
-                <div class="container-fluid">
-                    <button class="navbar-toggler d-block d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#dashboard-offcanvas" aria-controls="dashboard-offcanvas" aria-expanded="false" aria-label="Toggle navigation">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-                    <ul class="navbar-nav ms-auto">
-                        <li class="nav-item dropdown" id="auth-menu">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                              <i data-feather="user"></i>
-                              <span class="user-name">{{ user.full_name }}</span>
-                            </a>
-                            <ul class="dropdown-menu dropdown-menu-end">
-                              <li><a class="dropdown-item" href="#">Action</a></li>
-                              <li><a class="dropdown-item" href="#">Another action</a></li>
-                              <li><hr class="dropdown-divider"></li>
-                              <li>
-                                <a class="dropdown-item" href="/auth/logout">
-                                  <i data-feather="log-out"></i>
-                                  Log out
-                                </a>
-                              </li>
-                            </ul>
-                          </li>
-                    </ul> 
-                </div>
-            </nav>
-
-
-            <div class="container-fluid p-2">
-                {% block content %}{% endblock content %}
-            </div>
-        </div>
+        {% include "partials/dashboard-sidebar.html" %}
+      </div>
     </div>
+    <div class="col-lg-9 col-xl-10">
+      <nav class="navbar navbar-expand sticky-top" id="dashboard-navbar">
+        <div class="container-fluid">
+          <button class="navbar-toggler d-block d-lg-none" type="button" data-bs-toggle="offcanvas"
+            data-bs-target="#dashboard-offcanvas" aria-controls="dashboard-offcanvas" aria-expanded="false"
+            aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item dropdown" id="auth-menu">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
+                aria-expanded="false">
+                <i data-feather="user"></i>
+                <span class="user-name">{{ user.full_name }}</span>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="#">Action</a></li>
+                <li><a class="dropdown-item" href="#">Another action</a></li>
+                <li>
+                  <hr class="dropdown-divider">
+                </li>
+                <li>
+                  <a class="dropdown-item" href="/auth/logout">
+                    <i data-feather="log-out"></i>
+                    Log out
+                  </a>
+                </li>
+              </ul>
+            </li>
+          </ul>
+        </div>
+      </nav>
+
+
+      <div class="container-fluid p-2">
+        {% block content %}{% endblock content %}
+      </div>
+    </div>
+  </div>
 </div>
 
 

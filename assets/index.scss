@@ -1,6 +1,4 @@
-@import "./variables";
 @import "../node_modules/bootstrap/scss/bootstrap.scss";
-@import "./bootswatch";
 @import "./auth";
 @import "./dashboard";
 
@@ -26,8 +24,4 @@
     @include media-breakpoint-up(lg) {
         padding-bottom: 0;
     }
-}
-
-.form-control {
-    background-color: $body-tertiary-bg;
 }
