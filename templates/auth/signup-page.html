@@ -9,7 +9,68 @@
     <div class="card-header">
         Sign up
     </div>
-    {% include "signup-form.html" %} 
+    <form class="card-body" action="/auth/signup" method="post" x-init x-target="auth-page-container">
+        <p>
+            <a href="/auth/login" x-init x-target.push="auth-page-container">
+                <i data-feather="user"></i> Already have an account?
+            </a>
+        </p>
+        {% if let Some(e) = error %}
+        <div class="alert alert-warning">
+            {{ e|linebreaks|safe }}
+        </div>
+        {% endif %}
+    
+        <div class="mb-3">
+            <label for="name"  class="form-label">Full name</label>
+            <input 
+                type="text" 
+                name="name"
+                class="form-control {{ " is-invalid"|only(error_field==Some("name")) }}"
+                id="name" 
+                value="{{ form.name }}"
+                required
+            >
+        </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Email address</label>
+            <input
+                type="email" 
+                name="email" 
+                class="form-control {{ " is-invalid"|only(error_field==Some("email")) }}"
+                id="email"
+                value="{{ form.email }}"
+                required
+            >
+        </div>
+        <div class="row mb-4">
+            <div class="col-lg-6">
+                <label for="password" class="form-label">Password</label>
+                <input 
+                    type="password" 
+                    name="password"
+                    class="form-control {{ "is-invalid"|only(error_field==Some("password")) }}"
+                    id="password" 
+                    required
+                 />
+            </div>
+            <div class="col-lg-6">
+                <label for="password_confirm" class="form-label">Confirm your password</label>
+                <input type="password" name="password_confirm" class="form-control {{ "is-invalid"|only(error_field==Some("password_confirm")) }}" id="password_confirm" required>
+            </div>
+        </div>
+        <div class="text-center">
+            <p>
+                <button type="submit" class="btn btn-primary rounded-pill d-inline-flex align-items-center">
+                    <span class="spinner-border spinner-border-sm me-2" role="status" x-loading></span>
+                    Sign up
+                </button>
+            </p>
+            <hr>
+            Is your company already using Duty Duck? Create an account for every member in your organization, then you can invite
+            everyone to collaborate.
+        </div>
+    </form>
 </div>
 
 {% endblock content %}

@@ -1,5 +1,4 @@
-use axum::extract::{Path, Request};
-use axum::middleware::{self, Next};
+use axum::extract::Path;
 use axum::response::{AppendHeaders, IntoResponse, Redirect};
 use axum::routing::post;
 use axum::{routing::get, Form, Router};
@@ -37,14 +36,14 @@ async fn handle_login(
             let session = Session::new(user.id);
             (
                 SetSession(session, &env.config),
-                AppendHeaders([("HX-Location", "/dashboard")]),
+                Redirect::to("/dashboard")
             )
                 .into_response()
         }
         Err(e) => {
             // Delay the response for a few seconds to avoid malicious users from making too many attempts
             tokio::time::sleep(Duration::from_secs(2)).await;
-            views::auth::LogInForm {
+            views::auth::LogInPage {
                 error: Some(e),
                 ..Default::default()
             }
@@ -54,7 +53,7 @@ async fn handle_login(
 }
 
 async fn handle_logout() -> impl IntoResponse {
-    (ClearSession, AppendHeaders([("HX-Location", "/")]))
+    (ClearSession, Redirect::to("/"))
 }
 
 async fn handle_signup(
@@ -96,9 +95,9 @@ async fn resend_confirmation(
         .resend_confirmation_email(form.user_id)
         .await
     {
-        Ok(_) => views::auth::SendEmailConfirmationButton {
+        Ok(_) => views::auth::HandleSignupConfirmation {
             confirmation_email_sent: true,
-            user_id: form.user_id,
+            result: Err(SignUpError::UnconfirmedUserAlreadyExists { user_id: form.user_id })
         }
         .into_response(),
         Err(_) => "Something went wrong".into_response(),
@@ -130,7 +129,7 @@ async fn confirm_email(env: ExtractAppEnv, Path(token): Path<String>) -> impl In
 pub fn auth_router() -> Router<AppEnv> {
     Router::new()
         .route("/login", get(login).post(handle_login))
-        .route("/logout", post(handle_logout))
+        .route("/logout", get(handle_logout))
         .route("/signup", get(signup).post(handle_signup))
         .route("/resend-confirmation", post(resend_confirmation))
         .route("/confirm/:token", get(confirm_email))

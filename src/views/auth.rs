@@ -10,7 +10,7 @@ use serde::Deserialize;
 use uuid::Uuid;
 use zxcvbn::zxcvbn;
 
-/// The complete login page
+/// The login page
 #[derive(Template, Default)]
 #[template(path = "auth/login.html")]
 pub struct LogInPage {
@@ -19,17 +19,7 @@ pub struct LogInPage {
     pub confirmation_email_sent: bool,
 }
 
-/// A partial view of the log in page, intended to display a feedback
-/// when a login attempt fails
-#[derive(Template, Default)]
-#[template(path = "auth/login-form.html")]
-pub struct LogInForm {
-    pub form: LogInFormData,
-    pub error: Option<LoginError>,
-    pub confirmation_email_sent: bool,
-}
-
-/// The complete sign up page
+/// The complete signup page
 #[derive(Template, Default)]
 #[template(path = "auth/signup-page.html")]
 pub struct SignUpPage {
@@ -38,26 +28,7 @@ pub struct SignUpPage {
     error_field: Option<&'static str>,
 }
 
-/// A partial template returned as a result from the handle_signup route
-/// when the provided form is invalid
-#[derive(Template, Default)]
-#[template(path = "auth/signup-form.html")]
-pub struct SignUpForm {
-    pub form: SignupFormData,
-    pub error: Option<String>,
-    pub error_field: Option<&'static str>,
-}
-
-/// A partial template returned as a result from the handle_signup route
-/// when the provided form is valid and a signup attempt has been made
-#[derive(Template)]
-#[template(path = "auth/send-email-confirmation-button.html")]
-pub struct SendEmailConfirmationButton {
-    pub user_id: Uuid,
-    pub confirmation_email_sent: bool,
-}
-
-/// A partial template returned as a result from the handle_signup route
+/// A page returned as a result from the handle_signup route
 /// when the provided form is valid and a signup attempt has been made
 #[derive(Template)]
 #[template(path = "auth/signup-confirmation.html")]
@@ -83,10 +54,10 @@ pub struct SignupFormData {
 
 impl SignupFormData {
     #[allow(clippy::result_large_err)]
-    pub fn validate(self) -> Result<SignUpParams, SignUpForm> {
+    pub fn validate(self) -> Result<SignUpParams, SignUpPage> {
         let name = self.name.trim().to_string();
         if name.is_empty() {
-            return Err(SignUpForm {
+            return Err(SignUpPage {
                 error: Some("The Full Name field is mandatory to sign up".to_string()),
                 error_field: Some("name"),
                 form: SignupFormData {
@@ -100,7 +71,7 @@ impl SignupFormData {
         let email = match EmailAddress::from_str(&self.email) {
             Ok(email) => email,
             Err(_) => {
-                return Err(SignUpForm {
+                return Err(SignUpPage {
                     error: Some("The e-mail field is missing or invalid".to_string()),
                     error_field: Some("email"),
                     form: SignupFormData {
@@ -113,7 +84,7 @@ impl SignupFormData {
 
         let password = self.password;
         if password.is_empty() {
-            return Err(SignUpForm {
+            return Err(SignUpPage {
                 error: Some("The password field is mandatory to sign up".to_string()),
                 error_field: Some("password"),
                 form: SignupFormData {
@@ -132,7 +103,7 @@ impl SignupFormData {
                 },
                 _ => "Your password is too weak".to_string()
             };
-            return Err(SignUpForm {
+            return Err(SignUpPage {
                 error: Some(message),
                 error_field: Some("password"),
                 form: SignupFormData {
@@ -144,7 +115,7 @@ impl SignupFormData {
         }
 
         if self.password_confirm != password {
-            return Err(SignUpForm {
+            return Err(SignUpPage {
                 error: Some("The password confirmation does not match the password".to_string()),
                 error_field: Some("password_confirm"),
                 form: SignupFormData {

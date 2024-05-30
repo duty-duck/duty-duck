@@ -1,28 +1,38 @@
-<div class="card-body">
-    {% match result %}
-    {% when Ok with (user_id) %}
-        <h3>Welcome!</h3>
-        <p>Thank you for registering. Your are just a moment away from securing your website against unnoticed breakdowns.</p>
-        <p>A confirmation e-mail has been sent to your inbox. You must visit the provided URL to finish your registration.</p>
-        <p>
-            <b>Did not receive the confirmation e-mail ?</b>
+{% extends "layouts/auth.html" %}
+{% block title %}Sign up{% endblock title %}
+{% block content %}
+{% call super() %}
+<div class="card">
+    <div class="card-header">
+        Sign up
+    </div>
+    <div class="card-body">
+        {% match result %}
+        {% when Ok with (user_id) %}
+            <h3>Welcome!</h3>
+            <p>Thank you for registering. Your are just a moment away from securing your website against unnoticed breakdowns.</p>
+            <p>A confirmation e-mail has been sent to your inbox. You must visit the provided URL to finish your registration.</p>
+            <p>
+                <b>Did not receive the confirmation e-mail ?</b>
+                {% include "send-email-confirmation-button.html" %}
+            </p>
+        {% when Err with (crate::services::auth::SignUpError::UnconfirmedUserAlreadyExists { user_id }) %}
+            <h3>You're almost there!</h3>
+            <p>
+                It seems that you have already signed up, but we need to confirm your e-mail address. You should have received an e-mail with
+                a confirmation link to complete your registration.
+            </p>
+            <p>You didn't receive the e-mail?</p>
             {% include "send-email-confirmation-button.html" %}
-        </p>
-    {% when Err with (crate::services::auth::SignUpError::UnconfirmedUserAlreadyExists { user_id }) %}
-        <h3>You're almost there!</h3>
-        <p>
-            It seems that you have already signed up, but we need to confirm your e-mail address. You should have received an e-mail with
-            a confirmation link to complete your registration.
-        </p>
-        <p>You didn't receive the e-mail?</p>
-        {% include "send-email-confirmation-button.html" %}
-    {% when Err with (crate::services::auth::SignUpError::UserAlreadyExists) %}
-        <h3>Welcome back!</h3>
-        <p>It seems that a user account already exists for this e-mail address.</p>
-        <p>
-            <a href="/auth/login" class="btn btn-outline-primary">Go to the login page</a>
-        </p>
-    {% when Err with (_) %}
-        Technical error
-    {% endmatch %}
+        {% when Err with (crate::services::auth::SignUpError::UserAlreadyExists) %}
+            <h3>Welcome back!</h3>
+            <p>It seems that a user account already exists for this e-mail address.</p>
+            <p>
+                <a href="/auth/login" class="btn btn-outline-primary" x-init x-target="auth-page-container">Go to the login page</a>
+            </p>
+        {% when Err with (_) %}
+            Technical error
+        {% endmatch %}
+    </div>
 </div>
+{% endblock content %}

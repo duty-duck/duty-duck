@@ -4,9 +4,17 @@
 @import "./auth";
 @import "./dashboard";
 
-[data-loading] {
+[x-loading] {
     display: none;
-  }
+}
+
+[aria-busy] [x-loading] {
+    display: initial;
+}
+
+.btn[aria-disabled] {
+    @extend .disabled
+}
 
 .bg-green {
     background-color: $green;
@@ -14,12 +22,12 @@
 
 .navbar .navbar-collapse.show {
     padding-bottom: 1rem;
-    @include media-breakpoint-up(lg) { 
+
+    @include media-breakpoint-up(lg) {
         padding-bottom: 0;
-     }
+    }
 }
 
 .form-control {
     background-color: $body-tertiary-bg;
 }
-

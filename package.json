@@ -15,9 +15,10 @@
     "sass-loader": "^14.2.1"
   },
   "dependencies": {
+    "@imacrayon/alpine-ajax": "^0.6.0",
     "@rspack/core": "^0.6.5",
+    "alpinejs": "^3.14.0",
     "bootstrap": "^5.3.3",
-    "feather-icons": "^4.29.2",
-    "htmx.org": "^1.9.12"
+    "feather-icons": "^4.29.2"
   }
 }
