@@ -7,7 +7,6 @@ use askama_axum::*;
 use email_address::EmailAddress;
 use itertools::Itertools;
 use serde::Deserialize;
-use uuid::Uuid;
 use zxcvbn::zxcvbn;
 
 /// The login page

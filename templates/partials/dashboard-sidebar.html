@@ -1,16 +1,22 @@
-<div class="p-lg-2 mt-lg-4">
-    <ul class="nav flex-column">
-        <li class="nav-item">
-          <a class="nav-link active" aria-current="page" href="#">Active</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">Link</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link" href="#">Link</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link disabled" aria-disabled="true">Disabled</a>
-        </li>
-      </ul>
+<div class="py-2 px-lg-3 px-xl-4 mt-lg-4">
+  <ul class="nav nav-pills nav-fill flex-column gap-2">
+    <li class="nav-item">
+      <a class="nav-link icon-link" :class="$store.location.matchesHref($el) && 'active'" href="/dashboard">
+        <i data-feather="home"></i>
+        Home
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link icon-link" :class="$store.location.matchesHref($el) && 'active'" href="/dashboard/monitors">
+        <i data-feather="eye"></i>
+        Monitors
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link icon-link" href="#">
+        <i data-feather="alert-octagon"></i>
+        Incidents
+      </a>
+    </li>
+  </ul>
 </div>

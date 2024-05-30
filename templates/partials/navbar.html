@@ -12,10 +12,10 @@
     <div class="collapse navbar-collapse" id="navbar">
       <ul class="navbar-nav me-auto mb-2 mb-lg-0">
         <li class="nav-item">
-          <a class="nav-link {{ " active"|only(active_page=="index" ) }}" aria-current="page" href="/">Home</a>
+          <a class="nav-link" :class="$store.location.matchesHref($el) && 'active'" aria-current="page" href="/">Home</a>
         </li>
         <li class="nav-item">
-          <a class="nav-link {{ " active"|only(active_page=="pricing" ) }}" href="/pricing">Pricing</a>
+          <a class="nav-link" :class="$store.location.matchesHref($el) && 'active'" href="/pricing">Pricing</a>
         </li>
         {% if current_user.is_none() %}
         <li class="nav-item">

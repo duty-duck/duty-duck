@@ -1,6 +1,6 @@
 {% extends "layouts/base.html" %}
 
-{% block body_class %}bg-body-secondary{% endblock body_class%}
+{% block body_class %}bg-body-secondary dashboard-body{% endblock body_class%}
 {% block body %}
 
 <div class="offcanvas offcanvas-start" tabindex="-1" id="dashboard-offcanvas">
@@ -55,9 +55,7 @@
           </ul>
         </div>
       </nav>
-
-
-      <div class="container-fluid p-2">
+      <div class="container-fluid py-2 px-2 mt-4 px-lg-4">
         {% block content %}{% endblock content %}
       </div>
     </div>

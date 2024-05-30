@@ -1,9 +1,14 @@
 pub mod assets;
 mod auth;
+mod dashboard;
 
 use axum::{
-    http::{header::CACHE_CONTROL, HeaderValue}, response::IntoResponse, routing::get, Json, Router
+    http::{header::CACHE_CONTROL, HeaderValue},
+    response::IntoResponse,
+    routing::get,
+    Router,
 };
+use dashboard::dashboard_router;
 use tower_http::set_header::SetResponseHeaderLayer;
 
 use crate::{app_env::AppEnv, session::CurrentUser, views};
@@ -22,19 +27,12 @@ async fn pricing(user_opt: Option<CurrentUser>) -> impl IntoResponse {
     }
 }
 
-async fn dashboard(CurrentUser(user): CurrentUser) -> impl IntoResponse {
-    views::dashboard::DashboardHome {
-        user
-    }
-}
-
 pub fn public_site_router() -> Router<AppEnv> {
     Router::new()
         .route("/", get(root))
         .route("/pricing", get(pricing))
         .nest("/auth", auth_router())
-        // todo: remove this
-        .route("/dashboard", get(dashboard))
+        .nest("/dashboard", dashboard_router())
 }
 
 pub fn all() -> Router<AppEnv> {

@@ -1,13 +1,22 @@
-import Alpine from 'alpinejs'
-import ajax from '@imacrayon/alpine-ajax'
-
-const feather = require("feather-icons/dist/feather");
+import Alpine from "alpinejs";
+import ajax from "@imacrayon/alpine-ajax";
+const feather = require("feather-icons");
 require("bootstrap");
 
-window.Alpine = Alpine
-Alpine.plugin(ajax)
-Alpine.start()
+window.Alpine = Alpine;
+Alpine.plugin(ajax);
 
-document.body.addEventListener("ajax:after", function () {
-   feather.replace();
-});
+const load = () => {
+  feather.replace();
+  Alpine.store("location", {
+    path: window.location.pathname,
+    matchesHref(el) {
+      return el.getAttribute("href") == this.path;
+    }
+  });
+};
+
+document.body.addEventListener("ajax:after", load);
+load();
+
+Alpine.start();
