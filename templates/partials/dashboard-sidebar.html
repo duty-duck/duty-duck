@@ -1,13 +1,15 @@
 <div class="py-2 px-lg-3 px-xl-4 mt-lg-4">
   <ul class="nav nav-pills nav-fill flex-column gap-2">
     <li class="nav-item">
-      <a class="nav-link icon-link" :class="$store.location.matchesHref($el) && 'active'" href="/dashboard">
+      <a class="nav-link icon-link" :class="$store.location.matchesHref($el) && 'active'" href="/dashboard"
+        x-target.push="dashboard-container">
         <i data-feather="home"></i>
         Home
       </a>
     </li>
     <li class="nav-item">
-      <a class="nav-link icon-link" :class="$store.location.matchesHref($el) && 'active'" href="/dashboard/monitors">
+      <a class="nav-link icon-link" :class="$store.location.startsWithHref($el) && 'active'" href="/dashboard/monitors"
+        x-target.push="dashboard-container">
         <i data-feather="eye"></i>
         Monitors
       </a>

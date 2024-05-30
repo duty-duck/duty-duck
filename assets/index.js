@@ -1,22 +1,21 @@
 import Alpine from "alpinejs";
-import ajax from "@imacrayon/alpine-ajax";
+import AlpineAjax from "@imacrayon/alpine-ajax";
+import "./location.store";
+import IntervalInput from "./interval-input";
+
 const feather = require("feather-icons");
 require("bootstrap");
 
 window.Alpine = Alpine;
-Alpine.plugin(ajax);
+Alpine.plugin(AlpineAjax);
+Alpine.data("intervalInput", IntervalInput);
 
 const load = () => {
   feather.replace();
-  Alpine.store("location", {
-    path: window.location.pathname,
-    matchesHref(el) {
-      return el.getAttribute("href") == this.path;
-    }
-  });
+  Alpine.store("location").update();
 };
 
-document.body.addEventListener("ajax:after", load);
-load();
+document.body.addEventListener("ajax:merged", load);
 
+load();
 Alpine.start();

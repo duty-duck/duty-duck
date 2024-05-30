@@ -1,0 +1,50 @@
+{% extends "layouts/dashboard.html" %}
+{% block title %}Dashboard{% endblock title %}
+
+{% block content %}
+
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="/dashboard/monitors" x-target.push="dashboard-container">Monitors</a></li>
+      <li class="breadcrumb-item active" aria-current="page">Create a monitor</li>
+    </ol>
+</nav>
+
+<div class="page-title">
+    <h2>Create a monitor</h2>
+</div>
+
+<div class="card">
+    <div class="card-body">
+        {% if let Some(error) = error %}
+        <div class="alert alert-warning mb-3">{{ error }}</div>
+        {% endif %}
+        <form method="post" action="/dashboard/monitors" x-target.push="dashboard-container">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <div class="mb-4">
+                <label for="urlInput" class="form-label">URL</label>
+                <input type="text" class="form-control" id="urlInput" aria-describedby="urlHelp" name="url" required>
+                <div id="urlHelp" class="form-text">The URL of the page you want us to monitor. We fill attempt to
+                    contact this endpoint on a regular basis.</div>
+            </div>
+            <div class="mb-3" x-data="intervalInput({{ form.interval_seconds }})">
+                <input type="hidden" name="interval_seconds" :value="currentStep[0]">
+                <label for="ping-interval" class="form-label">Monitoring frequency</label>
+                <div id="intervalHelp" class="form-text">How often we should call your URL. We recommend at least
+                    1-minute checks.</div>
+                <input type="range" class="form-range mt-2" id="ping-interval" step="1" min="0" :max="max"
+                    :value="currentStepIndex" @input="(e) => currentStepIndex = e.target.value"
+                    aria-describedby="intervalHelp">
+                We will check your URL every <strong x-text="currentStep[1]"></strong>.
+            </div>
+            <div class="mt-4">
+                <button type="submit" class="btn btn-primary icon-link">
+                    <i data-feather="plus"></i>
+                    Create monitor
+                </button>
+            </div> 
+        </form>
+    </div>
+</div>
+
+{% endblock content %}

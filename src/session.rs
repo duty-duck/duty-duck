@@ -160,7 +160,7 @@ impl SessionToken {
 /// in forms to prevent CSRF attacks
 /// [OWASP](https://cheatsheetseries.owasp.org/cheatsheets/Cross-Site_Request_Forgery_Prevention_Cheat_Sheet.html#synchronizer-token-pattern)
 /// provides good referecne on CSRF attacks and the available prevention methods
-#[derive(PartialEq, Eq, Deserialize, Debug)]
+#[derive(PartialEq, Eq, Deserialize, Debug, Clone, Copy)]
 #[serde(transparent)]
 pub struct CSRFToken(#[serde(with = "hex::serde")] [u8; 16]);
 

@@ -9,12 +9,12 @@
     <div class="card-header">
         Log in
     </div>
-    <form class="card-body" method="post" action="/auth/login" x-init x-target.nofollow="auth-page-container">
+    <form class="card-body" method="post" action="/auth/login" x-target.nofollow="auth-page-container">
         {% match error %}
             {% when None %}
             <div class="alert alert-info">
                 Don't have an account yet? Start monitoring your website today,
-                <a href="/auth/signup" class="alert-link" x-init x-target.push="auth-page-container">
+                <a href="/auth/signup" class="alert-link" x-target.push="auth-page-container">
                     <i data-feather="edit-2"></i> Sign up
                 </a>
               </div>

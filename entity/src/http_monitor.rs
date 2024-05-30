@@ -14,15 +14,15 @@ pub struct Model {
     pub first_ping_at: Option<DateTimeUtc>,
     pub next_ping_at: Option<DateTimeUtc>,
     pub last_ping_at: Option<DateTimeUtc>,
-    pub interval_seconds: u64,
-    pub last_http_code: Option<u16>,
-    pub last_status: Option<u16>,
+    pub interval_seconds: i32,
+    pub last_http_code: Option<i16>,
+    pub last_status: Option<i16>,
     pub owner_user_account: Uuid
 }
 
 impl Model {
     pub fn interval(&self) -> Duration {
-        Duration::from_secs(self.interval_seconds)
+        Duration::from_secs(self.interval_seconds as u64)
     }
 }
 

@@ -6,7 +6,7 @@
 <button 
     class="btn btn-outline-primary" 
     id="send-email-confirmation" 
-    x-init x-target @click.prevent="$ajax('/auth/resend-confirmation', { method: 'POST', body: { user_id: '{{user_id}}' } })"
+    x-target @click.prevent="$ajax('/auth/resend-confirmation', { method: 'POST', body: { user_id: '{{user_id}}' } })"
 >
     <span class="spinner-border spinner-border-sm me-2" role="status" x-loading></span>
     Send confirmation e-mail
