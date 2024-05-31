@@ -8,6 +8,9 @@ use serde::{Deserialize, Serialize};
 pub struct Model {
     #[sea_orm(primary_key)]
     #[serde(skip_deserializing)]
+    pub tenant_id: Uuid,
+    #[sea_orm(primary_key)]
+    #[serde(skip_deserializing)]
     pub id: Uuid,
     pub url: String,
     pub created_at: DateTimeUtc,
@@ -17,7 +20,6 @@ pub struct Model {
     pub interval_seconds: i32,
     pub last_http_code: Option<i16>,
     pub last_status: Option<i16>,
-    pub owner_user_account: Uuid
 }
 
 impl Model {
@@ -29,16 +31,16 @@ impl Model {
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
     #[sea_orm(
-        belongs_to = "super::user_account::Entity",
-        from = "Column::OwnerUserAccount",
-        to = "super::user_account::Column::Id"
+        belongs_to = "super::tenant::Entity",
+        from = "Column::TenantId",
+        to = "super::tenant::Column::Id"
     )]
-    UserAccount
+    Tenant
 }
 
-impl Related<super::user_account::Entity> for Entity {
+impl Related<super::tenant::Entity> for Entity {
     fn to() -> RelationDef {
-        Relation::UserAccount.def()
+        Relation::Tenant.def()
     }
 }
 

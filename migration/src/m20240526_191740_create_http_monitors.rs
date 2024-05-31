@@ -1,6 +1,6 @@
 use sea_orm_migration::prelude::*;
 
-use crate::m20240522_094208_crate_auth_user_accounts::UserAccount;
+use crate::m20240522_094208_crate_auth_user_accounts::{Tenant};
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -13,11 +13,11 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(HttpMonitor::Table)
                     .if_not_exists()
+                    .col(ColumnDef::new(HttpMonitor::TenantId).text().not_null())
                     .col(
                         ColumnDef::new(HttpMonitor::Id)
                             .uuid()
                             .not_null()
-                            .primary_key()
                             .default(Expr::cust("gen_random_uuid()")),
                     )
                     .col(ColumnDef::new(HttpMonitor::Url).string().not_null())
@@ -34,15 +34,20 @@ impl MigrationTrait for Migration {
                             .unsigned()
                             .not_null(),
                     )
-                    .col(ColumnDef::new(HttpMonitor::LastHttpCode).tiny_unsigned())
-                    .col(ColumnDef::new(HttpMonitor::LastStatus).tiny_unsigned())
-                    .col(ColumnDef::new(HttpMonitor::OwnerUserAccount).uuid())
+                    .col(ColumnDef::new(HttpMonitor::LastHttpCode).small_integer())
+                    .col(ColumnDef::new(HttpMonitor::LastStatus).small_integer())
+                    // Add a composite tenant + id primary key
+                    .primary_key(
+                        Index::create()
+                            .col(HttpMonitor::TenantId)
+                            .col(HttpMonitor::Id),
+                    )
+                    // Add a foreign key referencing the tenant
                     .foreign_key(
                         ForeignKeyCreateStatement::new()
-                            .from(HttpMonitor::Table, HttpMonitor::OwnerUserAccount)
-                            .to(UserAccount::Table, UserAccount::Id)
-                            .on_delete(ForeignKeyAction::Cascade)
-                            .on_update(ForeignKeyAction::Cascade),
+                            .from(HttpMonitor::Table, HttpMonitor::TenantId)
+                            .to(Tenant::Table, Tenant::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
                     )
                     .to_owned(),
             )
@@ -74,6 +79,7 @@ impl MigrationTrait for Migration {
 #[derive(DeriveIden)]
 enum HttpMonitor {
     Table,
+    TenantId,
     Id,
     Url,
     FirstPingAt,
@@ -83,5 +89,4 @@ enum HttpMonitor {
     IntervalSeconds,
     LastHttpCode,
     LastStatus,
-    OwnerUserAccount,
 }
