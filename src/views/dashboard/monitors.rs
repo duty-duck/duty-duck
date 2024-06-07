@@ -2,7 +2,7 @@ use askama_axum::Template;
 use entity::{http_monitor, user_account};
 use serde::Deserialize;
 
-use crate::session::CSRFToken;
+use crate::http_utils::session::CSRFToken;
 
 #[derive(Deserialize)]
 pub struct CreateMonitorForm {
@@ -24,5 +24,5 @@ pub struct NewMonitorForm<'e> {
     pub user: user_account::Model,
     pub form: CreateMonitorForm,
     pub csrf_token: CSRFToken,
-    pub error: Option<&'e str>
+    pub error: Option<&'e str>,
 }

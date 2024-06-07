@@ -7,11 +7,12 @@ use url::Url;
 use crate::{
     crypto::SymetricEncryptionKey,
     mailer::Mailer,
-    services::{auth::AuthService, http_monitors::HttpMonitorsService},
+    services::{auth::AuthService, http_monitors::HttpMonitorsService, tenants::TenantsService},
 };
 
 pub struct AppConfig {
     pub public_url: Url,
+    pub domain: String,
     pub smtp_server_host: String,
     pub smtp_server_port: u16,
     pub smtp_disable_tls: bool,
@@ -34,6 +35,10 @@ impl AppConfig {
             .expect("Mising PUBLIC_URL variable")
             .parse::<Url>()
             .expect("Failed to parse PUBLIC_URL");
+        let domain = public_url
+            .domain()
+            .expect("Failed to extract domain from PUBLIC_URL")
+            .to_string();
         let paseto_key = env::var("PASETO_SECRET_KEY")
             .expect("Missing env variable PASETO_SECRET_KEY")
             .parse::<SymetricEncryptionKey>()
@@ -46,6 +51,7 @@ impl AppConfig {
 
         Self {
             public_url,
+            domain,
             paseto_key,
             smtp_disable_tls,
             smtp_server_host,
@@ -64,6 +70,7 @@ pub struct AppEnv {
 pub struct AppEnvInner {
     pub auth_service: AuthService,
     pub http_monitors_service: HttpMonitorsService,
+    pub tenants_service: TenantsService,
     pub config: Arc<AppConfig>,
 }
 
@@ -75,6 +82,7 @@ impl AppEnv {
             config: app_config.clone(),
             auth_service: AuthService::new(app_config.clone(), db.clone(), mailer.clone()),
             http_monitors_service: HttpMonitorsService::new(app_config.clone(), db.clone()),
+            tenants_service: TenantsService::new(app_config.clone(), db.clone(), mailer.clone()),
         };
         Self {
             inner: Arc::new(inner),

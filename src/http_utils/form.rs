@@ -8,10 +8,9 @@ use axum::{
 };
 use serde::{de::DeserializeOwned, Deserialize};
 
-use crate::{
-    app_env::AppEnv,
-    session::{CSRFToken, Session},
-};
+use crate::app_env::AppEnv;
+
+use super::session::{CSRFToken, Session};
 
 /// A [SecureForm] worksmostly like a [axum::Form], except that it can only be extracted from the request if and only if
 /// it contains a "csrf_token" field that matches the "crst_token" field contained in the user's session
@@ -58,10 +57,7 @@ where
 {
     type Rejection = SecureFormRejection;
 
-    async fn from_request(
-        mut req: Request,
-        state: &AppEnv,
-    ) -> Result<Self, Self::Rejection> {
+    async fn from_request(mut req: Request, state: &AppEnv) -> Result<Self, Self::Rejection> {
         let session = req
             .extract_parts_with_state::<Session, _>(state)
             .await

@@ -17,23 +17,9 @@
         <li class="nav-item">
           <a class="nav-link" :class="$store.location.matchesHref($el) && 'active'" href="/pricing">Pricing</a>
         </li>
-        {% if current_user.is_none() %}
-        <li class="nav-item">
-          <a class="nav-link" href="/auth/signup">Sign up</a>
-        </li>
-        {% endif %}
       </ul>
       <div class="d-flex align-items-center">
-        {% match current_user %}
-        {% when Some with (user) %}
-        <div class="text-white text-center me-3" style="font-size: .65rem;">
-          Logged in as<br>{{ user.full_name }}
-        </div>
-        <a href="/dashboard" class="btn btn-info">Dashboard</a>
-        {% when None %}
-        <a href="/auth/login" class="btn btn-primary">Log in</a>
-        {% endmatch %}
-
+        <a href="/auth/signup" class="btn btn-primary">Sign up</a>
       </div>
     </div>
   </div>

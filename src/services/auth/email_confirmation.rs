@@ -1,4 +1,4 @@
-use ::entity::user_account;
+use ::entity::{tenant::TenantId, user_account};
 use anyhow::Context;
 use askama::Template;
 use chrono::Utc;
@@ -32,8 +32,12 @@ pub enum ConfirmEmailError {
 }
 
 impl AuthService {
-    pub async fn resend_confirmation_email(&self, user_id: Uuid) -> anyhow::Result<()> {
-        let existing_user = user_account::Entity::find_by_id(user_id)
+    pub async fn resend_confirmation_email(
+        &self,
+        tenant: TenantId,
+        user_id: Uuid,
+    ) -> anyhow::Result<()> {
+        let existing_user = user_account::Entity::find_by_id((tenant, user_id))
             .one(&self.db)
             .await?
             .with_context(|| "Cannot find user")?;
@@ -51,9 +55,13 @@ impl AuthService {
 
         let email = existing_user.email.parse::<EmailAddress>()?;
 
-        let confirmation_token =
-            EmailConfirmationToken::build(&self.app_config.paseto_key, &existing_user.id, &email)
-                .with_context(|| "Failed to build e-mail confirmation token")?;
+        let confirmation_token = EmailConfirmationToken::build(
+            tenant,
+            &self.app_config.paseto_key,
+            &existing_user.id,
+            &email,
+        )
+        .with_context(|| "Failed to build e-mail confirmation token")?;
 
         self.send_confirmation_email(&existing_user, &confirmation_token)
             .await
@@ -75,7 +83,7 @@ impl AuthService {
                 }
             })?;
 
-        let user = user_account::Entity::find_by_id(deciphered_token.user_id)
+        let user = user_account::Entity::find_by_id((deciphered_token.tenant_id, deciphered_token.user_id))
             .one(&self.db)
             .await
             .ok()
@@ -130,6 +138,7 @@ pub struct DecipheredConfirmationToken {
     pub email: EmailAddress,
     #[serde(rename = "sub")]
     pub user_id: Uuid,
+    pub tenant_id: TenantId,
 }
 
 #[derive(Error, Debug)]
@@ -149,8 +158,9 @@ impl EmailConfirmationToken {
     }
 
     pub fn build(
+        tenant: TenantId,
         key: &SymetricEncryptionKey,
-        user_id: &Uuid,
+        user_id: Uuid,
         email: &EmailAddress,
     ) -> anyhow::Result<Self> {
         let sub = user_id.to_string();
@@ -158,6 +168,7 @@ impl EmailConfirmationToken {
             .set_claim(SubjectClaim::from(sub.as_str()))
             .set_claim(CustomClaim::try_from(("email", email.as_str()))?)
             .set_claim(AudienceClaim::from("email-verification"))
+            .set_claim(CustomClaim::try_from(("tenant_id", tenant))?)
             .build(key)?;
         let token = urlencoding::encode(&token).into_owned();
 
@@ -196,6 +207,7 @@ mod tests {
     use std::str::FromStr;
 
     use email_address::EmailAddress;
+    use entity::tenant::TenantId;
     use uuid::Uuid;
 
     use crate::crypto::SymetricEncryptionKey;
@@ -204,11 +216,14 @@ mod tests {
 
     #[test]
     fn test_create_and_decipher_a_token() {
+        let tenant = TenantId(Uuid::new_v4());
         let email = EmailAddress::from_str("foo@bar.com").unwrap();
         let key = SymetricEncryptionKey::new_random();
         let user_id = Uuid::new_v4();
-        let confirmation_token = EmailConfirmationToken::build(&key, &user_id, &email).unwrap();
+        let confirmation_token =
+            EmailConfirmationToken::build(tenant, &key, &user_id, &email).unwrap();
         let deciphered_token = EmailConfirmationToken::decipher(&key, confirmation_token).unwrap();
+        assert_eq!(deciphered_token.tenant_id, tenant);
         assert_eq!(deciphered_token.user_id, user_id);
         assert_eq!(deciphered_token.email, email);
     }

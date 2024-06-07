@@ -4,35 +4,34 @@ use axum::{
     routing::get,
     Router,
 };
-use entity::http_monitor;
-use sea_orm::Set;
 use tracing::warn;
 use url::Url;
 
 use crate::{
     app_env::{AppEnv, ExtractAppEnv},
-    form::SecureForm,
+    http_utils::{form::SecureForm, session::*},
     services::http_monitors::{CreateMonitorParams, GetMonitorParams},
-    session::{CurrentUser, Session},
     views::{self, dashboard::monitors::CreateMonitorForm, Pagination},
 };
 
-async fn index(CurrentUser(user): CurrentUser) -> impl axum::response::IntoResponse {
+async fn index(CurrentUser { user, .. }: CurrentUser) -> impl axum::response::IntoResponse {
     views::dashboard::DashboardHome { user }
 }
 
 async fn monitors_index(
     env: ExtractAppEnv,
-    CurrentUser(user): CurrentUser,
+    CurrentUser { user, tenant }: CurrentUser,
     pagination: Option<Query<Pagination>>,
 ) -> impl axum::response::IntoResponse {
     let monitors = env
         .http_monitors_service
-        .list_monitors(GetMonitorParams {
-            owner_user_id: user.id,
-            page: pagination.as_ref().map_or(0, |p| p.page),
-            items_per_page: pagination.map_or(20, |p| p.per_page),
-        })
+        .list_monitors(
+            tenant.id,
+            GetMonitorParams {
+                page: pagination.as_ref().map_or(0, |p| p.page),
+                items_per_page: pagination.map_or(20, |p| p.per_page),
+            },
+        )
         .await
         // TODO: handle error here using Internal error page
         .unwrap();
@@ -41,7 +40,7 @@ async fn monitors_index(
 }
 
 async fn new_monitor(
-    CurrentUser(user): CurrentUser,
+    CurrentUser { user, .. }: CurrentUser,
     session: Session,
 ) -> impl axum::response::IntoResponse {
     views::dashboard::monitors::NewMonitorForm {
@@ -57,7 +56,7 @@ async fn new_monitor(
 
 async fn handle_new_monitor(
     env: ExtractAppEnv,
-    CurrentUser(user): CurrentUser,
+    CurrentUser { user, tenant }: CurrentUser,
     session: Session,
     form: SecureForm<CreateMonitorForm>,
 ) -> impl axum::response::IntoResponse {
@@ -75,11 +74,14 @@ async fn handle_new_monitor(
     };
     let params = CreateMonitorParams {
         url,
-        owner_user_id: session.user_id,
         interval_seconds: form.payload.interval_seconds,
     };
 
-    match env.http_monitors_service.create_monitor(params).await {
+    match env
+        .http_monitors_service
+        .create_monitor(tenant.id, params)
+        .await
+    {
         Err(e) => {
             warn!(error = ?e, "Failed to create an HTTP monitor");
             views::dashboard::monitors::NewMonitorForm {

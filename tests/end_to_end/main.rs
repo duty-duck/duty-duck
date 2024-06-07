@@ -28,10 +28,16 @@ pub struct TestWorld {
 impl TestWorld {
     pub async fn new() -> anyhow::Result<Self> {
         let driver = WEB_DRIVER.get().unwrap().clone();
-        let slow_down_delay_seconds = env::var("SLOW_DOWN_DELAY_SECONDS").unwrap_or_default().parse().unwrap_or_default();
+        let slow_down_delay_seconds = env::var("SLOW_DOWN_DELAY_SECONDS")
+            .unwrap_or_default()
+            .parse()
+            .unwrap_or_default();
         let slow_down_delay = Duration::from_secs_f64(slow_down_delay_seconds);
 
-        Ok(Self { driver, slow_down_delay })
+        Ok(Self {
+            driver,
+            slow_down_delay,
+        })
     }
 
     pub async fn wait_for_delay(&self) {

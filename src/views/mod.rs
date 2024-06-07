@@ -1,9 +1,9 @@
 use serde::Deserialize;
 
 pub mod auth;
+pub mod dashboard;
 pub mod filters;
 pub mod public;
-pub mod dashboard;
 
 #[derive(Deserialize)]
 pub struct Pagination {

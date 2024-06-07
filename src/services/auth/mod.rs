@@ -1,6 +1,6 @@
 pub mod email_confirmation;
 
-use ::entity::user_account;
+use ::entity::{tenant::TenantId, user_account};
 use anyhow::{anyhow, Context};
 use argon2::{
     password_hash::{rand_core::OsRng, PasswordHash, PasswordHasher, PasswordVerifier, SaltString},
@@ -23,23 +23,6 @@ pub struct AuthService {
     argon: Argon2<'static>,
 }
 
-/// Params used to create a new user
-pub struct SignUpParams {
-    pub full_name: String,
-    pub email: EmailAddress,
-    pub password: String,
-}
-
-#[derive(Error, Debug)]
-pub enum SignUpError {
-    #[error("User already exists")]
-    UserAlreadyExists,
-    #[error("User already exists but their e-mail needs to be confirmed")]
-    UnconfirmedUserAlreadyExists { user_id: Uuid },
-    #[error(transparent)]
-    TechnicalError(#[from] anyhow::Error),
-}
-
 #[derive(Error, Debug)]
 pub enum LoginError {
     #[error("We could not find any account for these credentials. Please verify your e-mail address or sign up.")]
@@ -52,8 +35,6 @@ pub enum LoginError {
     TechnicalError(#[from] anyhow::Error),
 }
 
-pub type SignUpResult = Result<Uuid, SignUpError>;
-
 impl AuthService {
     pub fn new(app_config: Arc<AppConfig>, db: DatabaseConnection, mailer: Mailer) -> Self {
         Self {
@@ -64,64 +45,24 @@ impl AuthService {
         }
     }
 
-    pub async fn get_user_by_id(&self, id: Uuid) -> anyhow::Result<Option<user_account::Model>> {
-        Ok(user_account::Entity::find_by_id(id).one(&self.db).await?)
-    }
-
-    pub async fn sign_up(&self, params: SignUpParams) -> SignUpResult {
-        let existing_user = user_account::Entity::find()
-            .filter(user_account::Column::Email.eq(params.email.as_str()))
+    pub async fn get_user_by_id(
+        &self,
+        tenant: TenantId,
+        id: Uuid,
+    ) -> anyhow::Result<Option<user_account::Model>> {
+        Ok(user_account::Entity::find_by_id((tenant, id))
             .one(&self.db)
-            .await
-            .map_err(|e| SignUpError::TechnicalError(e.into()))?;
-
-        if let Some(existing_user) = existing_user {
-            if existing_user.email_confirmed_at.is_none() {
-                return Err(SignUpError::UnconfirmedUserAlreadyExists {
-                    user_id: existing_user.id,
-                });
-            }
-            return Err(SignUpError::UserAlreadyExists);
-        }
-
-        let salt = SaltString::generate(&mut OsRng);
-        let password_hash = self
-            .argon
-            .hash_password(params.password.as_bytes(), &salt)
-            .map_err(|_| SignUpError::TechnicalError(anyhow!("Failed to hash password")))?;
-
-        let now = Utc::now();
-        let user = user_account::ActiveModel {
-            full_name: Set(params.full_name),
-            password: Set(password_hash.to_string()),
-            email: Set(params.email.to_string()),
-            updated_at: Set(now),
-            created_at: Set(now),
-            ..Default::default()
-        };
-
-        let user = user_account::Entity::insert(user)
-            .exec_with_returning(&self.db)
-            .await
-            .map_err(|e| SignUpError::TechnicalError(e.into()))?;
-
-        let confirmation_token =
-            EmailConfirmationToken::build(&self.app_config.paseto_key, &user.id, &params.email)
-                .with_context(|| "Failed to build e-mail confirmation token")?;
-
-        self.send_confirmation_email(&user, &confirmation_token)
-            .await
-            .with_context(|| "Failed to send confirmation e-mail")?;
-
-        Ok(user.id)
+            .await?)
     }
 
     pub async fn log_in(
         &self,
+        tenant_id: TenantId,
         email: &str,
         password: &str,
     ) -> Result<user_account::Model, LoginError> {
         let user = user_account::Entity::find()
+            .filter(user_account::Column::TenantId.eq(tenant_id))
             .filter(user_account::Column::Email.eq(email))
             .one(&self.db)
             .await

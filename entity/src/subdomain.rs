@@ -1,31 +1,15 @@
-use std::time::Duration;
-
 use sea_orm::entity::prelude::*;
 use serde::{Deserialize, Serialize};
 
 use crate::tenant::TenantId;
 
 #[derive(Clone, Debug, PartialEq, Eq, DeriveEntityModel, Serialize, Deserialize)]
-#[sea_orm(table_name = "http_monitor")]
+#[sea_orm(table_name = "subdomain")]
 pub struct Model {
     #[sea_orm(primary_key, auto_increment = false)]
+    pub subdomain: String,
     pub tenant_id: TenantId,
-    #[sea_orm(primary_key, auto_increment = false)]
-    pub id: Uuid,
-    pub url: String,
-    pub created_at: DateTimeUtc,
-    pub first_ping_at: Option<DateTimeUtc>,
-    pub next_ping_at: Option<DateTimeUtc>,
-    pub last_ping_at: Option<DateTimeUtc>,
-    pub interval_seconds: i32,
-    pub last_http_code: Option<i16>,
-    pub last_status: Option<i16>,
-}
-
-impl Model {
-    pub fn interval(&self) -> Duration {
-        Duration::from_secs(self.interval_seconds as u64)
-    }
+    pub role: Role,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
@@ -45,3 +29,9 @@ impl Related<super::tenant::Entity> for Entity {
 }
 
 impl ActiveModelBehavior for ActiveModel {}
+
+#[derive(EnumIter, DeriveActiveEnum, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Debug)]
+#[sea_orm(rs_type = "i32", db_type = "Integer")]
+pub enum Role {
+    TenantPrincipalSubdomain = 0,
+}

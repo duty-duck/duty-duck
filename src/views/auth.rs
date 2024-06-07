@@ -97,10 +97,17 @@ impl SignupFormData {
         if entropy.score() < zxcvbn::Score::Three {
             let message = match entropy.feedback() {
                 Some(feedback) if !feedback.suggestions().is_empty() => {
-                    let suggestions =  feedback.suggestions().iter().map(|s| format!("- {}", s)).join("\n");
-                    format!("Your password is too weak. Try the following suggestions:\n {}", suggestions)
-                },
-                _ => "Your password is too weak".to_string()
+                    let suggestions = feedback
+                        .suggestions()
+                        .iter()
+                        .map(|s| format!("- {}", s))
+                        .join("\n");
+                    format!(
+                        "Your password is too weak. Try the following suggestions:\n {}",
+                        suggestions
+                    )
+                }
+                _ => "Your password is too weak".to_string(),
             };
             return Err(SignUpPage {
                 error: Some(message),
@@ -110,7 +117,7 @@ impl SignupFormData {
                     email: self.email,
                     ..Default::default()
                 },
-            })
+            });
         }
 
         if self.password_confirm != password {

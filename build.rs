@@ -8,7 +8,7 @@ fn main() {
     match output {
         Ok(out) if out.status.success() => {
             exit(0);
-        } 
+        }
         Ok(out) => {
             let out_string = String::from_utf8_lossy(&out.stdout);
             panic!("Failed to build assets: {out_string}");

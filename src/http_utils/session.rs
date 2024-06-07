@@ -6,7 +6,7 @@ use axum::{
     http::{header::SET_COOKIE, request::Parts},
     response::{AppendHeaders, IntoResponseParts, Redirect},
 };
-use entity::user_account;
+use entity::{tenant, user_account};
 use headers::{Cookie, HeaderMapExt};
 use rand::{rngs::OsRng, Rng};
 use rusty_paseto::{
@@ -21,6 +21,8 @@ use crate::{
     app_env::{AppConfig, AppEnv},
     crypto::SymetricEncryptionKey,
 };
+
+use super::tenant_based_routing::CurrentTenant;
 
 const SESSION_COOKIE_NAME: &str = "dutyducksession";
 
@@ -108,7 +110,10 @@ impl FromRequestParts<AppEnv> for Session {
 }
 
 /// An extractor that let's endpoints access the current user
-pub struct CurrentUser(pub user_account::Model);
+pub struct CurrentUser {
+    pub user: user_account::Model,
+    pub tenant: tenant::Model,
+}
 
 #[async_trait]
 impl FromRequestParts<AppEnv> for CurrentUser {
@@ -117,14 +122,19 @@ impl FromRequestParts<AppEnv> for CurrentUser {
         parts: &mut Parts,
         state: &AppEnv,
     ) -> Result<Self, Self::Rejection> {
+        // TODO: better error handling here
+        let CurrentTenant(tenant) = FromRequestParts::from_request_parts(parts, state)
+            .await
+            .map_err(|_| Redirect::to("/"))?;
         let Session { user_id, .. } = FromRequestParts::from_request_parts(parts, state).await?;
+
         state
             .auth_service
-            .get_user_by_id(user_id)
+            .get_user_by_id(tenant.id, user_id)
             .await
             .ok()
             .flatten()
-            .map(CurrentUser)
+            .map(|user| CurrentUser { tenant, user })
             .ok_or(Redirect::to("/auth/login"))
     }
 }

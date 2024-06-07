@@ -56,7 +56,9 @@ impl HttpClient {
             .await;
 
         match result {
-            Ok(mut response) if response.status().is_client_error() || response.status().is_server_error() => {
+            Ok(mut response)
+                if response.status().is_client_error() || response.status().is_server_error() =>
+            {
                 read_body_to_end_and_discard(&mut response).await;
                 Err(PingError::HttpCode {
                     http_code: response.status().as_u16(),

@@ -6,6 +6,5 @@ pub mod monitors;
 #[derive(Template)]
 #[template(path = "dashboard/index.html")]
 pub struct DashboardHome {
-    pub user: user_account::Model
+    pub user: user_account::Model,
 }
-

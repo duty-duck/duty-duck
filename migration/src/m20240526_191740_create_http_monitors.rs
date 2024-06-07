@@ -1,6 +1,6 @@
 use sea_orm_migration::prelude::*;
 
-use crate::m20240522_094208_crate_auth_user_accounts::{Tenant};
+use crate::m20240522_094208_crate_auth_user_accounts::Tenant;
 
 #[derive(DeriveMigrationName)]
 pub struct Migration;
@@ -13,7 +13,7 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(HttpMonitor::Table)
                     .if_not_exists()
-                    .col(ColumnDef::new(HttpMonitor::TenantId).text().not_null())
+                    .col(ColumnDef::new(HttpMonitor::TenantId).uuid().not_null())
                     .col(
                         ColumnDef::new(HttpMonitor::Id)
                             .uuid()

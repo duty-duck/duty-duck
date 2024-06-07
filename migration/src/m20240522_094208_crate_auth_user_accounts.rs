@@ -11,7 +11,12 @@ impl MigrationTrait for Migration {
                 Table::create()
                     .table(Tenant::Table)
                     .if_not_exists()
-                    .col(ColumnDef::new(Tenant::Id).text().not_null().primary_key())
+                    .col(
+                        ColumnDef::new(Tenant::Id)
+                            .uuid()
+                            .not_null()
+                            .default(Expr::cust("gen_random_uuid()")),
+                    )
                     .col(ColumnDef::new(Tenant::Name).text().not_null())
                     .col(
                         ColumnDef::new(Tenant::CreatedAt)
@@ -26,9 +31,32 @@ impl MigrationTrait for Migration {
         manager
             .create_table(
                 Table::create()
+                    .table(Subdomain::Table)
+                    .if_not_exists()
+                    .col(
+                        ColumnDef::new(Subdomain::Subdomain)
+                            .text()
+                            .not_null()
+                            .primary_key(),
+                    )
+                    .col(ColumnDef::new(Subdomain::TenantId).uuid().not_null())
+                    .col(ColumnDef::new(Subdomain::Role).small_integer().not_null())
+                    .foreign_key(
+                        ForeignKey::create()
+                            .from(Subdomain::Table, Subdomain::TenantId)
+                            .to(Tenant::Table, Tenant::Id)
+                            .on_delete(ForeignKeyAction::Cascade),
+                    )
+                    .to_owned(),
+            )
+            .await?;
+
+        manager
+            .create_table(
+                Table::create()
                     .table(UserAccount::Table)
                     .if_not_exists()
-                    .col(ColumnDef::new(UserAccount::TenantId).text().not_null())
+                    .col(ColumnDef::new(UserAccount::TenantId).uuid().not_null())
                     .col(
                         ColumnDef::new(UserAccount::Id)
                             .uuid()
@@ -51,7 +79,11 @@ impl MigrationTrait for Migration {
                             .not_null(),
                     )
                     // Use a composite primary key for user accounts
-                    .primary_key(Index::create().col(UserAccount::TenantId).col(UserAccount::Id))
+                    .primary_key(
+                        Index::create()
+                            .col(UserAccount::TenantId)
+                            .col(UserAccount::Id),
+                    )
                     // Add a foreign key referencing the tenant
                     .foreign_key(
                         ForeignKey::create()
@@ -79,6 +111,15 @@ impl MigrationTrait for Migration {
 
         Ok(())
     }
+}
+
+#[derive(DeriveIden)]
+pub enum Subdomain {
+    Table,
+    #[allow(clippy::enum_variant_names)]
+    Subdomain,
+    TenantId,
+    Role,
 }
 
 #[derive(DeriveIden)]
