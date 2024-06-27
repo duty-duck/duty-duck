@@ -30,6 +30,7 @@ services:
       KC_DB_URL: "jdbc:postgresql://database:5432/dutyduck"
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
+      # KC_LOG_LEVEL: DEBUG
 
 volumes:
   dutyduck-database: {}

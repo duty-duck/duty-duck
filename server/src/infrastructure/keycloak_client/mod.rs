@@ -9,7 +9,9 @@ use openidconnect::core::{CoreClient, CoreProviderMetadata};
 use openidconnect::reqwest::async_http_client;
 use openidconnect::{ClientId, ClientSecret, IssuerUrl};
 use openidconnect::{OAuth2TokenResponse, TokenResponse};
+use reqwest::header::LOCATION;
 use reqwest::{StatusCode, Url};
+use serde_json::Value;
 use thiserror::Error;
 use tokio::sync::Mutex;
 use uuid::Uuid;
@@ -89,7 +91,7 @@ impl KeycloakClient {
         first: u32,
         max: u32,
         query: &str,
-    ) -> Result<Vec<OrganizationListItem>> {
+    ) -> Result<Vec<Organization>> {
         let orgs = self
             .http_client
             .get(format!("{}/orgs", self.realm_url))
@@ -106,7 +108,7 @@ impl KeycloakClient {
         Ok(orgs)
     }
 
-    pub async fn create_organization(&self, request: &CreateOrganizationRequest) -> Result<()> {
+    pub async fn create_organization(&self, request: &CreateOrganizationRequest) -> Result<Organization> {
         let response = self
             .http_client
             .post(format!("{}/orgs", self.realm_url))
@@ -118,8 +120,24 @@ impl KeycloakClient {
         if response.status() == StatusCode::CONFLICT {
             Err(Error::Conflict)
         } else {
-            response.error_for_status()?;
-            Ok(())
+            let response = response.error_for_status()?;
+            let location_header = response
+                .headers()
+                .get(LOCATION)
+                .with_context(|| "Cannot get location header from response")?
+                .to_str()
+                .with_context(|| "Cannot read location header as str")?;
+
+            let org = self
+                .http_client
+                .get(location_header)
+                .bearer_auth(self.get_current_access_token().await?.access_token.secret())
+                .send()
+                .await?
+                .json()
+                .await?;
+
+            Ok(org)
         }
     }
 
@@ -236,6 +254,11 @@ impl KeycloakClient {
 mod tests {
     use std::collections::HashMap;
 
+    use chrono::Utc;
+    use nanoid::nanoid;
+
+    use crate::domain::entities::organization::Address;
+
     use super::*;
 
     async fn build_client() -> anyhow::Result<KeycloakClient> {
@@ -281,11 +304,21 @@ mod tests {
     async fn test_create_organization() -> anyhow::Result<()> {
         let client = build_client().await?;
         let request = CreateOrganizationRequest {
-            name: "Test organization".to_string(),
+            name: format!("test-organization-{}", nanoid!(10)),
             display_name: "Test organization".to_string(),
             url: None,
             domains: vec![],
-            attributes: HashMap::new(),
+            attributes: OrgAttributes {
+                stripe_customer_id: Attribute::empty(),
+                billing_address: Attribute::new(Address {
+                    line_1: "Foo".to_string(),
+                    line_2: "Bar".to_string(),
+                    ..Default::default()
+                }),
+                created_at: Attribute::new(Utc::now()),
+                updated_at: Attribute::new(Utc::now()),
+                rest: HashMap::new(),
+            },
         };
         client.create_organization(&request).await?;
         Ok(())
@@ -324,4 +357,6 @@ pub enum Error {
     HttpError(#[from] reqwest::Error),
     #[error("Conflicting resource already exists")]
     Conflict,
+    #[error("Technical failure: {0}")]
+    TechnicalFailure(#[from] anyhow::Error),
 }

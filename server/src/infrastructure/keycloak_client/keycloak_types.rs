@@ -1,9 +1,13 @@
 use std::{collections::HashMap, time::Instant};
 
+use chrono::{DateTime, Utc};
 use openidconnect::core::CoreIdToken;
-use serde::{Deserialize, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use serde_json::Value;
+use serde_with::{json::JsonString, serde_as};
 use uuid::Uuid;
+
+use crate::domain::entities::organization::Address;
 
 #[derive(Clone, Debug)]
 pub(super) struct AccessToken {
@@ -25,15 +29,30 @@ pub struct UserAttributes {
     pub rest: HashMap<String, Value>,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+pub struct OrgAttributes {
+    // keycloak requires that all custom attributes are sent as arrays of strings,
+    // which is why we can't use Option<String> here, we have to wrap every attribute values inside vectors or arrays
+    // so they are properly serialised
+    #[serde(default)]
+    pub stripe_customer_id: Attribute<String>,
+    #[serde(default)]
+    pub billing_address: Attribute<Address>,
+    pub created_at: Attribute<DateTime<Utc>>,
+    pub updated_at: Attribute<DateTime<Utc>>,
+    #[serde(flatten)]
+    pub rest: HashMap<String, Value>,
+}
+
 #[derive(Deserialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct OrganizationListItem {
+pub struct Organization {
     pub id: Uuid,
     pub name: String,
     pub display_name: String,
     pub domains: Vec<String>,
-    pub url: String,
-    pub attributes: HashMap<String, Value>,
+    pub url: Option<String>,
+    pub attributes: OrgAttributes,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -83,5 +102,46 @@ pub struct CreateOrganizationRequest {
     pub display_name: String,
     pub url: Option<String>,
     pub domains: Vec<String>,
-    pub attributes: HashMap<String, Value>,
+    pub attributes: OrgAttributes,
+}
+
+#[serde_as]
+#[serde(transparent)]
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct Attribute<T: Serialize + DeserializeOwned> {
+    #[serde_as(as = "Vec<JsonString>")]
+    value: Vec<T>,
+}
+
+impl<T: Serialize + DeserializeOwned> Default for Attribute<T> {
+    fn default() -> Self {
+        Self::empty()
+    }
+}
+
+impl<T: Serialize + DeserializeOwned> Attribute<T> {
+    pub fn new(value: T) -> Self {
+        Self { value: vec![value] }
+    }
+
+    pub fn empty() -> Self {
+        Self { value: vec![] }
+    }
+
+    pub fn get(&self) -> &T {
+        &self.value[0]
+    }
+
+    pub fn unwrap(self) -> T {
+        self.value.into_iter().next().unwrap()
+    }
+}
+
+impl<T: Serialize + DeserializeOwned> From<Option<T>> for Attribute<T> {
+    fn from(value: Option<T>) -> Self {
+        match value {
+            None => Self::empty(),
+            Some(v) => Self::new(v),
+        }
+    }
 }
