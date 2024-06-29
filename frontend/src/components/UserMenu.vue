@@ -1,4 +1,4 @@
-<script setup ts>
+<script setup lang="ts">
 import { useAuth } from '@/stores/auth';
 const auth = useAuth();
 </script>

@@ -21,7 +21,6 @@ const lgOrLarger = breakpoints.greaterOrEqual("lg");
                 <SideBar v-if="!lgOrLarger"></Sidebar>
             </div>
         </div>
-
         <div class="container-fluid g-0">
             <div class="row g-0">
                 <div class="d-none d-lg-block col-lg-3 col-xl-2 d-flex" id="dashboard-sidebar">
