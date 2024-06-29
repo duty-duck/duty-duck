@@ -2,35 +2,39 @@ import Keycloak, { type KeycloakTokenParsed } from 'keycloak-js'
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 
-// Instantiate the Keycloak client
-const keycloak = new Keycloak({
-  url: import.meta.env.VITE_KEYCLOAK_URL,
-  realm: import.meta.env.VITE_KEYCLOAK_REALM,
-  clientId: import.meta.env.VITE_KEYCLOAK_CLIENT
-})
 
-// Modify the login URL to include the `prompt=select_account` parameter that triggers the Active organization authenticator
-// See https://github.com/p2-inc/keycloak-orgs/blob/main/docs/active-organization-authenticator.md for documentation.
-const originalKeycloakCreateLoginUrl = keycloak.createLoginUrl
-keycloak.createLoginUrl = (options) => {
-  return `${originalKeycloakCreateLoginUrl(options)}&prompt=select_account`
-}
 
 export type AuthState =
   | {
-      idToken: KeycloakTokenParsed
-      accessToken: KeycloakTokenParsed
-      status: 'authenticated'
-    }
+    idToken: KeycloakTokenParsed
+    accessToken: KeycloakTokenParsed
+    status: 'authenticated'
+  }
   | {
-      status: 'sessionExpired'
-    }
+    status: 'sessionExpired'
+  }
   | null
 
 /**
  *  A composable that exposes the current authenticated user
  */
 export const useAuth = defineStore('auth', () => {
+  const runtimeConfig = useRuntimeConfig();
+
+  // Instantiate the Keycloak client
+  const keycloak = new Keycloak({
+    url: runtimeConfig.public.keycloak.url,
+    realm: runtimeConfig.public.keycloak.realm,
+    clientId: runtimeConfig.public.keycloak.client
+  })
+
+  // Modify the login URL to include the `prompt=select_account` parameter that triggers the Active organization authenticator
+  // See https://github.com/p2-inc/keycloak-orgs/blob/main/docs/active-organization-authenticator.md for documentation.
+  const originalKeycloakCreateLoginUrl = keycloak.createLoginUrl
+  keycloak.createLoginUrl = (options) => {
+    return `${originalKeycloakCreateLoginUrl(options)}&prompt=select_account`
+  }
+
   const isReady = ref(false)
   const state = ref<AuthState>(null)
   const isAuthenticated = computed(() => state.value && state.value.status == 'authenticated')

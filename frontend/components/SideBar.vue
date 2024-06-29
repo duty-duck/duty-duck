@@ -2,16 +2,16 @@
     <div class="py-2 px-lg-3 px-xl-4 mt-lg-4">
         <ul class="nav nav-pills nav-fill flex-column gap-2">
             <li class="nav-item">
-                <RouterLink class="nav-link icon-link" to="/dashboard">
+                <NuxtLink class="nav-link icon-link" to="/dashboard">
                     <i data-feather="home"></i>
                     Home
-                </RouterLink>
+                </NuxtLink>
             </li>
             <li class="nav-item">
-                <RouterLink class="nav-link icon-link" to="/dashboard/monitors">
+                <NuxtLink class="nav-link icon-link" to="/dashboard/monitors">
                     <i data-feather="eye"></i>
                     Monitors
-                </RouterLink>
+                </NuxtLink>
             </li>
             <li class="nav-item">
                 <a class="nav-link icon-link" href="#">

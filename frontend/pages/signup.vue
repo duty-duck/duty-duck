@@ -12,5 +12,7 @@ auth.onReady(() => {
 })
 </script>
 <template>
+    <RouterLink to="/">Back to home</RouterLink>
     foo
+
 </template>
