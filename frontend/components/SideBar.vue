@@ -1,21 +1,21 @@
 <template>
     <div class="py-2 px-lg-3 px-xl-4 mt-lg-4">
-        <ul class="nav nav-pills nav-fill flex-column gap-2">
+        <ul class="nav nav-pills nav-light nav-fill flex-column gap-2">
             <li class="nav-item">
                 <NuxtLink class="nav-link icon-link" to="/dashboard">
-                    <i data-feather="home"></i>
+                    <Icon name="ph:house-simple-duotone" size="20px" />
                     Home
                 </NuxtLink>
             </li>
             <li class="nav-item">
                 <NuxtLink class="nav-link icon-link" to="/dashboard/monitors">
-                    <i data-feather="eye"></i>
+                    <Icon name="ph:pulse-duotone" size="22px" />
                     Monitors
                 </NuxtLink>
             </li>
             <li class="nav-item">
                 <a class="nav-link icon-link" href="#">
-                    <i data-feather="alert-octagon"></i>
+                    <Icon name="ph:seal-warning-duotone" size="22px" />
                     Incidents
                 </a>
             </li>

@@ -2,9 +2,10 @@
   "name": "nuxt-app",
   "private": true,
   "type": "module",
+  "version": "2024.06-1",
   "scripts": {
     "build": "nuxt build",
-    "dev": "nuxt dev --dotenv ../.env",
+    "dev": "nuxt dev --host 0.0.0.0 --dotenv ../.env",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare"
@@ -13,15 +14,22 @@
     "vue": "latest"
   },
   "dependencies": {
+    "@nuxt/icon": "^1.0.0",
     "@pinia/nuxt": "^0.5.1",
     "@vueuse/core": "^10.11.0",
-    "bootstrap": "^5.3.3",
     "keycloak-js": "^25.0.1",
     "nuxt": "^3.12.2",
     "pinia": "^2.1.7",
-    "vue": "latest"
+    "vue": "latest",
+    "vue-feather": "^2.0.0"
   },
   "devDependencies": {
-    "sass": "^1.77.6"
+    "@bootstrap-vue-next/nuxt": "^0.22.3",
+    "@iconify-json/icon-park-twotone": "^1.1.14",
+    "@vue/compiler-sfc": "^3.4.31",
+    "bootstrap": "^5.3.3",
+    "bootstrap-vue-next": "^0.22.3",
+    "sass": "^1.77.6",
+    "unplugin-vue-components": "^0.27.2"
   }
 }

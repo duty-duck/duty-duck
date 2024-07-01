@@ -1,9 +1,10 @@
 $primary: #70BE4D;
 
 @import "../node_modules/bootstrap/scss/bootstrap.scss";
+@import '@vueform/vueform/themes/bootstrap/scss/index.scss';
 
 body {
-  @extend .bg-body-secondary;
+  @extend .bg-body-tertiary;
 }
 
 .btn[aria-disabled] {
@@ -87,4 +88,9 @@ $navbar-height: 60px;
     font-size: 20px;
     margin: 0;
   }
+}
+
+.nav.nav-pills.nav-light {
+  --bs-nav-pills-link-active-bg: var(--bs-primary-bg-subtle);
+  --bs-nav-pills-link-active-color: var(--bs-primary);
 }

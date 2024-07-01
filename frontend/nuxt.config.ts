@@ -1,3 +1,5 @@
+import * as pacakgeJson from "./package.json";
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devServer: {
@@ -16,12 +18,13 @@ export default defineNuxtConfig({
   routeRules: {
     '/': { prerender: true },
     // These pages are rendered on the client only because they use the Keycloak SDK
-    '/signup': { ssr: false },
     '/dashboard/**': { ssr: false },
   },
 
   runtimeConfig: {
     public: {
+      packageVersion: pacakgeJson.version,
+      commitRef: 'unknown',
       keycloak: {
         realm: 'master',
         client: '',
@@ -31,5 +34,9 @@ export default defineNuxtConfig({
     }
   },
 
-  modules: ["@pinia/nuxt"]
+  modules: [
+    "@pinia/nuxt",
+    '@bootstrap-vue-next/nuxt',
+    "@nuxt/icon",
+  ]
 })

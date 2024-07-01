@@ -6,7 +6,6 @@ if (import.meta.client) {
 }
 </script>
 <template>
-  <div>
-    <NuxtPage />
-  </div>
+  <NuxtLoadingIndicator color="#70BE4D" />
+  <NuxtPage />
 </template>
