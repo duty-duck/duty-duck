@@ -6,8 +6,8 @@ services:
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=password
     volumes:
-      - dutyduck-database:/var/lib/postgresql/data 
-    ports: 
+      - dutyduck-database:/var/lib/postgresql/data
+    ports:
       - 5432:5432
   adminer:
     image: adminer
@@ -22,7 +22,12 @@ services:
     image: quay.io/phasetwo/phasetwo-keycloak:24.0.4
     ports:
       - 8080:8080
-    command: ["start-dev"]
+    command:
+      [
+        "start-dev",
+        --spi-email-template-provider=freemarker-plus-mustache,
+        --spi-email-template-freemarker-plus-mustache-enabled=true,
+      ]
     environment:
       KC_DB: postgres
       KC_DB_USERNAME: admin

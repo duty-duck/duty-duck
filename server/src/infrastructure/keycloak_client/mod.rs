@@ -5,15 +5,16 @@ use std::{sync::Arc, time::Instant};
 
 pub use self::keycloak_types::*;
 use anyhow::Context;
+use backon::{ExponentialBuilder, Retryable};
 use openidconnect::core::{CoreClient, CoreProviderMetadata};
 use openidconnect::reqwest::async_http_client;
 use openidconnect::{ClientId, ClientSecret, IssuerUrl};
 use openidconnect::{OAuth2TokenResponse, TokenResponse};
 use reqwest::header::LOCATION;
 use reqwest::{StatusCode, Url};
-use serde_json::Value;
 use thiserror::Error;
 use tokio::sync::Mutex;
+use tracing::debug;
 use uuid::Uuid;
 
 pub struct KeycloakClient {
@@ -50,8 +51,7 @@ impl KeycloakClient {
             ClientId::new(client_id.to_string()),
             Some(ClientSecret::new(client_secret.to_string())),
         );
-
-        Ok(KeycloakClient {
+        let client = KeycloakClient {
             oidc_client,
             keycloak_url,
             keycloak_realm: keycloak_realm.to_string(),
@@ -61,23 +61,48 @@ impl KeycloakClient {
             access_token: Arc::new(Mutex::default()),
             realm_url,
             realm_admin_url,
-        })
+        };
+
+        // Pre-load access token for subsequent requests
+        let _ = client.get_current_access_token().await?;
+
+        Ok(client)
     }
 
-    pub async fn create_user(&self, user: &CreateUserRequest) -> Result<()> {
-        let response = self
-            .http_client
-            .post(format!("{}/users", self.realm_admin_url))
-            .json(user)
-            .bearer_auth(self.get_current_access_token().await?.access_token.secret())
-            .send()
-            .await?;
+    #[tracing::instrument(skip(self))]
+    pub(super) async fn create_user(&self, user: &CreateUserRequest) -> Result<UserItem> {
+        let auth_token = self.get_current_access_token().await?;
+        let response = (|| {
+            self.http_client
+                .post(format!("{}/users", self.realm_admin_url))
+                .json(user)
+                .bearer_auth(auth_token.access_token.secret())
+                .send()
+        })
+        .retry(&Self::retry_strategy())
+        .await?;
 
         if response.status() == StatusCode::CONFLICT {
             Err(Error::Conflict)
         } else {
-            response.error_for_status()?;
-            Ok(())
+            let response = response.error_for_status()?;
+            let location_header = response
+                .headers()
+                .get(LOCATION)
+                .with_context(|| "Cannot get location header from response")?
+                .to_str()
+                .with_context(|| "Cannot read location header as str")?;
+
+            let user = self
+                .http_client
+                .get(location_header)
+                .bearer_auth(self.get_current_access_token().await?.access_token.secret())
+                .send()
+                .await?
+                .json()
+                .await?;
+
+            Ok(user)
         }
     }
 
@@ -86,36 +111,46 @@ impl KeycloakClient {
      * # Parameters
      * - query: search by attributes using the format `k1:v1,k2:v2`
      */
-    pub async fn get_organizations(
+    #[tracing::instrument(skip(self))]
+    pub(super) async fn get_organizations(
         &self,
         first: u32,
         max: u32,
         query: &str,
     ) -> Result<Vec<Organization>> {
-        let orgs = self
-            .http_client
-            .get(format!("{}/orgs", self.realm_url))
-            .query(&[
-                ("first", first.to_string()),
-                ("max", max.to_string()),
-                ("q", query.to_string()),
-            ])
-            .bearer_auth(self.get_current_access_token().await?.access_token.secret())
-            .send()
-            .await?
-            .json()
-            .await?;
+        let auth_token = self.get_current_access_token().await?;
+        let res = (|| {
+            self.http_client
+                .get(format!("{}/orgs", self.realm_url))
+                .query(&[
+                    ("first", first.to_string()),
+                    ("max", max.to_string()),
+                    ("q", query.to_string()),
+                ])
+                .bearer_auth(auth_token.access_token.secret())
+                .send()
+        })
+        .retry(&Self::retry_strategy())
+        .await?;
+        let orgs = res.json().await?;
         Ok(orgs)
     }
 
-    pub async fn create_organization(&self, request: &CreateOrganizationRequest) -> Result<Organization> {
-        let response = self
-            .http_client
-            .post(format!("{}/orgs", self.realm_url))
-            .json(request)
-            .bearer_auth(self.get_current_access_token().await?.access_token.secret())
-            .send()
-            .await?;
+    #[tracing::instrument(skip(self))]
+    pub(super) async fn create_organization(
+        &self,
+        request: &WriteOrganizationRequest,
+    ) -> Result<Organization> {
+        let auth_token = self.get_current_access_token().await?;
+        let response = (|| {
+            self.http_client
+                .post(format!("{}/orgs", self.realm_url))
+                .json(request)
+                .bearer_auth(auth_token.access_token.secret())
+                .send()
+        })
+        .retry(&Self::retry_strategy())
+        .await?;
 
         if response.status() == StatusCode::CONFLICT {
             Err(Error::Conflict)
@@ -141,40 +176,146 @@ impl KeycloakClient {
         }
     }
 
-    pub async fn list_organization_members(
+    #[tracing::instrument(skip(self))]
+    pub(super) async fn update_organization(
+        &self,
+        org_id: Uuid,
+        request: &WriteOrganizationRequest,
+    ) -> Result<()> {
+        let auth_token = self.get_current_access_token().await?;
+        let response = (|| {
+            self.http_client
+                .put(format!("{}/orgs/{}", self.realm_url, org_id))
+                .json(request)
+                .bearer_auth(auth_token.access_token.secret())
+                .send()
+        })
+        .retry(&Self::retry_strategy())
+        .await?;
+
+        if response.status() == StatusCode::NOT_FOUND {
+            Err(Error::NotFound)
+        } else {
+            response.error_for_status()?;
+            Ok(())
+        }
+    }
+
+    #[tracing::instrument(skip(self))]
+    pub(super) async fn list_organization_members(
         &self,
         org_id: Uuid,
         first: u32,
         max: u32,
     ) -> Result<Vec<UserItem>> {
-        let orgs = self
-            .http_client
-            .get(format!("{}/orgs/{}/members", self.realm_url, org_id))
-            .query(&[("first", first.to_string()), ("max", max.to_string())])
-            .bearer_auth(self.get_current_access_token().await?.access_token.secret())
-            .send()
-            .await?
-            .json()
-            .await?;
+        let auth_token = self.get_current_access_token().await?;
+        let res = (|| {
+            self.http_client
+                .get(format!("{}/orgs/{}/members", self.realm_url, org_id))
+                .query(&[("first", first.to_string()), ("max", max.to_string())])
+                .bearer_auth(auth_token.access_token.secret())
+                .send()
+        })
+        .retry(&Self::retry_strategy())
+        .await?;
+
+        let orgs = res.json().await?;
         Ok(orgs)
     }
 
-    pub async fn add_an_organization_member(&self, org_id: Uuid, user_id: Uuid) -> Result<()> {
-        self.http_client
-            .put(format!(
-                "{}/orgs/{}/members/{}",
-                self.realm_url, org_id, user_id
-            ))
-            .bearer_auth(self.get_current_access_token().await?.access_token.secret())
-            .send()
-            .await?
-            .error_for_status()?;
+    #[tracing::instrument(skip(self))]
+    pub(super) async fn add_an_organization_member(
+        &self,
+        org_id: Uuid,
+        user_id: Uuid,
+    ) -> Result<()> {
+        let auth_token = self.get_current_access_token().await?;
+        (|| {
+            self.http_client
+                .put(format!(
+                    "{}/orgs/{}/members/{}",
+                    self.realm_url, org_id, user_id
+                ))
+                .bearer_auth(auth_token.access_token.secret())
+                .send()
+        })
+        .retry(&Self::retry_strategy())
+        .await?
+        .error_for_status()?;
+
+        Ok(())
+    }
+
+    #[tracing::instrument(skip(self))]
+    pub(super) async fn create_an_organization_role(&self, org_id: Uuid, role: &str) -> Result<()> {
+        let auth_token = self.get_current_access_token().await?;
+        (|| {
+            self.http_client
+                .post(format!("{}/orgs/{}/roles", self.realm_url, org_id))
+                .bearer_auth(auth_token.access_token.secret())
+                .json(&OrgnanizationRole {
+                    name: role.to_string(),
+                })
+                .send()
+        })
+        .retry(&Self::retry_strategy())
+        .await?
+        .error_for_status()?;
+
+        Ok(())
+    }
+
+    #[tracing::instrument(skip(self))]
+    pub(super) async fn grant_an_organization_role(
+        &self,
+        org_id: Uuid,
+        user_id: Uuid,
+        role: &str,
+    ) -> Result<()> {
+        let auth_token = self.get_current_access_token().await?;
+        (|| {
+            self.http_client
+                .put(format!(
+                    "{}/orgs/{}/roles/{}/users/{}",
+                    self.realm_url, org_id, role, user_id
+                ))
+                .bearer_auth(auth_token.access_token.secret())
+                .send()
+        })
+        .retry(&Self::retry_strategy())
+        .await?
+        .error_for_status()?;
+
+        Ok(())
+    }
+
+    #[tracing::instrument(skip(self))]
+    pub(super) async fn revoke_an_organization_role(
+        &self,
+        org_id: Uuid,
+        user_id: Uuid,
+        role: &str,
+    ) -> Result<()> {
+        let auth_token = self.get_current_access_token().await?;
+        (|| {
+            self.http_client
+                .delete(format!(
+                    "{}/orgs/{}/roles/{}/users/{}",
+                    self.realm_url, org_id, role, user_id
+                ))
+                .bearer_auth(auth_token.access_token.secret())
+                .send()
+        })
+        .retry(&Self::retry_strategy())
+        .await?
+        .error_for_status()?;
 
         Ok(())
     }
 
     /// Obtain an access token for the Keycloak API, either by reading a valid token from memory, or by exchanging client credentials
     /// with Keycloak for a new token
+    #[tracing::instrument(skip(self))]
     async fn get_current_access_token(&self) -> Result<AccessToken> {
         let mut current_access_token = self.access_token.lock().await;
 
@@ -208,11 +349,13 @@ impl KeycloakClient {
     }
 
     async fn obtain_access_token(&self) -> anyhow::Result<AccessToken> {
-        let res = self
-            .oidc_client
-            .exchange_client_credentials()
-            .request_async(async_http_client)
-            .await?;
+        let action = || {
+            self.oidc_client
+                .exchange_client_credentials()
+                .request_async(async_http_client)
+        };
+        let res = action.retry(&Self::retry_strategy()).await?;
+
         let access_token = AccessToken {
             access_token: res.access_token().clone(),
             refresh_token: res.refresh_token().cloned(),
@@ -221,6 +364,10 @@ impl KeycloakClient {
                 .map(|duration| Instant::now() + (duration - Duration::from_secs(2))),
             id_token: res.id_token().cloned(),
         };
+        debug!(
+            client_id = self.client_id,
+            "Obtained a new keycloak access token"
+        );
         Ok(access_token)
     }
 
@@ -228,16 +375,18 @@ impl KeycloakClient {
         &self,
         access_token: &AccessToken,
     ) -> anyhow::Result<AccessToken> {
-        let res = self
-            .oidc_client
-            .exchange_refresh_token(
-                access_token
-                    .refresh_token
-                    .as_ref()
-                    .with_context(|| "no refresh token available in access token")?,
-            )
-            .request_async(async_http_client)
-            .await?;
+        let refresh_token = access_token
+            .refresh_token
+            .as_ref()
+            .with_context(|| "no refresh token available in access token")?;
+
+        let action = || {
+            self.oidc_client
+                .exchange_refresh_token(refresh_token)
+                .request_async(async_http_client)
+        };
+
+        let res = action.retry(&Self::retry_strategy()).await?;
         let access_token = AccessToken {
             access_token: res.access_token().clone(),
             refresh_token: res.refresh_token().cloned(),
@@ -248,16 +397,19 @@ impl KeycloakClient {
         };
         Ok(access_token)
     }
+
+    fn retry_strategy() -> ExponentialBuilder {
+        ExponentialBuilder::default()
+            .with_max_times(5)
+            .with_jitter()
+    }
 }
 
 #[cfg(test)]
 mod tests {
-    use std::collections::HashMap;
-
-    use chrono::Utc;
     use nanoid::nanoid;
 
-    use crate::domain::entities::organization::Address;
+    use crate::{attributes, domain::entities::organization::Address};
 
     use super::*;
 
@@ -303,21 +455,18 @@ mod tests {
     #[ignore]
     async fn test_create_organization() -> anyhow::Result<()> {
         let client = build_client().await?;
-        let request = CreateOrganizationRequest {
+        let request = WriteOrganizationRequest {
             name: format!("test-organization-{}", nanoid!(10)),
             display_name: "Test organization".to_string(),
             url: None,
             domains: vec![],
-            attributes: OrgAttributes {
-                stripe_customer_id: Attribute::empty(),
-                billing_address: Attribute::new(Address {
+            attributes: attributes! {
+                "stripe_customer_id".to_string() => vec![],
+                "billing_address".to_string() => vec![serde_json::to_string(&Address {
                     line_1: "Foo".to_string(),
                     line_2: "Bar".to_string(),
                     ..Default::default()
-                }),
-                created_at: Attribute::new(Utc::now()),
-                updated_at: Attribute::new(Utc::now()),
-                rest: HashMap::new(),
+                }).unwrap()],
             },
         };
         client.create_organization(&request).await?;
@@ -326,15 +475,60 @@ mod tests {
 
     #[tokio::test]
     #[ignore]
+    async fn test_create_organization_role() -> anyhow::Result<()> {
+        let client = build_client().await?;
+        let request = WriteOrganizationRequest {
+            name: format!("test-organization-{}", nanoid!(10)),
+            display_name: "Test organization".to_string(),
+            url: None,
+            domains: vec![],
+            attributes: AttributeMap::default(),
+        };
+        let org = client.create_organization(&request).await?;
+        client
+            .create_an_organization_role(org.id, "test role")
+            .await?;
+        Ok(())
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_update_organiaztion() -> anyhow::Result<()> {
+        let client = build_client().await?;
+        let request = WriteOrganizationRequest {
+            name: format!("test-organization-{}", nanoid!(10)),
+            display_name: "Test organization".to_string(),
+            url: None,
+            domains: vec![],
+            attributes: attributes! {
+                "foo".to_string() => vec!["bar".to_string()],
+            },
+        };
+        let org = client.create_organization(&request).await?;
+
+        let request = WriteOrganizationRequest {
+            display_name: "Test organization (Updated)".to_string(),
+            attributes: attributes! {
+                "foo".to_string() => vec!["bar (updated)".to_string()],
+                "baz".to_string() => vec!["qux".to_string()],
+            },
+            ..request
+        };
+        client.update_organization(org.id, &request).await?;
+        Ok(())
+    }
+
+    #[tokio::test]
+    #[ignore]
     async fn test_create_user() -> anyhow::Result<()> {
         let client = build_client().await?;
         let request = CreateUserRequest {
-            email: Some("jane@noreply.com".to_string()),
+            email: Some("jane2@noreply.com".to_string()),
             enabled: true,
             email_verified: true,
             first_name: Some("Jane".to_string()),
             last_name: Some("Doe".to_string()),
-            attributes: UserAttributes::default(),
+            attributes: AttributeMap::default(),
             groups: vec![],
             credentials: vec![Credentials {
                 credentials_type: CredentialsType::Password,
@@ -351,12 +545,14 @@ pub type Result<T> = core::result::Result<T, self::Error>;
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("Cannot obtain access token")]
+    #[error("Cannot obtain access token: {0}")]
     CannotObtainAccessToken(#[source] anyhow::Error),
-    #[error("HTTP Error")]
+    #[error("HTTP Error: {0}")]
     HttpError(#[from] reqwest::Error),
     #[error("Conflicting resource already exists")]
     Conflict,
+    #[error("Resource not found")]
+    NotFound,
     #[error("Technical failure: {0}")]
     TechnicalFailure(#[from] anyhow::Error),
 }

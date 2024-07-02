@@ -1,13 +1,15 @@
 [package]
 name = "server"
-version = "0.1.0"
 edition = "2021"
+build = "build.rs"
+publish = false
 
 [dependencies]
 anyhow = "1.0.86"
 axum = "0.7.5"
 chrono = { version = "0.4.38", features = ["serde"] }
 futures = "0.3.30"
+maplit = "1.0.2"
 nanoid = "0.4.0"
 openidconnect = "3.5.0"
 reqwest = { version = "0.12.5", features = ["json"] }
@@ -15,6 +17,19 @@ serde = "1.0.203"
 serde_json = "1.0.118"
 thiserror = "1.0.61"
 tokio = { version = "1.38.0", features = ["full"] }
+backon = "0.4"
 tracing = "0.1.40"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+ts-rs = { version = "9.0.1", features = ["chrono-impl", "uuid-impl"] }
 uuid = { version = "1.9", features = ["serde"] }
-serde_with = { version = "3.8.1", features = ["json"]}
+zxcvbn = { version = "3.0.1", features = ["ser"] }
+email_address = "0.2.4"
+regex = "1.10.5"
+lazy_static = "1.5.0"
+envconfig = "0.10.0"
+dotenv = "0.15.0"
+tower-http = { version = "0.5", features = ["trace", "timeout", "cors"] }
+sqlx = { version = "0.7", features = [ "runtime-tokio", "tls-rustls", "postgres", "migrate", "uuid", "chrono", "json" ] }
+
+[build-dependencies]
+built = { version = "0.7.3", features = ["chrono", "git2"] }

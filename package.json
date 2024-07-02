@@ -1,0 +1,15 @@
+{
+  "name": "uptime-monitoring",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:frontend\"",
+    "dev:server": "cd server && cargo watch -x run",
+    "dev:frontend": "cd frontend && npm run dev"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gbogard/duty-duck.git"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

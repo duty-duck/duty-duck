@@ -1,2 +1,2 @@
-mod adapters;
-mod keycloak_client;
+pub mod adapters;
+pub mod keycloak_client;

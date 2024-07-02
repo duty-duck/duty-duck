@@ -24,9 +24,11 @@ pub struct CreateOrgnizationCommand {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UpdateOrganizationCommand {
-    pub display_name: Option<String>,
+    pub name: String,
+    pub display_name: String,
     pub stripe_customer_id: Option<String>,
     pub billing_address: Option<Address>,
+    pub created_at: DateTime<Utc>,
 }
 
 #[derive(Debug, Error)]
@@ -55,10 +57,8 @@ pub enum ReadOrganizationError {
 
 #[derive(Debug, Error)]
 pub enum WriteOrganizationRoleError {
-    #[error("Organization not found")]
-    OrganizationNotFound,
-    #[error("User not found")]
-    UserNotFound,
+    #[error("Organization or user not found")]
+    OrganizationOrUserNotFound,
     #[error("Technical failure: {0}")]
     TechnicalFailure(#[from] anyhow::Error),
 }
@@ -74,7 +74,7 @@ pub struct Address {
     pub updated_by_user_id: Uuid,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 pub enum OrganizationUserRole {
     /// Can read incidents and status pages but not write anything
     Reporter,
@@ -91,4 +91,73 @@ pub enum OrganizationUserRole {
     /// The owner is a unique administrator of the organization whose role cannot be revoked, unless transfered to another user,
     /// so that there always exactly one organization owner
     Owner,
+}
+
+impl std::fmt::Display for OrganizationUserRole {
+    fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
+        std::fmt::Debug::fmt(self, f)
+    }
+}
+
+impl OrganizationUserRole {
+    pub const ALL_ROLES: [Self; 6] = [
+        Self::Reporter,
+        Self::Editor,
+        Self::MemberInviter,
+        Self::MemberManager,
+        Self::Administrator,
+        Self::Owner,
+    ];
+}
+
+/// A list of organization roles assigned to a user
+#[derive(Serialize, Deserialize, Clone, Debug)]
+#[serde(transparent)]
+pub struct OrganizationRoleSet {
+    roles: Vec<OrganizationUserRole>,
+}
+
+impl OrganizationRoleSet {
+    /// Returns whether this [OrganizationRoleSet] contains the specified role.
+    /// This function implements a hierarchy of roles: for all roles A and B where A includes all the privileges of B, then contains(A) implies contains(B).
+    /// 
+    /// Owner includes all roles
+    /// Administrator includes all roles except Owner
+    /// Editor includes Reporter
+    /// MemberManager includes MemberInviter 
+    #[inline]
+    pub fn contains(&self, role: OrganizationUserRole) -> bool {
+        match role {
+            OrganizationUserRole::Owner => self.roles.contains(&role),
+            OrganizationUserRole::Reporter => self.contains_one_of(&[
+                OrganizationUserRole::Owner,
+                OrganizationUserRole::Administrator,
+                OrganizationUserRole::Editor,
+                role,
+            ]),
+            OrganizationUserRole::MemberInviter => self.contains_one_of(&[
+                OrganizationUserRole::Owner,
+                OrganizationUserRole::Administrator,
+                OrganizationUserRole::MemberManager,
+                role,
+            ]),
+            _ => self.contains_one_of(&[
+                OrganizationUserRole::Owner,
+                OrganizationUserRole::Administrator,
+                role,
+            ]),
+        }
+    }
+
+    #[inline]
+    fn contains_one_of(&self, roles: &[OrganizationUserRole]) -> bool {
+        for role in &self.roles {
+            for r in roles {
+                if r == role {
+                    return true;
+                }
+            }
+        }
+        false
+    }
 }

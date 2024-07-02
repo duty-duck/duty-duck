@@ -12,7 +12,7 @@ pub trait OrganizationRepository {
         &self,
         id: Uuid,
         command: UpdateOrganizationCommand,
-    ) -> Result<Organization, WriteOrganizationError>;
+    ) -> Result<(), WriteOrganizationError>;
 
     async fn list_organization_members(
         &self,
@@ -20,6 +20,12 @@ pub trait OrganizationRepository {
         first_result_offset: u32,
         max_results: u32,
     ) -> Result<Vec<User>, ReadOrganizationError>;
+
+    async fn add_an_organization_member(
+        &self,
+        org_id: Uuid,
+        user_id: Uuid,
+    ) -> Result<(), WriteOrganizationError>;
 
     async fn delete_organization(&self, id: Uuid) -> Result<(), WriteOrganizationError>;
 
