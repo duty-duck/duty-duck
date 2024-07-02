@@ -1,4 +1,5 @@
 import * as pacakgeJson from "./package.json";
+import { resolve } from "path"
 
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
@@ -38,5 +39,9 @@ export default defineNuxtConfig({
     "@pinia/nuxt",
     '@bootstrap-vue-next/nuxt',
     "@nuxt/icon",
-  ]
+  ],
+
+  alias: {
+    "bindings": resolve(__dirname, "../server/bindings")
+  }
 })
