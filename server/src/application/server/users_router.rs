@@ -1,26 +1,10 @@
-use axum::{
-    extract::State,
-    http::StatusCode,
-    response::IntoResponse,
-    routing::{get, post},
-    Json, Router,
-};
-use serde::Deserialize;
+use axum::{extract::State, http::StatusCode, response::IntoResponse, routing::post, Json, Router};
 use tracing::warn;
-use zxcvbn::zxcvbn;
 
 use crate::{
     application::application_state::{ApplicationState, ExtractAppState},
     domain::use_cases::sign_up_use_case::{self, *},
 };
-
-#[derive(Deserialize)]
-#[serde(rename_all = "camelCase")]
-struct CheckPasswordStrength {
-    password: String,
-    first_name: String,
-    last_name: String,
-}
 
 pub fn users_router() -> Router<ApplicationState> {
     Router::new()
@@ -28,34 +12,34 @@ pub fn users_router() -> Router<ApplicationState> {
         .route("/check-password", post(check_password_handler))
 }
 
-async fn check_password_handler(Json(body): Json<CheckPasswordStrength>) -> impl IntoResponse {
-    Json(zxcvbn(&body.password, &[&body.first_name, &body.last_name]))
+async fn check_password_handler(
+    Json(body): Json<CheckPasswordStrengthCommand>,
+) -> impl IntoResponse {
+    Json(sign_up_use_case::check_password_strength(body))
 }
 
 async fn signup_handler(
     State(app_state): ExtractAppState,
     Json(command): Json<SignUpCommand>,
 ) -> impl IntoResponse {
-    match sign_up_use_case::sign_up(
+    use sign_up_use_case::*;
+    match sign_up(
         &app_state.adapters.organization_repository,
         &app_state.adapters.user_repository,
         command,
     )
     .await
     {
-        Err(sign_up_use_case::SignUpError::InvalidEmail) => {
-            (StatusCode::BAD_REQUEST, "Invalid e-mail address")
-        }
-        Err(sign_up_use_case::SignUpError::PasswordTooWeak) => {
-            (StatusCode::BAD_REQUEST, "Password is too weak")
-        }
-        Err(sign_up_use_case::SignUpError::UserAlreadyExists) => {
-            (StatusCode::CONFLICT, "User already exists")
-        }
-        Err(sign_up_use_case::SignUpError::TechnicalFailure(e)) => {
+        Err(e @ SignUpError::InvalidEmail) => (StatusCode::BAD_REQUEST, e.to_string()),
+        Err(e @ SignUpError::PasswordTooWeak) => (StatusCode::BAD_REQUEST, e.to_string()),
+        Err(e @ SignUpError::UserAlreadyExists) => (StatusCode::CONFLICT, e.to_string()),
+        Err(SignUpError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Internal server error while signing up a new user");
-            (StatusCode::INTERNAL_SERVER_ERROR, "Internal server error")
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                "Internal server error".to_string(),
+            )
         }
-        Ok(_) => (StatusCode::OK, "OK"),
+        Ok(_) => (StatusCode::OK, "OK".to_string()),
     }
 }

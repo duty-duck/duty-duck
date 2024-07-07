@@ -5,6 +5,7 @@ create table if not exists http_monitors (
    created_at timestamp with time zone not null default now(),
    url text not null,
    status smallint not null,
+   status_counter smallint not null,
    first_ping_at timestamp with time zone,
    next_ping_at timestamp with time zone,
    last_ping_at timestamp with time zone,

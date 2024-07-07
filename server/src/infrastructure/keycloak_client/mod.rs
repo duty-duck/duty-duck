@@ -548,7 +548,7 @@ pub enum Error {
     #[error("Cannot obtain access token: {0}")]
     CannotObtainAccessToken(#[source] anyhow::Error),
     #[error("HTTP Error: {0}")]
-    HttpError(#[from] reqwest::Error),
+    Http(#[from] reqwest::Error),
     #[error("Conflicting resource already exists")]
     Conflict,
     #[error("Resource not found")]

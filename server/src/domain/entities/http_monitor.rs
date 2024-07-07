@@ -19,6 +19,7 @@ pub struct HttpMonitor {
     pub interval_seconds: i64,
     pub last_http_code: Option<i16>,
     pub status: HttpMonitorStatus,
+    pub status_counter: i16
 }
 
 impl HttpMonitor {

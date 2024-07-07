@@ -16,16 +16,28 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
         organization_id: uuid::Uuid,
         limit: u32,
         offset: u32,
-    ) -> anyhow::Result<Vec<HttpMonitor>> {
-        sqlx::query_as!(
+    ) -> anyhow::Result<(Vec<HttpMonitor>, u64)> {
+        let mut tx = self.pool.begin().await?;
+
+        let http_monitors = sqlx::query_as!(
             HttpMonitor,
-            "SELECT * FROM http_monitors WHERE organization_id = $1 LIMIT $2 OFFSET $3",
+            "SELECT * FROM http_monitors WHERE organization_id = $1 LIMIT $2 OFFSET $3 ",
             organization_id,
             limit as i64,
             offset as i64
         )
-        .fetch_all(&self.pool)
-        .await
-        .with_context(|| "Cannot list http monitors")
+        .fetch_all(&mut *tx)
+        .await?;
+
+        let total_count = sqlx::query!(
+            "SELECT count(*) FROM http_monitors WHERE organization_id = $1",
+            organization_id
+        )
+        .fetch_one(&mut *tx)
+        .await?
+        .count
+        .unwrap_or_default();
+
+        Ok((http_monitors, total_count as u64))
     }
 }

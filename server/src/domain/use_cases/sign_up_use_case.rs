@@ -12,7 +12,7 @@ use tokio::try_join;
 use tracing::info;
 use ts_rs::TS;
 use uuid::Uuid;
-use zxcvbn::{zxcvbn, Score};
+use zxcvbn::{zxcvbn, Entropy, Score};
 
 use crate::domain::{
     entities::{
@@ -45,7 +45,7 @@ pub enum SignUpError {
     PasswordTooWeak,
     #[error("user already exists")]
     UserAlreadyExists,
-    #[error("{0}")]
+    #[error("technical failure: {0}")]
     TechnicalFailure(#[from] anyhow::Error),
 }
 
@@ -120,6 +120,18 @@ pub async fn sign_up(
     // 6. Return
     info!(organization = ?org, user = ?user, "Signed up a new user");
     Ok(())
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CheckPasswordStrengthCommand {
+    password: String,
+    first_name: String,
+    last_name: String,
+}
+
+pub fn check_password_strength(command: CheckPasswordStrengthCommand) -> Entropy {
+    zxcvbn(&command.password, &[&command.first_name, &command.last_name])
 }
 
 async fn create_organization_roles(

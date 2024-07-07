@@ -1,8 +1,12 @@
 mod users_router;
+mod http_monitors_router;
+mod paginations_params;
+mod auth_context_extractor;
 
 use std::time::Duration;
 
 use axum::{routing::get, Json, Router};
+use http_monitors_router::http_monitors_router;
 use tokio::signal;
 use tower_http::{cors::CorsLayer, timeout::TimeoutLayer, trace::TraceLayer};
 use tracing::info;
@@ -13,6 +17,7 @@ use super::{application_state::ApplicationState, built_info::build_info_json};
 pub async fn start_server(application_state: ApplicationState, port: u16) -> anyhow::Result<()> {
     let app = Router::new()
         .nest("/users", users_router())
+        .nest("/http-monitors", http_monitors_router())
         .route("/", get(|| async { Json(build_info_json()) }))
         .layer(CorsLayer::permissive())
         .with_state(application_state)
