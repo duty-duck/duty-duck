@@ -3,11 +3,15 @@ use thiserror::Error;
 use ts_rs::TS;
 
 use crate::domain::{
-    entities::{authorization::{AuthContext, Permission}, http_monitor::HttpMonitor},
+    entities::{
+        authorization::{AuthContext, Permission},
+        http_monitor::HttpMonitor,
+    },
     ports::http_monitor_repository::HttpMonitorRepository,
 };
 
 #[derive(Serialize, TS, Clone, Debug)]
+#[ts(export)]
 pub struct ListHttpMonitorsResponse {
     pub items: Vec<HttpMonitor>,
     pub total_number_of_results: u64,
@@ -18,7 +22,7 @@ pub enum ListHttpMonitorsError {
     #[error("Current user doesn't have the privilege the list HTTP monitors")]
     Forbidden,
     #[error("Failed to get monitors from the database: {0}")]
-    TechnicalError(#[from] anyhow::Error)
+    TechnicalError(#[from] anyhow::Error),
 }
 
 pub async fn list_http_monitors(
@@ -28,7 +32,7 @@ pub async fn list_http_monitors(
     items_per_page: u32,
 ) -> Result<ListHttpMonitorsResponse, ListHttpMonitorsError> {
     if !auth_context.can(Permission::ReadHttpMonitors) {
-        return Err(ListHttpMonitorsError::Forbidden)
+        return Err(ListHttpMonitorsError::Forbidden);
     }
 
     let items_per_page = items_per_page.min(50);

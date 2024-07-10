@@ -8,6 +8,7 @@ use uuid::Uuid;
 
 #[derive(Serialize, Deserialize, TS, Debug, Clone, FromRow)]
 #[serde(rename_all = "camelCase")]
+#[ts(export)]
 pub struct HttpMonitor {
     pub organization_id: Uuid,
     pub id: Uuid,
@@ -19,7 +20,8 @@ pub struct HttpMonitor {
     pub interval_seconds: i64,
     pub last_http_code: Option<i16>,
     pub status: HttpMonitorStatus,
-    pub status_counter: i16
+    pub status_counter: i16,
+    pub tags: Vec<String>
 }
 
 impl HttpMonitor {
@@ -31,6 +33,7 @@ impl HttpMonitor {
 #[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(i16)]
 #[serde(rename_all = "lowercase")]
+#[ts(export)]
 pub enum HttpMonitorStatus {
     Unknown = -1,
     Inactive = 0,

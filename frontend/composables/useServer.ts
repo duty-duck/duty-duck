@@ -10,7 +10,7 @@ export const useServer$fetch = () => {
     }
     return $fetch.create({
         baseURL: serverUrl,
-        headers
+        headers,
     })
 }
 
@@ -20,7 +20,7 @@ export const useServer$fetch = () => {
  * and autoamtically sends the authorization header for all requests.
  */
 // @ts-ignore
-export const useServer: typeof useFetch = (request, opts?) => {
+export const useServerFetch: typeof useFetch = (request, opts?) => {
     const fetch = useServer$fetch();
 
     return useFetch(request, { $fetch: fetch }).then(result => {

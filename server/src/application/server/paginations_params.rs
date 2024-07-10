@@ -2,6 +2,8 @@ use serde::Deserialize;
 use ts_rs::TS;
 
 #[derive(Deserialize, Debug, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
 pub struct PaginationParams {
     page_number: Option<u32>,
     items_per_page: Option<u32>,

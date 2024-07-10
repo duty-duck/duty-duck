@@ -21,7 +21,6 @@ struct Claims {
 #[derive(Deserialize)]
 struct ActiveOrganizationClaim {
     id: Uuid,
-    name: String,
     role: Vec<String>,
 }
 

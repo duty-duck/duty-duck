@@ -11,6 +11,7 @@ create table if not exists http_monitors (
    last_ping_at timestamp with time zone,
    interval_seconds int not null,
    last_http_code smallint,
+   tags text[] not null default '{}',
    constraint http_monitors_pkey primary key (organization_id, id)
 );
 

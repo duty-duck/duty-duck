@@ -1,7 +1,7 @@
 {
   "name": "uptime-monitoring",
   "scripts": {
-    "dev": "concurrently \"npm run dev:server\" \"npm run dev:frontend\"",
+    "dev": "concurrently npm:dev:server npm:dev:frontend",
     "dev:server": "cd server && cargo watch -x run",
     "dev:frontend": "cd frontend && npm run dev",
     "install": "cargo install sqlx-cli"
