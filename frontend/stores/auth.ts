@@ -6,8 +6,14 @@ import { computed, ref, watch } from 'vue'
 
 export type AuthState =
   | {
-    idToken: KeycloakTokenParsed
-    accessToken: KeycloakTokenParsed
+    idToken: {
+      raw: string,
+      parsed: KeycloakTokenParsed 
+    }
+    accessToken: {
+      raw: string,
+      parsed: KeycloakTokenParsed 
+    }
     status: 'authenticated'
   }
   | {
@@ -46,8 +52,14 @@ export const useAuth = defineStore('auth', () => {
     keycloak.onAuthSuccess = () => {
       state.value = {
         status: 'authenticated',
-        idToken: keycloak!.idTokenParsed!,
-        accessToken: keycloak!.tokenParsed!
+        idToken: {
+          raw: keycloak!.idToken!,
+          parsed: keycloak!.idTokenParsed!
+        },
+        accessToken:  {
+          raw: keycloak!.token!,
+          parsed: keycloak!.tokenParsed!
+        },
       }
     }
     keycloak.onAuthLogout = () => {
@@ -60,8 +72,14 @@ export const useAuth = defineStore('auth', () => {
           console.log('Auth token refreshed')
           state.value = {
             status: 'authenticated',
-            idToken: keycloak!.idTokenParsed!,
-            accessToken: keycloak!.tokenParsed!
+            idToken: {
+              raw: keycloak!.idToken!,
+              parsed: keycloak!.idTokenParsed!
+            },
+            accessToken:  {
+              raw: keycloak!.token!,
+              parsed: keycloak!.tokenParsed!
+            },
           }
         })
         .catch(() => {

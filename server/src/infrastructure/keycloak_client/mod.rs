@@ -6,28 +6,33 @@ use std::{sync::Arc, time::Instant};
 pub use self::keycloak_types::*;
 use anyhow::Context;
 use backon::{ExponentialBuilder, Retryable};
+use jsonwebtoken::jwk::JwkSet;
 use openidconnect::core::{CoreClient, CoreProviderMetadata};
 use openidconnect::reqwest::async_http_client;
 use openidconnect::{ClientId, ClientSecret, IssuerUrl};
 use openidconnect::{OAuth2TokenResponse, TokenResponse};
 use reqwest::header::LOCATION;
 use reqwest::{StatusCode, Url};
-use thiserror::Error;
 use tokio::sync::Mutex;
 use tracing::debug;
 use uuid::Uuid;
 
+#[derive(Clone)]
+struct CachedJwks {
+    keys: JwkSet,
+    last_retrieved_at: Instant,
+}
+
 pub struct KeycloakClient {
-    keycloak_url: Url,
-    keycloak_realm: String,
     realm_url: Url,
     realm_admin_url: Url,
     http_client: reqwest::Client,
     client_id: String,
     /// used to obtain service account tokens on behalf of the client
-    client_secret: String,
     access_token: Arc<Mutex<Option<AccessToken>>>,
     oidc_client: CoreClient,
+    // used to verify access tokens from keycloak
+    cached_jwks: Arc<Mutex<Option<CachedJwks>>>,
 }
 
 impl KeycloakClient {
@@ -51,14 +56,13 @@ impl KeycloakClient {
             ClientId::new(client_id.to_string()),
             Some(ClientSecret::new(client_secret.to_string())),
         );
+
         let client = KeycloakClient {
             oidc_client,
-            keycloak_url,
-            keycloak_realm: keycloak_realm.to_string(),
             http_client: reqwest::Client::new(),
             client_id: client_id.to_string(),
-            client_secret: client_secret.to_string(),
             access_token: Arc::new(Mutex::default()),
+            cached_jwks: Arc::new(Mutex::default()),
             realm_url,
             realm_admin_url,
         };
@@ -67,6 +71,21 @@ impl KeycloakClient {
         let _ = client.get_current_access_token().await?;
 
         Ok(client)
+    }
+
+    #[tracing::instrument(skip(self))]
+    pub async fn get_jwks(&self) -> anyhow::Result<JwkSet> {
+        let mut jwk = self.cached_jwks.lock().await;
+        match &*jwk {
+            Some(set) if set.last_retrieved_at.elapsed() < Duration::from_secs(600) => {
+                Ok(set.keys.clone())
+            }
+            _ => {
+                let new_jwks = self.fetch_jwks().await?;
+                *jwk = Some(new_jwks.clone());
+                Ok(new_jwks.keys)
+            }
+        }
     }
 
     #[tracing::instrument(skip(self))]
@@ -398,6 +417,27 @@ impl KeycloakClient {
         Ok(access_token)
     }
 
+    async fn fetch_jwks(&self) -> anyhow::Result<CachedJwks> {
+        let action = || {
+            self.http_client
+                .get(format!(
+                    "{}/protocol/openid-connect/certs",
+                    self.realm_url
+                ))
+                .send()
+        };
+
+        let keys = action
+            .retry(&Self::retry_strategy())
+            .await?
+            .json::<JwkSet>()
+            .await?;
+        Ok(CachedJwks {
+            keys,
+            last_retrieved_at: Instant::now(),
+        })
+    }
+
     fn retry_strategy() -> ExponentialBuilder {
         ExponentialBuilder::default()
             .with_max_times(5)
@@ -539,20 +579,4 @@ mod tests {
         client.create_user(&request).await?;
         Ok(())
     }
-}
-
-pub type Result<T> = core::result::Result<T, self::Error>;
-
-#[derive(Error, Debug)]
-pub enum Error {
-    #[error("Cannot obtain access token: {0}")]
-    CannotObtainAccessToken(#[source] anyhow::Error),
-    #[error("HTTP Error: {0}")]
-    Http(#[from] reqwest::Error),
-    #[error("Conflicting resource already exists")]
-    Conflict,
-    #[error("Resource not found")]
-    NotFound,
-    #[error("Technical failure: {0}")]
-    TechnicalFailure(#[from] anyhow::Error),
 }

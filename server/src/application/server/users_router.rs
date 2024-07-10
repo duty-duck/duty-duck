@@ -1,15 +1,29 @@
-use axum::{extract::State, http::StatusCode, response::IntoResponse, routing::post, Json, Router};
+use axum::{
+    extract::State,
+    http::StatusCode,
+    response::IntoResponse,
+    routing::{get, post},
+    Json, Router,
+};
 use tracing::warn;
 
 use crate::{
     application::application_state::{ApplicationState, ExtractAppState},
-    domain::use_cases::sign_up_use_case::{self, *},
+    domain::{
+        entities::authorization::AuthContext,
+        use_cases::sign_up_use_case::{self, *},
+    },
 };
 
 pub fn users_router() -> Router<ApplicationState> {
     Router::new()
+        .route("/debug-auth-context", get(debug_auth_context_handler))
         .route("/signup", post(signup_handler))
         .route("/check-password", post(check_password_handler))
+}
+
+async fn debug_auth_context_handler(auth_context: AuthContext) -> impl IntoResponse {
+    Json(auth_context)
 }
 
 async fn check_password_handler(

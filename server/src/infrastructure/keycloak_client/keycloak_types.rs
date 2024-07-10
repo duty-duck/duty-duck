@@ -2,6 +2,7 @@ use std::{collections::HashMap, time::Instant};
 
 use openidconnect::core::CoreIdToken;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
+use thiserror::Error;
 use uuid::Uuid;
 
 #[derive(Clone, Debug)]
@@ -106,4 +107,20 @@ impl AttributeMap {
 #[macro_export]
 macro_rules! attributes {
     ($($key:expr => $value:expr,)+) => { AttributeMap { map: maplit::hashmap!($($key => $value),+) } };
+}
+
+pub type Result<T> = core::result::Result<T, self::Error>;
+
+#[derive(Error, Debug)]
+pub enum Error {
+    #[error("Cannot obtain access token: {0}")]
+    CannotObtainAccessToken(#[source] anyhow::Error),
+    #[error("HTTP Error: {0}")]
+    Http(#[from] reqwest::Error),
+    #[error("Conflicting resource already exists")]
+    Conflict,
+    #[error("Resource not found")]
+    NotFound,
+    #[error("Technical failure: {0}")]
+    TechnicalFailure(#[from] anyhow::Error),
 }

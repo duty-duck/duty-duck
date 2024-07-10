@@ -1,7 +1,9 @@
+use serde::Serialize;
 use uuid::Uuid;
 
 use super::organization::{OrganizationRoleSet, OrganizationUserRole};
 
+#[derive(Serialize)]
 pub struct AuthContext {
     pub active_organization_id: Uuid,
     pub active_user: Uuid,

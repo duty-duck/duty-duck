@@ -8,7 +8,9 @@ use sqlx::postgres::PgPoolOptions;
 
 use crate::infrastructure::{
     adapters::{
-        http_monitor_repository_adapter::HttpMonitorRepositoryAdapter, organization_repository_adapter::OrganizationRepositoryAdapter, user_repository_adapter::UserRepositoryAdapter
+        http_monitor_repository_adapter::HttpMonitorRepositoryAdapter,
+        organization_repository_adapter::OrganizationRepositoryAdapter,
+        user_repository_adapter::UserRepositoryAdapter,
     },
     keycloak_client::KeycloakClient,
 };
@@ -53,9 +55,11 @@ async fn build_app_state(config: &AppConfig) -> anyhow::Result<ApplicationState>
         user_repository: UserRepositoryAdapter {
             keycloak_client: keycloak_client.clone(),
         },
-        http_monitors_repository: HttpMonitorRepositoryAdapter {
-            pool: pool.clone()
-        }
+        http_monitors_repository: HttpMonitorRepositoryAdapter { pool: pool.clone() },
     };
-    Ok(ApplicationState { adapters })
+    Ok(ApplicationState {
+        adapters,
+        keycloak_client: keycloak_client.clone(),
+        access_token_audience: config.access_token_audience.clone(),
+    })
 }

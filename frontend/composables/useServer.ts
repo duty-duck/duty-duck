@@ -6,7 +6,7 @@ export const useServer$fetch = () => {
     const { state: auth } = useAuth();
     let headers = {};
     if (auth?.status == "authenticated") {
-        headers = { "Authorization": `Bearer ${auth.accessToken}` }
+        headers = { "Authorization": `Bearer ${auth.accessToken.raw}` }
     }
     return $fetch.create({
         baseURL: serverUrl,

@@ -1,5 +1,8 @@
+use std::str::FromStr;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -93,6 +96,14 @@ pub enum OrganizationUserRole {
     Owner,
 }
 
+impl FromStr for OrganizationUserRole {
+    type Err = serde_json::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        serde_json::from_value(Value::String(s.to_string()))
+    }
+}
+
 impl std::fmt::Display for OrganizationUserRole {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         std::fmt::Debug::fmt(self, f)
@@ -120,11 +131,11 @@ pub struct OrganizationRoleSet {
 impl OrganizationRoleSet {
     /// Returns whether this [OrganizationRoleSet] contains the specified role.
     /// This function implements a hierarchy of roles: for all roles A and B where A includes all the privileges of B, then contains(A) implies contains(B).
-    /// 
+    ///
     /// Owner includes all roles
     /// Administrator includes all roles except Owner
     /// Editor includes Reporter
-    /// MemberManager includes MemberInviter 
+    /// MemberManager includes MemberInviter
     #[inline]
     pub fn contains(&self, role: OrganizationUserRole) -> bool {
         match role {
@@ -159,5 +170,13 @@ impl OrganizationRoleSet {
             }
         }
         false
+    }
+}
+
+impl<I: IntoIterator<Item = String>> From<I> for OrganizationRoleSet {
+    fn from(value: I) -> Self {
+        Self {
+            roles: value.into_iter().filter_map(|r| r.parse().ok()).collect(),
+        }
     }
 }

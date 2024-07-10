@@ -18,6 +18,8 @@ pub struct AppConfig {
     pub keycloak_client: String,
     #[envconfig(from = "KEYCLOAK_SECRET")]
     pub keycloak_secret: String,
+    #[envconfig(from = "ACCESS_TOKEN_AUDIENCE", default = "dutyduck-dashboard")]
+    pub access_token_audience: String
 }
 
 impl AppConfig {
