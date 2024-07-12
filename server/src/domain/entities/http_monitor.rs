@@ -21,7 +21,8 @@ pub struct HttpMonitor {
     pub last_http_code: Option<i16>,
     pub status: HttpMonitorStatus,
     pub status_counter: i16,
-    pub tags: Vec<String>
+    pub error_kind: HttpMonitorErrorKind,
+    pub tags: Vec<String>,
 }
 
 impl HttpMonitor {
@@ -52,8 +53,42 @@ impl From<i16> for HttpMonitorStatus {
             2 => Self::Recovering,
             3 => Self::Suspicious,
             4 => Self::Down,
-            _ => panic!("invalid HttpMonitorStatus discriminant: {value}")
+            _ => panic!("invalid HttpMonitorStatus discriminant: {value}"),
+        }
+    }
+}
 
+#[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(i16)]
+#[serde(rename_all = "lowercase")]
+#[ts(export)]
+pub enum HttpMonitorErrorKind {
+    Unknown = -1,
+    None = 0,
+    HttpCode = 1,
+    Connect = 2,
+    Builder = 3,
+    Request = 4,
+    Redirect = 5,
+    Body = 6,
+    Decode = 7,
+    Timeout = 8,
+}
+
+impl From<i16> for HttpMonitorErrorKind {
+    fn from(value: i16) -> Self {
+        match value {
+            -1 => Self::Unknown,
+            0 => Self::None,
+            1 => Self::HttpCode,
+            2 => Self::Connect,
+            3 => Self::Builder,
+            4 => Self::Request,
+            5 => Self::Redirect,
+            6 => Self::Body,
+            7 => Self::Decode,
+            8 => Self::Timeout,
+            _ => panic!("invalid HttpMonitorErrorKind discriminant: {value}"),
         }
     }
 }

@@ -5,6 +5,7 @@ build = "build.rs"
 publish = false
 
 [dependencies]
+async-trait = "0.1.81"
 anyhow = "1.0.86"
 axum = "0.7.5"
 chrono = { version = "0.4.38", features = ["serde"] }

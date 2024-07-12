@@ -15,8 +15,8 @@ const hoursInterval = [1, 2, 6, 12, 24].map((hours) => ({
   shortLabel: `${hours}h`,
 }));
 const intervals = [...secondsInterval, ...minutesInterval, ...hoursInterval];
-
-const index = ref(1);
+const props = defineProps<{ value: number }>();
+const index = ref(intervals.findIndex(int => int.seconds == props.value));
 const currentInterval = computed(() => intervals[index.value]);
 
 const emit = defineEmits<{

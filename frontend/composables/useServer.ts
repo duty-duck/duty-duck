@@ -3,14 +3,17 @@
  */
 export const useServer$fetch = () => {
     const { public: { serverUrl } } = useRuntimeConfig();
-    const { state: auth } = useAuth();
-    let headers = {};
-    if (auth?.status == "authenticated") {
-        headers = { "Authorization": `Bearer ${auth.accessToken.raw}` }
-    }
+
     return $fetch.create({
         baseURL: serverUrl,
-        headers,
+        onRequest: ({ options }) => {
+            const { state: auth } = useAuth();
+            options.headers = options.headers || {};
+            if (auth?.status == "authenticated") {
+                // @ts-ignore
+                options.headers["Authorization"] = `Bearer ${auth.accessToken.raw}`;
+            }
+        }
     })
 }
 
@@ -24,8 +27,8 @@ export const useServerFetch: typeof useFetch = (request, opts?) => {
     const fetch = useServer$fetch();
 
     return useFetch(request, { $fetch: fetch }).then(result => {
-        if (result.error) {
-            console.error(result.error)
+        if (result.error.value) {
+            console.error("Fetch error: ", result.error.value)
         }
         return result
     })

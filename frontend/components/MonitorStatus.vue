@@ -7,13 +7,13 @@ const props = defineProps<{
 
 const label = computed(() => {
   if (props.status == "unknown") {
-    return "PENDING";
+    return "Pending";
   }
   if (props.status == "up") {
-    return "HEALTHY";
+    return "Healthy";
   }
 
-  return props.status.toUpperCase();
+  return props.status;
 });
 
 const icon = computed(() => {

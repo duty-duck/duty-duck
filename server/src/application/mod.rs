@@ -6,13 +6,14 @@ use application_state::{Adapters, ApplicationState};
 use reqwest::Url;
 use sqlx::postgres::PgPoolOptions;
 
-use crate::infrastructure::{
-    adapters::{
-        http_monitor_repository_adapter::HttpMonitorRepositoryAdapter,
-        organization_repository_adapter::OrganizationRepositoryAdapter,
-        user_repository_adapter::UserRepositoryAdapter,
+use crate::{
+    domain::use_cases,
+    infrastructure::{
+        adapters::{
+            http_client_adapter::HttpClientAdapter, http_monitor_repository_adapter::HttpMonitorRepositoryAdapter, organization_repository_adapter::OrganizationRepositoryAdapter, user_repository_adapter::UserRepositoryAdapter
+        },
+        keycloak_client::KeycloakClient,
     },
-    keycloak_client::KeycloakClient,
 };
 
 pub mod application_config;
@@ -23,6 +24,13 @@ pub mod server;
 pub async fn start_application() -> anyhow::Result<()> {
     let config = AppConfig::load()?;
     let application_state = build_app_state(&config).await?;
+    let _http_monitors_tasks = use_cases::http_monitors::spawn_http_monitors_execution_tasks(
+        config.http_monitors_concurrent_tasks,
+        application_state.adapters.http_monitors_repository.clone(),
+        application_state.adapters.http_client.clone(),
+        config.http_monitors_select_size,
+        config.http_monitors_ping_concurrency,
+    );
 
     server::start_server(application_state, config.server_port).await?;
     Ok(())
@@ -56,6 +64,7 @@ async fn build_app_state(config: &AppConfig) -> anyhow::Result<ApplicationState>
             keycloak_client: keycloak_client.clone(),
         },
         http_monitors_repository: HttpMonitorRepositoryAdapter { pool: pool.clone() },
+        http_client: HttpClientAdapter::new(config)
     };
     Ok(ApplicationState {
         adapters,

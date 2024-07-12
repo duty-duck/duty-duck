@@ -66,7 +66,7 @@ const lgOrLarger = breakpoints.greaterOrEqual("lg");
             id="dashboard-container"
           >
             <NuxtErrorBoundary>
-              <RouterView />
+              <NuxtPage :transition="{ name: 'page', mode: 'out-in' }" />
               <template #error="{ error }">
                 <p>An error occurred: {{ error }}</p>
               </template>
@@ -77,3 +77,19 @@ const lgOrLarger = breakpoints.greaterOrEqual("lg");
     </div>
   </template>
 </template>
+
+<style>
+.page-enter-active,
+.page-leave-active {
+  transition: all 0.1s ease-in-out;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateX(10%);
+}
+
+.page-leave-to {
+  opacity: 0;
+}
+</style>

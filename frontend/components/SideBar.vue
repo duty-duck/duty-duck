@@ -19,6 +19,18 @@
                     Incidents
                 </a>
             </li>
+            <li class="nav-item">
+                <a class="nav-link icon-link" href="#">
+                    <Icon name="ph:speedometer-duotone" size="22px" />
+                    Web perf.
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link icon-link" href="#">
+                    <Icon name="ph:cpu-duotone" size="22px" />
+                    Infrastructure
+                </a>
+            </li>
         </ul>
     </div>
 </template>
