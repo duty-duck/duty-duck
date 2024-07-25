@@ -53,4 +53,5 @@ pub struct UpdateHttpMonitorStatus {
     pub next_ping_at: Option<DateTime<Utc>>,
     pub status_counter: i16,
     pub error_kind: HttpMonitorErrorKind,
+    pub last_http_code: Option<i16>
 }

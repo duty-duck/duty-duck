@@ -1,4 +1,24 @@
+version: '3'
 services:
+  dev-container:
+    depends_on:
+      - fake-internet
+    image: mcr.microsoft.com/devcontainers/base:bullseye
+    ports:
+      - 5173:5173
+      - 3000:3000
+    volumes:
+      - .:/home/workspace:cached
+
+  fake-internet:
+    build: ./fake-internet
+    environment:
+      - PORT=80
+    networks:
+      default:
+        aliases:
+          - www.mediapart.fr
+          - www.fake-internet.com
   database:
     image: postgres:16-alpine
     environment:

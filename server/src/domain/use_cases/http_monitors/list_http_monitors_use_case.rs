@@ -11,6 +11,7 @@ use crate::domain::{
 };
 
 #[derive(Serialize, TS, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct ListHttpMonitorsResponse {
     pub items: Vec<HttpMonitor>,

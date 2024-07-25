@@ -1,10 +1,13 @@
 {
   "name": "uptime-monitoring",
+  "workspaces": [
+    "fake-internet",
+    "frontend"
+  ],
   "scripts": {
     "dev": "concurrently npm:dev:server npm:dev:frontend",
     "dev:server": "cd server && cargo watch -x run",
-    "dev:frontend": "cd frontend && npm run dev",
-    "install": "cargo install sqlx-cli"
+    "dev:frontend": "cd frontend && npm run dev"
   },
   "repository": {
     "type": "git",

@@ -42,7 +42,7 @@ const icon = computed(() => {
       'text-success': props.status == 'up'
     }"
     >
-    <Icon :name="icon" size="2rem" />
+    <Icon :name="icon" size="1.5rem" />
     {{ label }}</span
   >
 </template>

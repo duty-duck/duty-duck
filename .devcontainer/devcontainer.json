@@ -1,0 +1,46 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the
+// README at: https://github.com/devcontainers/templates/tree/main/src/debian
+{
+	"name": "Duty-Duck-Dev-Container",
+	"overrideCommand": true,
+	"workspaceFolder": "/home/workspace",
+	"dockerComposeFile": "../docker-compose.yml",
+	"service": "dev-container",
+	"mounts": [
+		"source=${localWorkspaceFolderBasename}-frontend-node_modules,target=${containerWorkspaceFolder}/frontend/node_modules,type=volume",
+		"source=${localWorkspaceFolderBasename}-fake-internet-node_modules,target=${containerWorkspaceFolder}/fake-internet/node_modules,type=volume",
+		"source=${localWorkspaceFolderBasename}-server-target,target=${containerWorkspaceFolder}/server/target,type=volume"
+	],
+	"postCreateCommand": "/home/workspace/.devcontainer/postCreate.sh",
+	"customizations": {
+		"vscode": {
+			"extensions": ["Vue.volar"]
+		}
+	},
+	"features": {
+		"ghcr.io/devcontainers/features/docker-outside-of-docker:1": {
+			"moby": true,
+			"installDockerBuildx": true,
+			"version": "latest",
+			"dockerDashComposeVersion": "v2"
+		},
+		"ghcr.io/devcontainers/features/node:1": {
+			"nodeGypDependencies": true,
+			"installYarnUsingApt": true,
+			"version": "18",
+			"nvmVersion": "latest"
+		},
+		"ghcr.io/devcontainers/features/rust:1": {
+			"version": "1.76",
+			"profile": "complete",
+			"targets": "aarch64-unknown-linux-gnu"
+		},
+		"ghcr.io/devcontainers-contrib/features/neovim-apt-get:1": {},
+		"ghcr.io/nils-geistmann/devcontainers-features/zsh:0": {
+			"setLocale": true,
+			"theme": "agnoster",
+			"plugins": "git docker",
+			"desiredLocale": "en_US.UTF-8 UTF-8"
+		}
+	}
+}

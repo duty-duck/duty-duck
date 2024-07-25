@@ -33,7 +33,7 @@ const lgOrLarger = breakpoints.greaterOrEqual("lg");
     <div class="container-fluid g-0">
       <div class="row g-0">
         <div
-          class="d-none d-lg-block col-lg-3 col-xl-2 d-flex"
+          class="d-none d-lg-block col-lg-3 col-xl-2 d-flex sticky-top"
           id="dashboard-sidebar"
         >
           <div id="dashboard-sidebar-content">

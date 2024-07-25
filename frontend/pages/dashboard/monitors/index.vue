@@ -8,14 +8,13 @@ const repository = useHttpMonitorRepository();
 
 const { status, data, refresh } = await repository.useHttpMonitors({
   pageNumber,
-  itemsPerPage: 20,
+  itemsPerPage: 10,
 });
+const numberOfPages = computed(() => data ? Number(data.totalNumberOfResults) / 10 : 1);
 
 if (data.value?.items.length == 0 && pageNumber > 1) {
   router.replace("/dasboard/monitors");
 }
-
-const monitors = ref([]);
 
 useIntervalFn(() => {
   refresh();
@@ -46,24 +45,6 @@ useIntervalFn(() => {
       </p>
       <AddHttpMonitorButton class="m-3" />
     </div>
-    <BCard
-      class="mb-3 shadow-sm"
-      :class="{
-        'border-danger': monitor.status == 'down',
-        'border-warning': monitor.status == 'suspicious',
-        'border-info': monitor.status == 'recovering',
-        'border-secondary':
-          monitor.status == 'unknown' || monitor.status == 'inactive',
-        'border-success': monitor.status == 'up',
-      }"
-      :title="monitor.url"
-      v-for="monitor in data?.items"
-      :key="monitor.id"
-    >
-      <MonitorStatus :status="monitor.status" />
-      <div class="d-flex gap-1 mt-2">
-        <BBadge v-for="t in monitor.tags" variant="light">{{ t }}</BBadge>
-      </div>
-    </BCard>
+    <MonitorCard v-for="monitor in data?.items" :key="monitor.id" v-bind="monitor" />
   </div>
 </template>

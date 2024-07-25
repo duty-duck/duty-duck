@@ -7,7 +7,7 @@ export const useHttpMonitorRepository = () => {
     const $fetch = useServer$fetch();
     return {
         async useHttpMonitors(params: PaginationParams) {
-            return await useServerFetch<ListHttpMonitorsResponse>('/http-monitors', { params, retry: 3, retryDelay: 5000 });
+            return await useServerFetch<ListHttpMonitorsResponse>(`/http-monitors?pageNumber=${params.pageNumber}&itemsPerPage=${params.itemsPerPage}`, { retry: 3, retryDelay: 5000 });
         },
         async createHttpMonitor(command: CreateHttpMonitorCommand) {
             return await $fetch<CreateHttpMonitorResponse>('/http-monitors', {method: "post", body: command})

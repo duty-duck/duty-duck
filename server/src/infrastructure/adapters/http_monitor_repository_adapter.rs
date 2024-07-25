@@ -121,11 +121,20 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
         command: UpdateHttpMonitorStatus,
     ) -> anyhow::Result<()> {
         sqlx::query!(
-            "UPDATE http_monitors SET status = $1, next_ping_at = $2, status_counter = $3, error_kind = $4 WHERE organization_id = $5 and id = $6",
+            "UPDATE http_monitors SET 
+                status = $1,
+                next_ping_at = $2, 
+                status_counter = $3,
+                error_kind = $4,
+                last_http_code = $5,
+                last_ping_at = now(),
+                first_ping_at = coalesce(first_ping_at, now())
+            WHERE organization_id = $6 and id = $7",
             command.status as i16,
             command.next_ping_at,
             command.status_counter,
             command.error_kind as i16,
+            command.last_http_code,
             command.organization_id,
             command.monitor_id,
         ).execute(transaction.as_mut()).await?;
