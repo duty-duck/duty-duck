@@ -16,7 +16,7 @@ pub trait HttpMonitorRepository: TransactionalRepository + Clone + Send + Sync +
         organization_id: Uuid,
         limit: u32,
         offset: u32,
-    ) -> anyhow::Result<(Vec<HttpMonitor>, u64)>;
+    ) -> anyhow::Result<(Vec<HttpMonitor>, u32)>;
 
     /// Create a new HTTP monitor
     async fn create_http_monitor(&self, monitor: NewHttpMonitor) -> anyhow::Result<Uuid>;

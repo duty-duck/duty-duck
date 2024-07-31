@@ -48,7 +48,7 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
         organization_id: uuid::Uuid,
         limit: u32,
         offset: u32,
-    ) -> anyhow::Result<(Vec<HttpMonitor>, u64)> {
+    ) -> anyhow::Result<(Vec<HttpMonitor>, u32)> {
         let mut tx = self.begin_transaction().await?;
 
         let http_monitors = sqlx::query_as!(
@@ -70,7 +70,7 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
         .count
         .unwrap_or_default();
 
-        Ok((http_monitors, total_count as u64))
+        Ok((http_monitors, total_count as u32))
     }
 
     #[tracing::instrument(skip(self))]

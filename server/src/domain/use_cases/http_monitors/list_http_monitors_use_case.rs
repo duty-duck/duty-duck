@@ -15,7 +15,7 @@ use crate::domain::{
 #[ts(export)]
 pub struct ListHttpMonitorsResponse {
     pub items: Vec<HttpMonitor>,
-    pub total_number_of_results: u64,
+    pub total_number_of_results: u32,
 }
 
 #[derive(Error, Debug)]

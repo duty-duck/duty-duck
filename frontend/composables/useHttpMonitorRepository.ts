@@ -6,11 +6,11 @@ import type { CreateHttpMonitorResponse } from "bindings/CreateHttpMonitorRespon
 export const useHttpMonitorRepository = () => {
     const $fetch = useServer$fetch();
     return {
-        async useHttpMonitors(params: PaginationParams) {
-            return await useServerFetch<ListHttpMonitorsResponse>(`/http-monitors?pageNumber=${params.pageNumber}&itemsPerPage=${params.itemsPerPage}`, { retry: 3, retryDelay: 5000 });
+        async useHttpMonitors(params: Ref<PaginationParams>) {
+            return await useServerFetch<ListHttpMonitorsResponse>(`/http-monitors`, { retry: 3, retryDelay: 5000, query: params });
         },
         async createHttpMonitor(command: CreateHttpMonitorCommand) {
-            return await $fetch<CreateHttpMonitorResponse>('/http-monitors', {method: "post", body: command})
+            return await $fetch<CreateHttpMonitorResponse>('/http-monitors', { method: "post", body: command })
         }
     }
 }

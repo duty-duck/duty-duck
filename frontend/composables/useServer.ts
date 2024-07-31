@@ -26,7 +26,19 @@ export const useServer$fetch = () => {
 export const useServerFetch: typeof useFetch = (request, opts?) => {
     const fetch = useServer$fetch();
 
-    return useFetch(request, { $fetch: fetch }).then(result => {
+    return useFetch(request, { $fetch: fetch, ...opts }).then(result => {
+        if (result.error.value) {
+            console.error("Fetch error: ", result.error.value)
+        }
+        return result
+    })
+}
+
+// @ts-ignore
+export const useLazyServerFetch: typeof useLazyFetch = (request, opts?) => {
+    const fetch = useServer$fetch();
+
+    return useLazyFetch(request, { $fetch: fetch, ...opts }).then(result => {
         if (result.error.value) {
             console.error("Fetch error: ", result.error.value)
         }
