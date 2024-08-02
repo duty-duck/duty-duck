@@ -44,6 +44,17 @@ pub enum HttpMonitorStatus {
     Down = 4,
 }
 
+impl HttpMonitorStatus {
+    pub const ALL: [Self; 6] = [
+        Self::Unknown,
+        Self::Inactive,
+        Self::Up,
+        Self::Recovering,
+        Self::Suspicious,
+        Self::Down,
+    ];
+}
+
 impl From<i16> for HttpMonitorStatus {
     fn from(value: i16) -> Self {
         match value {

@@ -1,6 +1,5 @@
 mod users_router;
 mod http_monitors_router;
-mod paginations_params;
 mod auth_context_extractor;
 
 use std::time::Duration;

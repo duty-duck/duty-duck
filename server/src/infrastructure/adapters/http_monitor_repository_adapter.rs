@@ -5,7 +5,9 @@ use uuid::Uuid;
 use crate::domain::{
     entities::http_monitor::{HttpMonitor, HttpMonitorErrorKind, HttpMonitorStatus},
     ports::{
-        http_monitor_repository::{self, HttpMonitorRepository, UpdateHttpMonitorStatus},
+        http_monitor_repository::{
+            self, HttpMonitorRepository, ListHttpMonitorsOutput, UpdateHttpMonitorStatus,
+        },
         transactional_repository::TransactionalRepository,
     },
 };
@@ -46,20 +48,32 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
     async fn list_http_monitors(
         &self,
         organization_id: uuid::Uuid,
+        include_statuses: Vec<HttpMonitorStatus>,
+        query: String,
         limit: u32,
         offset: u32,
-    ) -> anyhow::Result<(Vec<HttpMonitor>, u32)> {
+    ) -> anyhow::Result<ListHttpMonitorsOutput> {
         let mut tx = self.begin_transaction().await?;
+        let query = format!("%{query}%");
+        let statuses = include_statuses
+            .into_iter()
+            .map(|s| s as i32)
+            .collect::<Vec<_>>();
 
-        let http_monitors = sqlx::query_as!(
-            HttpMonitor,
-            "SELECT * FROM http_monitors WHERE organization_id = $1 LIMIT $2 OFFSET $3",
-            organization_id,
-            limit as i64,
-            offset as i64
-        )
-        .fetch_all(&mut *tx)
-        .await?;
+        let http_monitors = 
+            sqlx::query_as!(
+                HttpMonitor,
+                "SELECT * FROM http_monitors 
+                WHERE organization_id = $1 AND status IN (SELECT unnest($2::integer[])) AND ($3 = '' or url ilike $3) 
+                ORDER BY url LIMIT $4 OFFSET $5",
+                organization_id,
+                &statuses,
+                &query,
+                limit as i64,
+                offset as i64
+            )
+            .fetch_all(&mut *tx)
+            .await?;
 
         let total_count = sqlx::query!(
             "SELECT count(*) FROM http_monitors WHERE organization_id = $1",
@@ -70,7 +84,22 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
         .count
         .unwrap_or_default();
 
-        Ok((http_monitors, total_count as u32))
+        let total_filtered_count = sqlx::query!(
+            "SELECT count(*) FROM http_monitors WHERE organization_id = $1 AND status IN (SELECT unnest($2::integer[])) AND ($3 = '' or url ilike $3)",
+            organization_id,
+            &statuses,
+            &query
+        )
+        .fetch_one(&mut *tx)
+        .await?
+        .count
+        .unwrap_or_default();
+
+        Ok(ListHttpMonitorsOutput {
+            monitors: http_monitors,
+            total_monitors: total_count as u32,
+            total_filtered_monitors: total_filtered_count as u32,
+        })
     }
 
     #[tracing::instrument(skip(self))]
@@ -137,7 +166,9 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
             command.last_http_code,
             command.organization_id,
             command.monitor_id,
-        ).execute(transaction.as_mut()).await?;
+        )
+        .execute(transaction.as_mut())
+        .await?;
 
         Ok(())
     }

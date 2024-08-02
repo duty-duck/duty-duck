@@ -1,5 +1,6 @@
+use axum_extra::extract::Query;
 use axum::{
-    extract::{Query, State},
+    extract::{State},
     http::StatusCode,
     response::IntoResponse,
     routing::get,
@@ -12,12 +13,10 @@ use crate::{
     domain::{
         entities::authorization::AuthContext,
         use_cases::http_monitors::{
-            self, CreateHttpMonitorCommand, CreateHttpMonitorError, ListHttpMonitorsError,
+            self, CreateHttpMonitorCommand, CreateHttpMonitorError, ListHttpMonitorsError, ListHttpMonitorsParams,
         },
     },
 };
-
-use super::paginations_params::PaginationParams;
 
 pub fn http_monitors_router() -> Router<ApplicationState> {
     Router::new().route(
@@ -29,13 +28,12 @@ pub fn http_monitors_router() -> Router<ApplicationState> {
 async fn list_http_monitors_handler(
     auth_context: AuthContext,
     State(app_state): ExtractAppState,
-    Query(pagination): Query<PaginationParams>,
+    Query(params): Query<ListHttpMonitorsParams>,
 ) -> impl IntoResponse {
     match http_monitors::list_http_monitors(
         &auth_context,
         &app_state.adapters.http_monitors_repository,
-        pagination.page_number(),
-        pagination.items_per_page(),
+        params
     )
     .await
     {

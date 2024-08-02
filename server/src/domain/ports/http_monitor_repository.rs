@@ -8,15 +8,23 @@ use crate::domain::entities::http_monitor::{HttpMonitor, HttpMonitorErrorKind, H
 
 use super::transactional_repository::TransactionalRepository;
 
+pub struct ListHttpMonitorsOutput {
+    pub monitors: Vec<HttpMonitor>,
+    pub total_monitors: u32,
+    pub total_filtered_monitors: u32,
+}
+
 #[async_trait]
 pub trait HttpMonitorRepository: TransactionalRepository + Clone + Send + Sync + 'static {
     /// List all the http monitors, return a vector of monitors of size `limit`, along with the total number of monitors
     async fn list_http_monitors(
         &self,
         organization_id: Uuid,
+        include_statuses: Vec<HttpMonitorStatus>,
+        query: String,
         limit: u32,
         offset: u32,
-    ) -> anyhow::Result<(Vec<HttpMonitor>, u32)>;
+    ) -> anyhow::Result<ListHttpMonitorsOutput>;
 
     /// Create a new HTTP monitor
     async fn create_http_monitor(&self, monitor: NewHttpMonitor) -> anyhow::Result<Uuid>;

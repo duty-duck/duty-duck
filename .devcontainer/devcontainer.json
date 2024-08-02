@@ -14,7 +14,7 @@
 	"postCreateCommand": "/home/workspace/.devcontainer/postCreate.sh",
 	"customizations": {
 		"vscode": {
-			"extensions": ["Vue.volar"]
+			"extensions": ["Vue.volar", "mtxr.sqltools", "mtxr.sqltools-driver-pg"]
 		}
 	},
 	"features": {
