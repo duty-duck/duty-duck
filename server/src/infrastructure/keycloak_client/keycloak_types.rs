@@ -10,6 +10,7 @@ pub(super) struct AccessToken {
     pub(super) access_token: openidconnect::AccessToken,
     pub(super) expires_at: Option<Instant>,
     pub(super) refresh_token: Option<openidconnect::RefreshToken>,
+    #[allow(unused)]
     pub(super) id_token: Option<CoreIdToken>,
 }
 
@@ -82,21 +83,23 @@ pub struct WriteOrganizationRequest {
     pub attributes: AttributeMap,
 }
 
-
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct OrgnanizationRole {
-    pub name: String
+    pub name: String,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone, Default)]
 #[serde(transparent)]
 pub struct AttributeMap {
-    pub map: HashMap<String, Vec<String>>
+    pub map: HashMap<String, Vec<String>>,
 }
 
 impl AttributeMap {
     pub fn get(&self, key: &str) -> Option<&str> {
-        self.map.get(key).and_then(|vec| vec.first()).map(|s| s.as_str())
+        self.map
+            .get(key)
+            .and_then(|vec| vec.first())
+            .map(|s| s.as_str())
     }
 
     pub fn get_json<T: DeserializeOwned>(&self, key: &str) -> Option<T> {

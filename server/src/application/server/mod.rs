@@ -1,11 +1,13 @@
 mod users_router;
 mod http_monitors_router;
 mod auth_context_extractor;
+mod incidents_router;
 
 use std::time::Duration;
 
 use axum::{routing::get, Json, Router};
 use http_monitors_router::http_monitors_router;
+use incidents_router::incidents_router;
 use tokio::signal;
 use tower_http::{cors::CorsLayer, timeout::TimeoutLayer, trace::TraceLayer};
 use tracing::info;
@@ -17,6 +19,7 @@ pub async fn start_server(application_state: ApplicationState, port: u16) -> any
     let app = Router::new()
         .nest("/users", users_router())
         .nest("/http-monitors", http_monitors_router())
+        .nest("/incidents", incidents_router())
         .route("/", get(|| async { Json(build_info_json()) }))
         .layer(CorsLayer::permissive())
         .with_state(application_state)

@@ -19,6 +19,9 @@ impl AuthContext {
             Permission::ReadHttpMonitors => self
                 .active_organization_roles
                 .contains(OrganizationUserRole::Reporter),
+            Permission::ReadIncidents => self
+                .active_organization_roles
+                .contains(OrganizationUserRole::Reporter),
             Permission::WriteHttpMonitors => self
                 .active_organization_roles
                 .contains(OrganizationUserRole::Editor),
@@ -32,4 +35,5 @@ pub enum Permission {
     RemoveOrganization,
     ReadHttpMonitors,
     WriteHttpMonitors,
+    ReadIncidents,
 }

@@ -1,3 +1,8 @@
+<script setup lang="ts">
+    let incidentRepo = useIncidentRepository();
+    let { refresh: refreshIncidentCount, data: incidentCount } = await incidentRepo.useOngoingIncidentsCount();
+</script>
+
 <template>
     <div class="py-2 px-lg-3 px-xl-4 mt-lg-4">
         <ul class="nav nav-pills nav-light nav-fill flex-column gap-2">
@@ -17,6 +22,7 @@
                 <a class="nav-link icon-link" href="#">
                     <Icon name="ph:seal-warning-duotone" size="22px" />
                     Incidents
+                    <BBadge class="ms-2" variant="danger" v-if="incidentCount && incidentCount > 0">{{ incidentCount }}</BBadge>
                 </a>
             </li>
             <li class="nav-item">

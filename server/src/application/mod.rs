@@ -10,7 +10,11 @@ use crate::{
     domain::use_cases,
     infrastructure::{
         adapters::{
-            http_client_adapter::HttpClientAdapter, http_monitor_repository_adapter::HttpMonitorRepositoryAdapter, organization_repository_adapter::OrganizationRepositoryAdapter, user_repository_adapter::UserRepositoryAdapter
+            http_client_adapter::HttpClientAdapter,
+            http_monitor_repository_adapter::HttpMonitorRepositoryAdapter,
+            incident_repository_adapter::IncidentRepositoryAdapter,
+            organization_repository_adapter::OrganizationRepositoryAdapter,
+            user_repository_adapter::UserRepositoryAdapter,
         },
         keycloak_client::KeycloakClient,
     },
@@ -27,6 +31,7 @@ pub async fn start_application() -> anyhow::Result<()> {
     let _http_monitors_tasks = use_cases::http_monitors::spawn_http_monitors_execution_tasks(
         config.http_monitors_concurrent_tasks,
         application_state.adapters.http_monitors_repository.clone(),
+        application_state.adapters.incident_repository.clone(),
         application_state.adapters.http_client.clone(),
         config.http_monitors_select_size,
         config.http_monitors_ping_concurrency,
@@ -64,7 +69,8 @@ async fn build_app_state(config: &AppConfig) -> anyhow::Result<ApplicationState>
             keycloak_client: keycloak_client.clone(),
         },
         http_monitors_repository: HttpMonitorRepositoryAdapter { pool: pool.clone() },
-        http_client: HttpClientAdapter::new(config)
+        incident_repository: IncidentRepositoryAdapter { pool: pool.clone() },
+        http_client: HttpClientAdapter::new(config),
     };
     Ok(ApplicationState {
         adapters,

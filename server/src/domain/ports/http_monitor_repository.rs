@@ -1,18 +1,10 @@
-use chrono::{DateTime, Utc};
-use serde::Deserialize;
-use ts_rs::TS;
-use uuid::Uuid;
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
+use uuid::Uuid;
 
 use crate::domain::entities::http_monitor::{HttpMonitor, HttpMonitorErrorKind, HttpMonitorStatus};
 
 use super::transactional_repository::TransactionalRepository;
-
-pub struct ListHttpMonitorsOutput {
-    pub monitors: Vec<HttpMonitor>,
-    pub total_monitors: u32,
-    pub total_filtered_monitors: u32,
-}
 
 #[async_trait]
 pub trait HttpMonitorRepository: TransactionalRepository + Clone + Send + Sync + 'static {
@@ -27,7 +19,10 @@ pub trait HttpMonitorRepository: TransactionalRepository + Clone + Send + Sync +
     ) -> anyhow::Result<ListHttpMonitorsOutput>;
 
     /// Create a new HTTP monitor
-    async fn create_http_monitor(&self, monitor: NewHttpMonitor) -> anyhow::Result<Uuid>;
+    async fn create_http_monitor(
+        &self,
+        monitor: NewHttpMonitor,
+    ) -> anyhow::Result<Uuid>;
 
     /// List all the monitors that are due for a refresh
     /// This must be executed inside a transaction. Concurrent transactions will not return the same monitors (monitors that are locked by a transaction will be skipped)
@@ -44,7 +39,7 @@ pub trait HttpMonitorRepository: TransactionalRepository + Clone + Send + Sync +
     ) -> anyhow::Result<()>;
 }
 
-#[derive(Debug, Deserialize, TS)]
+#[derive(Debug)]
 pub struct NewHttpMonitor {
     pub organization_id: Uuid,
     pub url: String,
@@ -54,6 +49,7 @@ pub struct NewHttpMonitor {
     pub tags: Vec<String>,
 }
 
+#[derive(Debug)]
 pub struct UpdateHttpMonitorStatus {
     pub organization_id: Uuid,
     pub monitor_id: Uuid,
@@ -61,5 +57,11 @@ pub struct UpdateHttpMonitorStatus {
     pub next_ping_at: Option<DateTime<Utc>>,
     pub status_counter: i16,
     pub error_kind: HttpMonitorErrorKind,
-    pub last_http_code: Option<i16>
+    pub last_http_code: Option<i16>,
+}
+
+pub struct ListHttpMonitorsOutput {
+    pub monitors: Vec<HttpMonitor>,
+    pub total_monitors: u32,
+    pub total_filtered_monitors: u32,
 }

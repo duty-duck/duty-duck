@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use sqlx::{PgPool, Postgres, Transaction};
+use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::domain::{
@@ -18,29 +18,7 @@ pub struct HttpMonitorRepositoryAdapter {
     pub pool: PgPool,
 }
 
-#[async_trait]
-impl TransactionalRepository for HttpMonitorRepositoryAdapter {
-    type Transaction = Transaction<'static, Postgres>;
-
-    async fn begin_transaction(&self) -> anyhow::Result<Self::Transaction> {
-        self.pool
-            .begin()
-            .await
-            .with_context(|| "Cannot begin transaction")
-    }
-
-    async fn rollback_transaction(&self, tx: Self::Transaction) -> anyhow::Result<()> {
-        tx.rollback()
-            .await
-            .with_context(|| "Cannot rollback transaction")
-    }
-
-    async fn commit_transaction(&self, tx: Self::Transaction) -> anyhow::Result<()> {
-        tx.commit()
-            .await
-            .with_context(|| "Cannot commit transaction")
-    }
-}
+crate::postgres_transactional_repo!(HttpMonitorRepositoryAdapter);
 
 #[async_trait]
 impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {

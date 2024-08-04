@@ -93,7 +93,7 @@ useIntervalFn(() => {
 <style>
 .filtering-bar {
   position: sticky;
-  top: 60px;
+  top: 50px;
   z-index: 1;
   padding: 10px 0;
   backdrop-filter: blur(20px);
