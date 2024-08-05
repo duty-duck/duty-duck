@@ -17,7 +17,7 @@ pub struct ListHttpMonitorsParams {
     pub page_number: Option<u32>,
     pub items_per_page: Option<u32>,
     pub include: Option<Vec<HttpMonitorStatus>>,
-    pub query: Option<String>
+    pub query: Option<String>,
 }
 
 #[derive(Serialize, TS, Clone, Debug)]
@@ -50,7 +50,11 @@ pub async fn list_http_monitors(
     let page_number = params.page_number.unwrap_or(1);
     let include_statuses = params.include.unwrap_or(HttpMonitorStatus::ALL.to_vec());
 
-    let ListHttpMonitorsOutput { monitors, total_filtered_monitors, total_monitors } = repository
+    let ListHttpMonitorsOutput {
+        monitors,
+        total_filtered_monitors,
+        total_monitors,
+    } = repository
         .list_http_monitors(
             auth_context.active_organization_id,
             include_statuses,
@@ -62,6 +66,6 @@ pub async fn list_http_monitors(
     Ok(ListHttpMonitorsResponse {
         items: monitors,
         total_number_of_filtered_results: total_filtered_monitors,
-        total_number_of_results: total_monitors
+        total_number_of_results: total_monitors,
     })
 }

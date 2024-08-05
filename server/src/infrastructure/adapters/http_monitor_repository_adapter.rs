@@ -23,6 +23,23 @@ crate::postgres_transactional_repo!(HttpMonitorRepositoryAdapter);
 #[async_trait]
 impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
     #[tracing::instrument(skip(self))]
+    async fn get_http_monitor(
+        &self,
+        organization_id: Uuid,
+        monitor_id: Uuid,
+    ) -> anyhow::Result<Option<HttpMonitor>> {
+        sqlx::query_as!(
+            HttpMonitor,
+            "SELECT * FROM http_monitors WHERE organization_id = $1 AND id = $2",
+            organization_id,
+            monitor_id,
+        )
+        .fetch_optional(&self.pool)
+        .await
+        .with_context(|| "Failed to get single http monitor from the database")
+    }
+
+    #[tracing::instrument(skip(self))]
     async fn list_http_monitors(
         &self,
         organization_id: uuid::Uuid,
@@ -38,7 +55,7 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
             .map(|s| s as i32)
             .collect::<Vec<_>>();
 
-        let http_monitors = 
+        let http_monitors =
             sqlx::query_as!(
                 HttpMonitor,
                 "SELECT * FROM http_monitors 

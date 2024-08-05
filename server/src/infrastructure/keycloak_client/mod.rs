@@ -420,10 +420,7 @@ impl KeycloakClient {
     async fn fetch_jwks(&self) -> anyhow::Result<CachedJwks> {
         let action = || {
             self.http_client
-                .get(format!(
-                    "{}/protocol/openid-connect/certs",
-                    self.realm_url
-                ))
+                .get(format!("{}/protocol/openid-connect/certs", self.realm_url))
                 .send()
         };
 

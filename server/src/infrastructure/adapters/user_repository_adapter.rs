@@ -34,7 +34,7 @@ impl UserRepository for UserRepositoryAdapter {
         match self.keycloak_client.create_user(&request).await {
             Ok(response) => Ok(response.try_into()?),
             Err(keycloak_client::Error::Conflict) => Err(CreateUserError::UserAlreadyExists),
-            Err(e) => Err(CreateUserError::TechnicalFailure(e.into()))
+            Err(e) => Err(CreateUserError::TechnicalFailure(e.into())),
         }
     }
 }

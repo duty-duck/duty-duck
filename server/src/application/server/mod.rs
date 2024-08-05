@@ -1,7 +1,7 @@
-mod users_router;
-mod http_monitors_router;
 mod auth_context_extractor;
+mod http_monitors_router;
 mod incidents_router;
+mod users_router;
 
 use std::time::Duration;
 

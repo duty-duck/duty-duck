@@ -17,7 +17,7 @@ macro_rules! postgres_transactional_repo {
         #[async_trait::async_trait]
         impl $crate::domain::ports::transactional_repository::TransactionalRepository for $t {
             type Transaction = sqlx::Transaction<'static, sqlx::Postgres>;
-        
+
             async fn begin_transaction(&self) -> anyhow::Result<Self::Transaction> {
                 use ::anyhow::*;
                 self.pool
@@ -25,20 +25,20 @@ macro_rules! postgres_transactional_repo {
                     .await
                     .with_context(|| "Cannot begin transaction")
             }
-        
+
             async fn rollback_transaction(&self, tx: Self::Transaction) -> anyhow::Result<()> {
                 use ::anyhow::*;
                 tx.rollback()
                     .await
                     .with_context(|| "Cannot rollback transaction")
             }
-        
+
             async fn commit_transaction(&self, tx: Self::Transaction) -> anyhow::Result<()> {
                 use ::anyhow::*;
                 tx.commit()
                     .await
                     .with_context(|| "Cannot commit transaction")
             }
-        } 
+        }
     };
 }

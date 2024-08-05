@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 use thiserror::*;
+use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize)]
 pub struct User {
@@ -25,4 +25,3 @@ pub enum CreateUserError {
     #[error("Technical failure: {0}")]
     TechnicalFailure(#[from] anyhow::Error),
 }
- 

@@ -61,7 +61,7 @@ pub async fn create_http_monitor(
             None
         },
         interval_seconds: command.interval_seconds,
-        tags: command.tags.into_iter().collect()
+        tags: command.tags.into_iter().collect(),
     };
     let id = repository.create_http_monitor(new_monitor).await?;
     Ok(CreateHttpMonitorResponse { id })

@@ -25,7 +25,7 @@ pub struct Incident {
 pub struct IncidentWithSources {
     #[serde(flatten)]
     pub incident: Incident,
-    pub sources: HashSet<IncidentSource>
+    pub sources: HashSet<IncidentSource>,
 }
 
 #[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq)]
@@ -79,7 +79,14 @@ impl From<i16> for IncidentPriority {
 }
 
 impl IncidentPriority {
-    pub const ALL: [Self; 6] = [Self::Emergency, Self::Critical, Self::Major, Self::Minor, Self::Warning, Self::Notice];
+    pub const ALL: [Self; 6] = [
+        Self::Emergency,
+        Self::Critical,
+        Self::Major,
+        Self::Minor,
+        Self::Warning,
+        Self::Notice,
+    ];
 }
 
 /// An enum the can hold one of the different incident types at runtime
@@ -87,5 +94,5 @@ impl IncidentPriority {
 #[ts(export)]
 #[serde(tag = "type")]
 pub enum IncidentSource {
-    HttpMonitor { id: Uuid }
+    HttpMonitor { id: Uuid },
 }

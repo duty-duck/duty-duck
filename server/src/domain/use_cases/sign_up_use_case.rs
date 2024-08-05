@@ -131,7 +131,10 @@ pub struct CheckPasswordStrengthCommand {
 }
 
 pub fn check_password_strength(command: CheckPasswordStrengthCommand) -> Entropy {
-    zxcvbn(&command.password, &[&command.first_name, &command.last_name])
+    zxcvbn(
+        &command.password,
+        &[&command.first_name, &command.last_name],
+    )
 }
 
 async fn create_organization_roles(

@@ -8,6 +8,12 @@ use super::transactional_repository::TransactionalRepository;
 
 #[async_trait]
 pub trait HttpMonitorRepository: TransactionalRepository + Clone + Send + Sync + 'static {
+    async fn get_http_monitor(
+        &self,
+        organization_id: Uuid,
+        monitor_id: Uuid,
+    ) -> anyhow::Result<Option<HttpMonitor>>;
+
     /// List all the http monitors, return a vector of monitors of size `limit`, along with the total number of monitors
     async fn list_http_monitors(
         &self,
@@ -19,10 +25,7 @@ pub trait HttpMonitorRepository: TransactionalRepository + Clone + Send + Sync +
     ) -> anyhow::Result<ListHttpMonitorsOutput>;
 
     /// Create a new HTTP monitor
-    async fn create_http_monitor(
-        &self,
-        monitor: NewHttpMonitor,
-    ) -> anyhow::Result<Uuid>;
+    async fn create_http_monitor(&self, monitor: NewHttpMonitor) -> anyhow::Result<Uuid>;
 
     /// List all the monitors that are due for a refresh
     /// This must be executed inside a transaction. Concurrent transactions will not return the same monitors (monitors that are locked by a transaction will be skipped)

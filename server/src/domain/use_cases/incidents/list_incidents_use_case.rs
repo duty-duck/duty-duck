@@ -27,7 +27,7 @@ pub struct ListIncidentsResponse {
     pub items: Vec<IncidentWithSources>,
     pub total_number_of_results: u32,
     pub total_number_of_filtered_results: u32,
-    pub sum_filtered_incidents_duration: u32
+    pub sum_filtered_incidents_duration: u32,
 }
 
 #[derive(Error, Debug)]
@@ -56,7 +56,7 @@ pub async fn list_incidents(
         incidents,
         total_filtered_incidents,
         total_incidents,
-        sum_filtered_incidents_duration
+        sum_filtered_incidents_duration,
     } = repository
         .list_incidents(
             auth_context.active_organization_id,
@@ -70,6 +70,6 @@ pub async fn list_incidents(
         items: incidents,
         total_number_of_filtered_results: total_filtered_incidents,
         total_number_of_results: total_incidents,
-        sum_filtered_incidents_duration 
+        sum_filtered_incidents_duration,
     })
 }

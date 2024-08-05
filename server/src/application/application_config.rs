@@ -26,7 +26,10 @@ pub struct AppConfig {
     pub http_monitors_ping_concurrency: usize,
     #[envconfig(from = "HTTP_MONITORS_SELECT_SIZE", default = "500")]
     pub http_monitors_select_size: u32,
-    #[envconfig(from = "USER_AGENT", default = "Mozilla/5.0+(compatible; DutyDuck/2.0; http://ww.dutyduck.com/)")]
+    #[envconfig(
+        from = "USER_AGENT",
+        default = "Mozilla/5.0+(compatible; DutyDuck/2.0; http://ww.dutyduck.com/)"
+    )]
     pub user_agent: String,
 }
 

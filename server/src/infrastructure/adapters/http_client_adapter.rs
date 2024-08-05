@@ -33,7 +33,6 @@ impl HttpClientAdapter {
                 break;
             }
         }
-
     }
 }
 
