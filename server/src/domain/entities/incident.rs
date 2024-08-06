@@ -6,6 +6,8 @@ use sqlx::prelude::FromRow;
 use ts_rs::TS;
 use uuid::Uuid;
 
+use super::http_monitor::{HttpMonitorErrorKind, HttpMonitorStatus};
+
 /// The base struct used by all incident types
 #[derive(Serialize, Deserialize, TS, Debug, Clone, FromRow)]
 #[serde(rename_all = "camelCase")]
@@ -16,6 +18,8 @@ pub struct Incident {
     pub created_at: DateTime<Utc>,
     pub created_by: Option<Uuid>,
     pub resolved_at: Option<DateTime<Utc>>,
+    #[sqlx(json)]
+    pub cause: Option<IncidentCause>,
     pub status: IncidentStatus,
     pub priority: IncidentPriority,
 }
@@ -26,6 +30,16 @@ pub struct IncidentWithSources {
     #[serde(flatten)]
     pub incident: Incident,
     pub sources: HashSet<IncidentSource>,
+}
+
+#[derive(Serialize, Deserialize, TS, Debug, Clone)]
+#[serde(tag = "causeType", rename_all_fields = "camelCase")]
+#[ts(export)]
+pub enum IncidentCause {
+    HttpMonitorIncidentCause {
+        error_kind: HttpMonitorErrorKind,
+        http_code: Option<i16>
+    }
 }
 
 #[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq)]

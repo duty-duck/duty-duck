@@ -7,9 +7,21 @@ use crate::domain::{
     entities::{
         authorization::{AuthContext, Permission},
         http_monitor::{HttpMonitor, HttpMonitorStatus},
+        incident::{IncidentPriority, IncidentSource, IncidentStatus, IncidentWithSources},
     },
-    ports::http_monitor_repository::{HttpMonitorRepository, ListHttpMonitorsOutput},
+    ports::{
+        http_monitor_repository::{HttpMonitorRepository, ListHttpMonitorsOutput},
+        incident_repository::{IncidentRepository},
+    },
 };
+
+#[derive(Debug, Serialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct ReadHttpMonitorResponse {
+    pub monitor: HttpMonitor,
+    pub ongoing_incident: Option<IncidentWithSources>,
+}
 
 #[derive(Error, Debug)]
 pub enum ReadHttpMonitorError {
@@ -21,21 +33,48 @@ pub enum ReadHttpMonitorError {
     TechnicalError(#[from] anyhow::Error),
 }
 
-pub async fn read_http_monitor(
+pub async fn read_http_monitor<HMR, IR>(
     auth_context: &AuthContext,
-    repository: &impl HttpMonitorRepository,
+    http_monitor_repository: &HMR,
+    incident_repository: &IR,
     monitor_id: Uuid,
-) -> Result<HttpMonitor, ReadHttpMonitorError> {
+) -> Result<ReadHttpMonitorResponse, ReadHttpMonitorError>
+where
+    HMR: HttpMonitorRepository,
+    IR: IncidentRepository<Transaction = HMR::Transaction>,
+{
     if !auth_context.can(Permission::ReadHttpMonitors) {
         return Err(ReadHttpMonitorError::Forbidden);
     }
+    let mut tx = http_monitor_repository.begin_transaction().await?;
 
-    match repository
-        .get_http_monitor(auth_context.active_organization_id, monitor_id)
+    let monitor = match http_monitor_repository
+        .get_http_monitor(&mut tx, auth_context.active_organization_id, monitor_id)
         .await
     {
         Ok(Some(monitor)) => Ok(monitor),
         Ok(None) => Err(ReadHttpMonitorError::NotFound),
         Err(e) => Err(ReadHttpMonitorError::TechnicalError(e)),
-    }
+    }?;
+
+    let sources = [IncidentSource::HttpMonitor { id: monitor_id }];
+    let ongoing_incident = incident_repository
+        .list_incidents(
+            &mut tx,
+            auth_context.active_organization_id,
+            &[IncidentStatus::Ongoing],
+            &IncidentPriority::ALL,
+            &sources,
+            1,
+            0,
+        )
+        .await?
+        .incidents
+        .into_iter()
+        .next();
+
+    Ok(ReadHttpMonitorResponse {
+        monitor,
+        ongoing_incident,
+    })
 }

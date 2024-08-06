@@ -10,6 +10,7 @@ use super::transactional_repository::TransactionalRepository;
 pub trait HttpMonitorRepository: TransactionalRepository + Clone + Send + Sync + 'static {
     async fn get_http_monitor(
         &self,
+        transaction: &mut Self::Transaction,
         organization_id: Uuid,
         monitor_id: Uuid,
     ) -> anyhow::Result<Option<HttpMonitor>>;
@@ -58,6 +59,7 @@ pub struct UpdateHttpMonitorStatus {
     pub monitor_id: Uuid,
     pub status: HttpMonitorStatus,
     pub next_ping_at: Option<DateTime<Utc>>,
+    pub last_status_change_at: DateTime<Utc>,
     pub status_counter: i16,
     pub error_kind: HttpMonitorErrorKind,
     pub last_http_code: Option<i16>,

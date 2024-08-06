@@ -2,7 +2,7 @@ use axum::async_trait;
 use uuid::Uuid;
 
 use crate::domain::entities::incident::{
-    IncidentPriority, IncidentSource, IncidentStatus, IncidentWithSources,
+    IncidentCause, IncidentPriority, IncidentSource, IncidentStatus, IncidentWithSources
 };
 
 use super::transactional_repository::TransactionalRepository;
@@ -15,11 +15,14 @@ pub trait IncidentRepository: TransactionalRepository + Clone + Send + Sync + 's
         incident: NewIncident,
     ) -> anyhow::Result<Uuid>;
 
+    #[allow(clippy::too_many_arguments)]
     async fn list_incidents(
         &self,
+        transaction: &mut Self::Transaction,
         organization_id: Uuid,
-        include_statuses: Vec<IncidentStatus>,
-        include_priorities: Vec<IncidentPriority>,
+        include_statuses: &[IncidentStatus],
+        include_priorities: &[IncidentPriority],
+        include_sources: &[IncidentSource],
         limit: u32,
         offset: u32,
     ) -> anyhow::Result<ListIncidentsOutput>;
@@ -39,11 +42,11 @@ pub struct NewIncident {
     pub status: IncidentStatus,
     pub priority: IncidentPriority,
     pub sources: Vec<IncidentSource>,
+    pub cause: Option<IncidentCause>
 }
 
 pub struct ListIncidentsOutput {
     pub incidents: Vec<IncidentWithSources>,
     pub total_incidents: u32,
     pub total_filtered_incidents: u32,
-    pub sum_filtered_incidents_duration: u32,
 }

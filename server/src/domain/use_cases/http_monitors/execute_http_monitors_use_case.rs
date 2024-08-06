@@ -9,7 +9,7 @@ use tracing::{debug, error};
 use crate::domain::{
     entities::{
         http_monitor::{HttpMonitor, HttpMonitorErrorKind, HttpMonitorStatus},
-        incident::{IncidentPriority, IncidentSource, IncidentStatus},
+        incident::{IncidentCause, IncidentPriority, IncidentSource, IncidentStatus},
     },
     ports::{
         http_client::{HttpClient, PingError},
@@ -93,23 +93,38 @@ where
         })
         .buffer_unordered(concurrency_limit);
 
-    while let Some((monitor, ping_result)) = ping_results.next().await {
+    while let Some((mut monitor, ping_result)) = ping_results.next().await {
         let (status_counter, status) =
             next_status(monitor.status, monitor.status_counter, ping_result.is_ok());
+
+        let last_http_code =  match &ping_result {
+            Ok(p) => Some(p.http_code as i16),
+            Err(e) => e.http_code.map(|c| c as i16)
+        };
         let error_kind = match &ping_result {
             Ok(_) => HttpMonitorErrorKind::None,
             Err(PingError { error_kind, .. }) => *error_kind,
         };
         let next_ping_at = Some(Utc::now() + monitor.interval());
+        let last_status_change_at = if status != monitor.status {
+            Utc::now()
+        } else {
+            monitor.last_status_change_at
+        };
         let patch = UpdateHttpMonitorStatus {
             organization_id: monitor.organization_id,
             monitor_id: monitor.id,
-            last_http_code: ping_result.as_ref().ok().map(|r| r.http_code as i16),
+            last_http_code,
             status,
             status_counter,
             next_ping_at,
             error_kind,
+            last_status_change_at,
         };
+
+        // Update the monitor so these info will be used to create the incident
+        monitor.error_kind = error_kind;
+        monitor.last_http_code = last_http_code;
 
         // Update the monitor
         http_monitor_repository
@@ -225,6 +240,10 @@ where
         // TODO: let users configure this
         priority: IncidentPriority::Major,
         sources: vec![IncidentSource::HttpMonitor { id: monitor.id }],
+        cause: Some(IncidentCause::HttpMonitorIncidentCause {
+            error_kind: monitor.error_kind,
+            http_code: monitor.last_http_code,
+        }),
     };
 
     incident_repo

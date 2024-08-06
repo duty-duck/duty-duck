@@ -25,16 +25,17 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
     #[tracing::instrument(skip(self))]
     async fn get_http_monitor(
         &self,
+        transaction: &mut Self::Transaction,
         organization_id: Uuid,
         monitor_id: Uuid,
     ) -> anyhow::Result<Option<HttpMonitor>> {
         sqlx::query_as!(
             HttpMonitor,
-            "SELECT * FROM http_monitors WHERE organization_id = $1 AND id = $2",
+            "SELECT * FROM http_monitors WHERE  organization_id = $1 AND id = $2",
             organization_id,
             monitor_id,
         )
-        .fetch_optional(&self.pool)
+        .fetch_optional(transaction.as_mut())
         .await
         .with_context(|| "Failed to get single http monitor from the database")
     }
@@ -58,7 +59,7 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
         let http_monitors =
             sqlx::query_as!(
                 HttpMonitor,
-                "SELECT * FROM http_monitors 
+                "SELECT * FROM http_monitors  
                 WHERE organization_id = $1 AND status IN (SELECT unnest($2::integer[])) AND ($3 = '' or url ilike $3) 
                 ORDER BY url LIMIT $4 OFFSET $5",
                 organization_id,
@@ -80,7 +81,7 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
         .unwrap_or_default();
 
         let total_filtered_count = sqlx::query!(
-            "SELECT count(*) FROM http_monitors WHERE organization_id = $1 AND status IN (SELECT unnest($2::integer[])) AND ($3 = '' or url ilike $3)",
+            "SELECT count(*) FROM http_monitors WHERE organization_id = $1 AND status IN ( SELECT unnest($2::integer[])) AND ($3 = '' or url ilike $3 )",
             organization_id,
             &statuses,
             &query
@@ -103,7 +104,7 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
         monitor: http_monitor_repository::NewHttpMonitor,
     ) -> anyhow::Result<Uuid> {
         let new_monitor_id = sqlx::query!(
-            "insert into http_monitors (organization_id, url, status, status_counter, next_ping_at, interval_seconds, error_kind, tags) 
+            "insert into http_monitors ( organization_id, url, status, status_counter, next_ping_at, interval_seconds, error_kind, tags) 
             values ($1, $2, $3, $4, $5, $6, $7, $8)
             returning id",
             monitor.organization_id,
@@ -125,7 +126,7 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
     ) -> anyhow::Result<Vec<HttpMonitor>> {
         let http_monitors = sqlx::query_as!(
             HttpMonitor,
-            "SELECT * FROM http_monitors
+            "SELECT * FROM  http_monitors
             WHERE status != $1
             AND next_ping_at <= NOW()
             FOR UPDATE SKIP LOCKED
@@ -152,13 +153,15 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
                 error_kind = $4,
                 last_http_code = $5,
                 last_ping_at = now(),
-                first_ping_at = coalesce(first_ping_at, now())
-            WHERE organization_id = $6 and id = $7",
+                first_ping_at = coalesce(first_ping_at, now()),
+                last_status_change_at = $6
+            WHERE organization_id = $7 and id = $8",
             command.status as i16,
             command.next_ping_at,
             command.status_counter,
             command.error_kind as i16,
             command.last_http_code,
+            command.last_status_change_at,
             command.organization_id,
             command.monitor_id,
         )

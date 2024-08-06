@@ -4,6 +4,7 @@ create table if not exists incidents (
     created_at timestamp with time zone not null default now(),
     created_by uuid,
     resolved_at timestamp with time zone,
+    cause jsonb,
     status smallint not null,
     priority smallint not null,
     primary key (organization_id, id)

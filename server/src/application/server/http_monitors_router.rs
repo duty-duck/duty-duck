@@ -1,4 +1,10 @@
-use axum::{extract::{Path, State}, http::StatusCode, response::IntoResponse, routing::get, Json, Router};
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+    response::IntoResponse,
+    routing::get,
+    Json, Router,
+};
 use axum_extra::extract::Query;
 use tracing::warn;
 use uuid::Uuid;
@@ -7,30 +13,33 @@ use crate::{
     application::application_state::{ApplicationState, ExtractAppState},
     domain::{
         entities::authorization::AuthContext,
-        use_cases::http_monitors::{
+        use_cases::{http_monitors::{
             self, CreateHttpMonitorCommand, CreateHttpMonitorError, ListHttpMonitorsError,
             ListHttpMonitorsParams, ReadHttpMonitorError,
-        },
+        }, incidents::{ListIncidentsError, ListIncidentsParams}},
     },
 };
 
 pub fn http_monitors_router() -> Router<ApplicationState> {
-    Router::new().route(
-        "/",
-        get(list_http_monitors_handler).post(create_http_monitor_handler),
-    ).
-    route("/:monitor_id", get(get_http_monitor_handler))
+    Router::new()
+        .route(
+            "/",
+            get(list_http_monitors_handler).post(create_http_monitor_handler),
+        )
+        .route("/:monitor_id", get(get_http_monitor_handler))
+        .route("/:monitor_id/incidents", get(get_http_monitor_incidents_handler))
 }
 
 async fn get_http_monitor_handler(
     auth_context: AuthContext,
     State(app_state): ExtractAppState,
-    Path(monitor_id): Path<Uuid>
+    Path(monitor_id): Path<Uuid>,
 ) -> impl IntoResponse {
     match http_monitors::read_http_monitor(
         &auth_context,
         &app_state.adapters.http_monitors_repository,
-        monitor_id
+        &app_state.adapters.incident_repository,
+        monitor_id,
     )
     .await
     {
@@ -39,6 +48,30 @@ async fn get_http_monitor_handler(
         Err(ReadHttpMonitorError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
         Err(ReadHttpMonitorError::TechnicalError(e)) => {
             warn!(error = ?e, "Technical failure occured while getting a single HTTP monitor from the database");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
+}
+
+
+async fn get_http_monitor_incidents_handler(
+    auth_context: AuthContext,
+    State(app_state): ExtractAppState,
+    Path(monitor_id): Path<Uuid>,
+    Query(params): Query<ListIncidentsParams>,
+) -> impl IntoResponse {
+    match http_monitors::list_http_monitor_incidents(
+        &auth_context,
+        &app_state.adapters.incident_repository,
+        monitor_id,
+        params
+    )
+    .await
+    {
+        Ok(res) => Json(res).into_response(),
+        Err(ListIncidentsError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
+        Err(ListIncidentsError::TechnicalError(e)) => {
+            warn!(error = ?e, "Technical failure occured while getting HTTP monitor incidents");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }

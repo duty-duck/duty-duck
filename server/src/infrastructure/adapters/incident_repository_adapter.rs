@@ -9,9 +9,7 @@ use crate::domain::{
         transactional_repository::TransactionalRepository,
     },
 };
-use anyhow::Context;
 use async_trait::async_trait;
-use bigdecimal::ToPrimitive;
 use itertools::Itertools;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -30,19 +28,25 @@ impl IncidentRepository for IncidentRepositoryAdapter {
         transaction: &mut Self::Transaction,
         incident: NewIncident,
     ) -> anyhow::Result<Uuid> {
+        let cause = match incident.cause {
+            Some(cause) => Some(serde_json::to_value(cause)?),
+            None => None
+        };
         let new_incident_id = sqlx::query!(
             "insert into incidents (
                 organization_id,
                 created_by,
                 status,
-                priority
+                priority,
+                cause
             ) 
-            values ($1, $2, $3, $4)
+            values ($1, $2, $3, $4, $5)
             returning id",
             incident.organization_id,
             incident.created_by,
             incident.status as i16,
             incident.priority as i16,
+            cause
         )
         .fetch_one(transaction.as_mut())
         .await?
@@ -92,20 +96,29 @@ impl IncidentRepository for IncidentRepositoryAdapter {
 
     async fn list_incidents(
         &self,
+        transaction: &mut Self::Transaction,
         organization_id: Uuid,
-        include_statuses: Vec<IncidentStatus>,
-        include_priorities: Vec<IncidentPriority>,
+        include_statuses: &[IncidentStatus],
+        include_priorities: &[IncidentPriority],
+        include_sources: &[IncidentSource],
         limit: u32,
         offset: u32,
     ) -> anyhow::Result<ListIncidentsOutput> {
-        let mut tx = self.begin_transaction().await?;
         let statuses = include_statuses
-            .into_iter()
-            .map(|s| s as i32)
+            .iter()
+            .map(|s| *s as i32)
             .collect::<Vec<_>>();
         let priorities = include_priorities
-            .into_iter()
-            .map(|s| s as i32)
+            .iter()
+            .map(|s| *s as i32)
+            .collect::<Vec<_>>();
+
+        // Used to retrieve incidents by speciifc sources
+        let http_monitor_sources_ids = include_sources
+            .iter()
+            .map(|s| match s {
+                IncidentSource::HttpMonitor { id } => *id,
+            })
             .collect::<Vec<_>>();
 
         // Sadly there is no way to type-check this query using the query_as! macro at the moment, becasue the macro ignores the #[sqlx(flatten)] attribute.
@@ -119,39 +132,40 @@ impl IncidentRepository for IncidentRepositoryAdapter {
                     OFFSET $5
                 ) as i
                 LEFT JOIN http_monitors_incidents hmi ON hmi.organization_id = i.organization_id AND hmi.incident_id = i.id
+                WHERE 
+                ($6::uuid[] = '{}' OR hmi.http_monitor_id IN (SELECT unnest($6::uuid[])))
             "
-        ).bind(organization_id).bind(&statuses).bind(&priorities).bind(limit as i64).bind(offset as i64)
-        .fetch_all(&mut *tx)
+        ).bind(organization_id).bind(&statuses).bind(&priorities).bind(limit as i64).bind(offset as i64).bind(&http_monitor_sources_ids)
+        .fetch_all(transaction.as_mut())
         .await?;
 
         let total_count = sqlx::query!(
-            "SELECT count(*) FROM incidents WHERE organization_id = $1",
+            "SELECT count(DISTINCT id) FROM incidents WHERE organization_id = $1",
             organization_id
         )
-        .fetch_one(&mut *tx)
+        .fetch_one(transaction.as_mut())
         .await?
         .count
         .unwrap_or_default();
 
-        let count_total_res = sqlx::query!(
-            "SELECT count(*) as count, SUM(extract(epoch from ( coalesce(resolved_at, now()) - created_at ))) as duration
-             FROM incidents 
-             WHERE organization_id = $1 AND status IN (SELECT unnest($2::integer[])) AND priority IN (SELECT unnest($3::integer[]))",
+     
+        let filtered_total_count_res = sqlx::query!(
+            "SELECT count(DISTINCT i.id)
+             FROM incidents i
+             LEFT JOIN http_monitors_incidents hmi ON hmi.organization_id = i.organization_id AND hmi.incident_id = i.id
+             WHERE 
+                i.organization_id = $1 AND i.status IN (SELECT unnest($2::integer[])) AND i.priority IN (SELECT unnest($3::integer[]))
+                AND ($4::uuid[] = '{}' OR hmi.http_monitor_id IN (SELECT unnest($4::uuid[])))
+            ",
             organization_id,
             &statuses,
-            &priorities
+            &priorities,
+            &http_monitor_sources_ids
         )
-        .fetch_one(&mut *tx)
+        .fetch_one(transaction.as_mut())
         .await?;
 
-        let total_filtered_count = count_total_res.count.unwrap_or_default();
-        let sum_filtered_incidents_duration = count_total_res
-            .duration
-            .unwrap_or_default()
-            .to_u32()
-            .with_context(|| "Cannot converted summed duration to u32")?;
-
-        tx.commit().await?;
+        let total_filtered_count = filtered_total_count_res.count.unwrap_or_default();
 
         // Group consecutive rows wit the same incident id
         let chunks = incidents.into_iter().chunk_by(|row| row.incident.id);
@@ -180,7 +194,6 @@ impl IncidentRepository for IncidentRepositoryAdapter {
         Ok(ListIncidentsOutput {
             total_incidents: total_count as u32,
             total_filtered_incidents: total_filtered_count as u32,
-            sum_filtered_incidents_duration,
             incidents,
         })
     }
