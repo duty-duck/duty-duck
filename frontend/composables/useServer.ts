@@ -28,7 +28,10 @@ export const useServerFetch: typeof useFetch = (request, opts?) => {
 
     return useFetch(request, { $fetch: fetch, ...opts }).then(result => {
         if (result.error.value) {
-            console.error("Fetch error: ", result.error.value)
+            throw createError({
+                statusMessage: "Fetch failed",
+                statusCode: result.error.value.statusCode,
+            });
         }
         return result
     })
@@ -40,7 +43,10 @@ export const useLazyServerFetch: typeof useLazyFetch = (request, opts?) => {
 
     return useLazyFetch(request, { $fetch: fetch, ...opts }).then(result => {
         if (result.error.value) {
-            console.error("Fetch error: ", result.error.value)
+            throw createError({
+                statusMessage: "Fetch failed",
+                statusCode: result.error.value.statusCode,
+            });
         }
         return result
     })

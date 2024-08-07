@@ -39,6 +39,7 @@ export default defineNuxtConfig({
     "@pinia/nuxt",
     '@bootstrap-vue-next/nuxt',
     "@nuxt/icon",
+    '@nuxtjs/i18n'
   ],
 
   alias: {

@@ -2,6 +2,9 @@ import { type ListHttpMonitorsParams } from "bindings/ListHttpMonitorsParams.js"
 import type { ListHttpMonitorsResponse } from "bindings/ListHttpMonitorsResponse";
 import type { CreateHttpMonitorCommand } from "bindings/CreateHttpMonitorCommand";
 import type { CreateHttpMonitorResponse } from "bindings/CreateHttpMonitorResponse";
+import type { ReadHttpMonitorResponse } from "bindings/ReadHttpMonitorResponse";
+import type { ListIncidentsResponse } from "bindings/ListIncidentsResponse";
+import type { ListIncidentsParams } from "bindings/ListIncidentsParams";
 
 export const useHttpMonitorRepository = () => {
     const $fetch = useServer$fetch();
@@ -12,11 +15,20 @@ export const useHttpMonitorRepository = () => {
         async createHttpMonitor(command: CreateHttpMonitorCommand) {
             return await $fetch<CreateHttpMonitorResponse>('/http-monitors', { method: "post", body: command })
         },
+        async toggleHttpMonitor(monitorId: string) {
+            return await $fetch<void>(`/http-monitors/${monitorId}/toggle`, { method: "post" })
+        },
+        async useHttpMonitor(monitorId: string) {
+            return await useServerFetch<ReadHttpMonitorResponse>(`/http-monitors/${monitorId}`, { retry: 3, retryDelay: 5000 })
+        },
+        async useHttpMonitorIncidents(monitorId: string, params: Ref<ListIncidentsParams> | ListIncidentsParams) {
+            return await useServerFetch<ListIncidentsResponse>(`/http-monitors/${monitorId}/incidents`, { retry: 3, retryDelay: 5000, lazy: true, immediate: false, params })
+        },
         async useDownMonitorsCount() {
             let res = await this.useHttpMonitors({
                 include: [
                     "down"
-                ], 
+                ],
                 pageNumber: 1,
                 itemsPerPage: 0,
                 query: null

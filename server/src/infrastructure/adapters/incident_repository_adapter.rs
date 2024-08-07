@@ -2,7 +2,7 @@ use std::collections::HashSet;
 
 use crate::domain::{
     entities::incident::{
-        Incident, IncidentPriority, IncidentSource, IncidentStatus, IncidentWithSources,
+        self, Incident, IncidentPriority, IncidentSource, IncidentStatus, IncidentWithSources,
     },
     ports::{
         incident_repository::{IncidentRepository, ListIncidentsOutput, NewIncident},
@@ -11,7 +11,7 @@ use crate::domain::{
 };
 use async_trait::async_trait;
 use itertools::Itertools;
-use sqlx::PgPool;
+use sqlx::{FromRow, PgPool};
 use uuid::Uuid;
 
 #[derive(Clone)]
@@ -30,7 +30,7 @@ impl IncidentRepository for IncidentRepositoryAdapter {
     ) -> anyhow::Result<Uuid> {
         let cause = match incident.cause {
             Some(cause) => Some(serde_json::to_value(cause)?),
-            None => None
+            None => None,
         };
         let new_incident_id = sqlx::query!(
             "insert into incidents (
@@ -80,10 +80,15 @@ impl IncidentRepository for IncidentRepositoryAdapter {
             .collect::<Vec<_>>();
 
         sqlx::query!("
-            UPDATE incidents
+            UPDATE incidents i
             SET resolved_at = now(), status = $1
-            FROM http_monitors_incidents hmi
-            WHERE incidents.organization_id = $2 and incidents.id = hmi.incident_id and hmi.organization_id = $2 and hmi.http_monitor_id IN (SELECT unnest($3::uuid[]))",
+            WHERE organization_id = $2
+            AND ($3::uuid[] = '{}' OR EXISTS (
+                    SELECT 1 FROM http_monitors_incidents hmi 
+                    WHERE hmi.organization_id = i.organization_id 
+                    AND hmi.incident_id = i.id
+                    AND hmi.http_monitor_id IN (SELECT UNNEST ($3::uuid[])))
+            )",
             &(IncidentStatus::Resolved as i16),
             &organization_id,
             &http_monitors_ids
@@ -121,24 +126,6 @@ impl IncidentRepository for IncidentRepositoryAdapter {
             })
             .collect::<Vec<_>>();
 
-        // Sadly there is no way to type-check this query using the query_as! macro at the moment, becasue the macro ignores the #[sqlx(flatten)] attribute.
-        // See https://github.com/launchbadge/sqlx/issues/514 and https://github.com/launchbadge/sqlx/issues/1121
-        let incidents: Vec<IncidentWithSourceRow> = sqlx::query_as(
-            "SELECT i.*, hmi.http_monitor_id 
-                FROM (
-                    SELECT * FROM incidents WHERE organization_id = $1 AND status IN (SELECT unnest($2::integer[])) AND priority IN (SELECT unnest($3::integer[])) 
-                    ORDER BY created_at DESC 
-                    LIMIT $4 
-                    OFFSET $5
-                ) as i
-                LEFT JOIN http_monitors_incidents hmi ON hmi.organization_id = i.organization_id AND hmi.incident_id = i.id
-                WHERE 
-                ($6::uuid[] = '{}' OR hmi.http_monitor_id IN (SELECT unnest($6::uuid[])))
-            "
-        ).bind(organization_id).bind(&statuses).bind(&priorities).bind(limit as i64).bind(offset as i64).bind(&http_monitor_sources_ids)
-        .fetch_all(transaction.as_mut())
-        .await?;
-
         let total_count = sqlx::query!(
             "SELECT count(DISTINCT id) FROM incidents WHERE organization_id = $1",
             organization_id
@@ -148,42 +135,74 @@ impl IncidentRepository for IncidentRepositoryAdapter {
         .count
         .unwrap_or_default();
 
-     
-        let filtered_total_count_res = sqlx::query!(
-            "SELECT count(DISTINCT i.id)
-             FROM incidents i
-             LEFT JOIN http_monitors_incidents hmi ON hmi.organization_id = i.organization_id AND hmi.incident_id = i.id
-             WHERE 
-                i.organization_id = $1 AND i.status IN (SELECT unnest($2::integer[])) AND i.priority IN (SELECT unnest($3::integer[]))
-                AND ($4::uuid[] = '{}' OR hmi.http_monitor_id IN (SELECT unnest($4::uuid[])))
+        let incidents = sqlx::query!(
+            "
+            -- First, in a subquery, get the matching incidents and paginate
+            WITH incidents AS (
+                SELECT i.*, COUNT(i.id) OVER () as filtered_count from incidents i
+                WHERE organization_id = $1 
+                AND status IN (SELECT unnest($2::integer[]))
+                AND priority IN (SELECT unnest($3::integer[]))
+                AND ($6::uuid[] = '{}' OR EXISTS (
+                    SELECT 1 FROM http_monitors_incidents hmi 
+                    WHERE hmi.organization_id = i.organization_id 
+                    AND hmi.incident_id = i.id
+                    AND hmi.http_monitor_id IN (SELECT UNNEST ($6::uuid[])))
+                )
+                ORDER BY created_at DESC
+                LIMIT $4 OFFSET $5
+            )
+            SELECT i.*, hmi.http_monitor_id
+            FROM incidents i
+            -- then join with the sources
+            LEFT JOIN http_monitors_incidents hmi
+                ON hmi.organization_id = $1 AND hmi.incident_id = i.id
             ",
             organization_id,
             &statuses,
             &priorities,
+            limit as i64,
+            offset as i64,
             &http_monitor_sources_ids
         )
-        .fetch_one(transaction.as_mut())
+        .fetch_all(transaction.as_mut())
         .await?;
 
-        let total_filtered_count = filtered_total_count_res.count.unwrap_or_default();
+        let total_filtered_count = incidents
+            .first()
+            .and_then(|record| record.filtered_count)
+            .unwrap_or_default();
 
         // Group consecutive rows wit the same incident id
-        let chunks = incidents.into_iter().chunk_by(|row| row.incident.id);
-
-        // Transform each chunk into a single incident with all its sources
-        let incidents = chunks
+        let incidents = incidents
+            .into_iter()
+            .chunk_by(|record| record.id)
             .into_iter()
             .filter_map(|(_, chunk)| {
                 let mut incident = None;
                 let mut sources = HashSet::new();
-                for row in chunk {
+
+                for record in chunk {
                     if incident.is_none() {
-                        incident = Some(row.incident)
+                        incident = Some(Incident {
+                            organization_id,
+                            id: record.id,
+                            created_at: record.created_at,
+                            created_by: record.created_by,
+                            resolved_at: record.resolved_at,
+                            cause: record
+                                .cause
+                                .and_then(|value| serde_json::from_value(value).ok()),
+                            status: record.status.into(),
+                            priority: record.priority.into(),
+                        })
                     }
-                    if let Some(id) = row.http_monitor_id {
+
+                    if let Some(id) = record.http_monitor_id {
                         sources.insert(IncidentSource::HttpMonitor { id });
                     }
                 }
+
                 Some(IncidentWithSources {
                     incident: incident?,
                     sources,
@@ -216,11 +235,4 @@ impl IncidentRepositoryAdapter {
         }
         Ok(())
     }
-}
-
-#[derive(sqlx::FromRow)]
-struct IncidentWithSourceRow {
-    #[sqlx(flatten)]
-    incident: Incident,
-    http_monitor_id: Option<Uuid>,
 }

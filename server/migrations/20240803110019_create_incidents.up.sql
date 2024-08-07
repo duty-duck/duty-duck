@@ -10,6 +10,8 @@ create table if not exists incidents (
     primary key (organization_id, id)
 );
 
+create index on incidents (organization_id);
+
 create table if not exists http_monitors_incidents (
     organization_id uuid not null,
     incident_id uuid not null,

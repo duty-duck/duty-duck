@@ -12,7 +12,10 @@ export const useIncidentRepository = () => {
             let res = await this.useIncidents({
                 status: [
                     "ongoing"
-                ], priority: null, pageNumber: 1, itemsPerPage: 0
+                ],
+                priority: null,
+                pageNumber: 1,
+                itemsPerPage: 1
             });
             return { refresh: res.refresh, data: computed(() => res.data.value?.totalNumberOfFilteredResults) }
         }

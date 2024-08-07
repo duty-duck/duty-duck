@@ -5,7 +5,7 @@ let { refresh: refreshIncidentCount, data: incidentCount } = await incidentRepo.
 let { refresh: refreshDownMonitorsCount, data: downMonitorsCount } = await httpMonitorRepo.useDownMonitorsCount();
 </script>
 <template>
-  <main>
+  <BContainer>
     <h2>Home</h2>
     <h3>Overview</h3>
     <div class="row row-gap-2">
@@ -38,6 +38,5 @@ let { refresh: refreshDownMonitorsCount, data: downMonitorsCount } = await httpM
         </BCard>
       </div>
     </div>
-
-  </main>
+  </BContainer>
 </template>

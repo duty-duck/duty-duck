@@ -41,7 +41,7 @@ const hiddenMonitorsCount = computed(() => {
 })
 
 if (data.value?.items.length == 0 && pageNumber.value > 1) {
-  router.replace("/dasboard/monitors");
+  router.replace("/dashboard/monitors");
 }
 
 useIntervalFn(() => {
@@ -51,20 +51,22 @@ useIntervalFn(() => {
 
 <template>
   <div>
-    <BBreadcrumb>
-      <BBreadcrumbItem to="/dashboard">Home</BBreadcrumbItem>
-      <BBreadcrumbItem active>Monitors</BBreadcrumbItem>
-    </BBreadcrumb>
-    <div class="d-flex align-items-center justify-content-between">
-      <h2>Monitors</h2>
-      <AddHttpMonitorButton />
-    </div>
-    <div class="small text-secondary mb-2">
-      {{ data?.totalNumberOfResults }} Total Monitors, 10 items per page
-      <span v-if="hiddenMonitorsCount != 0">, {{ hiddenMonitorsCount }} monitors are not shown because of
-        filtering</span>
-    </div>
-    <div class="d-flex flex-column flex-md-row gap-2 mb-4 filtering-bar">
+    <BContainer>
+      <BBreadcrumb>
+        <BBreadcrumbItem to="/dashboard">Home</BBreadcrumbItem>
+        <BBreadcrumbItem active>Monitors</BBreadcrumbItem>
+      </BBreadcrumb>
+      <div class="d-flex align-items-center justify-content-between">
+        <h2>Monitors</h2>
+        <AddHttpMonitorButton />
+      </div>
+      <div class="small text-secondary mb-2">
+        {{ data?.totalNumberOfResults }} Total Monitors, 10 items per page
+        <span v-if="hiddenMonitorsCount != 0">, {{ hiddenMonitorsCount }} monitors are not shown because of
+          filtering</span>
+      </div>
+    </BContainer>
+    <nav class="filtering-bar flex-column flex-md-row gap-2 mb-4 py-3 container">
       <MonitorStatusDropdown :model-value="includeStatuses" @update:model-value="onIncludeStatusChange" />
       <BInput class="border border-secondary bg-transparent" :model-value="query" @input="onQueryChange"
         placeholder="Search by URL" />
@@ -72,32 +74,34 @@ useIntervalFn(() => {
         <Icon name="ph:x-square-fill" />
         Clear filters
       </BButton>
-    </div>
-    <BAlert variant="danger" :model-value="status == 'error'">
-      Failed to fetch HTTP monitors from the server. Please try again.
-    </BAlert>
-    <div v-if="data?.totalNumberOfResults == 0" class="text-secondary text-center my-5">
-      <Icon name="ph:pulse-duotone" size="120px" />
-      <h3>Nothing here yet</h3>
-      <p class="lead">
-        Create your first monitor to start monitoring your website
-      </p>
-      <AddHttpMonitorButton class="m-3" />
-    </div>
-    <MonitorCard v-for="monitor in data?.items" :key="monitor.id" v-bind="monitor" />
-    <BPagination :model-value="pageNumber" @update:modelValue="onPageChange"
-      :total-rows="data?.totalNumberOfFilteredResults" :per-page="10" prev-text="Prev" next-text="Next" />
+    </nav>
+    <BContainer>
+      <BAlert variant="danger" :model-value="status == 'error'">
+        Failed to fetch HTTP monitors from the server. Please try again.
+      </BAlert>
+      <div v-if="data?.totalNumberOfResults == 0" class="text-secondary text-center my-5">
+        <Icon name="ph:pulse-duotone" size="120px" />
+        <h3>Nothing here yet</h3>
+        <p class="lead">
+          Create your first monitor to start monitoring your website
+        </p>
+        <AddHttpMonitorButton class="m-3" />
+      </div>
+      <MonitorCard v-for="monitor in data?.items" :key="monitor.id" v-bind="monitor" />
+      <BPagination :model-value="pageNumber" @update:modelValue="onPageChange"
+        :total-rows="data?.totalNumberOfFilteredResults" :per-page="10" prev-text="Prev" next-text="Next" />
+    </BContainer>
+
   </div>
 </template>
 
-<style>
+<style lang="scss">
 .filtering-bar {
+  display: flex;
   position: sticky;
   top: 50px;
   z-index: 1;
-  padding: 10px 0;
-  backdrop-filter: blur(20px);
-  background-color: rgba(248, 249, 250, 0.8);
-  
+  backdrop-filter: blur(10px);
+  background-color: rgba(248, 249, 250, 0.6);
 }
 </style>

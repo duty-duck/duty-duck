@@ -2,7 +2,7 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
     response::IntoResponse,
-    routing::get,
+    routing::{get, post},
     Json, Router,
 };
 use axum_extra::extract::Query;
@@ -13,10 +13,13 @@ use crate::{
     application::application_state::{ApplicationState, ExtractAppState},
     domain::{
         entities::authorization::AuthContext,
-        use_cases::{http_monitors::{
-            self, CreateHttpMonitorCommand, CreateHttpMonitorError, ListHttpMonitorsError,
-            ListHttpMonitorsParams, ReadHttpMonitorError,
-        }, incidents::{ListIncidentsError, ListIncidentsParams}},
+        use_cases::{
+            http_monitors::{
+                self, CreateHttpMonitorCommand, CreateHttpMonitorError, ListHttpMonitorsError,
+                ListHttpMonitorsParams, ReadHttpMonitorError, ToggleMonitorError,
+            },
+            incidents::{ListIncidentsError, ListIncidentsParams},
+        },
     },
 };
 
@@ -27,7 +30,11 @@ pub fn http_monitors_router() -> Router<ApplicationState> {
             get(list_http_monitors_handler).post(create_http_monitor_handler),
         )
         .route("/:monitor_id", get(get_http_monitor_handler))
-        .route("/:monitor_id/incidents", get(get_http_monitor_incidents_handler))
+        .route(
+            "/:monitor_id/incidents",
+            get(get_http_monitor_incidents_handler),
+        )
+        .route("/:monitor_id/toggle", post(toggle_http_monitor_handler))
 }
 
 async fn get_http_monitor_handler(
@@ -53,7 +60,6 @@ async fn get_http_monitor_handler(
     }
 }
 
-
 async fn get_http_monitor_incidents_handler(
     auth_context: AuthContext,
     State(app_state): ExtractAppState,
@@ -64,7 +70,7 @@ async fn get_http_monitor_incidents_handler(
         &auth_context,
         &app_state.adapters.incident_repository,
         monitor_id,
-        params
+        params,
     )
     .await
     {
@@ -72,6 +78,29 @@ async fn get_http_monitor_incidents_handler(
         Err(ListIncidentsError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
         Err(ListIncidentsError::TechnicalError(e)) => {
             warn!(error = ?e, "Technical failure occured while getting HTTP monitor incidents");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
+}
+
+async fn toggle_http_monitor_handler(
+    auth_context: AuthContext,
+    State(app_state): ExtractAppState,
+    Path(monitor_id): Path<Uuid>,
+) -> impl IntoResponse {
+    match http_monitors::toggle_http_monitor(
+        &auth_context,
+        &app_state.adapters.http_monitors_repository,
+        &app_state.adapters.incident_repository,
+        monitor_id,
+    )
+    .await
+    {
+        Ok(_) => Json("Done").into_response(),
+        Err(ToggleMonitorError::NotFound) => StatusCode::NOT_FOUND.into_response(),
+        Err(ToggleMonitorError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
+        Err(ToggleMonitorError::TechnicalError(e)) => {
+            warn!(error = ?e, "Technical failure occured while toggling HTTP monitor");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
