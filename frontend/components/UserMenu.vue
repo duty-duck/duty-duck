@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useAuth } from "@/stores/auth";
+const { locale, locales } = useI18n()
 const auth = useAuthMandatory();
 const username = computed(() => {
   if (auth.state?.status == "authenticated") {
@@ -10,17 +10,16 @@ const username = computed(() => {
   }
   return "";
 });
+
+const switchLocalePath = useSwitchLocalePath()
+const availableLocales = computed(() => {
+  return (locales.value).filter(i => i.code !== locale.value)
+})
 </script>
 <template>
   <ul class="navbar-nav ms-auto">
     <li class="nav-item dropdown" id="auth-menu">
-      <a
-        class="nav-link dropdown-toggle"
-        href="#"
-        role="button"
-        data-bs-toggle="dropdown"
-        aria-expanded="false"
-      >
+      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
         <i data-feather="user"></i>
         <span class="user-name">{{ username }}</span>
       </a>
@@ -28,26 +27,31 @@ const username = computed(() => {
         <li>
           <a class="dropdown-item icon-link" href="#">
             <Icon name="ph:user" />
-            My account
+            {{ $t('dashboard.userMenu.myAccount') }}
           </a>
         </li>
         <li>
           <a class="dropdown-item icon-link" href="#">
             <Icon name="ph:users-four-duotone" />
-            My organization
+            {{ $t('dashboard.userMenu.myOrg') }}
           </a>
         </li>
         <li>
           <hr class="dropdown-divider" />
         </li>
         <li>
-          <a
-            class="dropdown-item icon-link"
-            @click="auth.logout()"
-            style="cursor: pointer"
-          >
+          <NuxtLink v-for="locale in availableLocales" :key="locale.code" :to="switchLocalePath(locale.code)" class="dropdown-item">
+            {{ locale.name }}
+          </NuxtLink>
+
+        </li>
+        <li>
+          <hr class="dropdown-divider" />
+        </li>
+        <li>
+          <a class="dropdown-item icon-link" @click="auth.logout()" style="cursor: pointer">
             <Icon name="ph:sign-out" />
-            Log out
+            {{ $t('dashboard.userMenu.logOut') }}
           </a>
         </li>
       </ul>

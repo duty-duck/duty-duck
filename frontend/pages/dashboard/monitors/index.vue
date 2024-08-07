@@ -53,26 +53,28 @@ useIntervalFn(() => {
   <div>
     <BContainer>
       <BBreadcrumb>
-        <BBreadcrumbItem to="/dashboard">Home</BBreadcrumbItem>
-        <BBreadcrumbItem active>Monitors</BBreadcrumbItem>
+        <BBreadcrumbItem to="/dashboard">{{ $t('dashboard.sidebar.home') }}</BBreadcrumbItem>
+        <BBreadcrumbItem active>{{ $t('dashboard.sidebar.monitors') }}</BBreadcrumbItem>
       </BBreadcrumb>
       <div class="d-flex align-items-center justify-content-between">
-        <h2>Monitors</h2>
+        <h2>{{ $t('dashboard.monitors.pageTitle') }}</h2>
         <AddHttpMonitorButton />
       </div>
       <div class="small text-secondary mb-2">
-        {{ data?.totalNumberOfResults }} Total Monitors, 10 items per page
-        <span v-if="hiddenMonitorsCount != 0">, {{ hiddenMonitorsCount }} monitors are not shown because of
-          filtering</span>
+        {{ $t('dashboard.monitors.totalMonitorCount', data?.totalNumberOfResults || 0) }}, {{
+          $t('dashboard.monitors.itemsPerPage', 10) }}
+        <span v-if="hiddenMonitorsCount != 0">
+          , {{ $t('dashboard.monitors.filteredMonitorCount', hiddenMonitorsCount) }}
+        </span>
       </div>
     </BContainer>
     <nav class="filtering-bar flex-column flex-md-row gap-2 mb-4 py-3 container">
       <MonitorStatusDropdown :model-value="includeStatuses" @update:model-value="onIncludeStatusChange" />
       <BInput class="border border-secondary bg-transparent" :model-value="query" @input="onQueryChange"
-        placeholder="Search by URL" />
+        :placeholder="$t('dashboard.monitors.search')" />
       <BButton class="flex-shrink-0 icon-link" variant="outline-secondary" @click="onClearFilters">
         <Icon name="ph:x-square-fill" />
-        Clear filters
+        {{ $t('dashboard.monitors.clearFilters') }}
       </BButton>
     </nav>
     <BContainer>
@@ -88,8 +90,8 @@ useIntervalFn(() => {
         <AddHttpMonitorButton class="m-3" />
       </div>
       <MonitorCard v-for="monitor in data?.items" :key="monitor.id" v-bind="monitor" />
-      <BPagination :model-value="pageNumber" @update:modelValue="onPageChange"
-        :total-rows="data?.totalNumberOfFilteredResults" :per-page="10" prev-text="Prev" next-text="Next" />
+      <BPagination :model-value="pageNumber" @update:modelValue="onPageChange" :prev-text="$t('pagination.prev')" :next-text="$t('pagination.next')" 
+        :total-rows="data?.totalNumberOfFilteredResults" :per-page="10" />
     </BContainer>
 
   </div>

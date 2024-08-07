@@ -9,32 +9,34 @@
             <li class="nav-item">
                 <NuxtLink class="nav-link icon-link" to="/dashboard">
                     <Icon name="ph:house-simple-duotone" size="20px" />
-                    Home
+                    {{ $t("dashboard.sidebar.home") }}
                 </NuxtLink>
             </li>
             <li class="nav-item">
                 <NuxtLink class="nav-link icon-link" to="/dashboard/monitors">
                     <Icon name="ph:pulse-duotone" size="22px" />
-                    Monitors
+                    {{ $t("dashboard.sidebar.monitors") }}
                 </NuxtLink>
             </li>
             <li class="nav-item">
                 <a class="nav-link icon-link" href="#">
                     <Icon name="ph:seal-warning-duotone" size="22px" />
-                    Incidents
+                    {{ $t("dashboard.sidebar.incidents") }}
                     <BBadge class="ms-2" variant="danger" v-if="incidentCount && incidentCount > 0">{{ incidentCount }}</BBadge>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link icon-link" href="#">
+                <a class="nav-link icon-link disabled" href="#">
                     <Icon name="ph:speedometer-duotone" size="22px" />
                     Web perf.
+                    <BBadge>{{ $t('dashboard.sidebar.soon') }}</BBadge>
                 </a>
             </li>
             <li class="nav-item">
-                <a class="nav-link icon-link" href="#">
+                <a class="nav-link icon-link disabled" href="#">
                     <Icon name="ph:cpu-duotone" size="22px" />
                     Infrastructure
+                    <BBadge>{{ $t('dashboard.sidebar.soon') }}</BBadge>
                 </a>
             </li>
         </ul>

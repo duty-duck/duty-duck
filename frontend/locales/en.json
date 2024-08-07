@@ -1,0 +1,66 @@
+{
+    "pagination": {
+        "prev": "Prev",
+        "next": "Next"
+    },
+    "dashboard": {
+        "userMenu": {
+            "myOrg": "My organization",
+            "myAccount": "My account",
+            "logOut": "Log out"
+        },
+        "sidebar": {
+            "home": "Home",
+            "monitors": "Monitors",
+            "incidents": "Incidents",
+            "soon": "Soon"
+        },
+        "home": {
+            "pageTitle": "Home",
+            "overview": "Overview",
+            "ongoingIncidents": "Pas d'incident en cours | Incident en cours | Incidents en cours",
+            "downMonitors": "No monitor is down or suspicious | Monitor down or suspicious | Monitors down or suspicious",
+            "goToIncidents": "Go to incidents",
+            "goToMonitors": "Go to monitors"
+        },
+        "monitors": {
+            "pageTitle": "Monitors",
+            "totalMonitorCount": "No monitor | 1 total monitor | {count} total monitors",
+            "filteredMonitorCount": "{count} monitor is hidden by the filters | {count} monitors are hidden by the filters",
+            "itemsPerPage": "{count} monitors per page",
+            "filterByStatus": "Filter by status",
+            "search": "Search by URL",
+            "clearFilters": "Clear filters",
+            "createMonitorBtn": "New monitor",
+            "lastCheckedOn": "Last checked on {date}",
+            "details": "Details",
+            "start": "Start",
+            "pause": "Pause",
+            "pausedMonitorNotice": "This monitor is currently inactive. Click the Start button to resume monitoring this endpoint.",
+            "lastStatusChange": "Last status change",
+            "lastCheck": "Last check",
+            "dateAgo": "{date} ago",
+            "ongoingIncident": "Ongoing incident",
+            "incidentHistory": "Incident history"
+        },
+        "monitorStatus": {
+            "down": "Down",
+            "inactive": "Inactive",
+            "suspicious": "Suspicious",
+            "recovering": "Recovering",
+            "up": "Healthy",
+            "unknown": "Pending"
+        },
+        "incidents": {
+            "rootCause": "Root cause",
+            "startOfIncident": "Start of incident"
+        },
+        "httpMonitorIncidents": {
+            "httpMonitorFailure": "HTTP Monitor failure",
+            "invalidHttpCode": "The endpoint return the invalid HTTP Code {httpCode}",
+            "tooManyRedirections": "Too many redirections",
+            "cannotConnectToEndpoint": "Could not connect to server",
+            "timedOut": "Request timed out, the server took too long to respond"
+        }
+    }
+}

@@ -1,14 +1,6 @@
 <script setup lang="ts">
 import type { HttpMonitor } from "bindings/HttpMonitor";
-
 const monitor = defineProps<HttpMonitor>();
-const date = computed(() => {
-  if (!monitor.lastPingAt) {
-    return null
-  }
-  const date = new Date(monitor.lastPingAt);
-  return date.toLocaleString("en-UK")
-})
 </script>
 
 <template>
@@ -27,7 +19,10 @@ const date = computed(() => {
           {{ monitor.url }}
         </div>
         <MonitorStatusLabel :status="monitor.status" />
-        <span v-show="date" class="small text-secondary"> &nbsp;Last checked on {{ date }}</span>
+        <span v-show="monitor.lastPingAt" class="small text-secondary"> 
+          &nbsp;
+          {{ $t('dashboard.monitors.lastCheckedOn', { date:  $d(new Date(monitor.lastPingAt!), 'long') }) }}
+        </span>
         <div class="d-flex gap-1 mt-2">
           <BBadge v-for="t in monitor.tags" variant="light">{{ t }}</BBadge>
         </div>
@@ -35,7 +30,7 @@ const date = computed(() => {
       <BButtonToolbar class="align-self-start">
         <NuxtLink class="btn btn-sm btn-light icon-link">
           <Icon name="ph:eye-fill" />
-          Details
+          {{ $t('dashboard.monitors.details') }}
         </NuxtLink>
       </BButtonToolbar>
     </BCardBody>

@@ -18,7 +18,7 @@ const model = defineModel<HttpMonitorStatus[]>();
     <BDropdown variant="outline-secondary">
         <template #button-content>
             <Icon name="ph:funnel-fill" />
-            Filter by status
+            {{ $t('dashboard.monitors.filterByStatus') }}
             <span v-if="model!.length < allStatuses.length">({{ model?.length }})</span>
         </template>
         <BDropdownItem v-for="s in allStatuses">

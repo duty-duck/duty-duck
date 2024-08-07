@@ -6,8 +6,8 @@ let { refresh: refreshDownMonitorsCount, data: downMonitorsCount } = await httpM
 </script>
 <template>
   <BContainer>
-    <h2>Home</h2>
-    <h3>Overview</h3>
+    <h2>{{ $t('dashboard.home.pageTitle') }}</h2>
+    <h3>{{ $t('dashboard.home.overview') }}</h3>
     <div class="row row-gap-2">
       <div class="col-sm-6 col-md-3">
         <BCard class="text-center">
@@ -16,9 +16,9 @@ let { refresh: refreshDownMonitorsCount, data: downMonitorsCount } = await httpM
             <Icon name="ph:check-circle-duotone" v-else />
             {{ incidentCount }}
           </p>
-          <h4 class="h6">Ongoing incidents</h4>
+          <h4 class="h6">{{ $t('dashboard.home.ongoingIncidents', incidentCount || 0) }}</h4>
           <NuxtLink to="/dashboard/incidents" class="icon-link">
-            See incidents
+            {{ $t('dashboard.home.goToIncidents') }}
             <Icon name="ph:arrow-right"/>
           </NuxtLink>
         </BCard>
@@ -30,9 +30,9 @@ let { refresh: refreshDownMonitorsCount, data: downMonitorsCount } = await httpM
             <Icon name="ph:check-circle-duotone" v-else />
             {{ downMonitorsCount }}
           </p>
-          <h4 class="h6">Monitors down or suspicious</h4>
+          <h4 class="h6">{{ $t('dashboard.home.downMonitors', downMonitorsCount || 0) }}</h4>
           <NuxtLink to="/dashboard/monitors" class="icon-link">
-            See Monitors
+            {{ $t('dashboard.home.goToMonitors') }}
             <Icon name="ph:arrow-right"/>
           </NuxtLink>
         </BCard>

@@ -22,29 +22,37 @@ const emits = defineEmits<{ changePage: [page: number], changeTab: [tab: 'ongoin
                     :disabled="!onGoingIncident">
                     <Icon v-if="onGoingIncident" name="ph:seal-warning-duotone" class="text-danger" size="1.2rem"
                         style="position: relative; top: .2rem" />
-                    Ongoing incident
+                    {{ $t('dashboard.monitors.ongoingIncident') }}
                 </BNavItem>
-                <BNavItem @click="emits('changeTab', 'history')" :active="currentTab == 'history' || !onGoingIncident">Incident
-                    History</BNavItem>
+                <BNavItem @click="emits('changeTab', 'history')" :active="currentTab == 'history' || !onGoingIncident">
+                    {{ $t('dashboard.monitors.incidentHistory') }}
+                </BNavItem>
             </BNav>
         </template>
         <BCardBody v-if="currentTab == 'ongoing' && onGoingIncident">
             <p>
-                <span class="text-secondary">Start of incident:</span><br /> {{ onGoingIncident.createdAt }}
+                <span class="text-secondary">
+                    {{ $t('dashboard.incidents.startOfIncident') }}
+                </span>
+                <br />
+                {{ $d(new Date(onGoingIncident.createdAt), 'long') }}
             </p>
             <p>
-                <span class="text-secondary">Root cause:</span><br />
+                <span class="text-secondary">{{ $t('dashboard.incidents.rootCause') }}:</span><br />
                 <template v-if="onGoingIncident.cause?.causeType == 'HttpMonitorIncidentCause'">
-                    <p>HTTP Monitor failure</p>
-                    <p class="lead" v-if="onGoingIncident.cause.errorKind == 'httpcode'"> Endpoint responded with a
-                        invalid
-                        HTTP Code: {{ onGoingIncident.cause.httpCode }} </p>
-                    <p class="lead" v-else-if="onGoingIncident.cause.errorKind == 'timeout'"> Endpoint timed out</p>
+                    <p> {{ $t('dashboard.httpMonitorIncidents.httpMonitorFailure') }} </p>
+                    <p class="lead" v-if="onGoingIncident.cause.errorKind == 'httpcode'">
+                        {{ $t('dashboard.httpMonitorIncidents.invalidHttpCode', {
+                            httpCode:
+                        onGoingIncident.cause.httpCode}) }}
+                    </p>
+                    <p class="lead" v-else-if="onGoingIncident.cause.errorKind == 'timeout'"> {{
+                        $t('dashboard.httpMonitorIncidents.timedOut') }}</p>
                     <p class="lead" v-else-if="onGoingIncident.cause.errorKind == 'redirect'">
-                        Endpoint had too many redirections
+                        {{ $t('dashboard.httpMonitorIncidents.tooManyRedirections') }}
                     </p>
                     <p class="lead" v-else-if="onGoingIncident.cause.errorKind == 'connect'">
-                        Could not connect to endpoint
+                        {{ $t('dashboard.httpMonitorIncidents.cannotConnectToEndpoint') }}
                     </p>
                 </template>
 
@@ -59,8 +67,9 @@ const emits = defineEmits<{ changePage: [page: number], changeTab: [tab: 'ongoin
 
             <BCardBody>
                 <BPagination :modelValue="incidentsPageNumber"
-                    @update:modelValue="(page: number) => emits('changePage', page)"
-                    :total-rows="incidents!.data!.totalNumberOfFilteredResults" :per-page="15" />
+                    @update:modelValue="(page: number) => emits('changePage', page)" :prev-text="$t('pagination.prev')"
+                    :next-text="$t('pagination.next')" :total-rows="incidents!.data!.totalNumberOfFilteredResults"
+                    :per-page="15" />
             </BCardBody>
         </template>
     </BCard>

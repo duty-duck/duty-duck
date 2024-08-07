@@ -10,4 +10,3 @@ if (import.meta.client) {
   <NuxtLoadingIndicator color="#70BE4D" />
   <NuxtPage />
 </template>
-

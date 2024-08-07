@@ -1,0 +1,66 @@
+{
+    "pagination": {
+        "prev": "Précédent",
+        "next": "Suivant"
+    },
+    "dashboard": {
+        "userMenu": {
+            "myOrg": "Mon organisation",
+            "myAccount": "Mon compte",
+            "logOut": "Se déconnecter"
+        },
+        "sidebar": {
+            "home": "Accueil",
+            "monitors": "Moniteurs",
+            "incidents": "Incidents",
+            "soon": "Bientôt"
+        },
+        "home": {
+            "pageTitle": "Accueil",
+            "overview": "Vue d'ensemble",
+            "ongoingIncidents": "Pas d'incident en cours | Incident en cours | Incidents en cours",
+            "downMonitors": "Aucun moniteur KO ou suspect | Moniteur KO ou suspect | Moniteurs KO ou suspects",
+            "goToIncidents": "Voir les incidents",
+            "goToMonitors": "Voir les moniteurs"
+        },
+        "monitors": {
+            "pageTitle": "Moniteurs",
+            "totalMonitorCount": "Aucun moniteur | 1 moniteur total | {count} moniteurs totaux",
+            "filteredMonitorCount": "{count} moniteur caché par les filtres | {count} moniteurs cachés par les filtres",
+            "itemsPerPage": "{count} moniteurs par page",
+            "filterByStatus": "Filter par statut",
+            "search": "Recherche par URL",
+            "clearFilters": "Retirer les filtres",
+            "createMonitorBtn": "Nouveau moniteur",
+            "lastCheckedOn": "Dernière verification le {date}",
+            "details": "Détails",
+            "start": "Démarrer",
+            "pause": "Mettre en pause",
+            "pausedMonitorNotice": "Ce moniteur est en pause et n'est pas vérifié. Cliquez-sur le bouton Démarrer pour reprendre la vérification.",
+            "lastStatusChange": "Dernier changement d'état",
+            "lastCheck": "Dernière vérification",
+            "dateAgo": "il y a {date}",
+            "ongoingIncident": "Incident en cours",
+            "incidentHistory": "Historique des incidents"
+        },
+        "monitorStatus": {
+            "down": "KO",
+            "inactive": "Inactif",
+            "suspicious": "Suspect",
+            "recovering": "En récupération",
+            "up": "En bonne santé",
+            "unknown": "En attente"
+        },
+        "incidents": {
+            "rootCause": "Cause de l'incident",
+            "startOfIncident": "Début de l'incident"
+        },
+        "httpMonitorIncidents": {
+            "httpMonitorFailure": "Échec de l'appel HTTP",
+            "invalidHttpCode": "Le serveur a répondu avec le code HTTP invalide {httpCode}",
+            "tooManyRedirections": "Le serveur a retourné trop de redirection, possible boucle de redirection",
+            "cannotConnectToEndpoint": "Impossible d'établir la connexion au serveur",
+            "timedOut": "Délai d'attente dépassé, le serveur a été trop lent à répondre"
+        }
+    }
+}

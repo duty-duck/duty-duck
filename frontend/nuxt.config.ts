@@ -44,5 +44,25 @@ export default defineNuxtConfig({
 
   alias: {
     "bindings": resolve(__dirname, "../server/bindings")
-  }
+  },
+
+  i18n: {
+    strategy: 'prefix_except_default',
+    defaultLocale: 'fr',
+    detectBrowserLanguage: {
+      useCookie: true,
+      cookieKey: 'i18n_redirected',
+      redirectOn: 'no prefix'
+    },
+    locales: [
+      {
+        code: 'en',
+        name: 'English'
+      },
+      {
+        code: 'fr',
+        name: 'Français'
+      }
+    ]
+  },
 })
