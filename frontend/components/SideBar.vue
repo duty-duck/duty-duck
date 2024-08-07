@@ -1,5 +1,6 @@
 <script setup lang="ts">
     let incidentRepo = useIncidentRepository();
+    const localePath = useLocalePath()
     let { refresh: refreshIncidentCount, data: incidentCount } = await incidentRepo.useOngoingIncidentsCount();
 </script>
 
@@ -7,13 +8,13 @@
     <div class="py-2 px-lg-3 px-lg-4 mt-lg-4">
         <ul class="nav nav-pills nav-light nav-fill flex-column gap-2">
             <li class="nav-item">
-                <NuxtLink class="nav-link icon-link" to="/dashboard">
+                <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard')">
                     <Icon name="ph:house-simple-duotone" size="20px" />
                     {{ $t("dashboard.sidebar.home") }}
                 </NuxtLink>
             </li>
             <li class="nav-item">
-                <NuxtLink class="nav-link icon-link" to="/dashboard/monitors">
+                <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/monitors')">
                     <Icon name="ph:pulse-duotone" size="22px" />
                     {{ $t("dashboard.sidebar.monitors") }}
                 </NuxtLink>

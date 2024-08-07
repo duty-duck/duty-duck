@@ -6,4 +6,5 @@ sudo chown -R vscode /home/workspace/frontend/node_modules
 sudo chown -R vscode fake-internet/node_modules
 sudo chown -R vscode server/target
 npm install
+npx playwright install --with-deps
 (cd server; cargo build)

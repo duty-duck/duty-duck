@@ -1,4 +1,4 @@
-import Keycloak, { type KeycloakTokenParsed } from 'keycloak-js'
+import Keycloak, { type KeycloakLoginOptions, type KeycloakTokenParsed } from 'keycloak-js'
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
 
@@ -36,13 +36,13 @@ export const useAuth = defineStore('auth', () => {
     keycloak = new Keycloak({
       url: runtimeConfig.public.keycloak.url,
       realm: runtimeConfig.public.keycloak.realm,
-      clientId: runtimeConfig.public.keycloak.client
+      clientId: runtimeConfig.public.keycloak.client,
     })
 
     // Modify the login URL to include the `prompt=select_account` parameter that triggers the Active organization authenticator
     // See https://github.com/p2-inc/keycloak-orgs/blob/main/docs/active-organization-authenticator.md for documentation.
     const originalKeycloakCreateLoginUrl = keycloak.createLoginUrl
-    keycloak.createLoginUrl = (options) => {
+    keycloak.createLoginUrl = (options: KeycloakLoginOptions) => {
       return `${originalKeycloakCreateLoginUrl(options)}&prompt=select_account`
     }
 
@@ -93,8 +93,8 @@ export const useAuth = defineStore('auth', () => {
   }
 
 
-  const login = async () => {
-    await keycloak!.login()
+  const login = async (options?: KeycloakLoginOptions) => {
+    await keycloak!.login(options)
   }
   const logout = async () => {
     await keycloak!.logout({
@@ -129,9 +129,10 @@ but also triggers the login sequence if the user is not authenticated
 */
 export const useAuthMandatory = () => {
   const authStore = useAuth()
+  const { locale } = useI18n();
   authStore.onReady(() => {
     if (!authStore.isAuthenticated) {
-      authStore.login()
+      authStore.login({ locale: locale.value })
     }
   })
 
