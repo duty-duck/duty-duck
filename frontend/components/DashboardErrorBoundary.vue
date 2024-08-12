@@ -4,6 +4,7 @@ See this issue https://github.com/nuxt/nuxt/issues/15781 for reference
 <script setup lang="ts">
 import type { NuxtError } from '#app';
 const error = ref<NuxtError>()
+const localePath = useLocalePath();
 
 onErrorCaptured(err => {
     error.value = err as NuxtError
@@ -26,7 +27,7 @@ watch(
             <Icon name="ph:magnifying-glass-duotone" size="10rem" class="m" />
             <h2>Not found</h2>
             <p>The resource you are looking for cannot be found.</p>
-            <BButton to="/dashboard">Go home</BButton>
+            <BButton :to="localePath('/dashboard')">Go home</BButton>
         </BCard>
     </template>
     <template v-else>

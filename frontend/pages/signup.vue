@@ -2,6 +2,7 @@
 import type { SignUpCommand } from "bindings/SignUpCommand";
 
 const state = ref<"initial" | "success" | "error" | "conflict">("initial");
+const localePath = useLocalePath();
 const repo = useUserRepository();
 
 const onSubmit = async (command: SignUpCommand) => {
@@ -22,7 +23,7 @@ const onSubmit = async (command: SignUpCommand) => {
       <p>
         You may now go to your personal dashboard to create your first monitors
       </p>
-      <BButton to="/dashboard" variant="primary">Go to your dashboard</BButton>
+      <BButton :to="localePath('/dashboard')" variant="primary">Go to your dashboard</BButton>
     </BCard>
   </div>
   <div

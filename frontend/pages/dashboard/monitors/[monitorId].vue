@@ -11,7 +11,7 @@ const { locale } = useI18n();
 
 const incidentPageNumber = ref(1);
 const incidentsParams = computed<ListIncidentsParams>(() => ({
-  itemsPerPage: 15,
+  itemsPerPage: 10,
   pageNumber: incidentPageNumber.value,
   status: ['resolved'],
   priority: null

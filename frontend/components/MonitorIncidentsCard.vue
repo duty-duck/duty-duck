@@ -69,7 +69,7 @@ const emits = defineEmits<{ changePage: [page: number], changeTab: [tab: 'ongoin
                 <BPagination :modelValue="incidentsPageNumber"
                     @update:modelValue="(page: number) => emits('changePage', page)" :prev-text="$t('pagination.prev')"
                     :next-text="$t('pagination.next')" :total-rows="incidents!.data!.totalNumberOfFilteredResults"
-                    :per-page="15" />
+                    :per-page="10" />
             </BCardBody>
         </template>
     </BCard>

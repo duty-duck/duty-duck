@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import type { HttpMonitor } from "bindings/HttpMonitor";
+const localePath = useLocalePath();
 const monitor = defineProps<HttpMonitor>();
 </script>
 
 <template>
-  <NuxtLink :to="`/dashboard/monitors/${monitor.id}`" class="card mb-3 shadow-sm" :class="{
+  <NuxtLink :to="localePath(`/dashboard/monitors/${monitor.id}`)" class="card mb-3 shadow-sm" :class="{
     'border-danger': monitor.status == 'down',
     'border-warning': monitor.status == 'suspicious',
     'border-info': monitor.status == 'recovering',

@@ -18,7 +18,7 @@
         "home": {
             "pageTitle": "Home",
             "overview": "Overview",
-            "ongoingIncidents": "Pas d'incident en cours | Incident en cours | Incidents en cours",
+            "ongoingIncidents": "No ongoing incident | Ongoing incident | Ongoing incidents",
             "downMonitors": "No monitor is down or suspicious | Monitor down or suspicious | Monitors down or suspicious",
             "goToIncidents": "Go to incidents",
             "goToMonitors": "Go to monitors"
