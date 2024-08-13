@@ -59,6 +59,19 @@ pub struct CreateUserRequest {
     pub credentials: Vec<Credentials>,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct UpdateUserRequest {
+    pub first_name: Option<String>,
+    pub last_name: Option<String>,
+    pub email: Option<String>,
+    pub email_verified: Option<bool>,
+    pub enabled: Option<bool>,
+    pub groups: Option<Vec<String>>,
+    pub attributes: Option<AttributeMap>,
+    pub credentials: Option<Vec<Credentials>>,
+}
+
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Credentials {
     #[serde(rename = "type")]
@@ -95,13 +108,22 @@ pub struct AttributeMap {
 }
 
 impl AttributeMap {
+    pub fn put(&mut self, key: &str, value: String) -> Option<String> {
+        self.map
+            .insert(key.to_string(), vec![value.to_string()])
+            .and_then(|vec| vec.into_iter().next())
+    }
+    pub fn put_json<T: Serialize>(&mut self, key: &str, value: &T) {
+        if let Ok(v) = serde_json::to_string(value) {
+            self.put(key, v);
+        }
+    }
     pub fn get(&self, key: &str) -> Option<&str> {
         self.map
             .get(key)
             .and_then(|vec| vec.first())
             .map(|s| s.as_str())
     }
-
     pub fn get_json<T: DeserializeOwned>(&self, key: &str) -> Option<T> {
         self.get(key).and_then(|s| serde_json::from_str(s).ok())
     }

@@ -6,7 +6,7 @@ use sqlx::prelude::FromRow;
 use ts_rs::TS;
 use uuid::Uuid;
 
-use super::http_monitor::{HttpMonitorErrorKind, HttpMonitorStatus};
+use super::http_monitor::HttpMonitorErrorKind;
 
 /// The base struct used by all incident types
 #[derive(Serialize, Deserialize, TS, Debug, Clone, FromRow)]
@@ -38,8 +38,8 @@ pub struct IncidentWithSources {
 pub enum IncidentCause {
     HttpMonitorIncidentCause {
         error_kind: HttpMonitorErrorKind,
-        http_code: Option<i16>
-    }
+        http_code: Option<i16>,
+    },
 }
 
 #[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq)]
@@ -109,4 +109,14 @@ impl IncidentPriority {
 #[serde(tag = "type")]
 pub enum IncidentSource {
     HttpMonitor { id: Uuid },
+}
+
+#[derive(Debug)]
+pub struct NewIncident {
+    pub organization_id: Uuid,
+    pub created_by: Option<Uuid>,
+    pub status: IncidentStatus,
+    pub priority: IncidentPriority,
+    pub sources: Vec<IncidentSource>,
+    pub cause: Option<IncidentCause>,
 }

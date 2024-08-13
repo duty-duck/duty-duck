@@ -80,6 +80,7 @@ pub async fn sign_up(
             last_name: command.last_name,
             email,
             password,
+            phone_number: None
         })
         .map_err(|e| match e {
             CreateUserError::UserAlreadyExists => SignUpError::UserAlreadyExists,

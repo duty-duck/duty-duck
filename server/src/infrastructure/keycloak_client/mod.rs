@@ -125,6 +125,45 @@ impl KeycloakClient {
         }
     }
 
+    #[tracing::instrument(skip(self))]
+    pub(super) async fn get_user(&self, id: Uuid) -> Result<UserItem> {
+        let auth_token = self.get_current_access_token().await?;
+        let response = (|| {
+            self.http_client
+                .get(format!("{}/users/{}", self.realm_admin_url, id))
+                .bearer_auth(auth_token.access_token.secret())
+                .send()
+        })
+        .retry(&Self::retry_strategy())
+        .await?;
+
+        if response.status() == StatusCode::NOT_FOUND {
+            Err(Error::NotFound)
+        } else {
+            Ok(response.json().await?)
+        }
+    }
+
+    #[tracing::instrument(skip(self))]
+    pub(super) async fn update_user(&self, id: Uuid, user: &UpdateUserRequest) -> Result<UserItem> {
+        let auth_token = self.get_current_access_token().await?;
+        let response = (|| {
+            self.http_client
+                .put(format!("{}/users/{}", self.realm_admin_url, id))
+                .json(user)
+                .bearer_auth(auth_token.access_token.secret())
+                .send()
+        })
+        .retry(&Self::retry_strategy())
+        .await?;
+
+        if response.status() == StatusCode::NOT_FOUND {
+            Err(Error::NotFound)
+        } else {
+            self.get_user(id).await
+        }
+    }
+
     /**
      * Fetch all the organizations in the realm
      * # Parameters
@@ -451,7 +490,7 @@ mod tests {
     use super::*;
 
     async fn build_client() -> anyhow::Result<KeycloakClient> {
-        let keycloak_url = Url::parse("http://localhost:8080")?;
+        let keycloak_url = Url::parse("http://keycloak:8080")?;
         let client_id = "dutyduck-server";
         let client_secret = "4ckxWkPRKGOrjvhtKtnbIX8T8awpLVMx";
         let keycloak_realm = "master";
@@ -574,6 +613,38 @@ mod tests {
             }],
         };
         client.create_user(&request).await?;
+        Ok(())
+    }
+
+    #[tokio::test]
+    #[ignore]
+    async fn test_update_user() -> anyhow::Result<()> {
+        let client = build_client().await?;
+        let request = CreateUserRequest {
+            email: Some("jane22@noreply.com".to_string()),
+            enabled: true,
+            email_verified: true,
+            first_name: Some("Jane".to_string()),
+            last_name: Some("Doe".to_string()),
+            attributes: AttributeMap::default(),
+            groups: vec![],
+            credentials: vec![Credentials {
+                credentials_type: CredentialsType::Password,
+                value: "1234".to_string(),
+                temporary: false,
+            }],
+        };
+        let user = client.create_user(&request).await?;
+        let user = client
+            .update_user(
+                user.id,
+                &UpdateUserRequest {
+                    last_name: Some("UPDATED".to_string()),
+                    ..Default::default()
+                },
+            )
+            .await?;
+        assert_eq!(user.last_name.as_deref(), Some("UPDATED"));
         Ok(())
     }
 }

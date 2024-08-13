@@ -9,7 +9,7 @@ use crate::domain::{
         incident::IncidentSource,
     },
     ports::{
-        http_monitor_repository::{HttpMonitorRepository, UpdateHttpMonitorStatus},
+        http_monitor_repository::{HttpMonitorRepository, UpdateHttpMonitorStatusCommand},
         incident_repository::IncidentRepository,
     },
 };
@@ -59,7 +59,7 @@ where
     http_monitor_repository
         .update_http_monitor_status(
             &mut tx,
-            UpdateHttpMonitorStatus {
+            UpdateHttpMonitorStatusCommand {
                 organization_id: auth_context.active_organization_id,
                 monitor_id,
                 status,

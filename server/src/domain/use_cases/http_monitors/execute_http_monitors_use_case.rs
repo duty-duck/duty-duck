@@ -9,12 +9,12 @@ use tracing::{debug, error};
 use crate::domain::{
     entities::{
         http_monitor::{HttpMonitor, HttpMonitorErrorKind, HttpMonitorStatus},
-        incident::{IncidentCause, IncidentPriority, IncidentSource, IncidentStatus},
+        incident::{IncidentCause, IncidentPriority, IncidentSource, IncidentStatus, NewIncident},
     },
     ports::{
         http_client::{HttpClient, PingError},
-        http_monitor_repository::{HttpMonitorRepository, UpdateHttpMonitorStatus},
-        incident_repository::{IncidentRepository, NewIncident},
+        http_monitor_repository::{HttpMonitorRepository, UpdateHttpMonitorStatusCommand},
+        incident_repository::IncidentRepository,
     },
 };
 
@@ -97,9 +97,9 @@ where
         let (status_counter, status) =
             next_status(monitor.status, monitor.status_counter, ping_result.is_ok());
 
-        let last_http_code =  match &ping_result {
+        let last_http_code = match &ping_result {
             Ok(p) => Some(p.http_code as i16),
-            Err(e) => e.http_code.map(|c| c as i16)
+            Err(e) => e.http_code.map(|c| c as i16),
         };
         let error_kind = match &ping_result {
             Ok(_) => HttpMonitorErrorKind::None,
@@ -111,7 +111,7 @@ where
         } else {
             monitor.last_status_change_at
         };
-        let patch = UpdateHttpMonitorStatus {
+        let patch = UpdateHttpMonitorStatusCommand {
             organization_id: monitor.organization_id,
             monitor_id: monitor.id,
             last_http_code,

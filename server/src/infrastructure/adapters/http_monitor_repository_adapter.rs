@@ -6,7 +6,7 @@ use crate::domain::{
     entities::http_monitor::{HttpMonitor, HttpMonitorErrorKind, HttpMonitorStatus},
     ports::{
         http_monitor_repository::{
-            self, HttpMonitorRepository, ListHttpMonitorsOutput, UpdateHttpMonitorStatus,
+            self, HttpMonitorRepository, ListHttpMonitorsOutput, UpdateHttpMonitorStatusCommand,
         },
         transactional_repository::TransactionalRepository,
     },
@@ -143,7 +143,7 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
     async fn update_http_monitor_status(
         &self,
         transaction: &mut Self::Transaction,
-        command: UpdateHttpMonitorStatus,
+        command: UpdateHttpMonitorStatusCommand,
     ) -> anyhow::Result<()> {
         sqlx::query!(
             "UPDATE http_monitors SET 

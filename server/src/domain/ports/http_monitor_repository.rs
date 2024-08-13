@@ -39,7 +39,7 @@ pub trait HttpMonitorRepository: TransactionalRepository + Clone + Send + Sync +
     async fn update_http_monitor_status(
         &self,
         transaction: &mut Self::Transaction,
-        command: UpdateHttpMonitorStatus,
+        command: UpdateHttpMonitorStatusCommand,
     ) -> anyhow::Result<()>;
 }
 
@@ -54,7 +54,7 @@ pub struct NewHttpMonitor {
 }
 
 #[derive(Debug)]
-pub struct UpdateHttpMonitorStatus {
+pub struct UpdateHttpMonitorStatusCommand {
     pub organization_id: Uuid,
     pub monitor_id: Uuid,
     pub status: HttpMonitorStatus,

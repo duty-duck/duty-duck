@@ -1,17 +1,15 @@
 use std::collections::HashSet;
 
 use crate::domain::{
-    entities::incident::{
-        self, Incident, IncidentPriority, IncidentSource, IncidentStatus, IncidentWithSources,
-    },
+    entities::incident::*,
     ports::{
-        incident_repository::{IncidentRepository, ListIncidentsOutput, NewIncident},
+        incident_repository::{IncidentRepository, ListIncidentsOutput},
         transactional_repository::TransactionalRepository,
     },
 };
 use async_trait::async_trait;
 use itertools::Itertools;
-use sqlx::{FromRow, PgPool};
+use sqlx::PgPool;
 use uuid::Uuid;
 
 #[derive(Clone)]
@@ -79,7 +77,8 @@ impl IncidentRepository for IncidentRepositoryAdapter {
             .unique()
             .collect::<Vec<_>>();
 
-        sqlx::query!("
+        sqlx::query!(
+            "
             UPDATE incidents i
             SET resolved_at = now(), status = $1
             WHERE organization_id = $2

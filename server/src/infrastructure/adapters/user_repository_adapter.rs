@@ -1,11 +1,12 @@
 use std::sync::Arc;
 
 use anyhow::Context;
+use uuid::Uuid;
 
 use crate::domain::entities::user::*;
 use crate::domain::ports::user_repository::UserRepository;
 use crate::infrastructure::keycloak_client::{
-    self, AttributeMap, CreateUserRequest, Credentials, KeycloakClient,
+    self, AttributeMap, CreateUserRequest, Credentials, KeycloakClient, UpdateUserRequest,
 };
 
 #[derive(Clone)]
@@ -16,6 +17,10 @@ pub struct UserRepositoryAdapter {
 impl UserRepository for UserRepositoryAdapter {
     #[tracing::instrument(skip(self))]
     async fn create_user(&self, command: CreateUserCommand) -> Result<User, CreateUserError> {
+        let mut attributes = AttributeMap::default();
+        if let Some(number) = command.phone_number {
+            attributes.put("phone_number", number);
+        }
         let request = CreateUserRequest {
             first_name: Some(command.first_name),
             last_name: Some(command.last_name),
@@ -23,7 +28,7 @@ impl UserRepository for UserRepositoryAdapter {
             email_verified: false,
             enabled: true,
             groups: vec![],
-            attributes: AttributeMap::default(),
+            attributes,
             credentials: vec![Credentials {
                 credentials_type: crate::infrastructure::keycloak_client::CredentialsType::Password,
                 value: command.password,
@@ -36,6 +41,34 @@ impl UserRepository for UserRepositoryAdapter {
             Err(keycloak_client::Error::Conflict) => Err(CreateUserError::UserAlreadyExists),
             Err(e) => Err(CreateUserError::TechnicalFailure(e.into())),
         }
+    }
+
+    #[tracing::instrument(skip(self))]
+    async fn update_user(&self, id: Uuid, command: UpdateUserCommand) -> Result<User, UpdateUserError> {
+        let kc_user = self.keycloak_client.get_user(id).await.map_err(|e| match e {
+            keycloak_client::Error::NotFound => UpdateUserError::UserNotFound,
+            e => UpdateUserError::TechnicalFailure(e.into())
+        })?;
+        let should_revalidate_email = command.email.is_some() && command.email != kc_user.email;
+
+        let mut attributes = kc_user.attributes;
+        if let Some(number) = command.phone_number {
+            attributes.put("phone_number", number);
+        }
+        let request = UpdateUserRequest {
+            first_name: command.first_name,
+            last_name: command.last_name,
+            email: command.email,
+            email_verified: Some(!should_revalidate_email),
+            attributes: Some(attributes),
+            ..Default::default()
+        };
+
+        match self.keycloak_client.update_user(id, &request).await {
+            Ok(response) => Ok(response.try_into()?),
+            Err(keycloak_client::Error::NotFound) => Err(UpdateUserError::UserNotFound),
+            Err(e) => Err(UpdateUserError::TechnicalFailure(e.into())),
+        } 
     }
 }
 
@@ -50,6 +83,7 @@ impl TryFrom<keycloak_client::UserItem> for User {
                 .with_context(|| "User without first name")?,
             last_name: value.last_name.with_context(|| "User without last name")?,
             email: value.email.with_context(|| "User without e-mail")?,
+            phone_number: value.attributes.get("phone_number").map(|str| str.to_string())
         })
     }
 }
