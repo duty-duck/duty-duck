@@ -24,6 +24,7 @@
             "goToMonitors": "Go to monitors"
         },
         "monitors": {
+            "httpMonitor": "HTTP Monitor",
             "pageTitle": "Monitors",
             "totalMonitorCount": "No monitor | 1 total monitor | {count} total monitors",
             "filteredMonitorCount": "{count} monitor is hidden by the filters | {count} monitors are hidden by the filters",
@@ -41,7 +42,15 @@
             "lastCheck": "Last check",
             "dateAgo": "{date} ago",
             "ongoingIncident": "Ongoing incident",
-            "incidentHistory": "Incident history"
+            "incidentHistory": "Incident history",
+            "noIncident": {
+                "title": "No incident",
+                "text": "This monitor has never failed yet. If it fails, the incident history will appear here."
+            },
+            "emptyPage": {
+                "title": "Nothing here yet",
+                "text": "Create your first monitor to start monitoring your website."
+            }
         },
         "monitorStatus": {
             "down": "Down",
@@ -53,7 +62,22 @@
         },
         "incidents": {
             "rootCause": "Root cause",
-            "startOfIncident": "Start of incident"
+            "startOfIncident": "Start of incident",
+            "pageTitle": "Incidents",
+            "totalIncidentCount": "No incident | 1 total incident | {count} total incidents",
+            "filteredIncidentCount": "{count} incident hidden by filters | {count} incidents hidden by filters",
+            "itemsPerPage": "{count} incidents per page",
+            "filterByStatus": "Filter by status",
+            "clearFilters": "Clear filters",
+            "startedAt": "Started at",
+            "source": "Source",
+            "status": "Status",
+            "resolvedAt": "Resolved at",
+            "gotToSource": "Go to source"
+        },
+        "incidentStatus": {
+            "ongoing": "Ongoing",
+            "resolved": "Resolved"
         },
         "httpMonitorIncidents": {
             "httpMonitorFailure": "HTTP Monitor failure",
@@ -61,6 +85,15 @@
             "tooManyRedirections": "Too many redirections",
             "cannotConnectToEndpoint": "Could not connect to server",
             "timedOut": "Request timed out, the server took too long to respond"
+        },
+        "myAccount": {
+            "pageTitle": "My account",
+            "myInfo": "My information",
+            "firstName": "Given name",
+            "lastName": "Last name",
+            "email": "E-mail address",
+            "phoneNumber": "Mobile number",
+            "editButton": "Edit my info"
         }
     }
 }

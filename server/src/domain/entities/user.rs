@@ -1,23 +1,25 @@
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use thiserror::*;
+use ts_rs::TS;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Serialize)]
+#[derive(Debug, Clone, Serialize, TS)]
+#[ts(export)]
 pub struct User {
     pub id: Uuid,
     pub first_name: String,
     pub last_name: String,
     pub email: String,
-    pub phone_number: Option<String>
+    pub phone_number: Option<String>,
 }
 
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct CreateUserCommand {
     pub first_name: String,
     pub last_name: String,
     pub email: String,
     pub password: String,
-    pub phone_number: Option<String>
+    pub phone_number: Option<String>,
 }
 
 #[derive(Debug, Error)]
@@ -28,14 +30,13 @@ pub enum CreateUserError {
     TechnicalFailure(#[from] anyhow::Error),
 }
 
-
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone)]
 pub struct UpdateUserCommand {
     pub first_name: Option<String>,
     pub last_name: Option<String>,
     pub email: Option<String>,
     pub password: Option<String>,
-    pub phone_number: Option<String>
+    pub phone_number: Option<String>,
 }
 
 #[derive(Debug, Error)]

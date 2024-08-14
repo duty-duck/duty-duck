@@ -16,6 +16,15 @@ pub struct UserRepositoryAdapter {
 
 impl UserRepository for UserRepositoryAdapter {
     #[tracing::instrument(skip(self))]
+    async fn get_user(&self, id: Uuid) -> anyhow::Result<Option<User>> {
+        match self.keycloak_client.get_user(id).await {
+            Ok(user) => Ok(Some(user.try_into()?)),
+            Err(keycloak_client::Error::NotFound) => Ok(None),
+            Err(e) => Err(e.into())
+        }
+    }
+
+    #[tracing::instrument(skip(self))]
     async fn create_user(&self, command: CreateUserCommand) -> Result<User, CreateUserError> {
         let mut attributes = AttributeMap::default();
         if let Some(number) = command.phone_number {
@@ -44,23 +53,39 @@ impl UserRepository for UserRepositoryAdapter {
     }
 
     #[tracing::instrument(skip(self))]
-    async fn update_user(&self, id: Uuid, command: UpdateUserCommand) -> Result<User, UpdateUserError> {
-        let kc_user = self.keycloak_client.get_user(id).await.map_err(|e| match e {
-            keycloak_client::Error::NotFound => UpdateUserError::UserNotFound,
-            e => UpdateUserError::TechnicalFailure(e.into())
-        })?;
+    async fn update_user(
+        &self,
+        id: Uuid,
+        command: UpdateUserCommand,
+    ) -> Result<User, UpdateUserError> {
+        let kc_user = self
+            .keycloak_client
+            .get_user(id)
+            .await
+            .map_err(|e| match e {
+                keycloak_client::Error::NotFound => UpdateUserError::UserNotFound,
+                e => UpdateUserError::TechnicalFailure(e.into()),
+            })?;
         let should_revalidate_email = command.email.is_some() && command.email != kc_user.email;
 
         let mut attributes = kc_user.attributes;
         if let Some(number) = command.phone_number {
             attributes.put("phone_number", number);
         }
+
         let request = UpdateUserRequest {
             first_name: command.first_name,
             last_name: command.last_name,
             email: command.email,
             email_verified: Some(!should_revalidate_email),
             attributes: Some(attributes),
+            credentials: command.password.map(|new_password| {
+                vec![Credentials {
+                    credentials_type: keycloak_client::CredentialsType::Password,
+                    value: new_password,
+                    temporary: false,
+                }]
+            }),
             ..Default::default()
         };
 
@@ -68,7 +93,7 @@ impl UserRepository for UserRepositoryAdapter {
             Ok(response) => Ok(response.try_into()?),
             Err(keycloak_client::Error::NotFound) => Err(UpdateUserError::UserNotFound),
             Err(e) => Err(UpdateUserError::TechnicalFailure(e.into())),
-        } 
+        }
     }
 }
 
@@ -83,7 +108,10 @@ impl TryFrom<keycloak_client::UserItem> for User {
                 .with_context(|| "User without first name")?,
             last_name: value.last_name.with_context(|| "User without last name")?,
             email: value.email.with_context(|| "User without e-mail")?,
-            phone_number: value.attributes.get("phone_number").map(|str| str.to_string())
+            phone_number: value
+                .attributes
+                .get("phone_number")
+                .map(|str| str.to_string()),
         })
     }
 }

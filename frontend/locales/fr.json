@@ -25,6 +25,7 @@
         },
         "monitors": {
             "pageTitle": "Moniteurs",
+            "httpMonitor": "Moniteur HTTP",
             "totalMonitorCount": "Aucun moniteur | 1 moniteur total | {count} moniteurs totaux",
             "filteredMonitorCount": "{count} moniteur caché par les filtres | {count} moniteurs cachés par les filtres",
             "itemsPerPage": "{count} moniteurs par page",
@@ -41,7 +42,15 @@
             "lastCheck": "Dernière vérification",
             "dateAgo": "il y a {date}",
             "ongoingIncident": "Incident en cours",
-            "incidentHistory": "Historique des incidents"
+            "incidentHistory": "Historique des incidents",
+            "emptyPage": {
+                "title": "Rien à voir ici pour le moment",
+                "text": "Créer votre premier moniteur pour suivre l'état de votre site Web."
+            },
+            "noIncident": {
+                "title": "Aucun incident",
+                "text": "Ce moniteur n'a jamais connu d'incident. S'il tombe en panne, l'historique des pannes apparaîtra ici."
+            }
         },
         "monitorStatus": {
             "down": "KO",
@@ -53,7 +62,22 @@
         },
         "incidents": {
             "rootCause": "Cause de l'incident",
-            "startOfIncident": "Début de l'incident"
+            "startOfIncident": "Début de l'incident",
+            "pageTitle": "Incidents",
+            "totalIncidentCount": "Aucun incident | 1 incident total | {count} incidents totaux",
+            "filteredIncidentCount": "{count} incident caché par les filtres | {count} incidents cachés par les filtres",
+            "itemsPerPage": "{count} incidents par page",
+            "filterByStatus": "Filter par statut",
+            "clearFilters": "Retirer les filtres",
+            "startedAt": "Démarré le",
+            "source": "Source",
+            "status": "Statut",
+            "resolvedAt": "Résolu le",
+            "goToSource": "Aller à la source"
+        },
+        "incidentStatus": {
+            "ongoing": "En cours",
+            "resolved": "Résolu"
         },
         "httpMonitorIncidents": {
             "httpMonitorFailure": "Échec de l'appel HTTP",
@@ -61,6 +85,15 @@
             "tooManyRedirections": "Le serveur a retourné trop de redirection, possible boucle de redirection",
             "cannotConnectToEndpoint": "Impossible d'établir la connexion au serveur",
             "timedOut": "Délai d'attente dépassé, le serveur a été trop lent à répondre"
+        },
+        "myAccount": {
+            "pageTitle": "Mon compte",
+            "myInfo": "Mes informations",
+            "firstName": "Prénom",
+            "lastName": "Nom de famille",
+            "email": "Adresse e-mail",
+            "phoneNumber": "Numéro de téléphone",
+            "editButton": "Éditer mes informations"
         }
     }
 }

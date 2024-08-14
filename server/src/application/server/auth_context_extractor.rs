@@ -16,6 +16,10 @@ use crate::domain::entities::authorization::AuthContext;
 struct Claims {
     active_organization: ActiveOrganizationClaim,
     sub: Uuid,
+    #[serde(rename = "given_name")]
+    first_name: Option<String>,
+    #[serde(rename = "family_name")]
+    last_name: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -66,8 +70,10 @@ impl FromRequestParts<ApplicationState> for AuthContext {
         })?;
         let auth_context = AuthContext {
             active_organization_id: token.claims.active_organization.id,
-            active_user: token.claims.sub,
+            active_user_id: token.claims.sub,
             active_organization_roles: token.claims.active_organization.role.into(),
+            first_name: token.claims.first_name,
+            last_name: token.claims.last_name,
         };
 
         Ok(auth_context)

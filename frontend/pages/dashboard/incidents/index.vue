@@ -1,63 +1,52 @@
 <script lang="ts" setup>
-import { refDebounced, useIntervalFn } from "@vueuse/core";
-import type { HttpMonitorStatus } from "bindings/HttpMonitorStatus";
-import { allStatuses } from "~/components/MonitorStatusDropdown.vue";
+import { useIntervalFn } from "@vueuse/core";
+import type { IncidentStatus } from "bindings/IncidentStatus";
+import type { ListIncidentsParams } from "bindings/ListIncidentsParams";
+import { allStatuses } from "~/components/IncidentStatusDropdown.vue";
 
 const localePath = useLocalePath();
-const path = localePath("/dashboard/monitors");
+const path = localePath("/dashboard/incidents");
 const route = useRoute();
 const router = useRouter();
-const query = computed(() => (route.query.query as string) || "");
-const queryDebounced = refDebounced(query, 250);
 const pageNumber = computed(() =>
   route.query.page ? Number(route.query.page) : 1
 );
-const includeStatuses = computed(() =>
+const includeStatuses = computed<IncidentStatus[]>(() =>
   route.query.statuses && route.query.statuses.length
-    ? (route.query.statuses as HttpMonitorStatus[])
-    : allStatuses
+    ? (route.query.statuses as IncidentStatus[])
+    : ["ongoing"]
 );
 
-const fetchParams = computed(() => ({
+const fetchParams = computed<ListIncidentsParams>(() => ({
   pageNumber: pageNumber.value,
-  include: includeStatuses.value,
-  query: queryDebounced.value,
+  status: includeStatuses.value,
+  priority: null,
   itemsPerPage: 10,
 }));
 
-const repository = useHttpMonitorRepository();
-const { status, data, refresh } = await repository.useHttpMonitors(fetchParams);
+const repository = useIncidentRepository();
+const { status, data, refresh } = await repository.useIncidents(fetchParams);
 
 const onPageChange = (page: number) => {
   router.push({
     path,
-    query: { page, statuses: includeStatuses.value, query: query.value },
+    query: { page, statuses: includeStatuses.value },
   });
 };
-const onQueryChange = (event: KeyboardEvent) => {
+const onIncludeStatusChange = (statuses: IncidentStatus[]) => {
   router.push({
     path,
-    query: {
-      page: pageNumber.value,
-      statuses: includeStatuses.value,
-      query: (event.target as any).value,
-    },
-  });
-};
-const onIncludeStatusChange = (statuses: HttpMonitorStatus[]) => {
-  router.push({
-    path,
-    query: { pageNumber: pageNumber.value, query: query.value, statuses },
+    query: { pageNumber: pageNumber.value, statuses },
   });
 };
 const onClearFilters = () => {
   router.push({
     path,
-    query: { pageNumber: pageNumber.value, query: "", statuses: [] },
+    query: { pageNumber: pageNumber.value, statuses: allStatuses },
   });
 };
 
-const hiddenMonitorsCount = computed(() => {
+const hiddenIncidentsCount = computed(() => {
   if (!data.value) {
     return 0;
   }
@@ -83,24 +72,24 @@ useIntervalFn(() => {
           $t("dashboard.sidebar.home")
         }}</BBreadcrumbItem>
         <BBreadcrumbItem active>{{
-          $t("dashboard.sidebar.monitors")
+          $t("dashboard.sidebar.incidents")
         }}</BBreadcrumbItem>
       </BBreadcrumb>
-      <div class="d-flex align-items-center justify-content-between">
-        <h2>{{ $t("dashboard.monitors.pageTitle") }}</h2>
-        <AddHttpMonitorButton />
-      </div>
+      <h2>{{ $t("dashboard.incidents.pageTitle") }}</h2>
       <div class="small text-secondary mb-2">
         {{
           $t(
-            "dashboard.monitors.totalMonitorCount",
+            "dashboard.incidents.totalIncidentCount",
             data?.totalNumberOfResults || 0
           )
-        }}, {{ $t("dashboard.monitors.itemsPerPage", 10) }}
-        <span v-if="hiddenMonitorsCount != 0">
+        }}, {{ $t("dashboard.incidents.itemsPerPage", 10) }}
+        <span v-if="hiddenIncidentsCount != 0">
           ,
           {{
-            $t("dashboard.monitors.filteredMonitorCount", hiddenMonitorsCount)
+            $t(
+              "dashboard.incidents.filteredIncidentCount",
+              hiddenIncidentsCount
+            )
           }}
         </span>
       </div>
@@ -108,15 +97,9 @@ useIntervalFn(() => {
     <nav
       class="filtering-bar flex-column flex-md-row gap-2 mb-4 py-3 container"
     >
-      <MonitorStatusDropdown
+      <IncidentStatusDropdown
         :model-value="includeStatuses"
         @update:model-value="onIncludeStatusChange"
-      />
-      <BInput
-        class="border border-secondary bg-transparent"
-        :model-value="query"
-        @input="onQueryChange"
-        :placeholder="$t('dashboard.monitors.search')"
       />
       <BButton
         class="flex-shrink-0 icon-link"
@@ -124,28 +107,28 @@ useIntervalFn(() => {
         @click="onClearFilters"
       >
         <Icon name="ph:x-square-fill" />
-        {{ $t("dashboard.monitors.clearFilters") }}
+        {{ $t("dashboard.incidents.clearFilters") }}
       </BButton>
     </nav>
     <BContainer>
       <BAlert variant="danger" :model-value="status == 'error'">
-        Failed to fetch HTTP monitors from the server. Please try again.
+        Failed to fetch HTTP incidents from the server. Please try again.
       </BAlert>
       <div
         v-if="data?.totalNumberOfResults == 0"
         class="text-secondary text-center my-5"
       >
         <Icon name="ph:pulse-duotone" size="120px" />
-        <h3>{{ $t("dashboard.monitors.emptyPage.title") }}</h3>
+        <h3>Nothing here yet</h3>
         <p class="lead">
-          {{ $t("dashboard.monitors.emptyPage.text") }}
+          Create your first monitor to start monitoring your website
         </p>
         <AddHttpMonitorButton class="m-3" />
       </div>
-      <MonitorCard
-        v-for="monitor in data?.items"
-        :key="monitor.id"
-        v-bind="monitor"
+      <IncidentCard
+        v-for="incident in data?.items"
+        :key="incident.id"
+        v-bind="incident"
       />
       <BPagination
         :model-value="pageNumber"

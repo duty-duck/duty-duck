@@ -8,11 +8,11 @@ export type AuthState =
   | {
     idToken: {
       raw: string,
-      parsed: KeycloakTokenParsed 
+      parsed: KeycloakTokenParsed
     }
     accessToken: {
       raw: string,
-      parsed: KeycloakTokenParsed 
+      parsed: KeycloakTokenParsed
     }
     status: 'authenticated'
   }
@@ -56,7 +56,7 @@ export const useAuth = defineStore('auth', () => {
           raw: keycloak!.idToken!,
           parsed: keycloak!.idTokenParsed!
         },
-        accessToken:  {
+        accessToken: {
           raw: keycloak!.token!,
           parsed: keycloak!.tokenParsed!
         },
@@ -76,7 +76,7 @@ export const useAuth = defineStore('auth', () => {
               raw: keycloak!.idToken!,
               parsed: keycloak!.idTokenParsed!
             },
-            accessToken:  {
+            accessToken: {
               raw: keycloak!.token!,
               parsed: keycloak!.tokenParsed!
             },
@@ -136,5 +136,5 @@ export const useAuthMandatory = () => {
     }
   })
 
-  return authStore
+  return authStore as typeof authStore & { state: AuthState & { status: 'authenticated' } };
 }

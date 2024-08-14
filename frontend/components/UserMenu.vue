@@ -1,5 +1,6 @@
 <script setup lang="ts">
 const { locale, locales } = useI18n()
+const localePath = useLocalePath();
 const auth = useAuthMandatory();
 const username = computed(() => {
   if (auth.state?.status == "authenticated") {
@@ -25,14 +26,14 @@ const availableLocales = computed(() => {
       </a>
       <ul class="dropdown-menu dropdown-menu-end">
         <li>
-          <a class="dropdown-item icon-link" href="#">
-            <Icon name="ph:user" />
+          <NuxtLink class="dropdown-item icon-link" :to="localePath('/dashboard/myAccount')">
+            <Icon name="ph:user" aria-hidden />
             {{ $t('dashboard.userMenu.myAccount') }}
-          </a>
+          </NuxtLink>
         </li>
         <li>
           <a class="dropdown-item icon-link" href="#">
-            <Icon name="ph:users-four-duotone" />
+            <Icon name="ph:users-four-duotone" aria-hidden />
             {{ $t('dashboard.userMenu.myOrg') }}
           </a>
         </li>
@@ -40,7 +41,8 @@ const availableLocales = computed(() => {
           <hr class="dropdown-divider" />
         </li>
         <li>
-          <NuxtLink v-for="locale in availableLocales" :key="locale.code" :to="switchLocalePath(locale.code)" class="dropdown-item">
+          <NuxtLink v-for="locale in availableLocales" :key="locale.code" :to="switchLocalePath(locale.code)" class="dropdown-item icon-link">
+            <Icon name="ph:translate" aria-label="Language selection" />
             {{ locale.name }}
           </NuxtLink>
 

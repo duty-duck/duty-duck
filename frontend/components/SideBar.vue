@@ -20,11 +20,11 @@
                 </NuxtLink>
             </li>
             <li class="nav-item">
-                <a class="nav-link icon-link" href="#">
+                <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/incidents')">
                     <Icon name="ph:seal-warning-duotone" size="22px" />
                     {{ $t("dashboard.sidebar.incidents") }}
                     <BBadge class="ms-2" variant="danger" v-if="incidentCount && incidentCount > 0">{{ incidentCount }}</BBadge>
-                </a>
+                </NuxtLink>
             </li>
             <li class="nav-item">
                 <a class="nav-link icon-link disabled" href="#">
