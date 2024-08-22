@@ -16,10 +16,13 @@ use crate::domain::entities::authorization::AuthContext;
 struct Claims {
     active_organization: ActiveOrganizationClaim,
     sub: Uuid,
-    #[serde(rename = "given_name")]
-    first_name: Option<String>,
-    #[serde(rename = "family_name")]
+    #[serde(rename = "lastName")]
     last_name: Option<String>,
+    #[serde(rename = "firstName")]
+    first_name: Option<String>,
+    #[serde(rename = "phoneNumber")]
+    #[allow(unused)]
+    phone_number: Option<String>,
 }
 
 #[derive(Deserialize)]

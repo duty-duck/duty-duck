@@ -3,6 +3,7 @@ import { useIntervalFn, useThrottleFn } from "@vueuse/core";
 import type { ListIncidentsParams } from "bindings/ListIncidentsParams";
 import humanizeDuration from "humanize-duration";
 
+const localePath = useLocalePath();
 const repo = useHttpMonitorRepository();
 const route = useRoute();
 const now = ref(new Date());
@@ -136,7 +137,7 @@ watch(
         >
       </div>
     </div>
-    <div class="mb-4">
+    <div class="mb-4 d-flex gap-2">
       <BButton
         class="icon-link"
         variant="outline-secondary"
@@ -152,13 +153,21 @@ watch(
           {{ $t("dashboard.monitors.pause") }}
         </template>
       </BButton>
-      <p
-        class="mt-2 text-secondary"
-        v-if="monitorData.monitor.status == 'inactive'"
+      <BButton
+        class="icon-link"
+        variant="outline-secondary"
+        :to="localePath(`/dashboard/monitors/${route.params.monitorId}/edit`)"
       >
-        {{ $t("dashboard.monitors.pausedMonitorNotice") }}
-      </p>
+        <Icon name="ph:pencil" />
+        {{ $t("dashboard.monitors.edit") }}
+      </BButton>
     </div>
+    <p
+      class="mt-2 text-secondary"
+      v-if="monitorData.monitor.status == 'inactive'"
+    >
+      {{ $t("dashboard.monitors.pausedMonitorNotice") }}
+    </p>
     <div class="row mb-4 row-gap-3">
       <div class="col-md-6 col-lg-4">
         <BCard class="h-100">

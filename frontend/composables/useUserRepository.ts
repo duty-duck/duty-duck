@@ -1,5 +1,7 @@
 import { useDebounceFn } from "@vueuse/core";
 import { type SignUpCommand } from "bindings/SignUpCommand"
+import type { UpdateProfileCommand } from "bindings/UpdateProfileCommand";
+import type { UpdateProfileResponse } from "bindings/UpdateProfileResponse";
 import { FetchError } from "ofetch";
 
 export const useUserRepository = () => {
@@ -27,6 +29,9 @@ export const useUserRepository = () => {
                     return "conflict"
                 return "error"
             }
+        },
+        async updateProfile(command: UpdateProfileCommand) {
+            return await $fetch<UpdateProfileResponse>("/users/me", { method: "put", body: command })
         }
     }
 }

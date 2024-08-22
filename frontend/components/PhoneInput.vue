@@ -9,7 +9,7 @@ const { value } = defineProps<{
   value: string;
 }>();
 const emits = defineEmits<{
-  change: [{ isValid: boolean; value: string; formattedNumber: string | null }];
+  change: [{ isValid: boolean | null; value: string; formattedNumber: string | null }];
   blur: [];
 }>();
 
@@ -17,9 +17,10 @@ const input = ref(null);
 const iti = ref<null | Iti>(null);
 
 const onInput = (event: any) => {
-  const isValid: boolean = iti.value!.isValidNumber()!;
+  const value = event.target.value;
+  const isValid =  value == '' ? null : iti.value!.isValidNumber()!;
   emits("change", {
-    value: event.target.value,
+    value,
     formattedNumber: isValid ? iti.value!.getNumber() : null,
     isValid,
   });

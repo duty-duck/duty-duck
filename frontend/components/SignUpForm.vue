@@ -13,8 +13,8 @@ const state = reactive({
   organizationName: "",
 });
 const emit = defineEmits<{
-    submit: [command: SignUpCommand]
-}>()
+  submit: [command: SignUpCommand];
+}>();
 
 const passwordFieldState = computed(() => {
   if (!v$.value.password.$dirty || v$.value.password.$pending) {
@@ -22,15 +22,8 @@ const passwordFieldState = computed(() => {
   }
   return !v$.value.password.$invalid;
 });
-const isStrongPassword = helpers.withMessage(
-  "Your password is too weak",
-  helpers.withAsync(
-    (input: string) =>
-      userRepo.checkPasswordStrength(input, state.firstName, state.lastName),
-    // This validator depends on other fields of the form, and so it
-    // must be re-evaluated every time these fields change
-    [() => state.firstName, () => state.lastName]
-  )
+const isStrongPassword = usePasswordValidator(
+  computed(() => [state.firstName, state.lastName])
 );
 
 const rules = {
@@ -48,10 +41,10 @@ const rules = {
 const v$ = useVuelidate(rules, state);
 
 const onSubmit = async () => {
-    if (await v$.value.$validate()) {
-        emit("submit", state)
-    }
-}
+  if (await v$.value.$validate()) {
+    emit("submit", state);
+  }
+};
 </script>
 <template>
   <BForm @submit.prevent="onSubmit">
@@ -166,7 +159,9 @@ const onSubmit = async () => {
       >
         <BFormInput
           v-model="v$.organizationName.$model"
-          :state="v$.organizationName.$dirty ? !v$.organizationName.$invalid : null"
+          :state="
+            v$.organizationName.$dirty ? !v$.organizationName.$invalid : null
+          "
           id="orgInput"
           placeholder="Enter your organization's name"
           required

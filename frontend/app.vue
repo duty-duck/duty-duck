@@ -10,4 +10,5 @@ if (import.meta.client) {
 <template>
   <NuxtLoadingIndicator color="#70BE4D" />
   <NuxtPage />
+  <BToastOrchestrator />
 </template>

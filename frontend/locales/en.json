@@ -37,6 +37,7 @@
             "details": "Details",
             "start": "Start",
             "pause": "Pause",
+            "edit": "Edit",
             "pausedMonitorNotice": "This monitor is currently inactive. Click the Start button to resume monitoring this endpoint.",
             "lastStatusChange": "Last status change",
             "lastCheck": "Last check",
@@ -87,6 +88,18 @@
             "timedOut": "Request timed out, the server took too long to respond"
         },
         "myAccount": {
+            "edit": {
+                "pageTitle": "Edit my info",
+                "save": "Save",
+                "invalidProfileToast": {
+                    "title": "Invalid form",
+                    "body": "Your account cannot be updated because some fields are missing or invalid."
+                },
+                "sessionInvalidationToast": {
+                    "title": "Prepare to be logged out",
+                    "body": "Your info has been saved. For your own security, your session will expire in a few seconds. You will need to type your password again to continue using Duty Duck."
+                }
+            },
             "pageTitle": "My account",
             "myInfo": "My information",
             "firstName": "Given name",

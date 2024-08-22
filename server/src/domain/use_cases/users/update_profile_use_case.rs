@@ -23,6 +23,7 @@ pub enum UpdateProfileError {
 }
 
 #[derive(Debug, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct UpdateProfileCommand {
     pub first_name: Option<String>,
@@ -33,6 +34,7 @@ pub struct UpdateProfileCommand {
 }
 
 #[derive(Debug, Serialize, TS)]
+#[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct UpdateProfileResponse {
     needs_session_invalidation: bool,
@@ -65,7 +67,7 @@ pub async fn update_user_profile(
     // Check the new password is valid
     if let Some(new_password) = &command.password {
         let password_entropy = zxcvbn(
-            &new_password,
+            new_password,
             &[
                 first_name.unwrap_or_default(),
                 last_name.unwrap_or_default(),

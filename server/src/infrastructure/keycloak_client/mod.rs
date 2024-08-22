@@ -4,7 +4,7 @@ use std::time::Duration;
 use std::{sync::Arc, time::Instant};
 
 pub use self::keycloak_types::*;
-use anyhow::Context;
+use anyhow::{anyhow, Context};
 use backon::{ExponentialBuilder, Retryable};
 use jsonwebtoken::jwk::JwkSet;
 use openidconnect::core::{CoreClient, CoreProviderMetadata};
@@ -14,7 +14,7 @@ use openidconnect::{OAuth2TokenResponse, TokenResponse};
 use reqwest::header::LOCATION;
 use reqwest::{StatusCode, Url};
 use tokio::sync::Mutex;
-use tracing::debug;
+use tracing::{debug, info};
 use uuid::Uuid;
 
 #[derive(Clone)]
@@ -157,10 +157,18 @@ impl KeycloakClient {
         .retry(&Self::retry_strategy())
         .await?;
 
+        debug!(user_id = ?id, keycloak_response_status = response.status().as_u16(), "Updated user, got response from Keycloak server");
+
         if response.status() == StatusCode::NOT_FOUND {
             Err(Error::NotFound)
-        } else {
+        } else if response.status().is_success() {
             self.get_user(id).await
+        } else {
+            Err(Error::TechnicalFailure(anyhow!(
+                "Invalid repsonse from Keycloak server: status = {:?} and body = {:?}",
+                response.status(),
+                response.text().await
+            )))
         }
     }
 
@@ -639,11 +647,13 @@ mod tests {
             .update_user(
                 user.id,
                 &UpdateUserRequest {
+                    first_name: Some("UPDATED".to_string()),
                     last_name: Some("UPDATED".to_string()),
                     ..Default::default()
                 },
             )
             .await?;
+        assert_eq!(user.first_name.as_deref(), Some("UPDATED"));
         assert_eq!(user.last_name.as_deref(), Some("UPDATED"));
         Ok(())
     }

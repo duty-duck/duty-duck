@@ -5,8 +5,7 @@ const auth = useAuthMandatory();
 const username = computed(() => {
   if (auth.state?.status == "authenticated") {
     return (
-      auth.state.idToken.parsed["name"] ||
-      auth.state.idToken.parsed["preferred_username"]
+      `${auth.state.idToken.parsed.firstName} ${auth.state.idToken.parsed.lastName}`
     );
   }
   return "";

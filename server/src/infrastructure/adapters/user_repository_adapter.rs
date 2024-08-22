@@ -20,7 +20,7 @@ impl UserRepository for UserRepositoryAdapter {
         match self.keycloak_client.get_user(id).await {
             Ok(user) => Ok(Some(user.try_into()?)),
             Err(keycloak_client::Error::NotFound) => Ok(None),
-            Err(e) => Err(e.into())
+            Err(e) => Err(e.into()),
         }
     }
 
@@ -28,7 +28,7 @@ impl UserRepository for UserRepositoryAdapter {
     async fn create_user(&self, command: CreateUserCommand) -> Result<User, CreateUserError> {
         let mut attributes = AttributeMap::default();
         if let Some(number) = command.phone_number {
-            attributes.put("phone_number", number);
+            attributes.put("phoneNumber", number);
         }
         let request = CreateUserRequest {
             first_name: Some(command.first_name),
@@ -66,18 +66,21 @@ impl UserRepository for UserRepositoryAdapter {
                 keycloak_client::Error::NotFound => UpdateUserError::UserNotFound,
                 e => UpdateUserError::TechnicalFailure(e.into()),
             })?;
-        let should_revalidate_email = command.email.is_some() && command.email != kc_user.email;
+        let email_verified = match &command.email {
+            e @ Some(_) if &kc_user.email != e => Some(false),
+            _ => None,
+        };
 
         let mut attributes = kc_user.attributes;
         if let Some(number) = command.phone_number {
-            attributes.put("phone_number", number);
+            attributes.put("phoneNumber", number);
         }
 
         let request = UpdateUserRequest {
-            first_name: command.first_name,
-            last_name: command.last_name,
-            email: command.email,
-            email_verified: Some(!should_revalidate_email),
+            first_name: command.first_name.or(kc_user.first_name),
+            last_name: command.last_name.or(kc_user.last_name),
+            email: command.email.or(kc_user.email),
+            email_verified,
             attributes: Some(attributes),
             credentials: command.password.map(|new_password| {
                 vec![Credentials {
@@ -110,7 +113,7 @@ impl TryFrom<keycloak_client::UserItem> for User {
             email: value.email.with_context(|| "User without e-mail")?,
             phone_number: value
                 .attributes
-                .get("phone_number")
+                .get("phoneNumber")
                 .map(|str| str.to_string()),
         })
     }

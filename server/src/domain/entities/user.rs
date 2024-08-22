@@ -4,6 +4,7 @@ use ts_rs::TS;
 use uuid::Uuid;
 
 #[derive(Debug, Clone, Serialize, TS)]
+#[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct User {
     pub id: Uuid,

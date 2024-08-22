@@ -37,6 +37,7 @@
             "details": "Détails",
             "start": "Démarrer",
             "pause": "Mettre en pause",
+            "edit": "Modifier",
             "pausedMonitorNotice": "Ce moniteur est en pause et n'est pas vérifié. Cliquez-sur le bouton Démarrer pour reprendre la vérification.",
             "lastStatusChange": "Dernier changement d'état",
             "lastCheck": "Dernière vérification",
@@ -50,6 +51,9 @@
             "noIncident": {
                 "title": "Aucun incident",
                 "text": "Ce moniteur n'a jamais connu d'incident. S'il tombe en panne, l'historique des pannes apparaîtra ici."
+            },
+            "form": {
+                "save": "Sauvegarder"
             }
         },
         "monitorStatus": {
@@ -87,12 +91,28 @@
             "timedOut": "Délai d'attente dépassé, le serveur a été trop lent à répondre"
         },
         "myAccount": {
+            "edit": {
+                "pageTitle": "Éditer mes informations",
+                "save": "Sauvegarder",
+                "invalidProfileToast": {
+                    "title": "Informations invalides",
+                    "body": "Votre compte ne peut pas être modifié car les informations certains champs sont invalides ou manquants"
+                },
+                "sessionInvalidationToast": {
+                    "title": "Préparez-vous à la reconnexion",
+                    "body": "Vos informations sont bien mises à jour. Pour votre sécurité, vous allez être déonnecté(e). Vous devrez taper votre mot de passe pour continuer à utiliser Duty Duck."
+                }
+            },
             "pageTitle": "Mon compte",
             "myInfo": "Mes informations",
             "firstName": "Prénom",
             "lastName": "Nom de famille",
             "email": "Adresse e-mail",
-            "phoneNumber": "Numéro de téléphone",
+            "emailConfirmation": "Confirmation de l'adresse e-mail",
+            "password": "Nouveau mot de passe",
+            "passwordConfirmation": "Confirmation du mot de passe",
+            "phoneNumber": "Numéro de téléphone mobile",
+            "phoneNumberDescription": "Votre numéro de téléphone mobile pourra être utilisé pour vous alerter en cas d'incidents. Il ne sera jamais utilisé à des fins publicitaires.",
             "editButton": "Éditer mes informations"
         }
     }

@@ -1,14 +1,13 @@
+import type { User } from 'bindings/User'
 import Keycloak, { type KeycloakLoginOptions, type KeycloakTokenParsed } from 'keycloak-js'
 import { defineStore } from 'pinia'
 import { computed, ref, watch } from 'vue'
-
-
 
 export type AuthState =
   | {
     idToken: {
       raw: string,
-      parsed: KeycloakTokenParsed
+      parsed: KeycloakTokenParsed & User
     }
     accessToken: {
       raw: string,
@@ -31,6 +30,50 @@ export const useAuth = defineStore('auth', () => {
   const isAuthenticated = computed(() => state.value && state.value.status == 'authenticated')
 
   let keycloak: Keycloak | null = null;
+
+  const updateUser = (user: User) => {
+    state.value = {
+      status: 'authenticated',
+      idToken: {
+        raw: keycloak!.idToken!,
+        // @ts-ignore
+        parsed: {
+          ...keycloak!.idTokenParsed!,
+          firstName: user.firstName!,
+          lastName: user.lastName!,
+          email: user.email!,
+          phoneNumber: user.phoneNumber,
+        }
+      },
+      accessToken: {
+        raw: keycloak!.token!,
+        parsed: keycloak!.tokenParsed!
+      },
+    }
+  }
+
+  const updateToken = async () => {
+    try {
+      await keycloak!.updateToken(30);
+      console.log('Auth token refreshed')
+      state.value = {
+        status: 'authenticated',
+        idToken: {
+          raw: keycloak!.idToken!,
+          // @ts-ignore
+          parsed: keycloak!.idTokenParsed!
+        },
+        accessToken: {
+          raw: keycloak!.token!,
+          parsed: keycloak!.tokenParsed!
+        },
+      }
+    } catch (e) {
+      state.value = { status: 'sessionExpired' }
+
+    }
+  }
+
   if (import.meta.client) {
     // Instantiate the Keycloak client
     keycloak = new Keycloak({
@@ -54,6 +97,7 @@ export const useAuth = defineStore('auth', () => {
         status: 'authenticated',
         idToken: {
           raw: keycloak!.idToken!,
+          // @ts-ignore
           parsed: keycloak!.idTokenParsed!
         },
         accessToken: {
@@ -66,25 +110,7 @@ export const useAuth = defineStore('auth', () => {
       state.value = null
     }
     keycloak.onTokenExpired = () => {
-      keycloak!
-        .updateToken(30)
-        .then(() => {
-          console.log('Auth token refreshed')
-          state.value = {
-            status: 'authenticated',
-            idToken: {
-              raw: keycloak!.idToken!,
-              parsed: keycloak!.idTokenParsed!
-            },
-            accessToken: {
-              raw: keycloak!.token!,
-              parsed: keycloak!.tokenParsed!
-            },
-          }
-        })
-        .catch(() => {
-          state.value = { status: 'sessionExpired' }
-        })
+      updateToken();
     }
     keycloak.init({
       responseMode: 'query',
@@ -120,7 +146,9 @@ export const useAuth = defineStore('auth', () => {
     isAuthenticated,
     login,
     logout,
-    onReady
+    onReady,
+    updateToken,
+    updateUser
   }
 })
 
