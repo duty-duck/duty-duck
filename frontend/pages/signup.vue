@@ -40,7 +40,7 @@ const onSubmit = async (command: SignUpCommand) => {
         It seems you already have a user account. You may use this account to
         access your dashboard.
       </p>
-      <BButton to="/dashboard" variant="primary">Go to your dashboard</BButton>
+      <BButton :to="localePath('/dashboard')" variant="primary">Go to your dashboard</BButton>
     </BCard>
   </div>
   <div
@@ -59,7 +59,7 @@ const onSubmit = async (command: SignUpCommand) => {
           non beatae quidem, maxime rem accusamus?
         </p>
         <p>
-          <NuxtLink to="/" class="icon-link">
+          <NuxtLink :to="localePath('/')" class="icon-link">
             <Icon name="ph:house-simple-duotone" size="20px" />
             Learn more
           </NuxtLink>

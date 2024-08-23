@@ -5,6 +5,7 @@ import type { CreateHttpMonitorResponse } from "bindings/CreateHttpMonitorRespon
 import type { ReadHttpMonitorResponse } from "bindings/ReadHttpMonitorResponse";
 import type { ListIncidentsResponse } from "bindings/ListIncidentsResponse";
 import type { ListIncidentsParams } from "bindings/ListIncidentsParams";
+import type { UpdateHttpMonitorCommand } from "bindings/UpdateHttpMonitorCommand";
 
 export const useHttpMonitorRepository = () => {
     const $fetch = useServer$fetch();
@@ -14,6 +15,9 @@ export const useHttpMonitorRepository = () => {
         },
         async createHttpMonitor(command: CreateHttpMonitorCommand) {
             return await $fetch<CreateHttpMonitorResponse>('/http-monitors', { method: "post", body: command })
+        },
+        async updateHttpMonitor(monitorId: string, command: UpdateHttpMonitorCommand) {
+            return await $fetch<void>(`/http-monitors/${monitorId}`, { method: "patch", body: command })
         },
         async toggleHttpMonitor(monitorId: string) {
             return await $fetch<void>(`/http-monitors/${monitorId}/toggle`, { method: "post" })

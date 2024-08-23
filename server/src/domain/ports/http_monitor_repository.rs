@@ -28,6 +28,9 @@ pub trait HttpMonitorRepository: TransactionalRepository + Clone + Send + Sync +
     /// Create a new HTTP monitor
     async fn create_http_monitor(&self, monitor: NewHttpMonitor) -> anyhow::Result<Uuid>;
 
+    /// Update an HTTP monitor, returns true if the monitor existed, or false if the monitor did not exist
+    async fn update_http_monitor(&self, id: Uuid, monitor: NewHttpMonitor) -> anyhow::Result<bool>;
+
     /// List all the monitors that are due for a refresh
     /// This must be executed inside a transaction. Concurrent transactions will not return the same monitors (monitors that are locked by a transaction will be skipped)
     async fn list_due_http_monitors(

@@ -33,6 +33,7 @@
             "search": "Search by URL",
             "clearFilters": "Clear filters",
             "createMonitorBtn": "New monitor",
+            "createMonitorTitle": "Create a new monitor",
             "lastCheckedOn": "Last checked on {date}",
             "details": "Details",
             "start": "Start",
@@ -51,6 +52,14 @@
             "emptyPage": {
                 "title": "Nothing here yet",
                 "text": "Create your first monitor to start monitoring your website."
+            },
+            "form": {
+                "urlDescription": "Which URL would you like us to monitor?",
+                "refreshInterval": "Reresh interval",
+                "refreshIntervalDescription": "The refresh interval determines how often we will check your URL's health. A shorter interval enables issues to be detected more quickly, at the expense of greater load on your server.",
+                "tags": "Mots-clés",
+                "tagsDescription": "Tags are optional. We use this to group monitors, so you can manage them more easily.",
+                "save": "Save"
             }
         },
         "monitorStatus": {

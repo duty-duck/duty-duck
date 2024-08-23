@@ -43,7 +43,7 @@ onMounted(() => emit("change", currentInterval.value));
     />
     <div class="d-flex justify-content-between text-secondary">
       <span>{{ intervals[0].shortLabel }}</span>
-      <span>{{ intervals[4].shortLabel }}</span>
+      <span>{{ intervals[5].shortLabel }}</span>
       <span>{{ intervals[10].shortLabel }}</span>
     </div>
   </div>

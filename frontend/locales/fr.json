@@ -44,6 +44,7 @@
             "dateAgo": "il y a {date}",
             "ongoingIncident": "Incident en cours",
             "incidentHistory": "Historique des incidents",
+            "createMonitorTitle": "Créer un nouveau moniteur",
             "emptyPage": {
                 "title": "Rien à voir ici pour le moment",
                 "text": "Créer votre premier moniteur pour suivre l'état de votre site Web."
@@ -53,6 +54,11 @@
                 "text": "Ce moniteur n'a jamais connu d'incident. S'il tombe en panne, l'historique des pannes apparaîtra ici."
             },
             "form": {
+                "urlDescription": "Quelle URL voulez-vous surveiller ?",
+                "refreshInterval": "Intervalle de surveillance",
+                "refreshIntervalDescription": "L'intervalle de surveillance détermine à quelle fréquence nous allons vérfier votre site Web. Un intervalle plus court permet de détecter plus rapidement les problèmes, mais sollicitera plus votre serveur.",
+                "tags": "Mots-clés",
+                "tagsDescription": "Les mots-clés sont optionnels. Ils vous permettent d'orgnaniser vos moniteurs.",
                 "save": "Sauvegarder"
             }
         },

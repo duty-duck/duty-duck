@@ -6,7 +6,8 @@ use crate::domain::{
     entities::http_monitor::{HttpMonitor, HttpMonitorErrorKind, HttpMonitorStatus},
     ports::{
         http_monitor_repository::{
-            self, HttpMonitorRepository, ListHttpMonitorsOutput, UpdateHttpMonitorStatusCommand,
+            self, HttpMonitorRepository, ListHttpMonitorsOutput, NewHttpMonitor,
+            UpdateHttpMonitorStatusCommand,
         },
         transactional_repository::TransactionalRepository,
     },
@@ -169,5 +170,29 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
         .await?;
 
         Ok(())
+    }
+
+    async fn update_http_monitor(&self, id: Uuid, monitor: NewHttpMonitor) -> anyhow::Result<bool> {
+        let result = sqlx::query!(
+            "UPDATE http_monitors SET 
+                url = $1,
+                status = $2,
+                next_ping_at = $3, 
+                tags = $4,
+                interval_seconds = $5,
+                organization_id = $6
+            WHERE organization_id = $6 and id = $7",
+            monitor.url,
+            monitor.status as i16,
+            monitor.next_ping_at,
+            &monitor.tags,
+            monitor.interval_seconds as i64,
+            monitor.organization_id,
+            id,
+        )
+        .execute(&self.pool)
+        .await?;
+
+        Ok(result.rows_affected() > 0)
     }
 }

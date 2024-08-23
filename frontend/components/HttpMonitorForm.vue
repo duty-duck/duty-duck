@@ -41,11 +41,13 @@ const formIsComplete = computed(
             name="ph:question-duotone"
             size="1.5rem"
           />
-          Which URL would you like us to monitor?
+          {{ $t("dashboard.monitors.form.urlDescription") }}
         </div>
       </div>
     </div>
-    <label class="h5">Reresh interval</label>
+    <label class="h5">
+      {{ $t("dashboard.monitors.form.refreshInterval") }}
+    </label>
     <div class="row mb-4">
       <div class="col-xl-9">
         <MonitorIntervalInput
@@ -59,16 +61,16 @@ const formIsComplete = computed(
             name="ph:question-duotone"
             size="1.5rem"
           />
-          The refresh interval determines how often we will check your URL's
-          health. A shorter interval enables issues to be detected more quickly,
-          at the expense of greater load on your server.
+          {{ $t("dashboard.monitors.form.refreshIntervalDescription") }}
         </div>
       </div>
     </div>
     <div class="row mb-4">
       <div class="col-xl-9">
         <BFormGroup class="mb-2">
-          <label for="tags-input" class="h5">Tags</label>
+          <label for="tags-input" class="h5">
+            {{ $t("dashboard.monitors.form.tags") }}
+          </label>
           <BFormTags v-model="form.tags" />
         </BFormGroup>
         <div class="text-secondary">
@@ -77,15 +79,14 @@ const formIsComplete = computed(
             name="ph:question-duotone"
             size="1.5rem"
           />
-          Tags are optional. We use this to group monitors, so you can manage
-          them more easily.
+          {{ $t("dashboard.monitors.form.tagsDescription") }}
         </div>
       </div>
     </div>
     <div>
       <BButton type="submit" class="icon-link" :disabled="!formIsComplete">
         <Icon name="ph:floppy-disk-back-duotone" aria-hidden />
-        {{  $t('dashboard.monitors.form.save') }}
+        {{ $t("dashboard.monitors.form.save") }}
       </BButton>
     </div>
   </BForm>

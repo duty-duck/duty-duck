@@ -106,10 +106,10 @@ watch(
 <template>
   <BContainer v-if="monitorData?.monitor">
     <BBreadcrumb>
-      <BBreadcrumbItem to="/dashboard">{{
+      <BBreadcrumbItem :to="localePath('/dashboard')">{{
         $t("dashboard.sidebar.home")
       }}</BBreadcrumbItem>
-      <BBreadcrumbItem to="/dashboard/monitors">{{
+      <BBreadcrumbItem :to="localePath('/dashboard/monitors')">{{
         $t("dashboard.sidebar.monitors")
       }}</BBreadcrumbItem>
       <BBreadcrumbItem active>

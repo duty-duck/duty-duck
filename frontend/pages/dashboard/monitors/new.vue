@@ -3,23 +3,30 @@ import type { HttpMonitorFormData } from "~/components/HttpMonitorForm.vue";
 
 const repo = useHttpMonitorRepository();
 const router = useRouter();
+const localePath = useLocalePath();
 
 const onSubmit = async (data: HttpMonitorFormData) => {
   await repo.createHttpMonitor({
     ...data,
     isActive: true
   });
-  router.push("/dashboard/monitors");
+  router.push(localePath("/dashboard/monitors"));
 };
 </script>
 <template>
-  <div>
+  <BContainer>
     <BBreadcrumb>
-      <BBreadcrumbItem to="/dashboard"> Home </BBreadcrumbItem>
-      <BBreadcrumbItem to="/dashboard/monitors">Monitors</BBreadcrumbItem>
-      <BBreadcrumbItem active>New monitor</BBreadcrumbItem>
+      <BBreadcrumbItem :to="localePath('/dashboard')">{{
+        $t("dashboard.sidebar.home")
+      }}</BBreadcrumbItem>
+      <BBreadcrumbItem :to="localePath('/dashboard/monitors')">{{
+        $t("dashboard.sidebar.monitors")
+      }}</BBreadcrumbItem>
+      <BBreadcrumbItem active>
+        {{ $t("dashboard.monitors.createMonitorTitle") }}
+      </BBreadcrumbItem>
     </BBreadcrumb>
-    <h2 class="mb-3">Create a new monitor</h2>
+    <h2 class="mb-3">{{ $t("dashboard.monitors.createMonitorTitle") }}</h2>
     <HttpMonitorForm @submit="onSubmit" />
-  </div>
+  </BContainer>
 </template>

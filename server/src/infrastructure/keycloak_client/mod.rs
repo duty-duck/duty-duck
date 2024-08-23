@@ -14,7 +14,7 @@ use openidconnect::{OAuth2TokenResponse, TokenResponse};
 use reqwest::header::LOCATION;
 use reqwest::{StatusCode, Url};
 use tokio::sync::Mutex;
-use tracing::{debug, info};
+use tracing::debug;
 use uuid::Uuid;
 
 #[derive(Clone)]
