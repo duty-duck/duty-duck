@@ -57,8 +57,12 @@
                 "urlDescription": "Which URL would you like us to monitor?",
                 "refreshInterval": "Reresh interval",
                 "refreshIntervalDescription": "The refresh interval determines how often we will check your URL's health. A shorter interval enables issues to be detected more quickly, at the expense of greater load on your server.",
-                "tags": "Mots-clés",
+                "tags": "Tags",
                 "tagsDescription": "Tags are optional. We use this to group monitors, so you can manage them more easily.",
+                "downtimeConfirmationThreshold": "Downtime confirmation threshold",
+                "downtimeConfirmationThresholdDescription": "Determines how many consecutive failures can occur before this monitor becomes down. When a failure occurs, the monitor will become 'Suspicious' until this threshold is reached, then it will transition from 'Suspicious' to 'Down'.",
+                "recoveryConfirmationThreshold": "Recovery confirmation threshold",
+                "recoveryConfirmationThresholdDescription": "Determines how many consecutive successes need to occur before a 'Down' monitor becomes 'Up' again. Until this threshold is reached, the monitor will be marked as 'Recovering'",
                 "save": "Save"
             }
         },
@@ -83,7 +87,7 @@
             "source": "Source",
             "status": "Status",
             "resolvedAt": "Resolved at",
-            "gotToSource": "Go to source"
+            "goToSource": "Go to source"
         },
         "incidentStatus": {
             "ongoing": "Ongoing",

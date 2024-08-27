@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use chrono::Utc;
-use serde::{Deserialize};
+use serde::Deserialize;
 use thiserror::Error;
 use ts_rs::TS;
 use uuid::Uuid;
@@ -22,6 +22,8 @@ pub struct UpdateHttpMonitorCommand {
     pub interval_seconds: u32,
     pub is_active: bool,
     pub tags: HashSet<String>,
+    pub recovery_confirmation_threshold: u32,
+    pub downtime_confirmation_threshold: u32,
 }
 
 #[derive(Error, Debug)]
@@ -59,6 +61,8 @@ pub async fn update_http_monitor(
         },
         interval_seconds: command.interval_seconds,
         tags: command.tags.into_iter().collect(),
+        downtime_confirmation_threshold: command.downtime_confirmation_threshold,
+        recovery_confirmation_threshold: command.recovery_confirmation_threshold
     };
     let monitor_updated = repository.update_http_monitor(id, new_monitor).await?;
     if monitor_updated {

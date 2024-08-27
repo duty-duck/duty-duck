@@ -19,9 +19,9 @@ pub struct HttpMonitor {
     pub last_ping_at: Option<DateTime<Utc>>,
     pub last_status_change_at: DateTime<Utc>,
     #[ts(type = "number")]
-    pub recovery_confirmation_threshold: i64,
+    pub recovery_confirmation_threshold: i16,
     #[ts(type = "number")]
-    pub downtime_confirmation_threshold: i64,
+    pub downtime_confirmation_threshold: i16,
     #[ts(type = "number")]
     pub interval_seconds: i64,
     pub last_http_code: Option<i16>,

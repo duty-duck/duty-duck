@@ -59,6 +59,10 @@
                 "refreshIntervalDescription": "L'intervalle de surveillance détermine à quelle fréquence nous allons vérfier votre site Web. Un intervalle plus court permet de détecter plus rapidement les problèmes, mais sollicitera plus votre serveur.",
                 "tags": "Mots-clés",
                 "tagsDescription": "Les mots-clés sont optionnels. Ils vous permettent d'orgnaniser vos moniteurs.",
+                "downtimeConfirmationThreshold": "Seuil de panne",
+                "downtimeConfirmationThresholdDescription": "Détermine combien d'échecs consécutifs sont nécessaires avant que le moniteur soit considérée comme en panne. En cas d'échec de l'appel HTTP, le moniteur deviendra \"Suspect\" jusqu'à ce qu'il atteigne ce seuil. Si ce seuil est atteint, le moniteur passera de \"Suspect\" à \"En panne\".",
+                "recoveryConfirmationThreshold": "Seuil de récupération",
+                "recoveryConfirmationThresholdDescription": "Si le moniteur tombe en panne, détermine combien de réussites consécutives sont nécessaire avant que ce moniteur ne soit plus considéré en panne. En dessous de ce seuil, le moniteur sera considéré comme \"En récupération\".",
                 "save": "Sauvegarder"
             }
         },

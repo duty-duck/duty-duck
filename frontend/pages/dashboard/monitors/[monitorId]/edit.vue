@@ -40,6 +40,8 @@ const onSubmit = async (monitor: HttpMonitorFormData) => {
       :url="monitorData.monitor.url"
       :tags="monitorData.monitor.tags"
       :interval-seconds="monitorData.monitor.intervalSeconds"
+      :downtime-confirmation-threshold="monitorData.monitor.downtimeConfirmationThreshold"
+      :recovery-confirmation-threshold="monitorData.monitor.recoveryConfirmationThreshold"
     />
   </BContainer>
 </template>

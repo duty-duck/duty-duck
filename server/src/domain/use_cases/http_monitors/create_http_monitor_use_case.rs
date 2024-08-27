@@ -20,6 +20,8 @@ use crate::domain::{
 pub struct CreateHttpMonitorCommand {
     pub url: String,
     pub interval_seconds: u32,
+    pub recovery_confirmation_threshold: u32,
+    pub downtime_confirmation_threshold: u32,
     pub is_active: bool,
     pub tags: HashSet<String>,
 }
@@ -62,6 +64,8 @@ pub async fn create_http_monitor(
         },
         interval_seconds: command.interval_seconds,
         tags: command.tags.into_iter().collect(),
+        downtime_confirmation_threshold: command.downtime_confirmation_threshold,
+        recovery_confirmation_threshold: command.recovery_confirmation_threshold
     };
     let id = repository.create_http_monitor(new_monitor).await?;
     Ok(CreateHttpMonitorResponse { id })

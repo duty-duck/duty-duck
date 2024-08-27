@@ -105,8 +105,19 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
         monitor: http_monitor_repository::NewHttpMonitor,
     ) -> anyhow::Result<Uuid> {
         let new_monitor_id = sqlx::query!(
-            "insert into http_monitors ( organization_id, url, status, status_counter, next_ping_at, interval_seconds, error_kind, tags) 
-            values ($1, $2, $3, $4, $5, $6, $7, $8)
+            "insert into http_monitors (
+                organization_id, 
+                url, 
+                status, 
+                status_counter, 
+                next_ping_at, 
+                interval_seconds, 
+                error_kind, 
+                tags,
+                downtime_confirmation_threshold,
+                recovery_confirmation_threshold
+            ) 
+            values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             returning id",
             monitor.organization_id,
             monitor.url,
@@ -115,7 +126,9 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
             monitor.next_ping_at,
             monitor.interval_seconds as i64,
             HttpMonitorErrorKind::None as i16,
-            &monitor.tags
+            &monitor.tags,
+            monitor.downtime_confirmation_threshold as i64,
+            monitor.recovery_confirmation_threshold as i64
         ).fetch_one(&self.pool).await?.id;
         Ok(new_monitor_id)
     }
@@ -180,13 +193,17 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
                 next_ping_at = $3, 
                 tags = $4,
                 interval_seconds = $5,
-                organization_id = $6
-            WHERE organization_id = $6 and id = $7",
+                recovery_confirmation_threshold = $6,
+                downtime_confirmation_threshold = $7,
+                organization_id = $8
+            WHERE organization_id = $8 and id = $9",
             monitor.url,
             monitor.status as i16,
             monitor.next_ping_at,
             &monitor.tags,
             monitor.interval_seconds as i64,
+            monitor.recovery_confirmation_threshold as i64,
+            monitor.downtime_confirmation_threshold as i64,
             monitor.organization_id,
             id,
         )

@@ -54,6 +54,8 @@ pub struct NewHttpMonitor {
     pub next_ping_at: Option<DateTime<Utc>>,
     pub interval_seconds: u32,
     pub tags: Vec<String>,
+    pub recovery_confirmation_threshold: u32,
+    pub downtime_confirmation_threshold: u32,
 }
 
 #[derive(Debug)]

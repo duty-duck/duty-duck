@@ -23,8 +23,13 @@ const incident = defineProps<IncidentWithSources>();
       <dt>{{ $t('dashboard.incidents.source') }}</dt>
       <dd>
         <div v-for="s in incident.sources" :key="s.id">
-          <NuxtLink
+          <template
+          
             v-if="s.type == 'HttpMonitor'"
+          >
+
+          </template>
+          <NuxtLink
             :to="localePath(`/dashboard/monitors/${s.id}`)"
             class="icon-link"
             v-b-tooltip.hover.top
