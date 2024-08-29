@@ -15,12 +15,19 @@ use crate::{
     },
 };
 
+use super::user_devices_router::user_devices_router;
+
 pub fn users_router() -> Router<ApplicationState> {
     Router::new()
         .route("/debug-auth-context", get(debug_auth_context_handler))
         .route("/signup", post(signup_handler))
         .route("/check-password", post(check_password_handler))
-        .route("/me", get(get_profile_handler).put(update_profile_handler))
+        .nest(
+            "/me",
+            Router::new()
+                .nest("/devices", user_devices_router())
+                .route("/", get(get_profile_handler).put(update_profile_handler)),
+        )
 }
 
 async fn debug_auth_context_handler(auth_context: AuthContext) -> impl IntoResponse {
@@ -41,7 +48,6 @@ async fn get_profile_handler(
         }
     }
 }
-
 
 async fn update_profile_handler(
     auth_context: AuthContext,

@@ -14,6 +14,7 @@ use crate::{
             http_monitor_repository_adapter::HttpMonitorRepositoryAdapter,
             incident_repository_adapter::IncidentRepositoryAdapter,
             organization_repository_adapter::OrganizationRepositoryAdapter,
+            user_devices_repository_adapter::UserDevicesRepositoryAdapter,
             user_repository_adapter::UserRepositoryAdapter,
         },
         keycloak_client::KeycloakClient,
@@ -70,6 +71,7 @@ async fn build_app_state(config: &AppConfig) -> anyhow::Result<ApplicationState>
         },
         http_monitors_repository: HttpMonitorRepositoryAdapter { pool: pool.clone() },
         incident_repository: IncidentRepositoryAdapter { pool: pool.clone() },
+        user_devices_repository: UserDevicesRepositoryAdapter { pool: pool.clone() },
         http_client: HttpClientAdapter::new(config),
     };
     Ok(ApplicationState {

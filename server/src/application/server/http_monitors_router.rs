@@ -57,7 +57,7 @@ async fn get_http_monitor_handler(
         Ok(res) => Json(res).into_response(),
         Err(ReadHttpMonitorError::NotFound) => StatusCode::NOT_FOUND.into_response(),
         Err(ReadHttpMonitorError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
-        Err(ReadHttpMonitorError::TechnicalError(e)) => {
+        Err(ReadHttpMonitorError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while getting a single HTTP monitor from the database");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
@@ -80,7 +80,7 @@ async fn get_http_monitor_incidents_handler(
     {
         Ok(res) => Json(res).into_response(),
         Err(ListIncidentsError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
-        Err(ListIncidentsError::TechnicalError(e)) => {
+        Err(ListIncidentsError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while getting HTTP monitor incidents");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
@@ -103,7 +103,7 @@ async fn toggle_http_monitor_handler(
         Ok(_) => Json("Done").into_response(),
         Err(ToggleMonitorError::NotFound) => StatusCode::NOT_FOUND.into_response(),
         Err(ToggleMonitorError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
-        Err(ToggleMonitorError::TechnicalError(e)) => {
+        Err(ToggleMonitorError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while toggling HTTP monitor");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
@@ -124,7 +124,7 @@ async fn list_http_monitors_handler(
     {
         Ok(res) => Json(res).into_response(),
         Err(ListHttpMonitorsError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
-        Err(ListHttpMonitorsError::TechnicalError(e)) => {
+        Err(ListHttpMonitorsError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while getting http monitors from the database");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
@@ -145,7 +145,7 @@ async fn create_http_monitor_handler(
     {
         Ok(res) => Json(res).into_response(),
         Err(CreateHttpMonitorError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
-        Err(CreateHttpMonitorError::TechnicalError(e)) => {
+        Err(CreateHttpMonitorError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while getting creating a new monitor");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
@@ -169,7 +169,7 @@ async fn update_http_monitor_handler(
         Ok(res) => Json(res).into_response(),
         Err(UpdateHttpMonitorError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
         Err(UpdateHttpMonitorError::NotFound) => StatusCode::NOT_FOUND.into_response(),
-        Err(UpdateHttpMonitorError::TechnicalError(e)) => {
+        Err(UpdateHttpMonitorError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while getting creating a new monitor");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }

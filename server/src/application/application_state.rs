@@ -8,6 +8,7 @@ use crate::infrastructure::{
         http_monitor_repository_adapter::HttpMonitorRepositoryAdapter,
         incident_repository_adapter::IncidentRepositoryAdapter,
         organization_repository_adapter::OrganizationRepositoryAdapter,
+        user_devices_repository_adapter::UserDevicesRepositoryAdapter,
         user_repository_adapter::UserRepositoryAdapter,
     },
     keycloak_client::KeycloakClient,
@@ -29,4 +30,5 @@ pub struct Adapters {
     pub http_monitors_repository: HttpMonitorRepositoryAdapter,
     pub incident_repository: IncidentRepositoryAdapter,
     pub http_client: HttpClientAdapter,
+    pub user_devices_repository: UserDevicesRepositoryAdapter,
 }

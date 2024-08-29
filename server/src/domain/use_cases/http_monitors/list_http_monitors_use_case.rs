@@ -34,7 +34,7 @@ pub enum ListHttpMonitorsError {
     #[error("Current user doesn't have the privilege the list HTTP monitors")]
     Forbidden,
     #[error("Failed to get monitors from the database: {0}")]
-    TechnicalError(#[from] anyhow::Error),
+    TechnicalFailure(#[from] anyhow::Error),
 }
 
 pub async fn list_http_monitors(

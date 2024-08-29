@@ -2,6 +2,7 @@ mod auth_context_extractor;
 mod http_monitors_router;
 mod incidents_router;
 mod users_router;
+mod user_devices_router;
 
 use std::time::Duration;
 

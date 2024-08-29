@@ -35,7 +35,7 @@ pub struct CreateHttpMonitorResponse {
 #[derive(Error, Debug)]
 pub enum CreateHttpMonitorError {
     #[error("Failed to create a monitor: {0}")]
-    TechnicalError(#[from] anyhow::Error),
+    TechnicalFailure(#[from] anyhow::Error),
     #[error("Current user doesn't have the privilege the create HTTP monitors")]
     Forbidden,
 }

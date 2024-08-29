@@ -29,7 +29,7 @@ pub struct UpdateHttpMonitorCommand {
 #[derive(Error, Debug)]
 pub enum UpdateHttpMonitorError {
     #[error("Failed to create a monitor: {0}")]
-    TechnicalError(#[from] anyhow::Error),
+    TechnicalFailure(#[from] anyhow::Error),
     #[error("Current user doesn't have the privilege the update HTTP monitors")]
     Forbidden,
     #[error("HTTP Monitor does not exist")]

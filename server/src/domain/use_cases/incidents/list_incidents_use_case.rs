@@ -34,7 +34,7 @@ pub enum ListIncidentsError {
     #[error("Current user doesn't have the privilege the list incidents")]
     Forbidden,
     #[error("Failed to get incidents from the database: {0}")]
-    TechnicalError(#[from] anyhow::Error),
+    TechnicalFailure(#[from] anyhow::Error),
 }
 
 pub async fn list_incidents(

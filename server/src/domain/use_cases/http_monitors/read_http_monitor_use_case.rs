@@ -30,7 +30,7 @@ pub enum ReadHttpMonitorError {
     #[error("Monitor not found")]
     NotFound,
     #[error("Failed to get monitors from the database: {0}")]
-    TechnicalError(#[from] anyhow::Error),
+    TechnicalFailure(#[from] anyhow::Error),
 }
 
 pub async fn read_http_monitor<HMR, IR>(
@@ -54,7 +54,7 @@ where
     {
         Ok(Some(monitor)) => Ok(monitor),
         Ok(None) => Err(ReadHttpMonitorError::NotFound),
-        Err(e) => Err(ReadHttpMonitorError::TechnicalError(e)),
+        Err(e) => Err(ReadHttpMonitorError::TechnicalFailure(e)),
     }?;
 
     let sources = [IncidentSource::HttpMonitor { id: monitor_id }];

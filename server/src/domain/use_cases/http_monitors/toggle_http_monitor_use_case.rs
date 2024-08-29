@@ -21,7 +21,7 @@ pub enum ToggleMonitorError {
     #[error("Monitor not found")]
     NotFound,
     #[error("Failed to toggle monitor: {0}")]
-    TechnicalError(#[from] anyhow::Error),
+    TechnicalFailure(#[from] anyhow::Error),
 }
 
 pub async fn toggle_http_monitor<HMR, IR>(
@@ -45,7 +45,7 @@ where
     {
         Ok(Some(monitor)) => Ok(monitor),
         Ok(None) => Err(ToggleMonitorError::NotFound),
-        Err(e) => Err(ToggleMonitorError::TechnicalError(e)),
+        Err(e) => Err(ToggleMonitorError::TechnicalFailure(e)),
     }?;
 
     let now = Utc::now();

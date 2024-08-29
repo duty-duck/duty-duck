@@ -28,7 +28,7 @@ async fn list_incidents_handler(
     {
         Ok(res) => Json(res).into_response(),
         Err(ListIncidentsError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
-        Err(ListIncidentsError::TechnicalError(e)) => {
+        Err(ListIncidentsError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while getting incidents from the database");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
