@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 use anyhow::Context;
 use application_config::AppConfig;
@@ -12,8 +12,10 @@ use crate::{
         adapters::{
             http_client_adapter::HttpClientAdapter,
             http_monitor_repository_adapter::HttpMonitorRepositoryAdapter,
+            incident_notification_repository_adapter::IncidentNotificationRepositoryAdapter,
             incident_repository_adapter::IncidentRepositoryAdapter,
             organization_repository_adapter::OrganizationRepositoryAdapter,
+            push_notification_server_adapter::PushNotificationServerAdapter,
             user_devices_repository_adapter::UserDevicesRepositoryAdapter,
             user_repository_adapter::UserRepositoryAdapter,
         },
@@ -29,6 +31,8 @@ pub mod server;
 pub async fn start_application() -> anyhow::Result<()> {
     let config = AppConfig::load()?;
     let application_state = build_app_state(&config).await?;
+
+    // TODO: implement graceful shutdown here
     let _http_monitors_tasks = use_cases::http_monitors::spawn_http_monitors_execution_tasks(
         config.http_monitors_concurrent_tasks,
         application_state.adapters.http_monitors_repository.clone(),
@@ -37,6 +41,19 @@ pub async fn start_application() -> anyhow::Result<()> {
         config.http_monitors_select_size,
         config.http_monitors_ping_concurrency,
     );
+
+    let _new_incident_notification_task =
+        use_cases::incidents::spawn_new_incident_notification_tasks(
+            config.notifications_concurrent_tasks,
+            Duration::from_secs(config.notifications_tasks_interval_seconds),
+            application_state
+                .adapters
+                .incident_notification_repository
+                .clone(),
+            application_state.adapters.push_notification_server.clone(),
+            application_state.adapters.user_devices_repository.clone(),
+            config.notifications_tasks_select_size,
+        );
 
     server::start_server(application_state, config.server_port).await?;
     Ok(())
@@ -71,8 +88,12 @@ async fn build_app_state(config: &AppConfig) -> anyhow::Result<ApplicationState>
         },
         http_monitors_repository: HttpMonitorRepositoryAdapter { pool: pool.clone() },
         incident_repository: IncidentRepositoryAdapter { pool: pool.clone() },
+        incident_notification_repository: IncidentNotificationRepositoryAdapter {
+            pool: pool.clone(),
+        },
         user_devices_repository: UserDevicesRepositoryAdapter { pool: pool.clone() },
         http_client: HttpClientAdapter::new(config),
+        push_notification_server: PushNotificationServerAdapter::new().await?,
     };
     Ok(ApplicationState {
         adapters,

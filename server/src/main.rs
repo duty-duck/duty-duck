@@ -1,9 +1,15 @@
+#[macro_use]
+extern crate rust_i18n;
+
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 mod application;
 mod domain;
 mod infrastructure;
 mod shared;
+
+// Initialize i18n
+rust_i18n::i18n!("locales", fallback = "en");
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

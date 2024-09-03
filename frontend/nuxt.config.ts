@@ -31,6 +31,15 @@ export default defineNuxtConfig({
         client: '',
         url: ''
       },
+      firebase: {
+        apiKey: "",
+        authDomain: "",
+        projectId: "",
+        storageBucket: "",
+        messagingSenderId: "",
+        appId: "",
+        vapidKey: "",
+      },
       serverUrl: '',
     }
   },

@@ -87,7 +87,11 @@
             "source": "Source",
             "status": "Statut",
             "resolvedAt": "Résolu le",
-            "goToSource": "Aller à la source"
+            "goToSource": "Aller à la source",
+            "emptyPage": {
+                "title": "Tout va bien pour le moment",
+                "text": "Si nous détectons une anomalie, un incident apparaîtra ici."
+            }
         },
         "incidentStatus": {
             "ongoing": "En cours",
@@ -123,7 +127,8 @@
             "passwordConfirmation": "Confirmation du mot de passe",
             "phoneNumber": "Numéro de téléphone mobile",
             "phoneNumberDescription": "Votre numéro de téléphone mobile pourra être utilisé pour vous alerter en cas d'incidents. Il ne sera jamais utilisé à des fins publicitaires.",
-            "editButton": "Éditer mes informations"
+            "editButton": "Éditer mes informations",
+            "pushNotifications": "Notifications Push"
         }
     }
 }

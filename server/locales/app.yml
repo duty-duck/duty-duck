@@ -1,0 +1,13 @@
+_version: 2
+newIncidentDefaultPushNotificationTitle:
+    en: "A new incident has been created"
+    fr: "Un nouvel incident est en cours"
+newIncidentDefaultPushNotificationBody:
+    en: "A new incident is ongoing. Head over to DutyDuck to investigate the incident."
+    fr: "Un incident est en cours. Rendez-vous sur DutyDuck pour investiguer l'incident."
+newHttpMonitorIncidentPushNotificationTitle:
+    en: "New incident for URL %{url}"
+    fr: "Nouvel incident pour l'URL %{url}"
+newHttpMonitorIncidentPushNotificationBody:
+    en: "An HTTP monitor for the URL %{url} is down. Head over to DutyDuck to investigate the incident."
+    fr: "Un moniteur HTTP pour l'url %{url} est en panne. Rendez-vous sur DutyDuck pour investiguer l'incident."

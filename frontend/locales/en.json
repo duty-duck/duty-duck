@@ -87,7 +87,11 @@
             "source": "Source",
             "status": "Status",
             "resolvedAt": "Resolved at",
-            "goToSource": "Go to source"
+            "goToSource": "Go to source",
+            "emptyPage": {
+                "title": "Everyhting is OK right now",
+                "text": "When we detect a failure, an incident will appear here."
+            }
         },
         "incidentStatus": {
             "ongoing": "Ongoing",
@@ -119,7 +123,8 @@
             "lastName": "Last name",
             "email": "E-mail address",
             "phoneNumber": "Mobile number",
-            "editButton": "Edit my info"
+            "editButton": "Edit my info",
+            "pushNotifications": "Push Notifications"
         }
     }
 }

@@ -118,12 +118,11 @@ useIntervalFn(() => {
         v-if="data?.totalNumberOfResults == 0"
         class="text-secondary text-center my-5"
       >
-        <Icon name="ph:pulse-duotone" size="120px" />
-        <h3>Nothing here yet</h3>
+        <Icon name="ph:seal-check-duotone" size="120px" />
+        <h3>{{ $t("dashboard.incidents.emptyPage.title") }}</h3>
         <p class="lead">
-          Create your first monitor to start monitoring your website
+          {{ $t("dashboard.incidents.emptyPage.text") }}
         </p>
-        <AddHttpMonitorButton class="m-3" />
       </div>
       <IncidentCard
         v-for="incident in data?.items"

@@ -31,6 +31,12 @@ pub struct AppConfig {
         default = "Mozilla/5.0+(compatible; DutyDuck/2.0; http://ww.dutyduck.com/)"
     )]
     pub user_agent: String,
+    #[envconfig(from = "NOTIFICATIONS_CONCURRENT_TASKS", default = "1")]
+    pub notifications_concurrent_tasks: usize,
+    #[envconfig(from = "NOTIFICATIONS_TASKS_INTERVAL", default = "1")]
+    pub notifications_tasks_interval_seconds: u64,
+    #[envconfig(from = "NOTIFICATIONS_TASKS_SELECT_SIZE", default = "500")]
+    pub notifications_tasks_select_size: u32,
 }
 
 impl AppConfig {

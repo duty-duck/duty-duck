@@ -4,6 +4,7 @@ services:
     depends_on:
       - fake-internet
     image: mcr.microsoft.com/devcontainers/base:bullseye
+    command: ["sleep", "infinity"]
     ports:
       - 5173:5173
       - 3000:3000
@@ -20,7 +21,7 @@ services:
           - www.mediapart.fr
           - www.fake-internet.com
   database:
-    image: postgres:16-alpine
+    build: ./database
     environment:
       - POSTGRES_DB=dutyduck
       - POSTGRES_USER=admin

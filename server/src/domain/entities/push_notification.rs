@@ -21,6 +21,7 @@ impl From<Option<String>> for OptionalPushNotificationToken {
     }
 }
 
+#[derive(Debug)]
 pub struct PushNotification {
     pub title: String,
     pub body: String,

@@ -17,6 +17,6 @@ create table if not exists http_monitors_incidents (
     incident_id uuid not null,
     http_monitor_id uuid not null,
     primary key (organization_id, http_monitor_id, incident_id),
-    foreign key (organization_id, incident_id) references incidents (organization_id, id),
-    foreign key (organization_id, http_monitor_id) references http_monitors (organization_id, id)
+    foreign key (organization_id, incident_id) references incidents (organization_id, id) on delete cascade,
+    foreign key (organization_id, http_monitor_id) references http_monitors (organization_id, id) on delete cascade
 );

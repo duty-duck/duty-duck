@@ -33,6 +33,15 @@ pub struct IncidentWithSources {
 }
 
 #[derive(Serialize, Deserialize, TS, Debug, Clone)]
+#[ts(export)]
+pub struct IncidentWithSourcesDetails {
+    #[serde(flatten)]
+    pub incident: Incident,
+    pub sources: HashSet<IncidentSourceWithDetails>,
+}
+
+
+#[derive(Serialize, Deserialize, TS, Debug, Clone)]
 #[serde(tag = "causeType", rename_all_fields = "camelCase")]
 #[ts(export)]
 pub enum IncidentCause {
@@ -109,6 +118,13 @@ impl IncidentPriority {
 #[serde(tag = "type")]
 pub enum IncidentSource {
     HttpMonitor { id: Uuid },
+}
+
+#[derive(Serialize, Deserialize, TS, Debug, Clone, PartialEq, Eq, Hash)]
+#[ts(export)]
+#[serde(tag = "type")]
+pub enum IncidentSourceWithDetails {
+    HttpMonitor { id: Uuid, url: String },
 }
 
 #[derive(Debug)]

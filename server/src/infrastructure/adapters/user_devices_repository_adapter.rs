@@ -51,6 +51,20 @@ impl UserDevicesRepository for UserDevicesRepositoryAdapter {
         )
         .fetch_all(&self.pool)
         .await
-        .with_context(|| "Failed to list user devices from the database")
+        .with_context(|| "Failed to list devices from the database")
+    }
+
+    async fn list_organization_devices(
+        &self,
+        organization_id: Uuid,
+    ) -> anyhow::Result<Vec<UserDevice>> {
+        sqlx::query_as!(
+            UserDevice,
+            "SELECT * FROM user_devices WHERE organization_id = $1",
+            organization_id,
+        )
+        .fetch_all(&self.pool)
+        .await
+        .with_context(|| "Failed to list devices from the database")
     }
 }

@@ -4,8 +4,6 @@ use ts_rs::TS;
 use uuid::Uuid;
 use chrono::{DateTime, Utc};
 
-use crate::domain::entities::push_notification::PushNotificationToken;
-
 use super::push_notification::OptionalPushNotificationToken;
 
 #[derive(Debug, Clone, Serialize, TS, FromRow)]
