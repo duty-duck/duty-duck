@@ -1,0 +1,22 @@
+name: Database Image CI
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "database/**"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Log in to the Container registry
+      uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+        
+    - uses: actions/checkout@v4
+    - name: Build the Docker image
+      run: docker build . --file database/Dockerfile --tag duty-duck-postgres:$(date +%s)
