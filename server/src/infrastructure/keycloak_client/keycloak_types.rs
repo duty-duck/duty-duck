@@ -113,6 +113,8 @@ impl AttributeMap {
             .insert(key.to_string(), vec![value.to_string()])
             .and_then(|vec| vec.into_iter().next())
     }
+    
+    #[allow(unused)]
     pub fn put_json<T: Serialize>(&mut self, key: &str, value: &T) {
         if let Ok(v) = serde_json::to_string(value) {
             self.put(key, v);

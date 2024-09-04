@@ -1,4 +1,4 @@
-use serde::{Deserialize, Serialize};
+use serde::Serialize;
 use thiserror::Error;
 use ts_rs::TS;
 use uuid::Uuid;
@@ -6,12 +6,11 @@ use uuid::Uuid;
 use crate::domain::{
     entities::{
         authorization::{AuthContext, Permission},
-        http_monitor::{HttpMonitor, HttpMonitorStatus},
+        http_monitor::HttpMonitor,
         incident::{IncidentPriority, IncidentSource, IncidentStatus, IncidentWithSources},
     },
     ports::{
-        http_monitor_repository::{HttpMonitorRepository, ListHttpMonitorsOutput},
-        incident_repository::{IncidentRepository},
+        http_monitor_repository::HttpMonitorRepository, incident_repository::IncidentRepository,
     },
 };
 

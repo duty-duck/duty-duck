@@ -1,0 +1,113 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT * FROM http_monitors WHERE  organization_id = $1 AND id = $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "organization_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 3,
+        "name": "url",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "status",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 5,
+        "name": "status_counter",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 6,
+        "name": "first_ping_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 7,
+        "name": "next_ping_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "last_ping_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "last_status_change_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 10,
+        "name": "recovery_confirmation_threshold",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 11,
+        "name": "downtime_confirmation_threshold",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 12,
+        "name": "interval_seconds",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 13,
+        "name": "last_http_code",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 14,
+        "name": "error_kind",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 15,
+        "name": "tags",
+        "type_info": "TextArray"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "7af7d1b4eff8e5601c992908c5c9623afa49168318884e40798c99a29611ab2f"
+}

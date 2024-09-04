@@ -1,0 +1,113 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT * FROM  http_monitors\n            WHERE status != $1\n            AND next_ping_at <= NOW()\n            FOR UPDATE SKIP LOCKED\n            LIMIT $2",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "organization_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 3,
+        "name": "url",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "status",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 5,
+        "name": "status_counter",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 6,
+        "name": "first_ping_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 7,
+        "name": "next_ping_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "last_ping_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "last_status_change_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 10,
+        "name": "recovery_confirmation_threshold",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 11,
+        "name": "downtime_confirmation_threshold",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 12,
+        "name": "interval_seconds",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 13,
+        "name": "last_http_code",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 14,
+        "name": "error_kind",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 15,
+        "name": "tags",
+        "type_info": "TextArray"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int2",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false
+    ]
+  },
+  "hash": "f66f3376cb733e4711f854ea785f16028ba01dc177df5943d3a80962c3c57755"
+}

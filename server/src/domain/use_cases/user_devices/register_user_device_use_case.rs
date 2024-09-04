@@ -37,6 +37,6 @@ pub async fn register_user_device(
     repository
         .register_device(new_device)
         .await
-        .map_err(|e| RegisterUserDeviceError::TechnicalFailure(e))?;
+        .map_err(RegisterUserDeviceError::TechnicalFailure)?;
     Ok(())
 }

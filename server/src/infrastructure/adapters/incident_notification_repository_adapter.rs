@@ -7,10 +7,7 @@ use uuid::Uuid;
 
 use crate::{
     domain::{
-        entities::incident::{
-            Incident, IncidentSource, IncidentSourceWithDetails, IncidentWithSources,
-            IncidentWithSourcesDetails,
-        },
+        entities::incident::{Incident, IncidentSourceWithDetails, IncidentWithSourcesDetails},
         ports::incident_notification_repository::IncidentNotificationRepository,
     },
     postgres_transactional_repo,
@@ -101,9 +98,17 @@ impl IncidentNotificationRepository for IncidentNotificationRepositoryAdapter {
     async fn acknowledge_incident_creation_notification(
         &self,
         tx: &mut Self::Transaction,
-        orgnanization_id: Uuid,
+        organization_id: Uuid,
         incident_id: Uuid,
     ) -> anyhow::Result<()> {
-        todo!()
+        sqlx::query!(
+            "UPDATE incidents_notifications SET creation_notification_sent_at = NOW() WHERE organization_id = $1 AND incident_id = $2",
+            organization_id,
+            incident_id
+        )
+        .execute(tx.as_mut())
+        .await
+        .with_context(|| "Failed to list new incidents due for notfication")?;
+        Ok(())
     }
 }

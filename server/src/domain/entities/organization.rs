@@ -50,6 +50,7 @@ pub enum WriteOrganizationError {
     TechnicalFailure(#[from] anyhow::Error),
 }
 
+#[allow(dead_code)]
 #[derive(Debug, Error)]
 pub enum ReadOrganizationError {
     #[error("Organization not found")]

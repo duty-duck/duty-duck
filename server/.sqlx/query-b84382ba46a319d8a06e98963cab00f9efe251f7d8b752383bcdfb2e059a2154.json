@@ -1,0 +1,81 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            -- First, in a subquery, get the matching incidents and paginate\n            WITH incidents AS (\n                SELECT i.*, COUNT(i.id) OVER () as filtered_count from incidents i\n                WHERE organization_id = $1 \n                AND status IN (SELECT unnest($2::integer[]))\n                AND priority IN (SELECT unnest($3::integer[]))\n                AND ($6::uuid[] = '{}' OR EXISTS (\n                    SELECT 1 FROM http_monitors_incidents hmi \n                    WHERE hmi.organization_id = i.organization_id \n                    AND hmi.incident_id = i.id\n                    AND hmi.http_monitor_id IN (SELECT UNNEST ($6::uuid[])))\n                )\n                ORDER BY created_at DESC\n                LIMIT $4 OFFSET $5\n            )\n            SELECT i.*, hmi.http_monitor_id\n            FROM incidents i\n            -- then join with the sources\n            LEFT JOIN http_monitors_incidents hmi\n                ON hmi.organization_id = $1 AND hmi.incident_id = i.id\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "organization_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 3,
+        "name": "created_by",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 4,
+        "name": "resolved_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 5,
+        "name": "cause",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 6,
+        "name": "status",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 7,
+        "name": "priority",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 8,
+        "name": "filtered_count",
+        "type_info": "Int8"
+      },
+      {
+        "ordinal": 9,
+        "name": "http_monitor_id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int4Array",
+        "Int4Array",
+        "Int8",
+        "Int8",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+      null,
+      true
+    ]
+  },
+  "hash": "b84382ba46a319d8a06e98963cab00f9efe251f7d8b752383bcdfb2e059a2154"
+}
