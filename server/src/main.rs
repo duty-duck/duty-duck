@@ -13,7 +13,7 @@ rust_i18n::i18n!("locales", fallback = "en");
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
-    dotenv::dotenv()?;
+    let _ = dotenv::dotenv();
 
     let subscriber = FmtSubscriber::builder()
         .pretty()
