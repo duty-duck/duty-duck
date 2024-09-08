@@ -10,14 +10,12 @@ on:
       - "server/migrations/**"
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: arm64
     permissions:
       contents: read
       packages: write
 
     steps:
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
     
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
@@ -53,3 +51,5 @@ jobs:
         push: ${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
