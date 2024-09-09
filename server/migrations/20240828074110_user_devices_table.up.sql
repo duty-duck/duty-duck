@@ -26,7 +26,8 @@ create index on incidents_notifications (creation_notification_sent_at);
 create or replace function create_new_incident_notifications() returns trigger as $$
 BEGIN
     INSERT INTO incidents_notifications (organization_id, incident_id) VALUES(new.organization_id, new.id);
+    RETURN new;
 END;
 $$ language plpgsql;
 
-create or replace trigger incidents_notifications_creation after insert on incidents execute procedure create_new_incident_notifications();
+create or replace trigger incidents_notifications_creation after insert on incidents for each row execute procedure create_new_incident_notifications();
