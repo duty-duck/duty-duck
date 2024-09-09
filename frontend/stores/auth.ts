@@ -77,9 +77,9 @@ export const useAuth = defineStore('auth', () => {
   if (import.meta.client) {
     // Instantiate the Keycloak client
     keycloak = new Keycloak({
-      url: runtimeConfig.public.keycloak.url,
-      realm: runtimeConfig.public.keycloak.realm,
-      clientId: runtimeConfig.public.keycloak.client,
+      url: runtimeConfig.public.keycloakUrl,
+      realm: runtimeConfig.public.keycloakRealm,
+      clientId: runtimeConfig.public.keycloakClient,
     })
 
     // Modify the login URL to include the `prompt=select_account` parameter that triggers the Active organization authenticator

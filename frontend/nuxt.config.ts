@@ -17,7 +17,6 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
-    '/': { prerender: true },
     // These pages are rendered on the client only because they use the Keycloak SDK
     '/dashboard/**': { ssr: false },
   },
@@ -26,20 +25,16 @@ export default defineNuxtConfig({
     public: {
       packageVersion: pacakgeJson.version,
       commitRef: 'unknown',
-      keycloak: {
-        realm: 'master',
-        client: '',
-        url: ''
-      },
-      firebase: {
-        apiKey: "",
-        authDomain: "",
-        projectId: "",
-        storageBucket: "",
-        messagingSenderId: "",
-        appId: "",
-        vapidKey: "",
-      },
+      keycloakRealm: '',
+      keycloakClient: '',
+      keycloakUrl: '',
+      firebaseApiKey: "",
+      firebaseAuthDomain: "",
+      firebaseProjectId: "",
+      firebaseStorageBucket: "",
+      firebaseMessagingSenderId: "",
+      firebaseAppId: "",
+      firebaseVapidKey: "",
       serverUrl: '',
     }
   },

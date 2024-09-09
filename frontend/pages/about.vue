@@ -1,6 +1,6 @@
 <script setup lang="ts">
-const { data: buildInfo, error: serverError } = await useServer("/");
-const { public: { packageVersion, commitRef } } = useRuntimeConfig();
+const { data: buildInfo, error: serverError } = await useServerFetch("/");
+const config = useRuntimeConfig();
 </script>
 <template>
    <BButton variant="link" icon v-b-toggle.software-info>
@@ -13,11 +13,8 @@ const { public: { packageVersion, commitRef } } = useRuntimeConfig();
          <div class="col-md-6">
             <h4>Client facts</h4>
             <ul>
-               <li>
-                  <b>Version</b>: {{ packageVersion }}
-               </li>
-               <li>
-                  <b>Commit</b>: {{ commitRef }}
+               <li v-for="(value, key) in config.public">
+                  <b>{{ key }}</b>: <code>{{ value }}</code>
                </li>
             </ul>
          </div>

@@ -18,7 +18,7 @@ export const useFirebaseMessageHandler = () => {
                 variant: "secondary",
                 value: 60000
             },
-            
+
         });
     }
 }
@@ -27,8 +27,15 @@ const useApp = (): FirebaseApp => {
     if (app) {
         return app;
     }
-    const { public: { firebase } } = useRuntimeConfig();
-    app = initializeApp(firebase);
+    const config = useRuntimeConfig();
+    app = initializeApp({
+        apiKey: config.public.firebaseApiKey,
+        authDomain: config.public.firebaseAuthDomain,
+        projectId: config.public.firebaseProjectId,
+        storageBucket: config.public.firebaseStorageBucket,
+        messagingSenderId: config.public.firebaseMessagingSenderId,
+        appId: config.public.firebaseAppId,
+    });
     return app;
 }
 
@@ -44,14 +51,14 @@ export const useFirebaseMessaging = defineStore('firebaseMessaging', () => {
     }
 
     const getToken = async () => {
-        const { public: { firebase } } = useRuntimeConfig();
+        const { public: { firebaseVapidKey } } = useRuntimeConfig();
         token.value = "loading";
         try {
             const absServiceWorkerUrl = new URL(serviceWorkerUrl, document.baseURI).href
             const serviceWorkerUrlWithConfig = new URL(`/api/injectConfig?url=${encodeURIComponent(absServiceWorkerUrl)}`, document.baseURI).href;
             console.log("Registering service worker at:", serviceWorkerUrlWithConfig);
             const serviceWorkerRegistration = await navigator.serviceWorker.register(serviceWorkerUrlWithConfig, { type: 'module' });
-            const res = await getFirebaseToken(messaging, { vapidKey: firebase.vapidKey, serviceWorkerRegistration }) || null;
+            const res = await getFirebaseToken(messaging, { vapidKey: firebaseVapidKey, serviceWorkerRegistration }) || null;
             if (res) {
                 console.log("Push notification token:", res);
                 token.value = { token: res }
