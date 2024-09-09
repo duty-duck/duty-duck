@@ -35,6 +35,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
     > {
         let now = Utc::now();
         let req = WriteOrganizationRequest {
+            realm: &self.keycloak_client.realm,
             name: format!("{}-{}", command.name, nanoid::nanoid!(8)),
             display_name: command.display_name,
             url: None,
@@ -84,6 +85,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
     ) -> Result<(), crate::domain::entities::organization::WriteOrganizationError> {
         let now = Utc::now();
         let req = WriteOrganizationRequest {
+            realm: &self.keycloak_client.realm,
             name: command.name,
             display_name: command.display_name,
             url: None,

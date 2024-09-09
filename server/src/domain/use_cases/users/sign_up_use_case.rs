@@ -12,6 +12,7 @@ use tokio::try_join;
 use tracing::info;
 use ts_rs::TS;
 use uuid::Uuid;
+use veil::Redact;
 use zxcvbn::{zxcvbn, Entropy, Score};
 
 use crate::domain::{
@@ -26,14 +27,16 @@ lazy_static! {
     static ref WHITESPACE_REGEX: Regex = Regex::new("\\s+").unwrap();
 }
 
-#[derive(TS, Deserialize, Debug)]
+#[derive(TS, Deserialize, Redact)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct SignUpCommand {
     pub organization_name: String,
     pub first_name: String,
     pub last_name: String,
+    #[redact(partial)]
     pub email: String,
+    #[redact]
     pub password: String,
 }
 

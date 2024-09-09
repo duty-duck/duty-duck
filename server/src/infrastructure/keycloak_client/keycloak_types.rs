@@ -4,8 +4,10 @@ use openidconnect::core::CoreIdToken;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use thiserror::Error;
 use uuid::Uuid;
+use veil::Redact;
 
-#[derive(Clone, Debug)]
+#[derive(Clone, Redact)]
+#[redact(all, partial)]
 pub(super) struct AccessToken {
     pub(super) access_token: openidconnect::AccessToken,
     pub(super) expires_at: Option<Instant>,
@@ -72,10 +74,11 @@ pub struct UpdateUserRequest {
     pub credentials: Option<Vec<Credentials>>,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Redact, Clone)]
 pub struct Credentials {
     #[serde(rename = "type")]
     pub credentials_type: CredentialsType,
+    #[redact]
     pub value: String,
     pub temporary: bool,
 }
@@ -88,12 +91,13 @@ pub enum CredentialsType {
 
 #[derive(Serialize, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
-pub struct WriteOrganizationRequest {
+pub struct WriteOrganizationRequest<'a> {
     pub name: String,
     pub display_name: String,
     pub url: Option<String>,
     pub domains: Vec<String>,
     pub attributes: AttributeMap,
+    pub realm: &'a str
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]

@@ -24,6 +24,7 @@ struct CachedJwks {
 }
 
 pub struct KeycloakClient {
+    pub realm: String,
     realm_url: Url,
     realm_admin_url: Url,
     http_client: reqwest::Client,
@@ -65,6 +66,7 @@ impl KeycloakClient {
             cached_jwks: Arc::new(Mutex::default()),
             realm_url,
             realm_admin_url,
+            realm: keycloak_realm.to_string(),
         };
 
         // Pre-load access token for subsequent requests
@@ -91,9 +93,10 @@ impl KeycloakClient {
     #[tracing::instrument(skip(self))]
     pub(super) async fn create_user(&self, user: &CreateUserRequest) -> Result<UserItem> {
         let auth_token = self.get_current_access_token().await?;
+        let url = format!("{}/users", self.realm_admin_url);
         let response = (|| {
             self.http_client
-                .post(format!("{}/users", self.realm_admin_url))
+                .post(&url)
                 .json(user)
                 .bearer_auth(auth_token.access_token.secret())
                 .send()
@@ -104,11 +107,22 @@ impl KeycloakClient {
         if response.status() == StatusCode::CONFLICT {
             Err(Error::Conflict)
         } else {
-            let response = response.error_for_status()?;
+            if !response.status().is_success() {
+                let status = response.status().as_u16();
+                let response_body = response.text().await.unwrap_or_default();
+                return Err(Error::TechnicalFailure(anyhow!(
+                    "Failed HTTP request with URL '{url}', status '{status}' and response body: '{response_body}'",
+                )));
+            }
             let location_header = response
                 .headers()
                 .get(LOCATION)
-                .with_context(|| "Cannot get location header from response")?
+                .with_context(|| {
+                    format!(
+                        "Cannot get location header from response. Url: '{url}', response headers: {:#?}",
+                        response.headers()
+                    )
+                })?
                 .to_str()
                 .with_context(|| "Cannot read location header as str")?;
 
@@ -205,12 +219,13 @@ impl KeycloakClient {
     #[tracing::instrument(skip(self))]
     pub(super) async fn create_organization(
         &self,
-        request: &WriteOrganizationRequest,
+        request: &WriteOrganizationRequest<'_>,
     ) -> Result<Organization> {
+        let url = format!("{}/orgs", self.realm_url);
         let auth_token = self.get_current_access_token().await?;
         let response = (|| {
             self.http_client
-                .post(format!("{}/orgs", self.realm_url))
+                .post(&url)
                 .json(request)
                 .bearer_auth(auth_token.access_token.secret())
                 .send()
@@ -221,11 +236,22 @@ impl KeycloakClient {
         if response.status() == StatusCode::CONFLICT {
             Err(Error::Conflict)
         } else {
-            let response = response.error_for_status()?;
+            if !response.status().is_success() {
+                let status = response.status().as_u16();
+                let response_body = response.text().await.unwrap_or_default();
+                return Err(Error::TechnicalFailure(anyhow!(
+                    "Failed HTTP request with URL '{url}', status '{status}' and response body: '{response_body}'",
+                )));
+            }
             let location_header = response
                 .headers()
                 .get(LOCATION)
-                .with_context(|| "Cannot get location header from response")?
+                .with_context(|| {
+                    format!(
+                        "Cannot get location header from response. Url: '{url}', response headers: {:#?}",
+                        response.headers()
+                    )
+                })?
                 .to_str()
                 .with_context(|| "Cannot read location header as str")?;
 
@@ -246,7 +272,7 @@ impl KeycloakClient {
     pub(super) async fn update_organization(
         &self,
         org_id: Uuid,
-        request: &WriteOrganizationRequest,
+        request: &WriteOrganizationRequest<'_>,
     ) -> Result<()> {
         let auth_token = self.get_current_access_token().await?;
         let response = (|| {
@@ -540,6 +566,7 @@ mod tests {
     async fn test_create_organization() -> anyhow::Result<()> {
         let client = build_client().await?;
         let request = WriteOrganizationRequest {
+            realm: &client.realm,
             name: format!("test-organization-{}", nanoid!(10)),
             display_name: "Test organization".to_string(),
             url: None,
@@ -562,6 +589,7 @@ mod tests {
     async fn test_create_organization_role() -> anyhow::Result<()> {
         let client = build_client().await?;
         let request = WriteOrganizationRequest {
+            realm: &client.realm,
             name: format!("test-organization-{}", nanoid!(10)),
             display_name: "Test organization".to_string(),
             url: None,
@@ -580,6 +608,7 @@ mod tests {
     async fn test_update_organiaztion() -> anyhow::Result<()> {
         let client = build_client().await?;
         let request = WriteOrganizationRequest {
+            realm: &client.realm,
             name: format!("test-organization-{}", nanoid!(10)),
             display_name: "Test organization".to_string(),
             url: None,

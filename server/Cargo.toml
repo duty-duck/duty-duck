@@ -5,6 +5,7 @@ build = "build.rs"
 publish = false
 
 [dependencies]
+veil = "0.1.7"
 async-trait = "0.1.81"
 gcp_auth = "0.12.2"
 anyhow = "1.0.86"
