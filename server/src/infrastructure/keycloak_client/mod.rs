@@ -25,8 +25,8 @@ struct CachedJwks {
 
 pub struct KeycloakClient {
     pub realm: String,
-    realm_url: Url,
-    realm_admin_url: Url,
+    private_realm_url: Url,
+    private_realm_admin_url: Url,
     http_client: reqwest::Client,
     client_id: String,
     /// used to obtain service account tokens on behalf of the client
@@ -38,16 +38,19 @@ pub struct KeycloakClient {
 
 impl KeycloakClient {
     pub async fn new(
-        keycloak_url: Url,
+        public_keycloak_url: Url,
+        private_keycloak_url: Url,
         keycloak_realm: &str,
         client_id: &str,
         client_secret: &str,
     ) -> anyhow::Result<Self> {
-        let realm_url = keycloak_url.join(&format!("realms/{keycloak_realm}"))?;
-        let realm_admin_url = keycloak_url.join(&format!("admin/realms/{keycloak_realm}"))?;
+        let public_realm_url = public_keycloak_url.join(&format!("realms/{keycloak_realm}"))?;
+        let private_realm_url = private_keycloak_url.join(&format!("realms/{keycloak_realm}"))?;
+        let private_realm_admin_url = private_keycloak_url.join(&format!("admin/realms/{keycloak_realm}"))?;
+
         // Use OpenID Connect Discovery to fetch the provider metadata.
         let provider_metadata = CoreProviderMetadata::discover_async(
-            IssuerUrl::new(realm_url.to_string())?,
+            IssuerUrl::new(public_realm_url.to_string())?,
             async_http_client,
         )
         .await?;
@@ -64,8 +67,8 @@ impl KeycloakClient {
             client_id: client_id.to_string(),
             access_token: Arc::new(Mutex::default()),
             cached_jwks: Arc::new(Mutex::default()),
-            realm_url,
-            realm_admin_url,
+            private_realm_url,
+            private_realm_admin_url,
             realm: keycloak_realm.to_string(),
         };
 
@@ -93,7 +96,7 @@ impl KeycloakClient {
     #[tracing::instrument(skip(self))]
     pub(super) async fn create_user(&self, user: &CreateUserRequest) -> Result<UserItem> {
         let auth_token = self.get_current_access_token().await?;
-        let url = format!("{}/users", self.realm_admin_url);
+        let url = format!("{}/users", self.private_realm_admin_url);
         let response = (|| {
             self.http_client
                 .post(&url)
@@ -114,13 +117,16 @@ impl KeycloakClient {
                     "Failed HTTP request with URL '{url}', status '{status}' and response body: '{response_body}'",
                 )));
             }
-            let location_header = response
-                .headers()
+                let headers = response.headers().clone();
+                let response_body = response.text().await.unwrap_or_default();
+                println!("{response_body}");
+
+            let location_header = headers
                 .get(LOCATION)
                 .with_context(|| {
                     format!(
                         "Cannot get location header from response. Url: '{url}', response headers: {:#?}",
-                        response.headers()
+                        headers
                     )
                 })?
                 .to_str()
@@ -144,7 +150,7 @@ impl KeycloakClient {
         let auth_token = self.get_current_access_token().await?;
         let response = (|| {
             self.http_client
-                .get(format!("{}/users/{}", self.realm_admin_url, id))
+                .get(format!("{}/users/{}", self.private_realm_admin_url, id))
                 .bearer_auth(auth_token.access_token.secret())
                 .send()
         })
@@ -163,7 +169,7 @@ impl KeycloakClient {
         let auth_token = self.get_current_access_token().await?;
         let response = (|| {
             self.http_client
-                .put(format!("{}/users/{}", self.realm_admin_url, id))
+                .put(format!("{}/users/{}", self.private_realm_admin_url, id))
                 .json(user)
                 .bearer_auth(auth_token.access_token.secret())
                 .send()
@@ -201,7 +207,7 @@ impl KeycloakClient {
         let auth_token = self.get_current_access_token().await?;
         let res = (|| {
             self.http_client
-                .get(format!("{}/orgs", self.realm_url))
+                .get(format!("{}/orgs", self.private_realm_url))
                 .query(&[
                     ("first", first.to_string()),
                     ("max", max.to_string()),
@@ -221,7 +227,7 @@ impl KeycloakClient {
         &self,
         request: &WriteOrganizationRequest<'_>,
     ) -> Result<Organization> {
-        let url = format!("{}/orgs", self.realm_url);
+        let url = format!("{}/orgs", self.private_realm_url);
         let auth_token = self.get_current_access_token().await?;
         let response = (|| {
             self.http_client
@@ -277,7 +283,7 @@ impl KeycloakClient {
         let auth_token = self.get_current_access_token().await?;
         let response = (|| {
             self.http_client
-                .put(format!("{}/orgs/{}", self.realm_url, org_id))
+                .put(format!("{}/orgs/{}", self.private_realm_url, org_id))
                 .json(request)
                 .bearer_auth(auth_token.access_token.secret())
                 .send()
@@ -303,7 +309,7 @@ impl KeycloakClient {
         let auth_token = self.get_current_access_token().await?;
         let res = (|| {
             self.http_client
-                .get(format!("{}/orgs/{}/members", self.realm_url, org_id))
+                .get(format!("{}/orgs/{}/members", self.private_realm_url, org_id))
                 .query(&[("first", first.to_string()), ("max", max.to_string())])
                 .bearer_auth(auth_token.access_token.secret())
                 .send()
@@ -326,7 +332,7 @@ impl KeycloakClient {
             self.http_client
                 .put(format!(
                     "{}/orgs/{}/members/{}",
-                    self.realm_url, org_id, user_id
+                    self.private_realm_url, org_id, user_id
                 ))
                 .bearer_auth(auth_token.access_token.secret())
                 .send()
@@ -343,7 +349,7 @@ impl KeycloakClient {
         let auth_token = self.get_current_access_token().await?;
         (|| {
             self.http_client
-                .post(format!("{}/orgs/{}/roles", self.realm_url, org_id))
+                .post(format!("{}/orgs/{}/roles", self.private_realm_url, org_id))
                 .bearer_auth(auth_token.access_token.secret())
                 .json(&OrgnanizationRole {
                     name: role.to_string(),
@@ -369,7 +375,7 @@ impl KeycloakClient {
             self.http_client
                 .put(format!(
                     "{}/orgs/{}/roles/{}/users/{}",
-                    self.realm_url, org_id, role, user_id
+                    self.private_realm_url, org_id, role, user_id
                 ))
                 .bearer_auth(auth_token.access_token.secret())
                 .send()
@@ -393,7 +399,7 @@ impl KeycloakClient {
             self.http_client
                 .delete(format!(
                     "{}/orgs/{}/roles/{}/users/{}",
-                    self.realm_url, org_id, role, user_id
+                    self.private_realm_url, org_id, role, user_id
                 ))
                 .bearer_auth(auth_token.access_token.secret())
                 .send()
@@ -493,7 +499,7 @@ impl KeycloakClient {
     async fn fetch_jwks(&self) -> anyhow::Result<CachedJwks> {
         let action = || {
             self.http_client
-                .get(format!("{}/protocol/openid-connect/certs", self.realm_url))
+                .get(format!("{}/protocol/openid-connect/certs", self.private_realm_url))
                 .send()
         };
 
@@ -524,12 +530,12 @@ mod tests {
     use super::*;
 
     async fn build_client() -> anyhow::Result<KeycloakClient> {
-        let keycloak_url = Url::parse("http://keycloak:8080")?;
+        let keycloak_url = Url::parse("https://auth.dutyduck.net")?;
         let client_id = "dutyduck-server";
-        let client_secret = "4ckxWkPRKGOrjvhtKtnbIX8T8awpLVMx";
-        let keycloak_realm = "master";
+        let client_secret = "a90CJPOQBafVQaUG8Iz8zUJh5agzJk3M";
+        let keycloak_realm = "duty-duck-preprod";
 
-        KeycloakClient::new(keycloak_url, keycloak_realm, client_id, client_secret).await
+        KeycloakClient::new(keycloak_url.clone(), keycloak_url, keycloak_realm, client_id, client_secret).await
     }
 
     #[tokio::test]

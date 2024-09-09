@@ -66,12 +66,12 @@ async fn build_app_state(config: &AppConfig) -> anyhow::Result<ApplicationState>
         .await
         .with_context(|| "Failed to connect to the database")?;
 
-    let keycloak_url =
-        Url::parse(&config.keycloak_url).with_context(|| "Failed to parse keycloak URL")?;
-
     let keycloak_client = Arc::new(
         KeycloakClient::new(
-            keycloak_url,
+            Url::parse(&config.keycloak_public_url)
+                .with_context(|| "Failed to parse keycloak public URL")?,
+            Url::parse(&config.keycloak_private_url)
+                .with_context(|| "Failed to parse keycloak private URL")?,
             &config.keycloak_realm,
             &config.keycloak_client,
             &config.keycloak_secret,

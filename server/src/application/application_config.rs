@@ -10,8 +10,10 @@ pub struct AppConfig {
     pub database_max_connections: u32,
     #[envconfig(from = "PUBLIC_URL")]
     pub public_url: String,
-    #[envconfig(from = "KEYCLOAK_URL")]
-    pub keycloak_url: String,
+    #[envconfig(from = "KEYCLOAK_PUBLIC_URL")]
+    pub keycloak_public_url: String,
+    #[envconfig(from = "KEYCLOAK_PRIVATE_URL")]
+    pub keycloak_private_url: String,
     #[envconfig(from = "KEYCLOAK_REALM", default = "master")]
     pub keycloak_realm: String,
     #[envconfig(from = "KEYCLOAK_CLIENT")]
