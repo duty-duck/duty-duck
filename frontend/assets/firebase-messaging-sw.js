@@ -2,7 +2,7 @@ import { initializeApp } from "firebase/app";
 import { getMessaging, onBackgroundMessage } from "firebase/messaging/sw";
 
 // config will be injected at runtime when downloading the service worker
-const config = {};
+var config = {};
 
 console.log("SW Config:", config);
 
