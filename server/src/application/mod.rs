@@ -13,7 +13,7 @@ use crate::{
             http_client_adapter::HttpClientAdapter,
             http_monitor_repository_adapter::HttpMonitorRepositoryAdapter,
             incident_notification_repository_adapter::IncidentNotificationRepositoryAdapter,
-            incident_repository_adapter::IncidentRepositoryAdapter,
+            incident_repository_adapter::IncidentRepositoryAdapter, mailer_adapter::MailerAdapter,
             organization_repository_adapter::OrganizationRepositoryAdapter,
             push_notification_server_adapter::PushNotificationServerAdapter,
             user_devices_repository_adapter::UserDevicesRepositoryAdapter,
@@ -46,11 +46,13 @@ pub async fn start_application() -> anyhow::Result<()> {
         use_cases::incidents::spawn_new_incident_notification_tasks(
             config.notifications_concurrent_tasks,
             Duration::from_secs(config.notifications_tasks_interval_seconds),
+            application_state.adapters.user_repository.clone(),
             application_state
                 .adapters
                 .incident_notification_repository
                 .clone(),
             application_state.adapters.push_notification_server.clone(),
+            application_state.adapters.mailer.clone(),
             application_state.adapters.user_devices_repository.clone(),
             config.notifications_tasks_select_size,
         );
@@ -76,7 +78,8 @@ async fn build_app_state(config: &AppConfig) -> anyhow::Result<ApplicationState>
             &config.keycloak_client,
             &config.keycloak_secret,
         )
-        .await?,
+        .await
+        .with_context(|| "Failed to create Keycloak client")?,
     );
 
     let adapters = Adapters {
@@ -94,6 +97,11 @@ async fn build_app_state(config: &AppConfig) -> anyhow::Result<ApplicationState>
         user_devices_repository: UserDevicesRepositoryAdapter { pool: pool.clone() },
         http_client: HttpClientAdapter::new(config),
         push_notification_server: PushNotificationServerAdapter::new().await?,
+        mailer: MailerAdapter::new(
+            &config.smtp_server_host,
+            config.server_port,
+            config.smtp_disable_tls,
+        )?,
     };
     Ok(ApplicationState {
         adapters,

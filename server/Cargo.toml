@@ -5,6 +5,7 @@ build = "build.rs"
 publish = false
 
 [dependencies]
+lettre = { version = "0.11.8", features = ["tokio1", "tokio1-native-tls"] }
 veil = "0.1.7"
 async-trait = "0.1.81"
 gcp_auth = "0.12.2"
@@ -44,7 +45,7 @@ sqlx = { version = "0.7", features = [
     "uuid",
     "chrono",
     "json",
-    "bigdecimal"
+    "bigdecimal",
 ] }
 jsonwebtoken = "=9.3.0"
 bigdecimal = "0.4.5"

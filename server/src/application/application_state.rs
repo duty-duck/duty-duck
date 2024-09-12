@@ -7,7 +7,7 @@ use crate::infrastructure::{
         http_client_adapter::HttpClientAdapter,
         http_monitor_repository_adapter::HttpMonitorRepositoryAdapter,
         incident_notification_repository_adapter::IncidentNotificationRepositoryAdapter,
-        incident_repository_adapter::IncidentRepositoryAdapter,
+        incident_repository_adapter::IncidentRepositoryAdapter, mailer_adapter::MailerAdapter,
         organization_repository_adapter::OrganizationRepositoryAdapter,
         push_notification_server_adapter::PushNotificationServerAdapter,
         user_devices_repository_adapter::UserDevicesRepositoryAdapter,
@@ -35,4 +35,5 @@ pub struct Adapters {
     pub http_client: HttpClientAdapter,
     pub user_devices_repository: UserDevicesRepositoryAdapter,
     pub push_notification_server: PushNotificationServerAdapter,
+    pub mailer: MailerAdapter,
 }

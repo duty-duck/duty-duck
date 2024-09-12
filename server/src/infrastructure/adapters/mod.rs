@@ -6,3 +6,4 @@ pub mod user_repository_adapter;
 pub mod user_devices_repository_adapter;
 pub mod push_notification_server_adapter;
 pub mod incident_notification_repository_adapter;
+pub mod mailer_adapter;

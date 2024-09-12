@@ -8,9 +8,12 @@ use uuid::Uuid;
 use crate::{
     attributes,
     domain::{
-        entities::organization::{
-            CreateOrganizationError, Organization, WriteOrganizationError,
-            WriteOrganizationRoleError,
+        entities::{
+            organization::{
+                CreateOrganizationError, Organization, ReadOrganizationError,
+                WriteOrganizationError, WriteOrganizationRoleError,
+            },
+            user::User,
         },
         ports::organization_repository::OrganizationRepository,
     },
@@ -117,7 +120,28 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
         Vec<crate::domain::entities::user::User>,
         crate::domain::entities::organization::ReadOrganizationError,
     > {
-        todo!()
+        match self
+            .keycloak_client
+            .list_organization_members(org_id, first_result_offset, max_results)
+            .await
+        {
+            Ok(uers) => {
+                let users: Result<Vec<User>, _> = uers
+                    .into_iter()
+                    // Exclude default phase two keycloak org admins
+                    .filter(|u| match &u.email {
+                        Some(e) => !e.contains("@noreply.phasetwo.io"),
+                        None => true,
+                    })
+                    .map(|u| u.try_into())
+                    .collect();
+                Ok(users?)
+            }
+            Err(keycloak_client::Error::NotFound) => {
+                Err(ReadOrganizationError::OrganizationNotFound)
+            }
+            Err(e) => Err(ReadOrganizationError::TechnicalFailure(e.into())),
+        }
     }
 
     #[tracing::instrument(skip(self))]

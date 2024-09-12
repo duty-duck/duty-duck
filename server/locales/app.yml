@@ -1,4 +1,6 @@
 _version: 2
+
+# Push notificatiosn
 newIncidentDefaultPushNotificationTitle:
     en: "A new incident has been created"
     fr: "Un nouvel incident est en cours"
@@ -11,3 +13,26 @@ newHttpMonitorIncidentPushNotificationTitle:
 newHttpMonitorIncidentPushNotificationBody:
     en: "An HTTP monitor for the URL %{url} is down. Head over to DutyDuck to investigate the incident."
     fr: "Un moniteur HTTP pour l'url %{url} est en panne. Rendez-vous sur DutyDuck pour investiguer l'incident."
+
+# E-mails
+newHttpMonitorIncidentEmailSubject:
+    en: "New incident for URL %{url}"
+    fr: "Nouvel incident pour l'URL %{url}"
+newHttpMonitorIncidentEmailBody:
+    en: |
+        Hello %{userName},
+        There is an ongoing incident that required your attention.
+
+        An HTTP monitor for the URL %{url} is down.
+        
+        Head over to DutyDuck.net to investigate the incident.
+        You are receiving this alert because you are a member of the %{org} organization. 
+        Do not reply to this e-mail.
+    fr: |
+        Bonjour %{userName},
+        Un incident réclame votre attention:
+
+        Un moniteur HTTP pour l'url %{url} est en panne. 
+
+        Vous recevez cette alerte car vous êtes membre de l'organisation %{org}.
+        Rendez-vous sur DutyDuck.net pour investiguer l'incident.

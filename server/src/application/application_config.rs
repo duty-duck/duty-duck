@@ -39,6 +39,13 @@ pub struct AppConfig {
     pub notifications_tasks_interval_seconds: u64,
     #[envconfig(from = "NOTIFICATIONS_TASKS_SELECT_SIZE", default = "500")]
     pub notifications_tasks_select_size: u32,
+
+    #[envconfig(from = "SMTP_SERVER_HOST")]
+    pub smtp_server_host: String,
+    #[envconfig(from = "SMTP_SERVER_PORT")]
+    pub smtp_server_port: u16,
+    #[envconfig(from = "SMTP_SERVER_DISABLE_TLS")]
+    pub smtp_disable_tls: bool,
 }
 
 impl AppConfig {
