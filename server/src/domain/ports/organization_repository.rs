@@ -2,11 +2,14 @@ use uuid::Uuid;
 
 use crate::domain::entities::{organization::*, user::*};
 
-pub trait OrganizationRepository {
+#[async_trait::async_trait]
+pub trait OrganizationRepository: Clone + Send + Sync + 'static {
     async fn create_organization(
         &self,
         command: CreateOrgnizationCommand,
     ) -> Result<Organization, CreateOrganizationError>;
+
+    async fn get_organization(&self, id: Uuid) -> Result<Organization, ReadOrganizationError>;
 
     async fn update_organization(
         &self,

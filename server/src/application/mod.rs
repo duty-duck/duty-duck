@@ -46,7 +46,7 @@ pub async fn start_application() -> anyhow::Result<()> {
         use_cases::incidents::spawn_new_incident_notification_tasks(
             config.notifications_concurrent_tasks,
             Duration::from_secs(config.notifications_tasks_interval_seconds),
-            application_state.adapters.user_repository.clone(),
+            application_state.adapters.organization_repository.clone(),
             application_state
                 .adapters
                 .incident_notification_repository

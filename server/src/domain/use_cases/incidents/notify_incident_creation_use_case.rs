@@ -1,5 +1,7 @@
 use std::{collections::HashMap, time::Duration};
 
+use anyhow::Context;
+use lettre::Message;
 use tokio::task::JoinSet;
 use tracing::*;
 use uuid::Uuid;
@@ -7,16 +9,17 @@ use uuid::Uuid;
 use crate::domain::{
     entities::{
         incident::{IncidentSourceWithDetails, IncidentWithSourcesDetails},
-        push_notification::PushNotification,
+        organization::Organization,
+        push_notification::{PushNotification, PushNotificationToken},
         user::User,
         user_device::UserDevice,
     },
     ports::{
         incident_notification_repository::IncidentNotificationRepository,
         mailer::Mailer,
+        organization_repository::OrganizationRepository,
         push_notification_server::PushNotificationServer,
         user_devices_repository::UserDevicesRepository,
-        user_repository::{self, UserRepository},
     },
 };
 
@@ -24,7 +27,7 @@ use crate::domain::{
 pub async fn spawn_new_incident_notification_tasks(
     n_tasks: usize,
     delay_between_two_executions: Duration,
-    user_repository: impl UserRepository,
+    organization_repository: impl OrganizationRepository,
     incident_notification_repository: impl IncidentNotificationRepository,
     push_notificaton_server: impl PushNotificationServer,
     mailer: impl Mailer,
@@ -38,14 +41,14 @@ pub async fn spawn_new_incident_notification_tasks(
         let incident_notification_repository = incident_notification_repository.clone();
         let push_notificaton_server = push_notificaton_server.clone();
         let user_devices_repository = user_devices_repository.clone();
-        let user_repository = user_repository.clone();
+        let organization_repository = organization_repository.clone();
         let mailer = mailer.clone();
 
         join_set.spawn(async move {
             loop {
                 let _ = interval.tick().await;
                 match fetch_due_incidents_and_notify_incident_creation(
-                    &user_repository,
+                    &organization_repository,
                     &incident_notification_repository,
                     &push_notificaton_server,
                     &mailer,
@@ -72,16 +75,16 @@ pub async fn spawn_new_incident_notification_tasks(
     join_set
 }
 
-async fn fetch_due_incidents_and_notify_incident_creation(
-    user_repository: &impl UserRepository,
+async fn fetch_due_incidents_and_notify_incident_creation<M: Mailer>(
+    org_repository: &impl OrganizationRepository,
     incident_notification_repository: &impl IncidentNotificationRepository,
     push_notificaton_server: &impl PushNotificationServer,
-    mailer: &impl Mailer,
+    mailer: &M,
     user_devices_repository: &impl UserDevicesRepository,
     select_limit: u32,
 ) -> anyhow::Result<usize> {
     let mut user_devices_cache: UserDevicesByOrgCache = UserDevicesByOrgCache::new();
-    let mut users_cache: UserByOrgCache = UserByOrgCache::new();
+    let mut org_cache: OrgCache = OrgCache::new();
 
     let mut tx = incident_notification_repository.begin_transaction().await?;
     let incidents = incident_notification_repository
@@ -90,12 +93,14 @@ async fn fetch_due_incidents_and_notify_incident_creation(
 
     let incidents_len = incidents.len();
     for incident in incidents {
-        proces_incident(
+        proces_incident::<M>(
             &incident,
             user_devices_repository,
+            org_repository,
             push_notificaton_server,
+            mailer,
             &mut user_devices_cache,
-            &mut users_cache,
+            &mut org_cache,
         )
         .await?;
         // Save in the database that the notification has been properly sent
@@ -115,35 +120,36 @@ async fn fetch_due_incidents_and_notify_incident_creation(
     Ok(incidents_len)
 }
 
-async fn proces_incident(
+async fn proces_incident<M: Mailer>(
     incident: &IncidentWithSourcesDetails,
     user_devices_repository: &impl UserDevicesRepository,
+    org_repository: &impl OrganizationRepository,
     push_notificaton_server: &impl PushNotificationServer,
+    mailer: &M,
     user_devices_cache: &mut UserDevicesByOrgCache,
-    users_cache: &mut UserByOrgCache
+    org_cache: &mut OrgCache,
 ) -> anyhow::Result<()> {
     let org_id = incident.incident.organization_id;
-    // List devices for the notification
-    // Right now, all the devices in the organization are notified
-    // In the future, we want to add on-call management so that only some users are notified and incidents can be escalated
-    let org_user_devices = match user_devices_cache.get(&org_id) {
-        Some(devices) => devices,
-        None => {
-            let devices = user_devices_repository
-                .list_organization_devices(org_id)
-                .await?;
-            user_devices_cache
-                .entry(org_id)
-                .or_insert(devices)
-        }
-    };
-    let devices_tokens = org_user_devices
-        .iter()
-        .filter_map(|device| device.push_notification_token.0.clone())
-        .collect::<Vec<_>>();
+    let (org, org_users) = fetch_organization_and_users(org_repository, org_id, org_cache).await?;
+    let devices_tokens =
+        fetch_organization_devices_token(user_devices_repository, user_devices_cache, org_id)
+            .await?;
+    let push_notification = build_notification(incident);
 
-    let push_notification = build_notification(&incident);
+    // Send e-mails
+    let messages = org_users
+        .into_iter()
+        .filter_map(|user| match build_message::<M>(incident, &user, &org) {
+            Ok(message) => Some(message),
+            Err(e) => {
+                warn!(error = ?e, user = ?user, "Failed to build e-mail message for user");
+                None
+            }
+        })
+        .collect();
+    mailer.send_batch(messages).await?;
 
+    // Send push notification
     push_notificaton_server
         .send(&devices_tokens, &push_notification)
         .await?;
@@ -151,6 +157,19 @@ async fn proces_incident(
     Ok(())
 }
 
+/// Builds a push notification for an incident.
+///
+/// This function creates a `PushNotification` based on the details of the given incident.
+/// It starts with a default notification message and then customizes it based on the
+/// incident's source type.
+///
+/// # Arguments
+///
+/// * `incident` - A reference to an `IncidentWithSourcesDetails` containing information about the incident.
+///
+/// # Returns
+///
+/// Returns a `PushNotification` struct with a title and body tailored to the incident.
 fn build_notification(incident: &IncidentWithSourcesDetails) -> PushNotification {
     let mut notification = PushNotification {
         title: t!("newIncidentDefaultPushNotificationTitle").to_string(),
@@ -171,5 +190,124 @@ fn build_notification(incident: &IncidentWithSourcesDetails) -> PushNotification
     notification
 }
 
+/// Builds an email message for an incident.
+///
+/// This function creates a `lettre::Message` based on the details of the given incident.
+/// It customizes the email subject and body based on the incident's source type.
+///
+/// # Arguments
+///
+/// * `incident` - A reference to an `IncidentWithSourcesDetails` containing information about the incident.
+/// * `recipient_email` - The email address of the recipient.
+///
+/// # Returns
+///
+/// Returns a `Result` containing the `lettre::Message` if successful, or an error if message building fails.
+fn build_message<M: Mailer>(
+    incident: &IncidentWithSourcesDetails,
+    user: &User,
+    user_org: &Organization,
+) -> anyhow::Result<Message> {
+    let mut builder = M::builder()
+        .to(user.email.parse()?)
+        .subject(t!("newIncidentDefaultEmailSubject"));
+
+    let mut body = t!("newIncidentDefaultEmailBody").to_string();
+
+    for source in &incident.sources {
+        match source {
+            IncidentSourceWithDetails::HttpMonitor { url, .. } => {
+                builder = builder.subject(t!("newHttpMonitorIncidentEmailSubject", url = url));
+                body = t!(
+                    "newHttpMonitorIncidentEmailBody",
+                    url = url,
+                    org = user_org.display_name,
+                    userName = user.first_name
+                )
+                .to_string();
+            }
+        }
+    }
+
+    builder
+        .body(body)
+        .with_context(|| "Failed to build message")
+}
+
+/// Fetches an organization and its users, using a cache if available.
+///
+/// # Arguments
+///
+/// * `org_repository` - The organization repository
+/// * `org_id` - The ID of the organization to fetch
+/// * `cache` - A mutable reference to the organization cache
+///
+/// # Returns
+///
+/// Returns a Result containing a tuple of the Organization and its Users.
+async fn fetch_organization_and_users(
+    org_repository: &impl OrganizationRepository,
+    org_id: Uuid,
+    cache: &mut OrgCache,
+) -> anyhow::Result<(Organization, Vec<User>)> {
+    if let Some(cached_data) = cache.get(&org_id) {
+        return Ok(cached_data.clone());
+    }
+
+    let organization = org_repository
+        .get_organization(org_id)
+        .await
+        .with_context(|| format!("Failed to fetch organization with id: {}", org_id))?;
+
+    let users = org_repository
+        .list_organization_members(org_id, 0, u32::MAX)
+        .await
+        .with_context(|| {
+            format!(
+                "Failed to fetch members for organization with id: {}",
+                org_id
+            )
+        })?;
+
+    let result = (organization, users);
+    cache.insert(org_id, result.clone());
+
+    Ok(result)
+}
+
+/// Fetches push notification tokens for devices in an organization.
+///
+/// Uses a cache to improve performance and falls back to the repository if needed.
+///
+/// # Arguments
+///
+/// * `user_devices_repository` - The repository for user devices
+/// * `user_devices_cache` - A mutable reference to the user devices cache
+/// * `org_id` - The ID of the organization
+///
+/// # Returns
+///
+/// A Result containing a vector of PushNotificationTokens, or an error
+async fn fetch_organization_devices_token(
+    user_devices_repository: &impl UserDevicesRepository,
+    user_devices_cache: &mut UserDevicesByOrgCache,
+    org_id: Uuid,
+) -> anyhow::Result<Vec<PushNotificationToken>> {
+    let org_user_devices = match user_devices_cache.get(&org_id) {
+        Some(devices) => devices,
+        None => {
+            let devices = user_devices_repository
+                .list_organization_devices(org_id)
+                .await?;
+            user_devices_cache.entry(org_id).or_insert(devices)
+        }
+    };
+    let devices_tokens = org_user_devices
+        .iter()
+        .filter_map(|device| device.push_notification_token.0.clone())
+        .collect::<Vec<_>>();
+    Ok(devices_tokens)
+}
+
 type UserDevicesByOrgCache = HashMap<Uuid, Vec<UserDevice>>;
-type UserByOrgCache = HashMap<Uuid, Vec<User>>;
+type OrgCache = HashMap<Uuid, (Organization, Vec<User>)>;

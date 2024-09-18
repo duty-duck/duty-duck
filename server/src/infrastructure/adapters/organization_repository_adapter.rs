@@ -27,7 +27,20 @@ pub struct OrganizationRepositoryAdapter {
     pub keycloak_client: Arc<KeycloakClient>,
 }
 
+#[async_trait::async_trait]
 impl OrganizationRepository for OrganizationRepositoryAdapter {
+    #[tracing::instrument(skip(self))]
+    async fn get_organization(&self, id: Uuid) -> Result<Organization, ReadOrganizationError> {
+        match self.keycloak_client.get_organization(id).await {
+            Ok(org) => Ok(org.try_into()?),
+            Err(keycloak_client::Error::NotFound) => Err(ReadOrganizationError::OrganizationNotFound),
+            Err(e) => {
+                warn!(error = ?e, "Failed to get organization");
+                Err(ReadOrganizationError::TechnicalFailure(e.into()))
+            }
+        }
+    }
+
     #[tracing::instrument(skip(self))]
     async fn create_organization(
         &self,
