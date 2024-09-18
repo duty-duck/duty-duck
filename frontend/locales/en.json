@@ -55,7 +55,7 @@
             },
             "form": {
                 "urlDescription": "Which URL would you like us to monitor?",
-                "refreshInterval": "Reresh interval",
+                "refreshInterval": "Refresh interval",
                 "refreshIntervalDescription": "The refresh interval determines how often we will check your URL's health. A shorter interval enables issues to be detected more quickly, at the expense of greater load on your server.",
                 "tags": "Tags",
                 "tagsDescription": "Tags are optional. We use this to group monitors, so you can manage them more easily.",
@@ -90,7 +90,7 @@
             "resolvedAt": "Resolved at",
             "goToSource": "Go to source",
             "emptyPage": {
-                "title": "Everyhting is OK right now",
+                "title": "Everything is OK right now",
                 "text": "When we detect a failure, an incident will appear here."
             }
         },
@@ -104,6 +104,19 @@
             "tooManyRedirections": "Too many redirections",
             "cannotConnectToEndpoint": "Could not connect to server",
             "timedOut": "Request timed out, the server took too long to respond"
+        },
+        "pushNotifications": {
+            "title": "Push Notifications",
+            "loading": "Loading...",
+            "alreadyAccepted": "You have already accepted Push notifications",
+            "description": "Push notifications allow you to be informed in real-time, on your device, about incidents.",
+            "deviceNamePlaceholder": "Name of this device",
+            "enableButton": "Enable push notifications",
+            "askingPermission": "Asking for permission",
+            "success": "Success",
+            "failed": "Failed",
+            "thisDevice": "(this device)",
+            "removeDevice": "Remove device"
         },
         "myAccount": {
             "edit": {
@@ -124,8 +137,30 @@
             "lastName": "Last name",
             "email": "E-mail address",
             "phoneNumber": "Mobile number",
-            "editButton": "Edit my info",
-            "pushNotifications": "Push Notifications"
+            "editButton": "Edit my info"
+        }
+    },
+    "signup": {
+        "success": {
+            "title": "Thank you for registering!",
+            "message": "You may now go to your personal dashboard to create your first monitors",
+            "button": "Go to your dashboard"
+        },
+        "conflict": {
+            "title": "A user already exists with this e-mail address",
+            "message": "It seems you already have a user account. You may use this account to access your dashboard.",
+            "button": "Go to your dashboard"
+        },
+        "error": {
+            "message": "Something went wrong and we were not able to create your account. Please try again."
+        },
+        "intro": {
+            "title": "Start monitoring your website today",
+            "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum repudiandae laudantium cumque ex velit, autem fuga quaerat! Voluptas voluptate ipsa exercitationem reprehenderit, aspernatur perspiciatis non beatae quidem, maxime rem accusamus?",
+            "learnMore": "Learn more"
+        },
+        "altText": {
+            "logo": "Duty Duck Logo"
         }
     }
 }

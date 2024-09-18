@@ -19,11 +19,9 @@ const onSubmit = async (command: SignUpCommand) => {
       <div class="text-center text-primary mb-4">
         <Icon name="ph:check-circle-duotone" size="128" />
       </div>
-      <BCardTitle>Thank you for registering!</BCardTitle>
-      <p>
-        You may now go to your personal dashboard to create your first monitors
-      </p>
-      <BButton :to="localePath('/dashboard')" variant="primary">Go to your dashboard</BButton>
+      <BCardTitle>{{ $t('signup.success.title') }}</BCardTitle>
+      <p>{{ $t('signup.success.message') }}</p>
+      <BButton :to="localePath('/dashboard')" variant="primary">{{ $t('signup.success.button') }}</BButton>
     </BCard>
   </div>
   <div
@@ -35,12 +33,9 @@ const onSubmit = async (command: SignUpCommand) => {
       <div class="text-center text-primary mb-4">
         <Icon name="ph:check-circle-duotone" size="128" />
       </div>
-      <BCardTitle>A user already exists with this e-mail address</BCardTitle>
-      <p>
-        It seems you already have a user account. You may use this account to
-        access your dashboard.
-      </p>
-      <BButton :to="localePath('/dashboard')" variant="primary">Go to your dashboard</BButton>
+      <BCardTitle>{{ $t('signup.conflict.title') }}</BCardTitle>
+      <p>{{ $t('signup.conflict.message') }}</p>
+      <BButton :to="localePath('/dashboard')" variant="primary">{{ $t('signup.conflict.button') }}</BButton>
     </BCard>
   </div>
   <div
@@ -50,25 +45,19 @@ const onSubmit = async (command: SignUpCommand) => {
   >
     <div class="row gx-lg-6">
       <div class="col-lg-6 col-xl-5 pe-xl-5">
-        <img src="/assets/navbar-duck.png" alt="Duty Duck Logo" height="80px" />
-        <h1 class="mt-4 mb-3">Start monitoring your website today</h1>
-        <p class="d-none d-md-block">
-          Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum
-          repudiandae laudantium cumque ex velit, autem fuga quaerat! Voluptas
-          voluptate ipsa exercitationem reprehenderit, aspernatur perspiciatis
-          non beatae quidem, maxime rem accusamus?
-        </p>
+        <img src="/assets/navbar-duck.png" :alt="$t('signup.altText.logo')" height="80px" />
+        <h1 class="mt-4 mb-3">{{ $t('signup.intro.title') }}</h1>
+        <p class="d-none d-md-block">{{ $t('signup.intro.description') }}</p>
         <p>
           <NuxtLink :to="localePath('/')" class="icon-link">
             <Icon name="ph:house-simple-duotone" size="20px" />
-            Learn more
+            {{ $t('signup.intro.learnMore') }}
           </NuxtLink>
         </p>
       </div>
       <div class="col-lg-6">
         <BAlert variant="danger" :model-value="state == 'error'">
-          Something went wrong and we were not able to create your account.
-          Please try again.
+          {{ $t('signup.error.message') }}
         </BAlert>
         <SignUpForm @submit="onSubmit" />
       </div>

@@ -29,11 +29,11 @@
             "totalMonitorCount": "Aucun moniteur | 1 moniteur total | {count} moniteurs totaux",
             "filteredMonitorCount": "{count} moniteur caché par les filtres | {count} moniteurs cachés par les filtres",
             "itemsPerPage": "{count} moniteurs par page",
-            "filterByStatus": "Filter par statut",
+            "filterByStatus": "Filtrer par statut",
             "search": "Recherche par URL",
             "clearFilters": "Retirer les filtres",
             "createMonitorBtn": "Nouveau moniteur",
-            "lastCheckedOn": "Dernière verification le {date}",
+            "lastCheckedOn": "Dernière vérification le {date}",
             "details": "Détails",
             "start": "Démarrer",
             "pause": "Mettre en pause",
@@ -56,13 +56,13 @@
             "form": {
                 "urlDescription": "Quelle URL voulez-vous surveiller ?",
                 "refreshInterval": "Intervalle de surveillance",
-                "refreshIntervalDescription": "L'intervalle de surveillance détermine à quelle fréquence nous allons vérfier votre site Web. Un intervalle plus court permet de détecter plus rapidement les problèmes, mais sollicitera plus votre serveur.",
+                "refreshIntervalDescription": "L'intervalle de surveillance détermine à quelle fréquence nous allons vérifier votre site Web. Un intervalle plus court permet de détecter plus rapidement les problèmes, mais sollicitera plus votre serveur.",
                 "tags": "Mots-clés",
-                "tagsDescription": "Les mots-clés sont optionnels. Ils vous permettent d'orgnaniser vos moniteurs.",
+                "tagsDescription": "Les mots-clés sont optionnels. Ils vous permettent d'organiser vos moniteurs.",
                 "downtimeConfirmationThreshold": "Seuil de panne",
-                "downtimeConfirmationThresholdDescription": "Détermine combien d'échecs consécutifs sont nécessaires avant que le moniteur soit considérée comme en panne. En cas d'échec de l'appel HTTP, le moniteur deviendra \"Suspect\" jusqu'à ce qu'il atteigne ce seuil. Si ce seuil est atteint, le moniteur passera de \"Suspect\" à \"En panne\".",
+                "downtimeConfirmationThresholdDescription": "Détermine combien d'échecs consécutifs sont nécessaires avant que le moniteur soit considéré comme en panne. En cas d'échec de l'appel HTTP, le moniteur deviendra \"Suspect\" jusqu'à ce qu'il atteigne ce seuil. Si ce seuil est atteint, le moniteur passera de \"Suspect\" à \"En panne\".",
                 "recoveryConfirmationThreshold": "Seuil de récupération",
-                "recoveryConfirmationThresholdDescription": "Si le moniteur tombe en panne, détermine combien de réussites consécutives sont nécessaire avant que ce moniteur ne soit plus considéré en panne. En dessous de ce seuil, le moniteur sera considéré comme \"En récupération\".",
+                "recoveryConfirmationThresholdDescription": "Si le moniteur tombe en panne, détermine combien de réussites consécutives sont nécessaires avant que ce moniteur ne soit plus considéré en panne. En dessous de ce seuil, le moniteur sera considéré comme \"En récupération\".",
                 "save": "Sauvegarder"
             }
         },
@@ -82,7 +82,7 @@
             "totalIncidentCount": "Aucun incident | 1 incident total | {count} incidents totaux",
             "filteredIncidentCount": "{count} incident caché par les filtres | {count} incidents cachés par les filtres",
             "itemsPerPage": "{count} incidents par page",
-            "filterByStatus": "Filter par statut",
+            "filterByStatus": "Filtrer par statut",
             "clearFilters": "Retirer les filtres",
             "startedAt": "Démarré le",
             "source": "Source",
@@ -101,7 +101,7 @@
         "httpMonitorIncidents": {
             "httpMonitorFailure": "Échec de l'appel HTTP",
             "invalidHttpCode": "Le serveur a répondu avec le code HTTP invalide {httpCode}",
-            "tooManyRedirections": "Le serveur a retourné trop de redirection, possible boucle de redirection",
+            "tooManyRedirections": "Le serveur a retourné trop de redirections, possible boucle de redirection",
             "cannotConnectToEndpoint": "Impossible d'établir la connexion au serveur",
             "timedOut": "Délai d'attente dépassé, le serveur a été trop lent à répondre"
         },
@@ -111,11 +111,11 @@
                 "save": "Sauvegarder",
                 "invalidProfileToast": {
                     "title": "Informations invalides",
-                    "body": "Votre compte ne peut pas être modifié car les informations certains champs sont invalides ou manquants"
+                    "body": "Votre compte ne peut pas être modifié car les informations de certains champs sont invalides ou manquantes"
                 },
                 "sessionInvalidationToast": {
                     "title": "Préparez-vous à la reconnexion",
-                    "body": "Vos informations sont bien mises à jour. Pour votre sécurité, vous allez être déonnecté(e). Vous devrez taper votre mot de passe pour continuer à utiliser Duty Duck."
+                    "body": "Vos informations sont bien mises à jour. Pour votre sécurité, vous allez être déconnecté(e). Vous devrez taper votre mot de passe pour continuer à utiliser Duty Duck."
                 }
             },
             "pageTitle": "Mon compte",
@@ -128,8 +128,43 @@
             "passwordConfirmation": "Confirmation du mot de passe",
             "phoneNumber": "Numéro de téléphone mobile",
             "phoneNumberDescription": "Votre numéro de téléphone mobile pourra être utilisé pour vous alerter en cas d'incidents. Il ne sera jamais utilisé à des fins publicitaires.",
-            "editButton": "Éditer mes informations",
-            "pushNotifications": "Notifications Push"
+            "editButton": "Éditer mes informations"
+        },
+        "pushNotifications": {
+            "title": "Notifications Push",
+            "loading": "Chargement...",
+            "alreadyAccepted": "Vous avez déjà accepté les notifications Push",
+            "description": "Les notifications push vous permettent d'être informé en temps réel, sur votre appareil, des incidents.",
+            "deviceNamePlaceholder": "Nom de cet appareil",
+            "enableButton": "Activer les notifications push",
+            "askingPermission": "Demande d'autorisation",
+            "success": "Succès",
+            "failed": "Échec",
+            "thisDevice": "(cet appareil)",
+            "removeDevice": "Supprimer l'appareil"
+        }
+    },
+    "signup": {
+        "success": {
+            "title": "Merci pour votre inscription !",
+            "message": "Vous pouvez maintenant accéder à votre tableau de bord personnel pour créer vos premiers moniteurs",
+            "button": "Aller à votre tableau de bord"
+        },
+        "conflict": {
+            "title": "Un utilisateur existe déjà avec cette adresse e-mail",
+            "message": "Il semble que vous ayez déjà un compte utilisateur. Vous pouvez utiliser ce compte pour accéder à votre tableau de bord.",
+            "button": "Aller à votre tableau de bord"
+        },
+        "error": {
+            "message": "Une erreur s'est produite et nous n'avons pas pu créer votre compte. Veuillez réessayer."
+        },
+        "intro": {
+            "title": "Commencez à surveiller votre site web dès aujourd'hui",
+            "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum repudiandae laudantium cumque ex velit, autem fuga quaerat! Voluptas voluptate ipsa exercitationem reprehenderit, aspernatur perspiciatis non beatae quidem, maxime rem accusamus?",
+            "learnMore": "En savoir plus"
+        },
+        "altText": {
+            "logo": "Logo Duty Duck"
         }
     }
 }

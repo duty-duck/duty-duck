@@ -3,6 +3,7 @@ import type { RegisterUserDeviceCommand } from "bindings/RegisterUserDeviceComma
 import type { UserDevice } from "bindings/UserDevice";
 
 const { show } = useToast();
+const { t } = useI18n();
 const firebaseMessaging = useFirebaseMessaging();
 const devicesRepository = useUserDevicesRepository();
 const thisDevice = await useThisDevice();
@@ -20,7 +21,7 @@ const deviceIcon = (device: UserDevice) =>
 const enableNotifications = async () => {
   show?.({
     props: {
-      body: "Asking for permission",
+      body: t("dashboard.pushNotifications.askingPermission"),
     },
   });
 
@@ -39,14 +40,14 @@ const enableNotifications = async () => {
 
     show?.({
       props: {
-        body: "Success",
+        body: t("dashboard.pushNotifications.success"),
       },
     });
   } else {
     show?.({
       props: {
-        title: "Failed",
-        body: "Failed",
+        title: t("dashboard.pushNotifications.failed"),
+        body: t("dashboard.pushNotifications.failed"),
       },
     });
   }
@@ -60,28 +61,26 @@ const removeDevice = async (deviceId: string) => {
 <template>
   <BCard no-body>
     <BCardBody>
-      <BCardTitle>{{ $t("dashboard.myAccount.pushNotifications") }}</BCardTitle>
+      <BCardTitle>{{ $t("dashboard.pushNotifications.title") }}</BCardTitle>
       <div
         v-if="
           firebaseMessaging.token == 'loading' || devicesStatus == 'pending'
         "
       >
-        <BPlaceholder size="sm" animation="glow" cols="10" />
-        <BPlaceholder size="sm" animation="glow" cols="8" />
+        {{ $t("dashboard.pushNotifications.loading") }}
       </div>
       <div v-else-if="thisDevice">
-        Vous avez déjà accepté les notifications Push
+        {{ $t("dashboard.pushNotifications.alreadyAccepted") }}
       </div>
       <div v-else>
         <p>
-          Les notifications push vous permettent d'être informé en temps réel,
-          sur votre appareil, des incidents.
+          {{ $t("dashboard.pushNotifications.description") }}
         </p>
         <div class="row">
           <div class="col-lg-7 mb-2">
             <BFormInput
               id="deviceName"
-              placeholder="Nom de cet appareil"
+              :placeholder="$t('dashboard.pushNotifications.deviceNamePlaceholder')"
               v-model="newDeviceName"
             />
           </div>
@@ -92,7 +91,7 @@ const removeDevice = async (deviceId: string) => {
               :disabled="!newDeviceName"
             >
               <Icon name="ph:bell" />
-              Activer les notifications push
+              {{ $t("dashboard.pushNotifications.enableButton") }}
             </BButton>
           </div>
         </div>
@@ -107,11 +106,11 @@ const removeDevice = async (deviceId: string) => {
         <div>
           <Icon :name="deviceIcon(device)" />
           {{ device.label }}
-          <span v-if="device.id == thisDevice?.id"> (this device)</span>
+          <span v-if="device.id == thisDevice?.id">{{ $t("dashboard.pushNotifications.thisDevice") }}</span>
         </div>
         <div>
           <BButton size="sm" @click="removeDevice(device.id)">
-            Remove device
+            {{ $t("dashboard.pushNotifications.removeDevice") }}
           </BButton>
         </div>
       </BListGroupItem>
