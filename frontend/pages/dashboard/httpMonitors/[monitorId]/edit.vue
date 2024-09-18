@@ -18,7 +18,7 @@ const onSubmit = async (monitor: HttpMonitorFormData) => {
   };
   await repo.updateHttpMonitor(route.params.monitorId as string, command);
 
-  router.push(localePath(`/dashboard/monitors/${route.params.monitorId}`));
+  router.push(localePath(`/dashboard/httpMonitors/${route.params.monitorId}`));
 };
 </script>
 
@@ -28,7 +28,7 @@ const onSubmit = async (monitor: HttpMonitorFormData) => {
       <BBreadcrumbItem :to="localePath('/dashboard')">{{
         $t("dashboard.sidebar.home")
       }}</BBreadcrumbItem>
-      <BBreadcrumbItem :to="localePath('/dashboard/monitors')">{{
+      <BBreadcrumbItem :to="localePath('/dashboard/httpMonitors')">{{
         $t("dashboard.sidebar.monitors")
       }}</BBreadcrumbItem>
       <BBreadcrumbItem active>

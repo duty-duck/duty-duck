@@ -31,7 +31,7 @@ let { refresh: refreshDownMonitorsCount, data: downMonitorsCount } = await httpM
             {{ downMonitorsCount }}
           </p>
           <h4 class="h6">{{ $t('dashboard.home.downMonitors', downMonitorsCount || 0) }}</h4>
-          <NuxtLink to="/dashboard/monitors" class="icon-link">
+          <NuxtLink to="/dashboard/httpMonitors" class="icon-link">
             {{ $t('dashboard.home.goToMonitors') }}
             <Icon name="ph:arrow-right"/>
           </NuxtLink>

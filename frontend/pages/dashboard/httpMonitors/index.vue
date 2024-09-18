@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import { refDebounced, useIntervalFn } from "@vueuse/core";
 import type { HttpMonitorStatus } from "bindings/HttpMonitorStatus";
-import { allStatuses } from "~/components/MonitorStatusDropdown.vue";
+import { allStatuses } from "~/components/httpMonitor/StatusDropdown.vue";
 
 const localePath = useLocalePath();
-const path = localePath("/dashboard/monitors");
+const path = localePath("/dashboard/httpMonitors");
 const route = useRoute();
 const router = useRouter();
 const query = computed(() => (route.query.query as string) || "");
@@ -88,7 +88,7 @@ useIntervalFn(() => {
       </BBreadcrumb>
       <div class="d-flex align-items-center justify-content-between">
         <h2>{{ $t("dashboard.monitors.pageTitle") }}</h2>
-        <AddHttpMonitorButton />
+        <HttpMonitorAddButton />
       </div>
       <div class="small text-secondary mb-2">
         {{
@@ -108,7 +108,7 @@ useIntervalFn(() => {
     <nav
       class="filtering-bar flex-column flex-md-row gap-2 mb-4 py-3 container"
     >
-      <MonitorStatusDropdown
+      <HttpMonitorStatusDropdown
         :model-value="includeStatuses"
         @update:model-value="onIncludeStatusChange"
       />
@@ -140,9 +140,9 @@ useIntervalFn(() => {
         <p class="lead">
           {{ $t("dashboard.monitors.emptyPage.text") }}
         </p>
-        <AddHttpMonitorButton class="m-3" />
+        <HttpMonitorAddButton class="m-3" />
       </div>
-      <MonitorCard
+      <HttpMonitorCard
         v-for="monitor in data?.items"
         :key="monitor.id"
         v-bind="monitor"

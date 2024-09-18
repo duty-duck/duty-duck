@@ -10,7 +10,7 @@ const onSubmit = async (data: HttpMonitorFormData) => {
     ...data,
     isActive: true
   });
-  router.push(localePath("/dashboard/monitors"));
+  router.push(localePath("/dashboard/httpMonitors"));
 };
 </script>
 <template>
@@ -19,7 +19,7 @@ const onSubmit = async (data: HttpMonitorFormData) => {
       <BBreadcrumbItem :to="localePath('/dashboard')">{{
         $t("dashboard.sidebar.home")
       }}</BBreadcrumbItem>
-      <BBreadcrumbItem :to="localePath('/dashboard/monitors')">{{
+      <BBreadcrumbItem :to="localePath('/dashboard/httpMonitors')">{{
         $t("dashboard.sidebar.monitors")
       }}</BBreadcrumbItem>
       <BBreadcrumbItem active>

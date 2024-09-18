@@ -47,7 +47,7 @@ const formIsComplete = computed(
       <label class="h5">
         {{ $t("dashboard.monitors.form.refreshInterval") }}
       </label>
-      <MonitorIntervalInput
+      <HttpMonitorIntervalInput
         :value="form.intervalSeconds"
         class="mb-3"
         @change="(interval) => (form.intervalSeconds = interval.seconds)"

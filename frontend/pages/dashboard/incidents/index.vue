@@ -1,8 +1,11 @@
 <script lang="ts" setup>
-import { useIntervalFn } from "@vueuse/core";
+import { useIntervalFn, useBreakpoints, breakpointsBootstrapV5 } from "@vueuse/core";
 import type { IncidentStatus } from "bindings/IncidentStatus";
 import type { ListIncidentsParams } from "bindings/ListIncidentsParams";
-import { allStatuses } from "~/components/IncidentStatusDropdown.vue";
+import { allStatuses } from "~/components/incident/StatusDropdown.vue";
+
+const breakpoints = useBreakpoints(breakpointsBootstrapV5);
+const lgOrLarger = breakpoints.greaterOrEqual("lg");
 
 const localePath = useLocalePath();
 const path = localePath("/dashboard/incidents");
@@ -124,7 +127,9 @@ useIntervalFn(() => {
           {{ $t("dashboard.incidents.emptyPage.text") }}
         </p>
       </div>
+      <IncidentTableView v-if="data && lgOrLarger" :incidents="data!.items" />
       <IncidentCard
+        v-if="!lgOrLarger"
         v-for="incident in data?.items"
         :key="incident.id"
         v-bind="incident"

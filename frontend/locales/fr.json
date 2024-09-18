@@ -76,6 +76,7 @@
         },
         "incidents": {
             "rootCause": "Cause de l'incident",
+            "date": "Date",
             "startOfIncident": "Début de l'incident",
             "pageTitle": "Incidents",
             "totalIncidentCount": "Aucun incident | 1 incident total | {count} incidents totaux",

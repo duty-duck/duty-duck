@@ -2,7 +2,7 @@
   const localePath = useLocalePath();
 </script>
 <template>
-  <BButton class="icon-link" variant="primary" size="sm" icon :to="localePath('/dashboard/monitors/new')">
+  <BButton class="icon-link" variant="primary" size="sm" icon :to="localePath('/dashboard/httpMonitors/new')">
     <Icon name="ph:plus-bold" />
     {{ $t('dashboard.monitors.createMonitorBtn') }}
   </BButton>

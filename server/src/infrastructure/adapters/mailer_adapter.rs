@@ -1,4 +1,4 @@
-use futures::{future::try_join_all, stream::FuturesUnordered, StreamExt};
+use futures::{future::try_join_all};
 use lettre::*;
 use message::{header::ContentType, MessageBuilder};
 use tracing::info;

@@ -29,7 +29,7 @@ onMounted(() => {
     </div>
     <div class="container-fluid g-0">
       <div class="row g-0">
-        <div class="d-none d-lg-block col-lg-3 col-xl-2 d-flex sticky-top bg-white" id="dashboard-sidebar">
+        <div class="d-none d-lg-block d-flex sticky-top bg-white" id="dashboard-sidebar">
           <div id="dashboard-sidebar-content">
             <div id="sidebar-brand">
               <img src="@/assets/navbar-duck.png" alt="Duty Duck logo" />
@@ -38,7 +38,7 @@ onMounted(() => {
             <SideBar v-if="lgOrLarger"></SideBar>
           </div>
         </div>
-        <div class="col-lg-9 col-xl-10">
+        <div class="col">
           <nav class="navbar navbar-expand sticky-top" id="dashboard-navbar">
             <div class="container-fluid">
               <button class="navbar-toggler d-block d-lg-none" type="button" data-bs-toggle="offcanvas"
@@ -60,7 +60,7 @@ onMounted(() => {
   </template>
 </template>
 
-<style>
+<style lang="scss">
 .page-enter-active,
 .page-leave-active {
   transition: all 0.1s ease-in-out;
@@ -73,5 +73,14 @@ onMounted(() => {
 
 .page-leave-to {
   opacity: 0;
+}
+
+#dashboard-sidebar {
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 250px;
+  // box-shadow: 3px 0px 4px rgba(0, 0, 0, .2);
+  z-index: 100;
 }
 </style>

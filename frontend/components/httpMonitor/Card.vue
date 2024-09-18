@@ -5,7 +5,7 @@ const monitor = defineProps<HttpMonitor>();
 </script>
 
 <template>
-  <NuxtLink :to="localePath(`/dashboard/monitors/${monitor.id}`)" class="card mb-3 shadow-sm" :class="{
+  <NuxtLink :to="localePath(`/dashboard/httpMonitors/${monitor.id}`)" class="card mb-3 shadow-sm" :class="{
     'border-danger': monitor.status == 'down',
     'border-warning': monitor.status == 'suspicious',
     'border-info': monitor.status == 'recovering',
@@ -14,12 +14,12 @@ const monitor = defineProps<HttpMonitor>();
     'border-success': monitor.status == 'up',
   }">
     <BCardBody class="d-flex align-items-center px-2">
-      <MonitorStatusIcon :status="monitor.status" class="mx-4 mx-lg-5" />
+      <HttpMonitorStatusIcon :status="monitor.status" class="mx-4 mx-lg-5" />
       <div class="flex-grow-1">
         <div class="h6">
           {{ monitor.url }}
         </div>
-        <MonitorStatusLabel :status="monitor.status" />
+        <HttpMonitorStatusLabel :status="monitor.status" />
         <span v-show="monitor.lastPingAt" class="small text-secondary"> 
           &nbsp;
           {{ $t('dashboard.monitors.lastCheckedOn', { date:  $d(new Date(monitor.lastPingAt!), 'long') }) }}

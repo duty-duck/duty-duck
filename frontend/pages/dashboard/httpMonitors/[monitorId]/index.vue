@@ -109,7 +109,7 @@ watch(
       <BBreadcrumbItem :to="localePath('/dashboard')">{{
         $t("dashboard.sidebar.home")
       }}</BBreadcrumbItem>
-      <BBreadcrumbItem :to="localePath('/dashboard/monitors')">{{
+      <BBreadcrumbItem :to="localePath('/dashboard/httpMonitors')">{{
         $t("dashboard.sidebar.monitors")
       }}</BBreadcrumbItem>
       <BBreadcrumbItem active>
@@ -117,7 +117,7 @@ watch(
       </BBreadcrumbItem>
     </BBreadcrumb>
     <div class="d-flex align-items-center my-5">
-      <MonitorStatusIcon
+      <HttpMonitorStatusIcon
         :status="monitorData?.monitor.status"
         class="mx-5"
         :animated="monitorData.monitor.status != 'inactive'"
@@ -126,7 +126,7 @@ watch(
         <h2 class="h4">
           {{ monitorData?.monitor.url }}
         </h2>
-        <MonitorStatusLabel :status="monitorData?.monitor.status" />
+        <HttpMonitorStatusLabel :status="monitorData?.monitor.status" />
         &nbsp;
         <span v-show="monitorData?.monitor" class="small text-secondary">
           {{
@@ -156,7 +156,7 @@ watch(
       <BButton
         class="icon-link"
         variant="outline-secondary"
-        :to="localePath(`/dashboard/monitors/${route.params.monitorId}/edit`)"
+        :to="localePath(`/dashboard/httpMonitors/${route.params.monitorId}/edit`)"
       >
         <Icon name="ph:pencil" />
         {{ $t("dashboard.monitors.edit") }}
@@ -196,7 +196,7 @@ watch(
         </BCard>
       </div>
     </div>
-    <MonitorIncidentsCard
+    <HttpMonitorIncidentsCard
       :monitor="monitorData.monitor"
       :on-going-incident="monitorData.ongoingIncident"
       :incidents-page-number="incidentPageNumber"

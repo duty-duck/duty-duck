@@ -66,14 +66,6 @@ $navbar-height: 50px;
   }
 }
 
-#dashboard-sidebar {
-  height: 100vh;
-  overflow-y: auto;
-  overflow-x: hidden;
-  // box-shadow: 3px 0px 4px rgba(0, 0, 0, .2);
-  z-index: 100;
-}
-
 .page-title {
   display: flex;
   margin-bottom: $spacer * 1.5;

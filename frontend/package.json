@@ -25,6 +25,7 @@
     "@vueuse/core": "^10.11.0",
     "bootstrap": "^5.3.3",
     "bootstrap-vue-next": "^0.24.4",
+    "dataloader": "^2.2.2",
     "firebase": "^10.13.0",
     "humanize-duration": "^3.32.1",
     "intl-tel-input": "^23.8.1",
