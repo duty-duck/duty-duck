@@ -256,6 +256,33 @@ impl KeycloakClient {
     }
 
     #[tracing::instrument(skip(self))]
+    pub(super) async fn delete_organization(&self, id: Uuid) -> Result<()> {
+        let auth_token = self.get_current_access_token().await?;
+        let url = format!("{}/orgs/{}", self.private_realm_url, id);
+        
+        let response = (|| {
+            self.http_client
+                .delete(&url)
+                .bearer_auth(auth_token.access_token.secret())
+                .send()
+        })
+        .retry(&Self::retry_strategy())
+        .await?;
+
+        match response.status() {
+            StatusCode::NO_CONTENT => Ok(()),
+            StatusCode::NOT_FOUND => Err(Error::NotFound),
+            _ => {
+                let status = response.status().as_u16();
+                let response_body = response.text().await.unwrap_or_default();
+                Err(Error::TechnicalFailure(anyhow!(
+                    "Failed HTTP request with URL '{url}', status '{status}' and response body: '{response_body}'"
+                )))
+            }
+        }
+    }
+
+    #[tracing::instrument(skip(self))]
     pub(super) async fn create_organization(
         &self,
         request: &WriteOrganizationRequest<'_>,

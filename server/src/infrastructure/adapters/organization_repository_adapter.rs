@@ -41,6 +41,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
         }
     }
 
+
     #[tracing::instrument(skip(self))]
     async fn create_organization(
         &self,
@@ -162,7 +163,13 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
         &self,
         id: uuid::Uuid,
     ) -> Result<(), crate::domain::entities::organization::WriteOrganizationError> {
-        todo!()
+        match self.keycloak_client.delete_organization(id).await {
+            Ok(()) => Ok(()),
+            Err(keycloak_client::Error::NotFound) => {
+                Err(WriteOrganizationError::OrganizationNotFound)
+            }
+            Err(e) => Err(WriteOrganizationError::TechnicalFailure(e.into())),
+        }
     }
 
     #[tracing::instrument(skip(self))]
