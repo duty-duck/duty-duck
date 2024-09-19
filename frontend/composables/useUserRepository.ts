@@ -1,8 +1,10 @@
+import type { UseFetchOptions } from "#app";
 import { useDebounceFn } from "@vueuse/core";
+import type { GetProfileResponse } from "bindings/GetProfileResponse";
 import { type SignUpCommand } from "bindings/SignUpCommand"
 import type { UpdateProfileCommand } from "bindings/UpdateProfileCommand";
 import type { UpdateProfileResponse } from "bindings/UpdateProfileResponse";
-import { FetchError } from "ofetch";
+import { FetchError, type FetchOptions } from "ofetch";
 
 export const useUserRepository = () => {
     const $fetch = useServer$fetch();
@@ -29,6 +31,9 @@ export const useUserRepository = () => {
                     return "conflict"
                 return "error"
             }
+        },
+        fetchUserProfile() {
+            return $fetch<GetProfileResponse>("/users/me", { retry: 3 })
         },
         async updateProfile(command: UpdateProfileCommand) {
             return await $fetch<UpdateProfileResponse>("/users/me", { method: "put", body: command })

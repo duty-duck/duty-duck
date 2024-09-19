@@ -1,10 +1,13 @@
 <script setup lang="ts">
 import { useIntervalFn } from '@vueuse/core';
-
+    const route = useRoute();
     let incidentRepo = useIncidentRepository();
     const localePath = useLocalePath()
+    const { can} = useAuth();
+
     let { refresh: refreshIncidentCount, data: incidentCount } = await incidentRepo.useOngoingIncidentsCount();
-    useIntervalFn(() => refreshIncidentCount(), 20000);
+    useIntervalFn(() => refreshIncidentCount(), 30000);
+    watch(() => route.fullPath, () => refreshIncidentCount());
 </script>
 
 <template>
@@ -17,13 +20,13 @@ import { useIntervalFn } from '@vueuse/core';
                 </NuxtLink>
             </li>
             <li class="nav-item">
-                <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/httpMonitors')">
+                <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/httpMonitors')" :disabled="!can('readHttpMonitors')">
                     <Icon name="ph:pulse-duotone" size="22px" />
                     {{ $t("dashboard.sidebar.monitors") }}
                 </NuxtLink>
             </li>
             <li class="nav-item">
-                <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/incidents')">
+                <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/incidents')" :disabled="!can('readIncidents')">
                     <Icon name="ph:seal-warning-duotone" size="22px" />
                     {{ $t("dashboard.sidebar.incidents") }}
                     <BBadge class="ms-2" variant="danger" v-if="incidentCount && incidentCount > 0">{{ incidentCount }}</BBadge>

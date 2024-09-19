@@ -1,5 +1,8 @@
 use serde::Serialize;
+use ts_rs::TS;
 use uuid::Uuid;
+use custom_derive::custom_derive;
+use enum_derive::*;
 
 use super::organization::{OrganizationRoleSet, OrganizationUserRole};
 
@@ -31,12 +34,18 @@ impl AuthContext {
     }
 }
 
-#[allow(dead_code)]
-#[derive(Clone, Copy, Debug)]
-pub enum Permission {
-    TransferOwnershipOfOrganization,
-    RemoveOrganization,
-    ReadHttpMonitors,
-    WriteHttpMonitors,
-    ReadIncidents,
+custom_derive! {
+    #[allow(dead_code)]
+    #[derive(Clone, Copy, Debug, EnumDisplay, IterVariants(GetVariants))]
+    #[derive(Serialize, TS)]
+    #[serde(rename_all = "camelCase")]
+    #[ts(export)]
+    pub enum Permission {
+        TransferOwnershipOfOrganization,
+        RemoveOrganization,
+        ReadHttpMonitors,
+        WriteHttpMonitors,
+        ReadIncidents,
+    }
 }
+

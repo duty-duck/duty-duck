@@ -1,6 +1,7 @@
 import { initializeApp, type FirebaseApp, type FirebaseOptions } from "firebase/app";
 import { getMessaging, getToken as getFirebaseToken, onMessage as firebaseOnMessage, type MessagePayload } from "firebase/messaging";
 import serviceWorkerUrl from "@/assets/firebase-messaging-sw.js?worker&url";
+import { createSharedComposable } from "@vueuse/core";
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -41,7 +42,7 @@ const useApp = (): FirebaseApp => {
 
 export type TokenState = null | "loading" | { token: string };
 
-export const useFirebaseMessaging = defineStore('firebaseMessaging', () => {
+export const useFirebaseMessaging = createSharedComposable(() => {
     const messaging = getMessaging(useApp());
     const token = ref<TokenState>(null);
 
@@ -97,4 +98,5 @@ export const useFirebaseMessaging = defineStore('firebaseMessaging', () => {
         requestPermission,
         onMessage
     }
-});
+
+})

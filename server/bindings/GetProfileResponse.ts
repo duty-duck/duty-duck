@@ -2,4 +2,4 @@
 import type { Permission } from "./Permission";
 import type { User } from "./User";
 
-export type UpdateProfileResponse = { needsSessionInvalidation: boolean, newUser: User, newUserPermissions: Array<Permission>, };
+export type GetProfileResponse = { user: User, permissions: Array<Permission>, };

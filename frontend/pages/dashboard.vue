@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useAuthMandatory } from "@/stores/auth";
 import { useBreakpoints, breakpointsBootstrapV5 } from "@vueuse/core";
 import SideBar from "@/components/SideBar.vue";
 import UserMenu from "@/components/UserMenu.vue";
@@ -18,7 +17,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <template v-if="auth.isReady && auth.isAuthenticated">
+  <template v-if="!auth?.isLoading && auth?.userProfile?.user">
     <div class="offcanvas offcanvas-start" tabindex="-1" id="dashboard-offcanvas">
       <div class="offcanvas-header">
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>

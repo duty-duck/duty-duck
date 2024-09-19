@@ -7,11 +7,11 @@ export const useServer$fetch = () => {
     return $fetch.create({
         baseURL: serverUrl,
         onRequest: ({ options }) => {
-            const { state: auth } = useAuth();
+            const auth = useAuth();
             options.headers = options.headers || {};
-            if (auth?.status == "authenticated") {
+            if (!auth?.keycloakState != null) {
                 // @ts-ignore
-                options.headers["Authorization"] = `Bearer ${auth.accessToken.raw}`;
+                options.headers["Authorization"] = `Bearer ${auth.keycloakState.accessToken.raw}`;
             }
         }
     })

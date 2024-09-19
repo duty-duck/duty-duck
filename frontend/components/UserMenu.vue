@@ -1,15 +1,7 @@
 <script setup lang="ts">
 const { locale, locales } = useI18n()
 const localePath = useLocalePath();
-const auth = useAuthMandatory();
-const username = computed(() => {
-  if (auth.state?.status == "authenticated") {
-    return (
-      `${auth.state.idToken.parsed.firstName} ${auth.state.idToken.parsed.lastName}`
-    );
-  }
-  return "";
-});
+const {userName, logout} = useAuthMandatory();
 
 const switchLocalePath = useSwitchLocalePath()
 const availableLocales = computed(() => {
@@ -21,7 +13,7 @@ const availableLocales = computed(() => {
     <li class="nav-item dropdown" id="auth-menu">
       <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
         <i data-feather="user"></i>
-        <span class="user-name">{{ username }}</span>
+        <span class="user-name">{{ userName }}</span>
       </a>
       <ul class="dropdown-menu dropdown-menu-end">
         <li>
@@ -50,7 +42,7 @@ const availableLocales = computed(() => {
           <hr class="dropdown-divider" />
         </li>
         <li>
-          <a class="dropdown-item icon-link" @click="auth.logout()" style="cursor: pointer">
+          <a class="dropdown-item icon-link" @click="logout()" style="cursor: pointer">
             <Icon name="ph:sign-out" />
             {{ $t('dashboard.userMenu.logOut') }}
           </a>

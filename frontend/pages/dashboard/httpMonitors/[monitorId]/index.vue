@@ -3,6 +3,8 @@ import { useIntervalFn, useThrottleFn } from "@vueuse/core";
 import type { ListIncidentsParams } from "bindings/ListIncidentsParams";
 import humanizeDuration from "humanize-duration";
 
+ensurePemissionOnBeforeMount("readHttpMonitors");
+
 const localePath = useLocalePath();
 const repo = useHttpMonitorRepository();
 const route = useRoute();

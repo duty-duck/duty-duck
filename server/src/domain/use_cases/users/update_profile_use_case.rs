@@ -8,7 +8,10 @@ use ts_rs::TS;
 use zxcvbn::{zxcvbn, Score};
 
 use crate::domain::{
-    entities::{authorization::AuthContext, user::{UpdateUserCommand, UpdateUserError, User}},
+    entities::{
+        authorization::{AuthContext, Permission},
+        user::{UpdateUserCommand, UpdateUserError, User},
+    },
     ports::user_repository::UserRepository,
 };
 
@@ -38,7 +41,8 @@ pub struct UpdateProfileCommand {
 #[ts(export)]
 pub struct UpdateProfileResponse {
     needs_session_invalidation: bool,
-    new_user: User
+    new_user: User,
+    new_user_permissions: Vec<Permission>,
 }
 
 pub async fn update_user_profile(
@@ -86,9 +90,22 @@ pub async fn update_user_profile(
         phone_number: command.phone_number,
     };
 
-    match repository.update_user(auth_context.active_user_id, repo_command).await {
-        Ok(new_user) => Ok(UpdateProfileResponse { needs_session_invalidation, new_user }) ,
-        Err(UpdateUserError::TechnicalFailure(e)) => Err(UpdateProfileError::TechnicalFailure(e)),
-        Err(UpdateUserError::UserNotFound) => Err(anyhow!("User not found").into())
-    }
+    let new_user = match repository
+        .update_user(auth_context.active_user_id, repo_command)
+        .await
+    {
+        Ok(new_user) => new_user,
+        Err(UpdateUserError::TechnicalFailure(e)) => {
+            return Err(UpdateProfileError::TechnicalFailure(e))
+        }
+        Err(UpdateUserError::UserNotFound) => return Err(anyhow!("User not found").into()),
+    };
+
+    Ok(UpdateProfileResponse {
+        needs_session_invalidation,
+        new_user,
+        new_user_permissions: Permission::iter_variants()
+            .filter(|p| auth_context.can(*p))
+            .collect(),
+    })
 }

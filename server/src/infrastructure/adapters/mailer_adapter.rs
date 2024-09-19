@@ -1,4 +1,4 @@
-use futures::{future::try_join_all};
+use futures::future::try_join_all;
 use lettre::*;
 use message::{header::ContentType, MessageBuilder};
 use tracing::info;
@@ -43,9 +43,7 @@ impl Mailer for MailerAdapter {
     }
 
     async fn send_batch(&self, messages: Vec<Message>) -> anyhow::Result<()> {
-        let futures = messages
-            .into_iter()
-            .map(|m| self.send(m));
+        let futures = messages.into_iter().map(|m| self.send(m));
         try_join_all(futures).await?;
         Ok(())
     }

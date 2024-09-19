@@ -1,11 +1,14 @@
 <script lang="ts" setup>
 import type { UpdateHttpMonitorCommand } from "bindings/UpdateHttpMonitorCommand";
-import type { HttpMonitorFormData } from "~/components/HttpMonitorForm.vue";
+import type { HttpMonitorFormData } from "~/components/httpMonitor/Form.vue";
+
+ensurePemissionOnBeforeMount("writeHttpMonitors");
 
 const repo = useHttpMonitorRepository();
 const route = useRoute();
 const router = useRouter();
 const localePath = useLocalePath();
+
 
 const { data: monitorData } = await repo.useHttpMonitor(
   route.params.monitorId as string

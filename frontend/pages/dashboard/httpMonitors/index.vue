@@ -3,6 +3,8 @@ import { refDebounced, useIntervalFn } from "@vueuse/core";
 import type { HttpMonitorStatus } from "bindings/HttpMonitorStatus";
 import { allStatuses } from "~/components/httpMonitor/StatusDropdown.vue";
 
+ensurePemissionOnBeforeMount("readHttpMonitors");
+
 const localePath = useLocalePath();
 const path = localePath("/dashboard/httpMonitors");
 const route = useRoute();

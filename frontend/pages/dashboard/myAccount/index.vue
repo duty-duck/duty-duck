@@ -23,13 +23,13 @@ const localePath = useLocalePath();
       <BCard :title="$t('dashboard.myAccount.myInfo')" class="mb-3">
         <dl>
           <dt>{{ $t("dashboard.myAccount.firstName") }}</dt>
-          <dd>{{ auth.state.idToken.parsed["firstName"] || "--" }}</dd>
+          <dd>{{ auth.userProfile.user.firstName || "--" }}</dd>
           <dt>{{ $t("dashboard.myAccount.lastName") }}</dt>
-          <dd>{{ auth.state.idToken.parsed["lastName"] || "--" }}</dd>
+          <dd>{{ auth.userProfile.user.lastName || "--" }}</dd>
           <dt>{{ $t("dashboard.myAccount.email") }}</dt>
-          <dd>{{ auth.state.idToken.parsed["email"] || "--" }}</dd>
+          <dd>{{ auth.userProfile.user.email || "--" }}</dd>
           <dt>{{ $t("dashboard.myAccount.phoneNumber") }}</dt>
-          <dd>{{ auth.state.idToken.parsed["phoneNumber"] || "--" }}</dd>
+          <dd>{{ auth.userProfile.user.phoneNumber || "--" }}</dd>
         </dl>
         <BButton
           variant="primary"

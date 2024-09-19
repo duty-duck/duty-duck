@@ -30,10 +30,10 @@ impl IncidentNotificationRepository for IncidentNotificationRepositoryAdapter {
         limit: u32,
     ) -> anyhow::Result<Vec<IncidentWithSourcesDetails>> {
         let records = sqlx::query!(
-            "SELECT
+            r#"SELECT
                 i.*, 
-                hmi.http_monitor_id,
-                hm.url as http_monitor_url
+                hmi.http_monitor_id as "http_monitor_id?",
+                hm.url as "http_monitor_url?"
             FROM incidents i
             LEFT JOIN http_monitors_incidents hmi
             ON hmi.organization_id = i.organization_id AND hmi.incident_id = i.id
@@ -44,7 +44,7 @@ impl IncidentNotificationRepository for IncidentNotificationRepositoryAdapter {
                 WHERE creation_notification_sent_at IS NULL
                 FOR UPDATE SKIP LOCKED
                 LIMIT $1
-            )",
+            )"#,
             limit as i64
         )
         .fetch_all(tx.as_mut())

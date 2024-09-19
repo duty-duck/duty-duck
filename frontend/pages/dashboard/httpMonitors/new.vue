@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-import type { HttpMonitorFormData } from "~/components/HttpMonitorForm.vue";
+import type { HttpMonitorFormData } from "~/components/httpMonitor/Form.vue";
+
+ensurePemissionOnBeforeMount("writeHttpMonitors");
 
 const repo = useHttpMonitorRepository();
 const router = useRouter();
