@@ -3,7 +3,7 @@ $primary: #70BE4D;
 @import "../node_modules/bootstrap/scss/bootstrap.scss";
 
 body {
-  @extend .bg-body-tertiary;
+  background-image: linear-gradient(to bottom, rgba(112, 190, 77, 0.05) 30%, var(--bs-tertiary-bg) 50%);
 }
 
 .btn[aria-disabled] {
@@ -23,30 +23,6 @@ body {
 }
 
 $navbar-height: 50px;
-
-#sidebar-brand {
-  height: $navbar-height;
-  box-shadow: rgba(154, 161, 171, 0.15) 0px 0px 35px 0px;
-  background-color: white;
-  position: relative;
-  overflow: hidden;
-  color: $primary;
-  display: flex;
-  align-items: center;
-  font-family: $headings-font-family;
-  padding-left: $spacer;
-
-  span {
-    position: relative;
-    left: 10px;
-  }
-
-  img {
-    height: $navbar-height - 10px;
-    position: relative;
-    bottom: -5px;
-  }
-}
 
 #dashboard-navbar {
   background-color: rgb(250, 250, 250);

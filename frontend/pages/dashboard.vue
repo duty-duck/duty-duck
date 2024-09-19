@@ -28,12 +28,9 @@ onMounted(() => {
     </div>
     <div class="container-fluid g-0">
       <div class="row g-0">
-        <div class="d-none d-lg-block d-flex sticky-top bg-white" id="dashboard-sidebar">
+        <div class="d-none d-lg-block d-flex sticky-top" id="dashboard-sidebar">
           <div id="dashboard-sidebar-content">
-            <div id="sidebar-brand">
-              <img src="@/assets/navbar-duck.png" alt="Duty Duck logo" />
-              <span>Duty Duck</span>
-            </div>
+            <SidebarBrand />
             <SideBar v-if="lgOrLarger"></SideBar>
           </div>
         </div>
@@ -60,6 +57,8 @@ onMounted(() => {
 </template>
 
 <style lang="scss">
+@import "~/assets/main.scss";
+
 .page-enter-active,
 .page-leave-active {
   transition: all 0.1s ease-in-out;
@@ -78,8 +77,15 @@ onMounted(() => {
   height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
-  width: 250px;
+  width: 260px;
   // box-shadow: 3px 0px 4px rgba(0, 0, 0, .2);
   z-index: 100;
+  background-color: transparent;
+  transition: background-color 0.5s ease;
+
+  &:hover {
+    background-color: white;
+  }
+
 }
 </style>

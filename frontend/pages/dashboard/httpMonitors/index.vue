@@ -36,13 +36,13 @@ const onPageChange = (page: number) => {
     query: { page, statuses: includeStatuses.value, query: query.value },
   });
 };
-const onQueryChange = (event: KeyboardEvent) => {
+const onQueryChange = (event: Event) => {
   router.push({
     path,
     query: {
       page: pageNumber.value,
       statuses: includeStatuses.value,
-      query: (event.target as any).value,
+      query: (event.target as HTMLInputElement).value,
     },
   });
 };
@@ -83,10 +83,10 @@ useIntervalFn(() => {
       <BBreadcrumb>
         <BBreadcrumbItem to="/dashboard">{{
           $t("dashboard.sidebar.home")
-        }}</BBreadcrumbItem>
+          }}</BBreadcrumbItem>
         <BBreadcrumbItem active>{{
           $t("dashboard.sidebar.monitors")
-        }}</BBreadcrumbItem>
+          }}</BBreadcrumbItem>
       </BBreadcrumb>
       <div class="d-flex align-items-center justify-content-between">
         <h2>{{ $t("dashboard.monitors.pageTitle") }}</h2>
@@ -107,67 +107,22 @@ useIntervalFn(() => {
         </span>
       </div>
     </BContainer>
-    <nav
-      class="filtering-bar flex-column flex-md-row gap-2 mb-4 py-3 container"
-    >
-      <HttpMonitorStatusDropdown
-        :model-value="includeStatuses"
-        @update:model-value="onIncludeStatusChange"
-      />
-      <BInput
-        class="border border-secondary bg-transparent"
-        :model-value="query"
-        @input="onQueryChange"
-        :placeholder="$t('dashboard.monitors.search')"
-      />
-      <BButton
-        class="flex-shrink-0 icon-link"
-        variant="outline-secondary"
-        @click="onClearFilters"
-      >
-        <Icon name="ph:x-square-fill" />
-        {{ $t("dashboard.monitors.clearFilters") }}
-      </BButton>
-    </nav>
-    <BContainer>
-      <BAlert variant="danger" :model-value="status == 'error'">
-        Failed to fetch HTTP monitors from the server. Please try again.
-      </BAlert>
-      <div
-        v-if="data?.totalNumberOfResults == 0"
-        class="text-secondary text-center my-5"
-      >
-        <Icon name="ph:pulse-duotone" size="120px" />
-        <h3>{{ $t("dashboard.monitors.emptyPage.title") }}</h3>
-        <p class="lead">
-          {{ $t("dashboard.monitors.emptyPage.text") }}
-        </p>
-        <HttpMonitorAddButton class="m-3" />
-      </div>
-      <HttpMonitorCard
-        v-for="monitor in data?.items"
-        :key="monitor.id"
-        v-bind="monitor"
-      />
-      <BPagination
-        :model-value="pageNumber"
-        @update:modelValue="onPageChange"
-        :prev-text="$t('pagination.prev')"
-        :next-text="$t('pagination.next')"
-        :total-rows="data?.totalNumberOfFilteredResults"
-        :per-page="10"
-      />
+    <div v-if="data?.totalNumberOfResults == 0" class="text-secondary text-center my-5">
+      <Icon name="ph:pulse-duotone" size="120px" />
+      <h3>{{ $t("dashboard.monitors.emptyPage.title") }}</h3>
+      <p class="lead">
+        {{ $t("dashboard.monitors.emptyPage.text") }}
+      </p>
+      <HttpMonitorAddButton class="m-3" />
+    </div>
+    <BContainer v-else class="d-grid row-gap-3">
+      <HttpMonitorFilteringBar :include-statuses="includeStatuses" :query="query"
+        @update-include-statuses="onIncludeStatusChange" @update-query="onQueryChange"
+        @clear-filters="onClearFilters" />
+      <HttpMonitorCard v-for="monitor in data?.items" :key="monitor.id" :monitor="monitor" animated />
+      <BPagination v-if="data?.totalNumberOfFilteredResults! > 10" :model-value="pageNumber"
+        @update:modelValue="onPageChange" :prev-text="$t('pagination.prev')" :next-text="$t('pagination.next')"
+        :total-rows="data?.totalNumberOfFilteredResults" :per-page="10" />
     </BContainer>
   </div>
 </template>
-
-<style lang="scss">
-.filtering-bar {
-  display: flex;
-  position: sticky;
-  top: 50px;
-  z-index: 1;
-  backdrop-filter: blur(10px);
-  background-color: rgba(248, 249, 250, 0.6);
-}
-</style>

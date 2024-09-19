@@ -3,7 +3,8 @@ import type { HttpMonitorStatus } from "bindings/HttpMonitorStatus";
 
 const props = defineProps<{
     status: HttpMonitorStatus;
-    animated?: boolean
+    animated?: boolean,
+    big?: boolean
 }>();
 
 const icon = computed(() => {
@@ -22,7 +23,6 @@ const icon = computed(() => {
 </script>
 
 <template>
-
     <span class="monitor-icon" :class="{
         'animated': !!props.animated,
         'text-danger': props.status == 'down',
@@ -31,9 +31,9 @@ const icon = computed(() => {
         'text-secondary': props.status == 'unknown' || props.status == 'inactive',
         'text-success': props.status == 'up'
     }">
-        <Icon name="ph:circle-fill" size="4rem" class="secondary" v-show="animated" />
-        <Icon name="ph:circle-fill" size="4rem" class="tertiary" v-show="animated" />
-        <Icon :name="icon" size="1.7rem" />
+        <Icon name="ph:circle-fill" :size="big ?'6rem': '4rem'" class="secondary" v-show="animated" />
+        <Icon name="ph:circle-fill" :size="big ?'6rem': '4rem'" class="tertiary" v-show="animated" />
+        <Icon :name="icon" :size="big ? '3rem' : '2rem'" />
     </span>
 
 </template>

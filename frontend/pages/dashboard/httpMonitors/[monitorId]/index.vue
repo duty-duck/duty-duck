@@ -118,11 +118,12 @@ watch(
         {{ $t("dashboard.monitors.details") }}
       </BBreadcrumbItem>
     </BBreadcrumb>
-    <div class="d-flex align-items-center my-5">
+    <div class="d-flex align-items-center my-5 gap-3">
       <HttpMonitorStatusIcon
         :status="monitorData?.monitor.status"
         class="mx-5"
         :animated="monitorData.monitor.status != 'inactive'"
+        big
       />
       <div>
         <h2 class="h4">

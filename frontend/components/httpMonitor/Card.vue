@@ -1,18 +1,12 @@
 <script setup lang="ts">
 import type { HttpMonitor } from "bindings/HttpMonitor";
 const localePath = useLocalePath();
-const monitor = defineProps<HttpMonitor>();
+const { monitor, animated } = defineProps<{ monitor: HttpMonitor, animated?: boolean }>();
 </script>
 
 <template>
-  <NuxtLink :to="localePath(`/dashboard/httpMonitors/${monitor.id}`)" class="card mb-3 shadow-sm" :class="{
-    'border-danger': monitor.status == 'down',
-    'border-warning': monitor.status == 'suspicious',
-    'border-info': monitor.status == 'recovering',
-    'border-secondary':
-      monitor.status == 'unknown' || monitor.status == 'inactive',
-    'border-success': monitor.status == 'up',
-  }">
+  <NuxtLink :to="localePath(`/dashboard/httpMonitors/${monitor.id}`)" class="card shadow-sm"
+    :class="{ 'slide-up-fade-in': animated }">
     <BCardBody class="d-flex align-items-center px-2">
       <HttpMonitorStatusIcon :status="monitor.status" class="mx-4 mx-lg-5" />
       <div class="flex-grow-1">
@@ -20,9 +14,9 @@ const monitor = defineProps<HttpMonitor>();
           {{ monitor.url }}
         </div>
         <HttpMonitorStatusLabel :status="monitor.status" />
-        <span v-show="monitor.lastPingAt" class="small text-secondary"> 
+        <span v-show="monitor.lastPingAt" class="small text-secondary">
           &nbsp;
-          {{ $t('dashboard.monitors.lastCheckedOn', { date:  $d(new Date(monitor.lastPingAt!), 'long') }) }}
+          {{ $t('dashboard.monitors.lastCheckedOn', { date: $d(new Date(monitor.lastPingAt!), 'long') }) }}
         </span>
         <div class="d-flex gap-1 mt-2">
           <BBadge v-for="t in monitor.tags" variant="light">{{ t }}</BBadge>
@@ -49,10 +43,48 @@ const monitor = defineProps<HttpMonitor>();
 }
 
 .card:hover {
-  background-color: var(--body-bg-secondary);
-
   .btn-toolbar {
     display: unset;
   }
+}
+
+@for $i from 1 through 10 {
+  @keyframes slideUpFadeIn#{$i} {
+    0% {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    #{$i* 10 + "%"} {
+      opacity: 0;
+      transform: translateY(30px);
+    }
+
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
+
+@keyframes slideUpFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slide-up-fade-in {
+  @for $i from 1 through 10 {
+    &:nth-child(#{$i}n) {
+      animation: slideUpFadeIn#{$i} 0.3s ease-out;
+    }
+  }
+
 }
 </style>

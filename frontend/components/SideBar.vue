@@ -11,7 +11,7 @@ import { useIntervalFn } from '@vueuse/core';
 </script>
 
 <template>
-    <div class="py-2 px-lg-2 mt-lg-4">
+    <div class="py-2 ps-lg-4 pe-lg-2 mt-lg-4">
         <ul class="nav nav-pills nav-light nav-fill flex-column gap-2">
             <li class="nav-item">
                 <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard')">
