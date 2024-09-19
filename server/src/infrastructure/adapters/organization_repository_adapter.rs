@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{str::FromStr, sync::Arc};
 
 use anyhow::Context;
 use chrono::Utc;
@@ -10,7 +10,7 @@ use crate::{
     domain::{
         entities::{
             organization::{
-                CreateOrganizationError, Organization, ReadOrganizationError,
+                CreateOrganizationError, Organization, OrganizationUserRole, ReadOrganizationError,
                 WriteOrganizationError, WriteOrganizationRoleError,
             },
             user::User,
@@ -18,7 +18,7 @@ use crate::{
         ports::organization_repository::OrganizationRepository,
     },
     infrastructure::keycloak_client::{
-        self, AttributeMap, KeycloakClient, WriteOrganizationRequest,
+        self, AttributeMap, InviteUserRequest, KeycloakClient, WriteOrganizationRequest,
     },
 };
 
@@ -33,14 +33,15 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
     async fn get_organization(&self, id: Uuid) -> Result<Organization, ReadOrganizationError> {
         match self.keycloak_client.get_organization(id).await {
             Ok(org) => Ok(org.try_into()?),
-            Err(keycloak_client::Error::NotFound) => Err(ReadOrganizationError::OrganizationNotFound),
+            Err(keycloak_client::Error::NotFound) => {
+                Err(ReadOrganizationError::OrganizationNotFound)
+            }
             Err(e) => {
                 warn!(error = ?e, "Failed to get organization");
                 Err(ReadOrganizationError::TechnicalFailure(e.into()))
             }
         }
     }
-
 
     #[tracing::instrument(skip(self))]
     async fn create_organization(
@@ -76,6 +77,24 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
         }
     }
 
+    async fn remove_an_organization_member(
+        &self,
+        org_id: Uuid,
+        user_id: Uuid,
+    ) -> Result<(), WriteOrganizationError> {
+        match self
+            .keycloak_client
+            .remove_an_organization_member(org_id, user_id)
+            .await
+        {
+            Ok(()) => Ok(()),
+            Err(keycloak_client::Error::NotFound) => {
+                Err(WriteOrganizationError::OrganizationNotFound)
+            }
+            Err(e) => Err(WriteOrganizationError::TechnicalFailure(e.into())),
+        }
+    }
+
     async fn add_an_organization_member(
         &self,
         org_id: Uuid,
@@ -84,6 +103,35 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
         match self
             .keycloak_client
             .add_an_organization_member(org_id, user_id)
+            .await
+        {
+            Ok(()) => Ok(()),
+            Err(keycloak_client::Error::NotFound) => {
+                Err(WriteOrganizationError::OrganizationNotFound)
+            }
+            Err(e) => Err(WriteOrganizationError::TechnicalFailure(e.into())),
+        }
+    }
+
+    #[tracing::instrument(skip(self))]
+    async fn invite_organization_member(
+        &self,
+        org_id: Uuid,
+        inviter_user_id: Uuid,
+        invited_user_email: String,
+        invited_user_role: OrganizationUserRole,
+    ) -> Result<(), WriteOrganizationError> {
+        let req = InviteUserRequest {
+            email: invited_user_email,
+            send_email: true,
+            inviter_id: inviter_user_id,
+            roles: vec![invited_user_role.to_string()],
+            attributes: AttributeMap::default(),
+        };
+
+        match self
+            .keycloak_client
+            .invite_user_to_organization(org_id, &req)
             .await
         {
             Ok(()) => Ok(()),
@@ -229,6 +277,23 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
             }
             Err(e) => Err(WriteOrganizationRoleError::TechnicalFailure(e.into())),
         }
+    }
+
+    #[tracing::instrument(skip(self))]
+    async fn list_organization_roles_for_user(
+        &self,
+        org_id: uuid::Uuid,
+        user_id: uuid::Uuid,
+    ) -> Result<Vec<OrganizationUserRole>, ReadOrganizationError> {
+        let roles = self
+            .keycloak_client
+            .list_organization_roles_for_user(org_id, user_id)
+            .await
+            .map_err(|e| ReadOrganizationError::TechnicalFailure(e.into()))?
+            .into_iter()
+            .filter_map(|role| OrganizationUserRole::from_str(&role.name).ok())
+            .collect();
+        Ok(roles)
     }
 }
 

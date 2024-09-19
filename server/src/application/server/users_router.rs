@@ -39,7 +39,13 @@ async fn get_profile_handler(
     State(app_state): ExtractAppState,
 ) -> impl IntoResponse {
     use use_cases::users::*;
-    match get_user_profile(&auth_context, &app_state.adapters.user_repository).await {
+    match get_user_profile(
+        &auth_context,
+        &app_state.adapters.organization_repository,
+        &app_state.adapters.user_repository,
+    )
+    .await
+    {
         Ok(user) => Json(user).into_response(),
         Err(GetProfileError::NotFound) => StatusCode::NOT_FOUND.into_response(),
         Err(GetProfileError::TechnicalFailure(e)) => {

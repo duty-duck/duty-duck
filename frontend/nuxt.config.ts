@@ -42,7 +42,7 @@ export default defineNuxtConfig({
   modules: [
     '@bootstrap-vue-next/nuxt',
     "@nuxt/icon",
-    '@nuxtjs/i18n'
+    '@nuxtjs/i18n',
   ],
 
   alias: {

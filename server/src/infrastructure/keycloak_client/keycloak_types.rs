@@ -101,6 +101,15 @@ pub struct WriteOrganizationRequest<'a> {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct InviteUserRequest {
+    pub email: String,
+    pub send_email: bool,
+    pub inviter_id: Uuid,
+    pub roles: Vec<String>,
+    pub attributes: AttributeMap,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct OrgnanizationRole {
     pub name: String,
 }

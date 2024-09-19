@@ -4,6 +4,14 @@
         "next": "Next"
     },
     "dashboard": {
+        "organizationUserRoles": {
+            "owner": "Owner",
+            "administrator": "Administrator",
+            "editor": "Editor",
+            "memberManager": "Member Manager",
+            "memberInviter": "Member Inviter",
+            "reporter": "Reporter"
+        },
         "userMenu": {
             "myOrg": "My organization",
             "myAccount": "My account",
@@ -138,8 +146,27 @@
             "email": "E-mail address",
             "phoneNumber": "Mobile number",
             "editButton": "Edit my info"
+        },
+        "myOrg": {
+            "pageTitle": "My organization",
+            "members": {
+                "title": "Members",
+                "name": "Name",
+                "email": "E-mail address",
+                "role": "Role",
+                "manage": "Manage",
+                "yourself": "(Yourself)",
+                "cannotEditOwner": "Cannot edit the organization owner",
+                "revokeUser": "Revoke user",
+                "updateRoles": "Update roles"
+            },
+            "updateUserRolesModal": {
+                "title": "Update user roles",
+                "description": "You are about to update the roles of {firstName} {lastName}."
+              }
         }
     },
+
     "signup": {
         "success": {
             "title": "Thank you for registering!",
@@ -165,8 +192,8 @@
     },
     "permissions": {
         "deniedToastNotification": {
-          "title": "Permission Denied",
-          "body": "You do not have permission to perform this action."
+            "title": "Permission Denied",
+            "body": "You do not have permission to perform this action."
         }
-      }
+    }
 }

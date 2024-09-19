@@ -40,6 +40,9 @@ pub struct KeycloakClient {
 }
 
 impl KeycloakClient {
+    /// Creates a new KeycloakClient instance.
+    ///
+    /// Initializes the client with the provided Keycloak configuration and pre-loads an access token.
     pub async fn new(
         public_keycloak_url: Url,
         private_keycloak_url: Url,
@@ -81,6 +84,9 @@ impl KeycloakClient {
         Ok(client)
     }
 
+    /// Retrieves the JSON Web Key Set (JWKS) for token verification.
+    ///
+    /// Returns a cached version if available and not expired, otherwise fetches a new set.
     #[tracing::instrument(skip(self))]
     pub async fn get_jwks(&self) -> anyhow::Result<JwkSet> {
         let mut jwk = self.cached_jwks.lock().await;
@@ -96,6 +102,9 @@ impl KeycloakClient {
         }
     }
 
+    /// Creates a new user in Keycloak.
+    ///
+    /// Returns the created user or an error if the operation fails.
     #[tracing::instrument(skip(self))]
     pub(super) async fn create_user(&self, user: &CreateUserRequest) -> Result<UserItem> {
         let auth_token = self.get_current_access_token().await?;
@@ -148,6 +157,9 @@ impl KeycloakClient {
         }
     }
 
+    /// Retrieves a user by their UUID.
+    ///
+    /// Returns the user details or a NotFound error if the user doesn't exist.
     #[tracing::instrument(skip(self))]
     pub(super) async fn get_user(&self, id: Uuid) -> Result<UserItem> {
         let auth_token = self.get_current_access_token().await?;
@@ -167,6 +179,9 @@ impl KeycloakClient {
         }
     }
 
+    /// Updates an existing user's information.
+    ///
+    /// Returns the updated user details or an error if the operation fails.
     #[tracing::instrument(skip(self))]
     pub(super) async fn update_user(&self, id: Uuid, user: &UpdateUserRequest) -> Result<UserItem> {
         let auth_token = self.get_current_access_token().await?;
@@ -195,11 +210,12 @@ impl KeycloakClient {
         }
     }
 
-    /**
-     * Fetch all the organizations in the realm
-     * # Parameters
-     * - query: search by attributes using the format `k1:v1,k2:v2`
-     */
+    /// Fetches organizations in the realm based on the provided criteria.
+    ///
+    /// # Parameters
+    /// - `first`: The index of the first result to return.
+    /// - `max`: The maximum number of results to return.
+    /// - `query`: Search query in the format `k1:v1,k2:v2`.
     #[tracing::instrument(skip(self))]
     pub(super) async fn get_organizations(
         &self,
@@ -225,6 +241,9 @@ impl KeycloakClient {
         Ok(orgs)
     }
 
+    /// Retrieves a specific organization by its UUID.
+    ///
+    /// Returns the organization details or a NotFound error if it doesn't exist.
     #[tracing::instrument(skip(self))]
     pub(super) async fn get_organization(&self, id: Uuid) -> Result<Organization> {
         let auth_token = self.get_current_access_token().await?;
@@ -255,6 +274,9 @@ impl KeycloakClient {
         }
     }
 
+    /// Deletes an organization by its UUID.
+    ///
+    /// Returns Ok(()) on success or an error if the operation fails.
     #[tracing::instrument(skip(self))]
     pub(super) async fn delete_organization(&self, id: Uuid) -> Result<()> {
         let auth_token = self.get_current_access_token().await?;
@@ -282,6 +304,9 @@ impl KeycloakClient {
         }
     }
 
+    /// Creates a new organization.
+    ///
+    /// Returns the created organization or an error if the operation fails.
     #[tracing::instrument(skip(self))]
     pub(super) async fn create_organization(
         &self,
@@ -334,6 +359,9 @@ impl KeycloakClient {
         }
     }
 
+    /// Updates an existing organization's information.
+    ///
+    /// Returns Ok(()) on success or an error if the operation fails.
     #[tracing::instrument(skip(self))]
     pub(super) async fn update_organization(
         &self,
@@ -359,6 +387,12 @@ impl KeycloakClient {
         }
     }
 
+    /// Lists members of a specific organization.
+    ///
+    /// # Parameters
+    /// - `org_id`: The UUID of the organization.
+    /// - `first`: The index of the first result to return.
+    /// - `max`: The maximum number of results to return.
     #[tracing::instrument(skip(self))]
     pub(super) async fn list_organization_members(
         &self,
@@ -381,6 +415,9 @@ impl KeycloakClient {
         Ok(orgs)
     }
 
+    /// Adds a user to an organization.
+    ///
+    /// Returns Ok(()) on success or an error if the operation fails.
     #[tracing::instrument(skip(self))]
     pub(super) async fn add_an_organization_member(
         &self,
@@ -404,6 +441,73 @@ impl KeycloakClient {
         Ok(())
     }
 
+    /// Removes a user from an organization.
+    ///
+    /// Returns Ok(()) on success or an error if the operation fails.
+    #[tracing::instrument(skip(self))]
+    pub(super) async fn remove_an_organization_member(
+        &self,
+        org_id: Uuid,
+        user_id: Uuid,
+    ) -> Result<()> {
+        let auth_token = self.get_current_access_token().await?;
+        let response = (|| {
+            self.http_client
+                .delete(format!(
+                    "{}/orgs/{}/members/{}",
+                    self.private_realm_url, org_id, user_id
+                ))
+                .bearer_auth(auth_token.access_token.secret())
+                .send()
+        })
+        .retry(&Self::retry_strategy())
+        .await?;
+
+        response.error_for_status()?;
+        Ok(())
+    }
+
+    /// Invites a user to join an organization.
+    ///
+    /// Returns Ok(()) on success or an error if the operation fails.
+    #[tracing::instrument(skip(self))]
+    pub(super) async fn invite_user_to_organization(
+        &self,
+        org_id: Uuid,
+        invite_request: &InviteUserRequest,
+    ) -> Result<()> {
+        let auth_token = self.get_current_access_token().await?;
+        let response = (|| {
+            self.http_client
+                .post(format!(
+                    "{}/orgs/{}/invitations",
+                    self.private_realm_url, org_id
+                ))
+                .bearer_auth(auth_token.access_token.secret())
+                .json(invite_request)
+                .send()
+        })
+        .retry(&Self::retry_strategy())
+        .await?;
+
+        match response.status() {
+            reqwest::StatusCode::CREATED => Ok(()),
+            reqwest::StatusCode::CONFLICT => Err(Error::Conflict),
+            reqwest::StatusCode::NOT_FOUND => Err(Error::NotFound),
+            status => {
+                let error_body = response.text().await.unwrap_or_default();
+                Err(Error::TechnicalFailure(anyhow::anyhow!(
+                    "Failed to invite user. Status: {}. Body: {}",
+                    status,
+                    error_body
+                )))
+            }
+        }
+    }
+
+    /// Creates a new role for an organization.
+    ///
+    /// Returns Ok(()) on success or an error if the operation fails.
     #[tracing::instrument(skip(self))]
     pub(super) async fn create_an_organization_role(&self, org_id: Uuid, role: &str) -> Result<()> {
         let auth_token = self.get_current_access_token().await?;
@@ -423,6 +527,9 @@ impl KeycloakClient {
         Ok(())
     }
 
+    /// Grants a role to a user within an organization.
+    ///
+    /// Returns Ok(()) on success or an error if the operation fails.
     #[tracing::instrument(skip(self))]
     pub(super) async fn grant_an_organization_role(
         &self,
@@ -447,6 +554,36 @@ impl KeycloakClient {
         Ok(())
     }
 
+    /// Lists the organization roles of a user within an organization.
+    ///
+    /// Returns a Result containing a Vec of roles on success, or an error if the operation fails.
+    #[tracing::instrument(skip(self))]
+    pub(super) async fn list_organization_roles_for_user(
+        &self,
+        org_id: Uuid,
+        user_id: Uuid,
+    ) -> Result<Vec<OrgnanizationRole>> {
+        let auth_token = self.get_current_access_token().await?;
+        let response = (|| {
+            self.http_client
+                .get(format!(
+                    "{}/users/{}/orgs/{}/roles",
+                    self.private_realm_url, user_id, org_id
+                ))
+                .bearer_auth(auth_token.access_token.secret())
+                .send()
+        })
+        .retry(&Self::retry_strategy())
+        .await?
+        .error_for_status()?;
+
+        let roles: Vec<OrgnanizationRole> = response.json().await?;
+        Ok(roles)
+    }
+
+    /// Revokes a role from a user within an organization.
+    ///
+    /// Returns Ok(()) on success or an error if the operation fails.
     #[tracing::instrument(skip(self))]
     pub(super) async fn revoke_an_organization_role(
         &self,

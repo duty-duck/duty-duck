@@ -3,12 +3,14 @@ mod http_monitors_router;
 mod incidents_router;
 mod users_router;
 mod user_devices_router;
+mod organizations_router;
 
 use std::time::Duration;
 
 use axum::{routing::get, Json, Router};
 use http_monitors_router::http_monitors_router;
 use incidents_router::incidents_router;
+use organizations_router::organizations_router;
 use tokio::signal;
 use tower_http::{cors::CorsLayer, timeout::TimeoutLayer, trace::TraceLayer};
 use tracing::info;
@@ -21,6 +23,7 @@ pub async fn start_server(application_state: ApplicationState, port: u16) -> any
         .nest("/users", users_router())
         .nest("/http-monitors", http_monitors_router())
         .nest("/incidents", incidents_router())
+        .nest("/organizations", organizations_router())
         .route("/", get(|| async { Json(build_info_json()) }))
         .layer(CorsLayer::permissive())
         .with_state(application_state)

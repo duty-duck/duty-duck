@@ -4,9 +4,12 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use thiserror::Error;
+use ts_rs::TS;
 use uuid::Uuid;
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
 pub struct Organization {
     pub id: Uuid,
     pub name: String,
@@ -67,7 +70,9 @@ pub enum WriteOrganizationRoleError {
     TechnicalFailure(#[from] anyhow::Error),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[derive(Debug, Clone, Serialize, Deserialize, Default, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
 pub struct Address {
     pub line_1: String,
     pub line_2: String,
@@ -78,7 +83,8 @@ pub struct Address {
     pub updated_by_user_id: Uuid,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, TS)]
+#[ts(export)]
 pub enum OrganizationUserRole {
     /// Can read incidents and status pages but not write anything
     Reporter,

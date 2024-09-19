@@ -12,6 +12,7 @@ const config = useRuntimeConfig();
 
 <template>
   <NuxtLoadingIndicator color="#70BE4D" />
+  <PlusModalPage name="modal" />
   <NuxtPage />
   <BToastOrchestrator />
 </template>

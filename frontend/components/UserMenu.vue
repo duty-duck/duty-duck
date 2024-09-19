@@ -23,10 +23,10 @@ const availableLocales = computed(() => {
           </NuxtLink>
         </li>
         <li>
-          <a class="dropdown-item icon-link" href="#">
+          <NuxtLink class="dropdown-item icon-link" :to="localePath('/dashboard/myOrg')">
             <Icon name="ph:users-four-duotone" aria-hidden />
             {{ $t('dashboard.userMenu.myOrg') }}
-          </a>
+          </NuxtLink>
         </li>
         <li>
           <hr class="dropdown-divider" />

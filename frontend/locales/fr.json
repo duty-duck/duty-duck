@@ -4,6 +4,14 @@
         "next": "Suivant"
     },
     "dashboard": {
+        "organizationUserRoles": {
+            "owner": "Propriétaire",
+            "administrator": "Administrateur",
+            "editor": "Éditeur",
+            "memberManager": "Gestionnaire de membres",
+            "memberInviter": "Inviteur de membres",
+            "reporter": "Rapporteur"
+        },
         "userMenu": {
             "myOrg": "Mon organisation",
             "myAccount": "Mon compte",
@@ -38,7 +46,7 @@
             "start": "Démarrer",
             "pause": "Mettre en pause",
             "edit": "Modifier",
-            "pausedMonitorNotice": "Ce moniteur est en pause et n'est pas vérifié. Cliquez-sur le bouton Démarrer pour reprendre la vérification.",
+            "pausedMonitorNotice": "Ce moniteur est en pause et n'est pas vérifié. Cliquez-Sur le bouton Démarrer pour reprendre la vérification.",
             "lastStatusChange": "Dernier changement d'état",
             "lastCheck": "Dernière vérification",
             "dateAgo": "il y a {date}",
@@ -130,6 +138,24 @@
             "phoneNumberDescription": "Votre numéro de téléphone mobile pourra être utilisé pour vous alerter en cas d'incidents. Il ne sera jamais utilisé à des fins publicitaires.",
             "editButton": "Éditer mes informations"
         },
+        "myOrg": {
+            "pageTitle": "Mon organisation",
+            "members": {
+                "title": "Membres",
+                "name": "Nom",
+                "email": "E-mail",
+                "role": "Rôle",
+                "manage": "Gérer",
+                "yourself": "(Vous-même)",
+                "cannotEditOwner": "Impossible de modifier le propriétaire de l'organisation",
+                "revokeUser": "Révoquer l'utilisateur",
+                "updateRoles": "Mettre à jour les rôles"
+            },
+            "updateUserRolesModal": {
+                "title": "Mettre à jour les rôles de l'utilisateur",
+                "description": "Vous êtes sur le point de mettre à jour les rôles de {firstName} {lastName}."
+            }
+        },
         "pushNotifications": {
             "title": "Notifications Push",
             "loading": "Chargement...",
@@ -169,8 +195,8 @@
     },
     "permissions": {
         "deniedToastNotification": {
-          "title": "Accès Refusé",
-          "body": "Vous n'avez pas la permission d'effectuer cette action."
+            "title": "Accès Refusé",
+            "body": "Vous n'avez pas la permission d'effectuer cette action."
         }
-      }
+    }
 }
