@@ -8,7 +8,7 @@ const { t } = useI18n();
 const { show } = useToast();
 const router = useRouter();
 const auth = useAuthMandatory();
-const userInfo = auth.state.idToken.parsed;
+const userInfo = auth.userProfile.user;
 const localePath = useLocalePath();
 const repo = useUserRepository();
 
@@ -98,7 +98,7 @@ const onSubmit = async () => {
   };
 
   const response = await repo.updateProfile(command);
-  auth.updateUser(response.newUser);
+  auth.refreshUserProfile();
   router.replace(localePath("/dashboard/myAccount"));
 
   if (response.needsSessionInvalidation) {
@@ -112,6 +112,13 @@ const onSubmit = async () => {
     setTimeout(() => {
       auth.logout();
     }, 8000)
+  } else {
+    show?.({
+      props: {
+        title: t("dashboard.myAccount.edit.successToast.title"),
+        body: t("dashboard.myAccount.edit.successToast.body"),
+      },
+    });
   }
 };
 </script>
@@ -135,7 +142,7 @@ const onSubmit = async () => {
         {{ $t("dashboard.myAccount.edit.pageTitle") }}
       </h2>
 
-      <BForm @submit="onSubmit">
+      <BForm @submit.prevent="onSubmit">
         <BFormGroup
           class="mb-4"
           id="firstNameGroup"

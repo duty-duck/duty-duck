@@ -129,6 +129,10 @@
                 "sessionInvalidationToast": {
                     "title": "Préparez-vous à la reconnexion",
                     "body": "Vos informations sont bien mises à jour. Pour votre sécurité, vous allez être déconnecté(e). Vous devrez taper votre mot de passe pour continuer à utiliser Duty Duck."
+                },
+                "successToast": {
+                    "title": "Informations mises à jour",
+                    "body": "Vos informations ont été mises à jour. Vous pouvez continuer à utiliser Duty Duck."
                 }
             },
             "pageTitle": "Mon compte",
@@ -214,6 +218,28 @@
         }
     },
     "signup": {
+        "form": {
+            "aboutYourself": "Parlez-nous de vous",
+            "firstName": "Prénom",
+            "nameDescription": "Dites-nous votre nom",
+            "firstNamePlaceholder": "Entrez votre prénom s'il vous plaît",
+            "lastName": "Nom de famille",
+            "lastNamePlaceholder": "Entrez votre nom de famille s'il vous plaît",
+            "email": "Adresse e-mail",
+            "emailDescription": "Nous ne partagerons pas votre e-mail avec qui que ce soit",
+            "emailPlaceholder": "Entrez votre e-mail s'il vous plaît",
+            "password": "Mot de passe",
+            "passwordDescription": "Nous recommandons d'utiliser un mot de passe fort et aléatoire",
+            "passwordPlaceholder": "Entrez votre mot de passe s'il vous plaît",
+            "passwordConfirm": "Confirmation du mot de passe",
+            "passwordConfirmPlaceholder": "Confirmez votre mot de passe s'il vous plaît",
+            "aboutOrganization": "Parlez-nous de votre organisation",
+            "organizationDescription": "Après votre inscription, vous pourrez inviter d'autres membres de votre organisation à collaborer. Le nom de votre organisation apparaîtra sur les e-mails et les factures.",
+            "organization": "Votre organisation",
+            "organizationRename": "Ne vous inquiétez pas, vous pourrez renommer votre organisation plus tard",
+            "organizationPlaceholder": "Entrez le nom de votre organisation",
+            "submit": "S'inscrire"
+          },
         "success": {
             "title": "Merci pour votre inscription !",
             "message": "Vous pouvez maintenant accéder à votre tableau de bord personnel pour créer vos premiers moniteurs",

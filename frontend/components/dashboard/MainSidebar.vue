@@ -8,7 +8,7 @@ import { useIntervalFn } from '@vueuse/core';
     const canReadIncidents = canComputed('readIncidents');
 
     let { refresh: refreshIncidentCount, data: incidentCount } = await incidentRepo.useOngoingIncidentsCount();
-    useIntervalFn(() => refreshIncidentCount(), 30000);
+    useIntervalFn(() => refreshIncidentCount(), 20000);
     watch(() => route.fullPath, () => refreshIncidentCount());
 </script>
 

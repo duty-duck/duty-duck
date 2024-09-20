@@ -15,8 +15,7 @@ use crate::domain::{
         user_device::UserDevice,
     },
     ports::{
-        incident_notification_repository::IncidentNotificationRepository,
-        mailer::Mailer,
+        incident_notification_repository::IncidentNotificationRepository, mailer::Mailer,
         organization_repository::OrganizationRepository,
         push_notification_server::PushNotificationServer,
         user_devices_repository::UserDevicesRepository,
@@ -24,7 +23,7 @@ use crate::domain::{
 };
 
 #[allow(clippy::too_many_arguments)]
-pub async fn spawn_new_incident_notification_tasks(
+pub fn spawn_new_incident_notification_tasks(
     n_tasks: usize,
     delay_between_two_executions: Duration,
     organization_repository: impl OrganizationRepository,
@@ -92,6 +91,12 @@ async fn fetch_due_incidents_and_notify_incident_creation<M: Mailer>(
         .await?;
 
     let incidents_len = incidents.len();
+
+    debug!(
+        incidents = incidents_len,
+        "{} newly-created incidents are due for notification", incidents_len
+    );
+
     for incident in incidents {
         proces_incident::<M>(
             &incident,
@@ -253,21 +258,29 @@ async fn fetch_organization_and_users(
     if let Some(cached_data) = cache.get(&org_id) {
         return Ok(cached_data.clone());
     }
-
+    let mut users = Vec::new();
     let organization = org_repository
         .get_organization(org_id)
         .await
         .with_context(|| format!("Failed to fetch organization with id: {}", org_id))?;
 
-    let users = org_repository
-        .list_organization_members(org_id, 0, u32::MAX)
-        .await
-        .with_context(|| {
-            format!(
-                "Failed to fetch members for organization with id: {}",
-                org_id
-            )
-        })?;
+    loop {
+        let page_size = 100;
+        let page_results = org_repository
+            .list_organization_members(org_id, 0, page_size as u32)
+            .await
+            .with_context(|| {
+                format!(
+                    "Failed to fetch members for organization with id: {}",
+                    org_id
+                )
+            })?;
+        let page_results_len = page_results.len();
+        users.extend(page_results);
+        if page_results_len < page_size {
+            break;
+        }
+    }
 
     let result = (organization, users);
     cache.insert(org_id, result.clone());

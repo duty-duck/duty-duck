@@ -45,6 +45,7 @@ pub struct UpdateProfileResponse {
     new_user_permissions: Vec<Permission>,
 }
 
+#[tracing::instrument(skip(auth_context, repository))]
 pub async fn update_user_profile(
     auth_context: &AuthContext,
     repository: &impl UserRepository,

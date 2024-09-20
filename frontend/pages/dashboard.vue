@@ -2,15 +2,14 @@
 import { useBreakpoints, breakpointsBootstrapV5 } from "@vueuse/core";
 
 
-const route = useRoute();
 const auth = useAuthMandatory();
 const breakpoints = useBreakpoints(breakpointsBootstrapV5);
 const lgOrLarger = breakpoints.greaterOrEqual("lg");
 const messageHandler = useFirebaseMessageHandler();
+const firebaseMessaging = useFirebaseMessaging();
 
-onMounted(() => {
+onBeforeMount(() => {
   // Register message handler
-  const firebaseMessaging = useFirebaseMessaging();
   firebaseMessaging.onMessage(messageHandler);
 });
 </script>

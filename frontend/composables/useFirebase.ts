@@ -12,6 +12,7 @@ let app: FirebaseApp | undefined;
 export const useFirebaseMessageHandler = () => {
     const { show } = useToast();
     return (payload: MessagePayload) => {
+        console.log("Received a new Firebase message:", payload);
         show?.({
             props: {
                 body: payload.notification?.body,
@@ -93,10 +94,10 @@ export const useFirebaseMessaging = createSharedComposable(() => {
     // When the store is first initialized, load the token in the background
     getToken();
 
-    return {
+    return reactive({
         token,
         requestPermission,
         onMessage
-    }
+    })
 
 })

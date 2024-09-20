@@ -102,7 +102,7 @@ impl UserRepository for UserRepositoryAdapter {
         };
 
         match self.keycloak_client.update_user(id, &request).await {
-            Ok(response) => Ok(response.try_into()?),
+            Ok(response) => Ok(response.try_into().with_context(|| "Failed to deserialize user")?),
             Err(keycloak_client::Error::NotFound) => Err(UpdateUserError::UserNotFound),
             Err(e) => Err(UpdateUserError::TechnicalFailure(e.into())),
         }

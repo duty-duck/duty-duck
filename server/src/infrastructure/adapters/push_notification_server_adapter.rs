@@ -60,18 +60,28 @@ impl PushNotificationServerAdapter {
             .bearer_auth(api_key.as_str())
             .json(&request_body);
         let response = request.send().await?;
-        if !response.status().is_success() {
-            let status_code = response.status().as_u16();
-            let text = response.text().await.unwrap_or_default();
+        match response.status() {
+            reqwest::StatusCode::OK
+            // The API will return NOT_FOUND if the service worker is unregistered, which should not be considered as an error
+            | reqwest::StatusCode::NOT_FOUND
+            | reqwest::StatusCode::CREATED
+            | reqwest::StatusCode::NO_CONTENT => (),
+            _ => {
+                let status_code = response.status().as_u16();
+                let text = response.text().await.unwrap_or_default();
 
-            tracing::error!(
-                status = status_code,
-                body = text,
-                "Failed HTTP Request to Firebase Cloud Messaging API"
-            );
+                tracing::error!(
+                    status = status_code,
+                    body = text,
+                    "Failed HTTP Request to Firebase Cloud Messaging API"
+                );
 
-            anyhow::bail!("Failed HTTP Reqwest to Firebase Cloud messaging API, wrong HTTP Status");
+                anyhow::bail!(
+                    "Failed HTTP Reqwest to Firebase Cloud messaging API, wrong HTTP Status"
+                );
+            }
         }
+
         Ok(())
     }
 }
@@ -120,5 +130,7 @@ pub async fn push_notification_adapter_test() {
         title: "Test notification".to_string(),
         body: "Hello from Rust!".to_string(),
     };
-    PushNotificationServer::send(&adapter, &[token], &notification).await.unwrap();
+    PushNotificationServer::send(&adapter, &[token], &notification)
+        .await
+        .unwrap();
 }

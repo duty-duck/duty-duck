@@ -22,7 +22,7 @@ postgres_transactional_repo!(IncidentNotificationRepositoryAdapter);
 
 #[async_trait::async_trait]
 impl IncidentNotificationRepository for IncidentNotificationRepositoryAdapter {
-    /// Returns a list of newly-created incidents for which the creation notification has not yet been sent to userrs
+    /// Returns a list of newly-created incidents for which the creation notification has not yet been sent to users
     /// This must be executed inside a transaction. Concurrent transactions will not return the same incidents (incidents that are locked by a transaction will be skipped)
     async fn list_new_incidents_due_for_notification(
         &self,
@@ -31,7 +31,14 @@ impl IncidentNotificationRepository for IncidentNotificationRepositoryAdapter {
     ) -> anyhow::Result<Vec<IncidentWithSourcesDetails>> {
         let records = sqlx::query!(
             r#"SELECT
-                i.*, 
+                i.organization_id as "organization_id!",
+                i.id as "id!",
+                i.created_at as "created_at!",
+                i.created_by as "created_by?",
+                i.resolved_at as "resolved_at?",
+                i.cause as "cause?",
+                i.status as "status!",
+                i.priority as "priority!",
                 hmi.http_monitor_id as "http_monitor_id?",
                 hm.url as "http_monitor_url?"
             FROM incidents i
