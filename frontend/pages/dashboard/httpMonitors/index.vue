@@ -88,7 +88,7 @@ useIntervalFn(() => {
           $t("dashboard.mainSidebar.home")
         }}</BBreadcrumbItem>
         <BBreadcrumbItem active>{{
-          $t("dashboard.sidebar.monitors")
+          $t("dashboard.mainSidebar.monitors")
         }}</BBreadcrumbItem>
       </BBreadcrumb>
       <div class="d-flex align-items-center justify-content-between">

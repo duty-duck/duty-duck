@@ -9,7 +9,10 @@ use tracing::{debug, error};
 use crate::domain::{
     entities::{
         http_monitor::{HttpMonitor, HttpMonitorErrorKind, HttpMonitorStatus},
-        incident::{IncidentCause, IncidentPriority, IncidentSource, IncidentStatus, NewIncident},
+        incident::{
+            IncidentCause, IncidentPriority, IncidentSource, IncidentStatus, IncidentWithSources,
+            NewIncident,
+        },
     },
     ports::{
         http_client::{HttpClient, PingError},
@@ -137,17 +140,20 @@ where
             .await
             .with_context(|| "Failed to update HTTP monitor status")?;
 
-        // Create a new incident if the monitor becomes down (in the same transaction)
+        // Create a new incident if the monitor is down and there is no ongoing incident
         if status == HttpMonitorStatus::Down
-            && monitor.status != HttpMonitorStatus::Down
-            && monitor.status != HttpMonitorStatus::Suspicious
+            && get_existing_incident_for_monitor(&mut transaction, incident_repository, &monitor)
+                .await?
+                .is_none()
         {
             create_incident_for_monitor(&mut transaction, incident_repository, &monitor)
                 .await
                 .with_context(|| "Failed to create incident for failed HTTP monitor")?;
         }
-        // Resolve the existing incidents if the monitor becomes up (in the same transaction)
-        else if status == HttpMonitorStatus::Up && monitor.status != HttpMonitorStatus::Up {
+        // Resolve the existing incidents if the monitor is up
+        // Don't bother checking for ongoing incidents as we are going to resolve all of them. 
+        // This ensures that any incident that wasn't resolved before because of a database error will be resolved.
+        else if status == HttpMonitorStatus::Up {
             resolve_incidents_for_monitor(&mut transaction, incident_repository, &monitor)
                 .await
                 .with_context(|| "Failed to resolve incidents for recovered HTTP monitor")?;
@@ -159,6 +165,8 @@ where
     Ok(monitors_len)
 }
 
+/// Determines the next status of an HTTP monitor based on its current state and the latest ping result.
+/// Returns a tuple of the new status counter and the new status.
 fn next_status(
     downtime_confirmation_threshold: i16,
     recovery_confirmation_threshold: i16,
@@ -243,6 +251,34 @@ where
         .await
 }
 
+async fn get_existing_incident_for_monitor<IR>(
+    transaction: &mut IR::Transaction,
+    incident_repo: &IR,
+    monitor: &HttpMonitor,
+) -> anyhow::Result<Option<IncidentWithSources>>
+where
+    IR: IncidentRepository,
+{
+    let incident = incident_repo
+        .list_incidents(
+            transaction,
+            monitor.organization_id,
+            &[IncidentStatus::Ongoing],
+            &IncidentPriority::ALL,
+            &[IncidentSource::HttpMonitor { id: monitor.id }],
+            1,
+            0,
+        )
+        .await?
+        .incidents
+        .into_iter()
+        .next();
+    Ok(incident)
+}
+
+/// Creates a new incident for the given monitor
+/// The incident is created in the same transaction as the monitor update.
+/// When a new incident is created, a database trigger takes care of creating the "incidents_notifications" table entry, that, in turn, will ensure users are notified of the incident.
 async fn create_incident_for_monitor<IR>(
     transaction: &mut IR::Transaction,
     incident_repo: &IR,

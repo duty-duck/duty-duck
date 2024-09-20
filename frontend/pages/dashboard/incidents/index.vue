@@ -80,7 +80,7 @@ useIntervalFn(() => {
           $t("dashboard.mainSidebar.home")
         }}</BBreadcrumbItem>
         <BBreadcrumbItem active>{{
-          $t("dashboard.sidebar.incidents")
+          $t("dashboard.mainSidebar.incidents")
         }}</BBreadcrumbItem>
       </BBreadcrumb>
       <h2>{{ $t("dashboard.incidents.pageTitle") }}</h2>

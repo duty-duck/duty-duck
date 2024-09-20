@@ -22,7 +22,7 @@ const onSubmit = async (data: HttpMonitorFormData) => {
         $t("dashboard.mainSidebar.home")
       }}</BBreadcrumbItem>
       <BBreadcrumbItem :to="localePath('/dashboard/httpMonitors')">{{
-        $t("dashboard.sidebar.monitors")
+        $t("dashboard.mainSidebar.monitors")
       }}</BBreadcrumbItem>
       <BBreadcrumbItem active>
         {{ $t("dashboard.monitors.createMonitorTitle") }}

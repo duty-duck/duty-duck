@@ -57,7 +57,12 @@ pub async fn start_application() -> anyhow::Result<()> {
             config.notifications_tasks_select_size,
         );
 
-    server::start_server(application_state, config.server_port).await?;
+    tokio::select! {
+        _ = _http_monitors_tasks.join_all() => (),
+        _ = _new_incident_notification_task.join_all() => (),
+        _ = server::start_server(application_state, config.server_port) => (),
+    }
+
     Ok(())
 }
 

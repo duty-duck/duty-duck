@@ -11,6 +11,7 @@ const config = useRuntimeConfig();
 </script>
 
 <template>
+  <NuxtPwaManifest />
   <NuxtLoadingIndicator color="#70BE4D" />
   <NuxtPage />
   <BToastOrchestrator />

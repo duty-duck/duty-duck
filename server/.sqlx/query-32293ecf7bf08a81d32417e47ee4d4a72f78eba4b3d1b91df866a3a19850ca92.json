@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT\n            \n                i.*, \n                hmi.http_monitor_id,\n                hm.url as http_monitor_url\n            FROM incidents i\n            LEFT JOIN http_monitors_incidents hmi\n            ON hmi.organization_id = i.organization_id AND hmi.incident_id = i.id\n            LEFT JOIN http_monitors hm\n            ON hm.organization_id = i.organization_id AND hm.id = hmi.http_monitor_id\n            WHERE i.id IN (\n                SELECT incident_id FROM incidents_notifications\n                WHERE creation_notification_sent_at IS NULL\n                FOR UPDATE SKIP LOCKED\n                LIMIT $1\n            )",
+  "query": "SELECT\n                i.*, \n                hmi.http_monitor_id as \"http_monitor_id?\",\n                hm.url as \"http_monitor_url?\"\n            FROM incidents i\n            LEFT JOIN http_monitors_incidents hmi\n            ON hmi.organization_id = i.organization_id AND hmi.incident_id = i.id\n            LEFT JOIN http_monitors hm\n            ON hm.organization_id = i.organization_id AND hm.id = hmi.http_monitor_id\n            WHERE i.id IN (\n                SELECT incident_id FROM incidents_notifications\n                WHERE creation_notification_sent_at IS NULL\n                FOR UPDATE SKIP LOCKED\n                LIMIT $1\n            )",
   "describe": {
     "columns": [
       {
@@ -45,12 +45,12 @@
       },
       {
         "ordinal": 8,
-        "name": "http_monitor_id",
+        "name": "http_monitor_id?",
         "type_info": "Uuid"
       },
       {
         "ordinal": 9,
-        "name": "http_monitor_url",
+        "name": "http_monitor_url?",
         "type_info": "Text"
       }
     ],
@@ -69,8 +69,8 @@
       false,
       false,
       false,
-      true
+      false
     ]
   },
-  "hash": "ee2b8e08bf3a0268adfaae2303092434e6c645b0416b158f41abcd20fdbb598c"
+  "hash": "32293ecf7bf08a81d32417e47ee4d4a72f78eba4b3d1b91df866a3a19850ca92"
 }

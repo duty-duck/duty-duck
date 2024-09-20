@@ -2,6 +2,9 @@
 import { required, email, sameAs, helpers } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { type SignUpCommand } from "bindings/SignUpCommand";
+import { useI18n } from "vue-i18n";
+
+const { t } = useI18n();
 
 const state = reactive({
   firstName: "",
@@ -48,20 +51,20 @@ const onSubmit = async () => {
 <template>
   <BForm @submit.prevent="onSubmit">
     <div class="row mb-4">
-      <h2 class="h5">Tell us about yourself</h2>
+      <h2 class="h5">{{ $t('signup.form.aboutYourself') }}</h2>
       <div class="col-lg-6">
         <BFormGroup
           id="firstNameGroup"
-          label="First Name"
+          :label="$t('signup.form.firstName')"
           label-for="firstNameInput"
-          description="Let us know your name"
+          :description="$t('signup.form.nameDescription')"
           floating
           :invalid-feedback="v$.firstName.$errors[0]?.$message.toString()"
         >
           <BFormInput
             v-model="v$.firstName.$model"
             id="firstNameInput"
-            placeholder="Enter your first name please"
+            :placeholder="$t('signup.form.firstNamePlaceholder')"
             required
             :state="v$.firstName.$dirty ? !v$.firstName.$invalid : null"
           />
@@ -70,7 +73,7 @@ const onSubmit = async () => {
       <div class="col-lg-6">
         <BFormGroup
           id="lastNameGroup"
-          label="Last Name"
+          :label="$t('signup.form.lastName')"
           label-for="lastNameInput"
           floating
           :invalid-feedback="v$.lastName.$errors[0]?.$message.toString()"
@@ -78,7 +81,7 @@ const onSubmit = async () => {
           <BFormInput
             v-model="v$.lastName.$model"
             id="lastNameInput"
-            placeholder="Enter your last name please"
+            :placeholder="$t('signup.form.lastNamePlaceholder')"
             :state="v$.lastName.$dirty ? !v$.lastName.$invalid : null"
           />
         </BFormGroup>
@@ -87,9 +90,9 @@ const onSubmit = async () => {
     <BFormGroup
       id="emailGroup"
       class="mb-3"
-      label="E-mail address"
+      :label="$t('signup.form.email')"
       label-for="emailInput"
-      description="We won't share your e-mail with anyone"
+      :description="$t('signup.form.emailDescription')"
       floating
       :invalid-feedback="v$.email.$errors[0]?.$message.toString()"
     >
@@ -97,7 +100,7 @@ const onSubmit = async () => {
         v-model="v$.email.$model"
         id="emailInput"
         type="email"
-        placeholder="Enter your email please"
+        :placeholder="$t('signup.form.emailPlaceholder')"
         :state="v$.email.$dirty ? !v$.email.$invalid : null"
       />
     </BFormGroup>
@@ -105,17 +108,17 @@ const onSubmit = async () => {
       <div class="col-md-6">
         <BFormGroup
           id="passwordGroup"
-          label="Password"
+          :label="$t('signup.form.password')"
           label-for="passwordInput"
           floating
-          description="We recommend using a strong, random password"
+          :description="$t('signup.form.passwordDescription')"
           :invalid-feedback="v$.password.$errors[0]?.$message.toString()"
         >
           <BFormInput
             v-model="v$.password.$model"
             id="passwordInput"
             type="password"
-            placeholder="Enter your password please"
+            :placeholder="$t('signup.form.passwordPlaceholder')"
             required
             :state="passwordFieldState"
           />
@@ -124,7 +127,7 @@ const onSubmit = async () => {
       <div class="col-md-6">
         <BFormGroup
           id="passwordConfirmGroup"
-          label="Password confirmation"
+          :label="$t('signup.form.passwordConfirm')"
           label-for="passwordConfirmInput"
           floating
           :invalid-feedback="v$.passwordConfirm.$errors[0]?.$message.toString()"
@@ -133,7 +136,7 @@ const onSubmit = async () => {
             v-model="v$.passwordConfirm.$model"
             id="passwordConfirmInput"
             type="password"
-            placeholder="Enter your password please"
+            :placeholder="$t('signup.form.passwordConfirmPlaceholder')"
             required
             :state="
               v$.passwordConfirm.$dirty ? !v$.passwordConfirm.$invalid : null
@@ -143,17 +146,13 @@ const onSubmit = async () => {
       </div>
     </div>
     <div class="mb-3">
-      <h2 class="h5">Tell us about your oganization</h2>
-      <p>
-        After you sign up, you will be able to invite other members of your
-        organization to collaborate. The name of your organization will show on
-        e-mails and invoices.
-      </p>
+      <h2 class="h5">{{ $t('signup.form.aboutOrganization') }}</h2>
+      <p>{{ $t('signup.form.organizationDescription') }}</p>
       <BFormGroup
         id="orgGroup"
-        label="Your organization"
+        :label="$t('signup.form.organization')"
         label-for="orgInput"
-        description="Don't worry, you will be able to rename your organization later"
+        :description="$t('signup.form.organizationRename')"
         floating
       >
         <BFormInput
@@ -162,13 +161,13 @@ const onSubmit = async () => {
             v$.organizationName.$dirty ? !v$.organizationName.$invalid : null
           "
           id="orgInput"
-          placeholder="Enter your organization's name"
+          :placeholder="$t('signup.form.organizationPlaceholder')"
           required
         />
       </BFormGroup>
     </div>
     <div>
-      <BButton :disabled="v$.$invalid" type="submit">Sign up</BButton>
+      <BButton :disabled="v$.$invalid" type="submit">{{ $t('signup.form.submit') }}</BButton>
     </div>
   </BForm>
 </template>
