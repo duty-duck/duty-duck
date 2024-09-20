@@ -17,11 +17,16 @@
             "myAccount": "My account",
             "logOut": "Log out"
         },
-        "sidebar": {
+        "mainSidebar": {
             "home": "Home",
             "monitors": "Monitors",
             "incidents": "Incidents",
             "soon": "Soon"
+        },
+        "settingsSidebar": {
+            "backToDashboard": "Back to dashboard",
+            "myOrg": "My organization",
+            "myAccount": "My account"
         },
         "home": {
             "pageTitle": "Home",
@@ -149,21 +154,59 @@
         },
         "myOrg": {
             "pageTitle": "My organization",
+            "yourOrganizationIs": "Your organization is {organization}.",
             "members": {
                 "title": "Members",
+                "inviteUser": "Invite user",
                 "name": "Name",
                 "email": "E-mail address",
                 "role": "Role",
-                "manage": "Manage",
+                "actions": "Actions",
                 "yourself": "(Yourself)",
                 "cannotEditOwner": "Cannot edit the organization owner",
                 "revokeUser": "Revoke user",
                 "updateRoles": "Update roles"
             },
+            "invitations": {
+                "title": "Pending invitations",
+                "email": "E-mail",
+                "role": "Role",
+                "actions": "Actions",
+                "revokeInvitation": "Revoke invitation",
+                "noInvitations": "No pending invitations"
+            },
+            "inviteUserModal": {
+                "successToastNotification": {
+                    "title": "User invited",
+                    "body": "The user has been invited to the organization"
+                },
+                "errorToastNotification": {
+                    "title": "Error inviting user",
+                    "body": "An error occurred while inviting the user"
+                },
+                "title": "Invite user to organization",
+                "description": "You can invite users to your organization, {organization}, by entering their email address below.",
+                "emailDescription": "They will receive an email with a link to join the organization.",
+                "emailLabel": "Email",
+                "emailPlaceholder": "Email",
+                "roleLabel": "Initial Role",
+                "loading": "Loading...",
+                "invite": "Invite"
+            },
             "updateUserRolesModal": {
                 "title": "Update user roles",
-                "description": "You are about to update the roles of {firstName} {lastName}."
-              }
+                "description": "You are about to update the roles of {firstName} {lastName}.",
+                "ok": "Update roles",
+                "loading": "Updating..."
+            },
+            "revokeUserModal": {
+                "title": "Revoke user from organization",
+                "revoking": "Revoking...",
+                "revokeUser": "Revoke user",
+                "confirmationMessage": "You are about to revoke {firstName} {lastName} from the organization. This action cannot be undone.",
+                "instructionMessage": "To complete the action, please enter the user name below:",
+                "inputPlaceholder": "Type '{firstName} {lastName}' to confirm"
+            }
         }
     },
 

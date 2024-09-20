@@ -9,7 +9,7 @@ export const useServer$fetch = () => {
         onRequest: ({ options }) => {
             const auth = useAuth();
             options.headers = options.headers || {};
-            if (!auth?.keycloakState != null) {
+            if (auth.keycloakState != null && auth.keycloakState?.accessToken?.raw != null) {
                 // @ts-ignore
                 options.headers["Authorization"] = `Bearer ${auth.keycloakState.accessToken.raw}`;
             }

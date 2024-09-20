@@ -17,7 +17,16 @@ pub struct UserRepositoryAdapter {
 impl UserRepository for UserRepositoryAdapter {
     #[tracing::instrument(skip(self))]
     async fn get_user(&self, id: Uuid) -> anyhow::Result<Option<User>> {
-        match self.keycloak_client.get_user(id).await {
+        match self.keycloak_client.get_user_by_id(id).await {
+            Ok(user) => Ok(Some(user.try_into()?)),
+            Err(keycloak_client::Error::NotFound) => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    #[tracing::instrument(skip(self))]
+    async fn get_user_by_email(&self, email: &str) -> anyhow::Result<Option<User>> {
+        match self.keycloak_client.get_user_by_email(email).await {
             Ok(user) => Ok(Some(user.try_into()?)),
             Err(keycloak_client::Error::NotFound) => Ok(None),
             Err(e) => Err(e.into()),
@@ -60,7 +69,7 @@ impl UserRepository for UserRepositoryAdapter {
     ) -> Result<User, UpdateUserError> {
         let kc_user = self
             .keycloak_client
-            .get_user(id)
+            .get_user_by_id(id)
             .await
             .map_err(|e| match e {
                 keycloak_client::Error::NotFound => UpdateUserError::UserNotFound,

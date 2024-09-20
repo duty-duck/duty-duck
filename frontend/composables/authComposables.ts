@@ -105,14 +105,28 @@ export const useAuth = createSharedComposable(() => {
 
     }
 
+    const can = (permission: Permission | Permission[]) => {
+        const user = userProfile.value;
+        let output = true;
+        const permissions: Permission[] = typeof permission == "string" ? [permission] : permission;
+        for (let index = 0; index < permissions.length; index++) {
+            const hasPermission = user && user !== "loading" && user.permissions.includes(permissions[index]);
+            if (!hasPermission) {
+                output = false;
+            }
+        }
+        return output;
+    };
+
     return reactive({
         keycloakState,
         /**
          * Logs out the current user.
          */
-        async logout() {
+        async logout(redirectUri?: string) {
             await keycloak!.logout({
-                redirectUri: `${location.protocol}//${location.host}`
+
+                redirectUri: redirectUri ?? `${location.protocol}//${location.host}`
             })
         },
         /**
@@ -144,16 +158,16 @@ export const useAuth = createSharedComposable(() => {
                 await refreshUserProfile()
             }
         },
+        can,
         /**
          * Checks if the user has a specific permission.
          * @param permission - The permission to check.
          * @returns A computed boolean indicating if the user has the permission.
          */
-        can: (permission: Permission) => computed(() => {
-            const user = userProfile.value;
-            return user && user !== "loading" && user.permissions.includes(permission)
-        })
-    })
+        canComputed(permission: Permission | Permission[]) {
+            return computed(() => can(permission))
+        }
+    });
 });
 
 /**
@@ -170,18 +184,18 @@ export const ensurePemissionOnBeforeMount = (permission: Permission | Permission
     const { t } = useI18n();
 
     onBeforeMount(() => {
-        for (let index = 0; index < permissions.length; index++) {
-            if (!can(permissions[index])) {
-                show?.({
-                    props: {
-                        title: t('permissions.deniedToastNotification.title'),
-                        body: t('permissions.deniedToastNotification.body'),
-                        variant: 'danger',
-                        value: 5000
-                    }
-                });
-                return router.replace(localePath("/dashboard"))
-            }
+        console.log("checking permissions", permissions);
+
+        if (!can(permissions)) {
+            show?.({
+                props: {
+                    title: t('permissions.deniedToastNotification.title'),
+                    body: t('permissions.deniedToastNotification.body'),
+                    variant: 'danger',
+                    value: 5000
+                }
+            })
+            return router.replace(localePath("/dashboard"))
         }
     })
 }

@@ -29,8 +29,8 @@ pub mod built_info;
 pub mod server;
 
 pub async fn start_application() -> anyhow::Result<()> {
-    let config = AppConfig::load()?;
-    let application_state = build_app_state(&config).await?;
+    let config = Arc::new(AppConfig::load()?);
+    let application_state = build_app_state(Arc::clone(&config)).await?;
 
     // TODO: implement graceful shutdown here
     let _http_monitors_tasks = use_cases::http_monitors::spawn_http_monitors_execution_tasks(
@@ -61,7 +61,7 @@ pub async fn start_application() -> anyhow::Result<()> {
     Ok(())
 }
 
-async fn build_app_state(config: &AppConfig) -> anyhow::Result<ApplicationState> {
+async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationState> {
     let pool = PgPoolOptions::new()
         .max_connections(config.database_max_connections)
         .connect(&config.database_url)
@@ -95,15 +95,16 @@ async fn build_app_state(config: &AppConfig) -> anyhow::Result<ApplicationState>
             pool: pool.clone(),
         },
         user_devices_repository: UserDevicesRepositoryAdapter { pool: pool.clone() },
-        http_client: HttpClientAdapter::new(config),
+        http_client: HttpClientAdapter::new(&config),
         push_notification_server: PushNotificationServerAdapter::new().await?,
         mailer: MailerAdapter::new(
             &config.smtp_server_host,
-            config.server_port,
+            config.smtp_server_port,
             config.smtp_disable_tls,
         )?,
     };
     Ok(ApplicationState {
+        config: config.clone(),
         adapters,
         keycloak_client: keycloak_client.clone(),
         access_token_audience: config.access_token_audience.clone(),

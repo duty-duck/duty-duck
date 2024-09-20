@@ -3,7 +3,9 @@ import { useIntervalFn } from '@vueuse/core';
     const route = useRoute();
     let incidentRepo = useIncidentRepository();
     const localePath = useLocalePath()
-    const { can} = useAuth();
+    const { canComputed } = useAuth();
+    const canReadHttpMonitors = canComputed('readHttpMonitors');
+    const canReadIncidents = canComputed('readIncidents');
 
     let { refresh: refreshIncidentCount, data: incidentCount } = await incidentRepo.useOngoingIncidentsCount();
     useIntervalFn(() => refreshIncidentCount(), 30000);
@@ -16,19 +18,19 @@ import { useIntervalFn } from '@vueuse/core';
             <li class="nav-item">
                 <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard')">
                     <Icon name="ph:house-simple-duotone" size="20px" />
-                    {{ $t("dashboard.sidebar.home") }}
+                    {{ $t("dashboard.mainSidebar.home") }}
                 </NuxtLink>
             </li>
             <li class="nav-item">
-                <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/httpMonitors')" :disabled="!can('readHttpMonitors')">
+                <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/httpMonitors')" :disabled="!canReadHttpMonitors">
                     <Icon name="ph:pulse-duotone" size="22px" />
-                    {{ $t("dashboard.sidebar.monitors") }}
+                    {{ $t("dashboard.mainSidebar.monitors") }}
                 </NuxtLink>
             </li>
             <li class="nav-item">
-                <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/incidents')" :disabled="!can('readIncidents')">
+                <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/incidents')" :disabled="!canReadIncidents">
                     <Icon name="ph:seal-warning-duotone" size="22px" />
-                    {{ $t("dashboard.sidebar.incidents") }}
+                    {{ $t("dashboard.mainSidebar.incidents") }}
                     <BBadge class="ms-2" variant="danger" v-if="incidentCount && incidentCount > 0">{{ incidentCount }}</BBadge>
                 </NuxtLink>
             </li>
@@ -36,14 +38,14 @@ import { useIntervalFn } from '@vueuse/core';
                 <a class="nav-link icon-link disabled" href="#">
                     <Icon name="ph:speedometer-duotone" size="22px" />
                     Web perf.
-                    <BBadge>{{ $t('dashboard.sidebar.soon') }}</BBadge>
+                    <BBadge>{{ $t('dashboard.mainSidebar.soon') }}</BBadge>
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link icon-link disabled" href="#">
                     <Icon name="ph:cpu-duotone" size="22px" />
                     Infrastructure
-                    <BBadge>{{ $t('dashboard.sidebar.soon') }}</BBadge>
+                    <BBadge>{{ $t('dashboard.mainSidebar.soon') }}</BBadge>
                 </a>
             </li>
         </ul>

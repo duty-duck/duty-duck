@@ -1,3 +1,4 @@
+use anyhow::Context;
 use serde::Deserialize;
 use thiserror::Error;
 use ts_rs::TS;
@@ -42,7 +43,7 @@ pub async fn change_member_role_use_case(
     let member_roles = organization_repository
         .list_organization_roles_for_user(organization_id, member_id)
         .await
-        .map_err(|e| ChangeMemberRoleError::TechnicalFailure(e.into()))?;
+        .with_context(|| "Failed to list organization roles for user")?;
 
     let roles_to_revoke = member_roles
         .iter()
@@ -59,14 +60,14 @@ pub async fn change_member_role_use_case(
         organization_repository
             .revoke_organization_role(organization_id, member_id, role)
             .await
-            .map_err(|e| ChangeMemberRoleError::TechnicalFailure(e.into()))?;
+            .with_context(|| "Failed to revoke organization role")?;
     }
 
     for role in roles_to_add {
         organization_repository
             .grant_organization_role(organization_id, member_id, role)
             .await
-            .map_err(|e| ChangeMemberRoleError::TechnicalFailure(e.into()))?;
+            .with_context(|| "Failed to grant organization role")?;
     }
 
     Ok(())

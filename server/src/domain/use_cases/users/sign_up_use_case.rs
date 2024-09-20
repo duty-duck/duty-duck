@@ -117,7 +117,7 @@ pub async fn sign_up(
 
     // 5. Assign owner role to new user
     organization_repository
-        .grant_organization_role(user.id, org.id, OrganizationUserRole::Owner)
+        .grant_organization_role(org.id, user.id, OrganizationUserRole::Owner)
         .await
         .with_context(|| "Failed to assign organization role Owner to user")?;
 

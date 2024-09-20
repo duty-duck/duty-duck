@@ -16,7 +16,7 @@
     "vue": "latest"
   },
   "dependencies": {
-    "@bootstrap-vue-next/nuxt": "^0.24.4",
+    "@bootstrap-vue-next/nuxt": "^0.24.18",
     "@nuxt/icon": "^1.4.4",
     "@nuxtjs/i18n": "^8.3.3",
     "@vuelidate/core": "^2.0.3",

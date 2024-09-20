@@ -33,7 +33,7 @@ export const useUserRepository = () => {
             }
         },
         fetchUserProfile() {
-            return $fetch<GetProfileResponse>("/users/me", { retry: 3 })
+            return $fetch<GetProfileResponse>("/users/me", { retry: 3, retryDelay: 1000 })
         },
         async updateProfile(command: UpdateProfileCommand) {
             return await $fetch<UpdateProfileResponse>("/users/me", { method: "put", body: command })

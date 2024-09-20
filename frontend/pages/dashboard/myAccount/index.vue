@@ -9,7 +9,7 @@ const localePath = useLocalePath();
     <BContainer>
       <BBreadcrumb>
         <BBreadcrumbItem :to="localePath('/dashboard')">{{
-          $t("dashboard.sidebar.home")
+          $t("dashboard.mainSidebar.home")
         }}</BBreadcrumbItem>
         <BBreadcrumbItem active>{{
           $t("dashboard.userMenu.myAccount")

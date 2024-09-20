@@ -101,9 +101,20 @@ pub struct WriteOrganizationRequest<'a> {
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+pub struct Invitation {
+    pub id: Uuid,
+    pub email: String,
+    pub inviter_id: Uuid,
+    pub roles: Vec<String>,
+    pub organization_id: Uuid,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
 pub struct InviteUserRequest {
     pub email: String,
-    pub send_email: bool,
+    pub send: bool,
     pub inviter_id: Uuid,
     pub roles: Vec<String>,
     pub attributes: AttributeMap,

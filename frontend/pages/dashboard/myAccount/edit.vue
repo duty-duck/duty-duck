@@ -120,7 +120,7 @@ const onSubmit = async () => {
     <BContainer>
       <BBreadcrumb>
         <BBreadcrumbItem :to="localePath('/dashboard')">{{
-          $t("dashboard.sidebar.home")
+          $t("dashboard.mainSidebar.home")
         }}</BBreadcrumbItem>
         <BBreadcrumbItem :to="localePath('/dashboard/myAccount')">{{
           $t("dashboard.userMenu.myAccount")

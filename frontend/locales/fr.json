@@ -17,11 +17,16 @@
             "myAccount": "Mon compte",
             "logOut": "Se déconnecter"
         },
-        "sidebar": {
+        "mainSidebar": {
             "home": "Accueil",
             "monitors": "Moniteurs",
             "incidents": "Incidents",
             "soon": "Bientôt"
+        },
+        "settingsSidebar": {
+            "myOrg": "Mon organisation",
+            "myAccount": "Mon compte",
+            "backToDashboard": "Tableau de bord"
         },
         "home": {
             "pageTitle": "Accueil",
@@ -140,20 +145,58 @@
         },
         "myOrg": {
             "pageTitle": "Mon organisation",
+            "yourOrganizationIs": "Votre organisation est {organization}.",
             "members": {
+                "inviteUser": "Inviter un utilisateur",
                 "title": "Membres",
                 "name": "Nom",
                 "email": "E-mail",
                 "role": "Rôle",
-                "manage": "Gérer",
+                "actions": "Actions",
                 "yourself": "(Vous-même)",
                 "cannotEditOwner": "Impossible de modifier le propriétaire de l'organisation",
                 "revokeUser": "Révoquer l'utilisateur",
                 "updateRoles": "Mettre à jour les rôles"
             },
+            "invitations": {
+                "title": "Invitations en attente",
+                "email": "E-mail",
+                "role": "Rôle",
+                "actions": "Actions",
+                "revokeInvitation": "Révoquer l'invitation",
+                "noInvitations": "Aucune invitation en attente"
+            },
             "updateUserRolesModal": {
                 "title": "Mettre à jour les rôles de l'utilisateur",
-                "description": "Vous êtes sur le point de mettre à jour les rôles de {firstName} {lastName}."
+                "description": "Vous êtes sur le point de mettre à jour les rôles de {firstName} {lastName}.",
+                "ok": "Mettre à jour les rôles",
+                "loading": "Mise à jour en cours..."
+            },
+            "inviteUserModal": {
+                "successToastNotification": {
+                    "title": "Utilisateur invité",
+                    "body": "L'utilisateur a été invité à l'organisation"
+                },
+                "errorToastNotification": {
+                    "title": "Erreur lors de l'invitation",
+                    "body": "Une erreur est survenue lors de l'invitation de l'utilisateur"
+                },
+                "title": "Inviter un utilisateur à l'organisation",
+                "description": "Vous pouvez inviter des utilisateurs à votre organisation, {organization}, en entrant leur adresse e-mail ci-dessous.",
+                "emailDescription": "Ils recevront un e-mail avec un lien pour rejoindre l'organisation.",
+                "emailLabel": "E-mail",
+                "emailPlaceholder": "E-mail",
+                "roleLabel": "Rôle initial",
+                "loading": "Chargement...",
+                "invite": "Inviter"
+            },
+            "revokeUserModal": {
+                "title": "Révoquer l'utilisateur de l'organisation",
+                "revoking": "Révocation en cours...",
+                "revokeUser": "Révoquer l'utilisateur",
+                "confirmationMessage": "Vous êtes sur le point de révoquer {firstName} {lastName} de l'organisation. Cette action ne peut pas être annulée.",
+                "instructionMessage": "Pour terminer l'action, veuillez saisir le nom de l'utilisateur ci-dessous :",
+                "inputPlaceholder": "Tapez '{firstName} {lastName}' pour confirmer"
             }
         },
         "pushNotifications": {

@@ -2,7 +2,9 @@
 const { locale, locales } = useI18n()
 const localePath = useLocalePath();
 const {userName, logout} = useAuthMandatory();
+const {canComputed} = useAuth();
 
+const canListOrganizationMembers = canComputed('listOrganizationMembers');
 const switchLocalePath = useSwitchLocalePath()
 const availableLocales = computed(() => {
   return (locales.value).filter(i => i.code !== locale.value)
@@ -23,7 +25,7 @@ const availableLocales = computed(() => {
           </NuxtLink>
         </li>
         <li>
-          <NuxtLink class="dropdown-item icon-link" :to="localePath('/dashboard/myOrg')">
+          <NuxtLink class="dropdown-item icon-link" :to="localePath('/dashboard/myOrg')" v-if="canListOrganizationMembers">
             <Icon name="ph:users-four-duotone" aria-hidden />
             {{ $t('dashboard.userMenu.myOrg') }}
           </NuxtLink>

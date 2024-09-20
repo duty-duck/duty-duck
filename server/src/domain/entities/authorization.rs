@@ -42,6 +42,9 @@ impl AuthContext {
             Permission::EditOrganizationMember => self
                 .active_organization_roles
                 .contains(OrganizationUserRole::MemberManager),
+            Permission::ListOrganizationInvitations => self
+                .active_organization_roles
+                .contains(OrganizationUserRole::MemberInviter),
         }
     }
 }
@@ -52,14 +55,25 @@ custom_derive! {
     #[serde(rename_all = "camelCase")]
     #[ts(export)]
     pub enum Permission {
+        /// Permission to transfer ownership of the organization
         TransferOwnershipOfOrganization,
+        /// Permission to invite a new member to the organization
         InviteOrganizationMember,
+        /// Permission to remove a member from the organization
         RemoveOrganizationMember,
+        /// Permission to list all members of the organization
         ListOrganizationMembers,
+        /// Permission to edit a member's details within the organization
         EditOrganizationMember,
+        /// Permission to remove the organization
         RemoveOrganization,
+        /// Permission to read HTTP monitors
         ReadHttpMonitors,
+        /// Permission to write HTTP monitors
         WriteHttpMonitors,
+        /// Permission to read incidents
         ReadIncidents,
+        /// Permission to list all invitations for the organization
+        ListOrganizationInvitations,
     }
 }

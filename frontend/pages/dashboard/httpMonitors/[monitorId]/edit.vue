@@ -9,7 +9,6 @@ const route = useRoute();
 const router = useRouter();
 const localePath = useLocalePath();
 
-
 const { data: monitorData } = await repo.useHttpMonitor(
   route.params.monitorId as string
 );
@@ -29,7 +28,7 @@ const onSubmit = async (monitor: HttpMonitorFormData) => {
   <BContainer v-if="monitorData?.monitor">
     <BBreadcrumb>
       <BBreadcrumbItem :to="localePath('/dashboard')">{{
-        $t("dashboard.sidebar.home")
+        $t("dashboard.mainSidebar.home")
       }}</BBreadcrumbItem>
       <BBreadcrumbItem :to="localePath('/dashboard/httpMonitors')">{{
         $t("dashboard.sidebar.monitors")

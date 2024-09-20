@@ -11,7 +11,7 @@ use crate::{
         entities::{
             organization::{
                 CreateOrganizationError, Organization, OrganizationUserRole, ReadOrganizationError,
-                WriteOrganizationError, WriteOrganizationRoleError,
+                UserInvitation, WriteOrganizationError, WriteOrganizationRoleError,
             },
             user::User,
         },
@@ -29,6 +29,7 @@ pub struct OrganizationRepositoryAdapter {
 
 #[async_trait::async_trait]
 impl OrganizationRepository for OrganizationRepositoryAdapter {
+    /// Retrieves an organization by its ID.
     #[tracing::instrument(skip(self))]
     async fn get_organization(&self, id: Uuid) -> Result<Organization, ReadOrganizationError> {
         match self.keycloak_client.get_organization(id).await {
@@ -43,6 +44,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
         }
     }
 
+    /// Creates a new organization.
     #[tracing::instrument(skip(self))]
     async fn create_organization(
         &self,
@@ -77,6 +79,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
         }
     }
 
+    /// Removes a member from an organization.
     async fn remove_an_organization_member(
         &self,
         org_id: Uuid,
@@ -95,6 +98,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
         }
     }
 
+    /// Adds a member to an organization.
     async fn add_an_organization_member(
         &self,
         org_id: Uuid,
@@ -113,6 +117,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
         }
     }
 
+    /// Invites a member to an organization.
     #[tracing::instrument(skip(self))]
     async fn invite_organization_member(
         &self,
@@ -120,10 +125,10 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
         inviter_user_id: Uuid,
         invited_user_email: String,
         invited_user_role: OrganizationUserRole,
-    ) -> Result<(), WriteOrganizationError> {
+    ) -> Result<UserInvitation, WriteOrganizationError> {
         let req = InviteUserRequest {
             email: invited_user_email,
-            send_email: true,
+            send: false,
             inviter_id: inviter_user_id,
             roles: vec![invited_user_role.to_string()],
             attributes: AttributeMap::default(),
@@ -134,7 +139,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
             .invite_user_to_organization(org_id, &req)
             .await
         {
-            Ok(()) => Ok(()),
+            Ok(invitation) => Ok(invitation.try_into()?),
             Err(keycloak_client::Error::NotFound) => {
                 Err(WriteOrganizationError::OrganizationNotFound)
             }
@@ -142,6 +147,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
         }
     }
 
+    /// Updates an organization's details.
     #[tracing::instrument(skip(self))]
     async fn update_organization(
         &self,
@@ -172,6 +178,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
         }
     }
 
+    /// Lists members of an organization.
     #[tracing::instrument(skip(self))]
     async fn list_organization_members(
         &self,
@@ -206,6 +213,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
         }
     }
 
+    /// Deletes an organization.
     #[tracing::instrument(skip(self))]
     async fn delete_organization(
         &self,
@@ -220,6 +228,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
         }
     }
 
+    /// Creates a role within an organization.
     #[tracing::instrument(skip(self))]
     async fn create_organization_role(
         &self,
@@ -239,11 +248,12 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
         }
     }
 
+    /// Grants a role to a user within an organization.
     #[tracing::instrument(skip(self))]
     async fn grant_organization_role(
         &self,
-        user_id: uuid::Uuid,
         org_id: uuid::Uuid,
+        user_id: uuid::Uuid,
         role: crate::domain::entities::organization::OrganizationUserRole,
     ) -> Result<(), crate::domain::entities::organization::WriteOrganizationRoleError> {
         match self
@@ -259,11 +269,12 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
         }
     }
 
+    /// Revokes a role from a user within an organization.
     #[tracing::instrument(skip(self))]
     async fn revoke_organization_role(
         &self,
-        user_id: uuid::Uuid,
         org_id: uuid::Uuid,
+        user_id: uuid::Uuid,
         role: crate::domain::entities::organization::OrganizationUserRole,
     ) -> Result<(), crate::domain::entities::organization::WriteOrganizationRoleError> {
         match self
@@ -279,6 +290,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
         }
     }
 
+    /// Lists roles assigned to a user within an organization.
     #[tracing::instrument(skip(self))]
     async fn list_organization_roles_for_user(
         &self,
@@ -295,11 +307,73 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
             .collect();
         Ok(roles)
     }
+
+    /// Retrieves a pending invitation by its ID.
+    #[tracing::instrument(skip(self))]
+    async fn get_pending_invitation(
+        &self,
+        org_id: Uuid,
+        invitation_id: Uuid,
+    ) -> Result<UserInvitation, ReadOrganizationError> {
+        match self
+            .keycloak_client
+            .get_invitation_by_id(org_id, invitation_id)
+            .await
+        {
+            Ok(invitation) => Ok(invitation.try_into()?),
+            Err(keycloak_client::Error::NotFound) => {
+                Err(ReadOrganizationError::OrganizationNotFound)
+            }
+            Err(e) => Err(ReadOrganizationError::TechnicalFailure(e.into())),
+        }
+    }
+
+    /// Lists pending invitations for an organization.
+    #[tracing::instrument(skip(self))]
+    async fn list_pending_invitations(
+        &self,
+        org_id: Uuid,
+        first_result_offset: u32,
+        max_results: u32,
+    ) -> Result<Vec<UserInvitation>, ReadOrganizationError> {
+        match self
+            .keycloak_client
+            .list_pending_invitations(org_id, first_result_offset, max_results)
+            .await
+        {
+            Ok(invitations) => Ok(invitations
+                .into_iter()
+                .map(|i| i.try_into())
+                .collect::<Result<Vec<UserInvitation>, _>>()?),
+            Err(e) => Err(ReadOrganizationError::TechnicalFailure(e.into())),
+        }
+    }
+
+    /// Deletes a pending invitation by its ID.
+    #[tracing::instrument(skip(self))]
+    async fn delete_pending_invitation(
+        &self,
+        org_id: Uuid,
+        invitation_id: Uuid,
+    ) -> Result<(), WriteOrganizationError> {
+        match self
+            .keycloak_client
+            .remove_invitation_by_id(org_id, invitation_id)
+            .await
+        {
+            Ok(()) => Ok(()),
+            Err(keycloak_client::Error::NotFound) => {
+                Err(WriteOrganizationError::OrganizationNotFound)
+            }
+            Err(e) => Err(WriteOrganizationError::TechnicalFailure(e.into())),
+        }
+    }
 }
 
 impl TryFrom<keycloak_client::Organization> for Organization {
     type Error = anyhow::Error;
 
+    /// Converts a Keycloak organization to a domain organization.
     fn try_from(value: keycloak_client::Organization) -> Result<Self, Self::Error> {
         Ok(Self {
             id: value.id,
@@ -320,6 +394,28 @@ impl TryFrom<keycloak_client::Organization> for Organization {
                 .get("updated_at")
                 .and_then(|str| str.parse().ok())
                 .with_context(|| "Cannot extract updated_at attribute")?,
+        })
+    }
+}
+
+impl TryFrom<keycloak_client::Invitation> for UserInvitation {
+    type Error = anyhow::Error;
+
+    /// Converts a Keycloak invitation to a domain user invitation.
+    fn try_from(value: keycloak_client::Invitation) -> Result<Self, Self::Error> {
+        Ok(Self {
+            id: value.id,
+            email: value.email,
+            inviter_id: value.inviter_id,
+            organization_id: value.organization_id,
+            roles: value
+                .roles
+                .into_iter()
+                .map(|r| {
+                    OrganizationUserRole::from_str(&r)
+                        .with_context(|| "Failed to parse organization user role")
+                })
+                .collect::<Result<Vec<OrganizationUserRole>, Self::Error>>()?,
         })
     }
 }

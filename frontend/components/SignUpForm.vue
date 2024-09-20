@@ -3,7 +3,6 @@ import { required, email, sameAs, helpers } from "@vuelidate/validators";
 import { useVuelidate } from "@vuelidate/core";
 import { type SignUpCommand } from "bindings/SignUpCommand";
 
-const userRepo = useUserRepository();
 const state = reactive({
   firstName: "",
   lastName: "",

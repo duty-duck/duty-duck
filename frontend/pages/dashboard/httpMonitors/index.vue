@@ -11,9 +11,17 @@ const route = useRoute();
 const router = useRouter();
 const query = computed(() => (route.query.query as string) || "");
 const queryDebounced = refDebounced(query, 250);
-const pageNumber = computed(() =>
-  route.query.page ? Number(route.query.page) : 1
-);
+const pageNumber = computed({
+  get() {
+    return route.query.page ? Number(route.query.page) : 1
+  },
+  set(value: number) {
+    router.push({
+      path,
+      query: { page: value, statuses: includeStatuses.value, query: query.value },
+    });
+  }
+})
 const includeStatuses = computed(() =>
   route.query.statuses && route.query.statuses.length
     ? (route.query.statuses as HttpMonitorStatus[])
@@ -30,12 +38,7 @@ const fetchParams = computed(() => ({
 const repository = useHttpMonitorRepository();
 const { status, data, refresh } = await repository.useHttpMonitors(fetchParams);
 
-const onPageChange = (page: number) => {
-  router.push({
-    path,
-    query: { page, statuses: includeStatuses.value, query: query.value },
-  });
-};
+
 const onQueryChange = (event: Event) => {
   router.push({
     path,
@@ -82,11 +85,11 @@ useIntervalFn(() => {
     <BContainer>
       <BBreadcrumb>
         <BBreadcrumbItem to="/dashboard">{{
-          $t("dashboard.sidebar.home")
-          }}</BBreadcrumbItem>
+          $t("dashboard.mainSidebar.home")
+        }}</BBreadcrumbItem>
         <BBreadcrumbItem active>{{
           $t("dashboard.sidebar.monitors")
-          }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
       </BBreadcrumb>
       <div class="d-flex align-items-center justify-content-between">
         <h2>{{ $t("dashboard.monitors.pageTitle") }}</h2>
@@ -120,8 +123,8 @@ useIntervalFn(() => {
         @update-include-statuses="onIncludeStatusChange" @update-query="onQueryChange"
         @clear-filters="onClearFilters" />
       <HttpMonitorCard v-for="monitor in data?.items" :key="monitor.id" :monitor="monitor" animated />
-      <BPagination v-if="data?.totalNumberOfFilteredResults! > 10" :model-value="pageNumber"
-        @update:modelValue="onPageChange" :prev-text="$t('pagination.prev')" :next-text="$t('pagination.next')"
+      <BPagination v-if="data?.totalNumberOfFilteredResults! > 10" v-model="pageNumber"
+        :prev-text="$t('pagination.prev')" :next-text="$t('pagination.next')"
         :total-rows="data?.totalNumberOfFilteredResults" :per-page="10" />
     </BContainer>
   </div>

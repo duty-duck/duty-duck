@@ -19,7 +19,7 @@ const onSubmit = async (data: HttpMonitorFormData) => {
   <BContainer>
     <BBreadcrumb>
       <BBreadcrumbItem :to="localePath('/dashboard')">{{
-        $t("dashboard.sidebar.home")
+        $t("dashboard.mainSidebar.home")
       }}</BBreadcrumbItem>
       <BBreadcrumbItem :to="localePath('/dashboard/httpMonitors')">{{
         $t("dashboard.sidebar.monitors")

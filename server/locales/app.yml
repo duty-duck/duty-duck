@@ -1,5 +1,22 @@
 _version: 2
 
+# Invitation e-mail
+
+invitationEmailTitle:
+    en: "You are invited to join %{org} on DutyDuck"
+    fr: "Vous êtes invité à rejoindre %{org} sur DutyDuck"
+invitationEmailBody:
+    en: |
+        Hello,
+        You are invited to join the %{org} organization on DutyDuck.
+        Visit the following URL to accept or reject the invitation:
+        %{callbackUrl}
+    fr: |
+        Bonjour,
+        Vous êtes invité à rejoindre l'organisation %{org} sur DutyDuck.
+        Visitez le lien suivant pour accepter ou refuser l'invitation:
+        %{callbackUrl}
+
 # Push notificatiosn
 
 # Default incident body and title

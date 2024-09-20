@@ -11,12 +11,16 @@ onErrorCaptured((err) => {
   return false;
 });
 
+const clearError = () => {
+  error.value = undefined;
+};
+
+
+
 const route = useRoute();
 watch(
   () => route.fullPath,
-  () => {
-    error.value = undefined;
-  }
+  clearError
 );
 </script>
 
@@ -29,10 +33,24 @@ watch(
       <Icon name="ph:magnifying-glass-duotone" size="10rem" class="m" />
       <h2>Not found</h2>
       <p>The resource you are looking for cannot be found.</p>
-      <BButton :to="localePath('/dashboard')">Go home</BButton>
+      <BButton @click="clearError" :to="localePath('/dashboard')">Go home</BButton>
+    </BCard>
+  </template>
+  <template v-else-if="error.statusCode == 403">
+    <BCard class="text-center py-5">
+      <Icon name="ph:hand-palm-duotone" size="10rem" class="m" />
+      <h2>Access denied</h2>
+      <p>You are not authorized to access this resource.</p>
+      <BButton @click="clearError" :to="localePath('/dashboard')">Go home</BButton>
     </BCard>
   </template>
   <template v-else>
-    <p>An error occurred: {{ error }}</p>
+    <BCard class="text-center py-5">
+      <Icon name="ph:warning-duotone" size="10rem" class="m" />
+      <h2>An error occurred</h2>
+      <p>An error occurred: {{ error }}</p>
+      <p>Please try again later or contact support if the problem persists.</p>
+      <BButton @click="clearError" :to="localePath('/dashboard')">Go home</BButton>
+    </BCard>
   </template>
 </template>

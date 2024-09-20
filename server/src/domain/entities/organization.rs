@@ -187,3 +187,14 @@ impl<I: IntoIterator<Item = String>> From<I> for OrganizationRoleSet {
         }
     }
 }
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct UserInvitation {
+    pub id: Uuid,
+    pub email: String,
+    pub inviter_id: Uuid,
+    pub organization_id: Uuid,
+    pub roles: Vec<OrganizationUserRole>
+}

@@ -11,9 +11,20 @@ const localePath = useLocalePath();
 const path = localePath("/dashboard/incidents");
 const route = useRoute();
 const router = useRouter();
-const pageNumber = computed(() =>
-  route.query.page ? Number(route.query.page) : 1
-);
+
+const pageNumber = computed({
+  get() {
+    return route.query.page ? Number(route.query.page) : 1
+  },
+  set(value: number) {
+    router.push({
+      path,
+      query: { page: value, statuses: includeStatuses.value },
+    });
+  }
+})
+
+
 const includeStatuses = computed<IncidentStatus[]>(() =>
   route.query.statuses && route.query.statuses.length
     ? (route.query.statuses as IncidentStatus[])
@@ -30,12 +41,6 @@ const fetchParams = computed<ListIncidentsParams>(() => ({
 const repository = useIncidentRepository();
 const { status, data, refresh } = await repository.useIncidents(fetchParams);
 
-const onPageChange = (page: number) => {
-  router.push({
-    path,
-    query: { page, statuses: includeStatuses.value },
-  });
-};
 const onIncludeStatusChange = (statuses: IncidentStatus[]) => {
   router.push({
     path,
@@ -72,7 +77,7 @@ useIntervalFn(() => {
     <BContainer>
       <BBreadcrumb>
         <BBreadcrumbItem to="/dashboard">{{
-          $t("dashboard.sidebar.home")
+          $t("dashboard.mainSidebar.home")
         }}</BBreadcrumbItem>
         <BBreadcrumbItem active>{{
           $t("dashboard.sidebar.incidents")
@@ -135,8 +140,7 @@ useIntervalFn(() => {
         v-bind="incident"
       />
       <BPagination
-        :model-value="pageNumber"
-        @update:modelValue="onPageChange"
+        v-model="pageNumber"
         :prev-text="$t('pagination.prev')"
         :next-text="$t('pagination.next')"
         :total-rows="data?.totalNumberOfFilteredResults"

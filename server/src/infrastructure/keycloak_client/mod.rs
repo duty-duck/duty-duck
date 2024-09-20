@@ -52,7 +52,8 @@ impl KeycloakClient {
     ) -> anyhow::Result<Self> {
         let public_realm_url = public_keycloak_url.join(&format!("realms/{keycloak_realm}"))?;
         let private_realm_url = private_keycloak_url.join(&format!("realms/{keycloak_realm}"))?;
-        let private_realm_admin_url = private_keycloak_url.join(&format!("admin/realms/{keycloak_realm}"))?;
+        let private_realm_admin_url =
+            private_keycloak_url.join(&format!("admin/realms/{keycloak_realm}"))?;
 
         // Use OpenID Connect Discovery to fetch the provider metadata.
         let provider_metadata = CoreProviderMetadata::discover_async(
@@ -129,9 +130,9 @@ impl KeycloakClient {
                     "Failed HTTP request with URL '{url}', status '{status}' and response body: '{response_body}'",
                 )));
             }
-                let headers = response.headers().clone();
-                let response_body = response.text().await.unwrap_or_default();
-                println!("{response_body}");
+            let headers = response.headers().clone();
+            let response_body = response.text().await.unwrap_or_default();
+            println!("{response_body}");
 
             let location_header = headers
                 .get(LOCATION)
@@ -161,7 +162,7 @@ impl KeycloakClient {
     ///
     /// Returns the user details or a NotFound error if the user doesn't exist.
     #[tracing::instrument(skip(self))]
-    pub(super) async fn get_user(&self, id: Uuid) -> Result<UserItem> {
+    pub(super) async fn get_user_by_id(&self, id: Uuid) -> Result<UserItem> {
         let auth_token = self.get_current_access_token().await?;
         let response = (|| {
             self.http_client
@@ -176,6 +177,34 @@ impl KeycloakClient {
             Err(Error::NotFound)
         } else {
             Ok(response.json().await?)
+        }
+    }
+
+    /// Retrieves a user by their email address.
+    ///
+    /// Returns the user details or a NotFound error if the user doesn't exist.
+    #[tracing::instrument(skip(self))]
+    pub(super) async fn get_user_by_email(&self, email: &str) -> Result<UserItem> {
+        let auth_token = self.get_current_access_token().await?;
+        let response = (|| {
+            self.http_client
+                .get(format!("{}/users", self.private_realm_admin_url))
+                .query(&[("email", email), ("exact", "true")])
+                .bearer_auth(auth_token.access_token.secret())
+                .send()
+        })
+        .retry(&Self::retry_strategy())
+        .await?;
+
+        if response.status() == StatusCode::OK {
+            let users: Vec<UserItem> = response.json().await?;
+            users.into_iter().next().ok_or(Error::NotFound)
+        } else {
+            Err(Error::TechnicalFailure(anyhow!(
+                "Invalid response from Keycloak server: status = {:?} and body = {:?}",
+                response.status(),
+                response.text().await.unwrap_or_default()
+            )))
         }
     }
 
@@ -200,7 +229,7 @@ impl KeycloakClient {
         if response.status() == StatusCode::NOT_FOUND {
             Err(Error::NotFound)
         } else if response.status().is_success() {
-            self.get_user(id).await
+            self.get_user_by_id(id).await
         } else {
             Err(Error::TechnicalFailure(anyhow!(
                 "Invalid repsonse from Keycloak server: status = {:?} and body = {:?}",
@@ -248,7 +277,7 @@ impl KeycloakClient {
     pub(super) async fn get_organization(&self, id: Uuid) -> Result<Organization> {
         let auth_token = self.get_current_access_token().await?;
         let url = format!("{}/orgs/{}", self.private_realm_url, id);
-        
+
         let response = (|| {
             self.http_client
                 .get(&url)
@@ -281,7 +310,7 @@ impl KeycloakClient {
     pub(super) async fn delete_organization(&self, id: Uuid) -> Result<()> {
         let auth_token = self.get_current_access_token().await?;
         let url = format!("{}/orgs/{}", self.private_realm_url, id);
-        
+
         let response = (|| {
             self.http_client
                 .delete(&url)
@@ -403,7 +432,10 @@ impl KeycloakClient {
         let auth_token = self.get_current_access_token().await?;
         let res = (|| {
             self.http_client
-                .get(format!("{}/orgs/{}/members", self.private_realm_url, org_id))
+                .get(format!(
+                    "{}/orgs/{}/members",
+                    self.private_realm_url, org_id
+                ))
                 .query(&[("first", first.to_string()), ("max", max.to_string())])
                 .bearer_auth(auth_token.access_token.secret())
                 .send()
@@ -475,14 +507,12 @@ impl KeycloakClient {
         &self,
         org_id: Uuid,
         invite_request: &InviteUserRequest,
-    ) -> Result<()> {
+    ) -> Result<Invitation> {
         let auth_token = self.get_current_access_token().await?;
+        let url = format!("{}/orgs/{}/invitations", self.private_realm_url, org_id);
         let response = (|| {
             self.http_client
-                .post(format!(
-                    "{}/orgs/{}/invitations",
-                    self.private_realm_url, org_id
-                ))
+                .post(url.clone())
                 .bearer_auth(auth_token.access_token.secret())
                 .json(invite_request)
                 .send()
@@ -491,18 +521,41 @@ impl KeycloakClient {
         .await?;
 
         match response.status() {
-            reqwest::StatusCode::CREATED => Ok(()),
-            reqwest::StatusCode::CONFLICT => Err(Error::Conflict),
-            reqwest::StatusCode::NOT_FOUND => Err(Error::NotFound),
+            reqwest::StatusCode::CREATED => (),
+            reqwest::StatusCode::CONFLICT => return Err(Error::Conflict),
+            reqwest::StatusCode::NOT_FOUND => return Err(Error::NotFound),
             status => {
                 let error_body = response.text().await.unwrap_or_default();
-                Err(Error::TechnicalFailure(anyhow::anyhow!(
+                return Err(Error::TechnicalFailure(anyhow::anyhow!(
                     "Failed to invite user. Status: {}. Body: {}",
                     status,
                     error_body
-                )))
+                )));
             }
-        }
+        };
+
+        let location_header = response
+            .headers()
+            .get(LOCATION)
+            .with_context(|| {
+                format!(
+                    "Cannot get location header from response. Url: '{url}', response headers: {:#?}",
+                    response.headers()
+                )
+            })?
+            .to_str()
+            .with_context(|| "Cannot read location header as str")?;
+
+        let invitation = self
+            .http_client
+            .get(location_header)
+            .bearer_auth(self.get_current_access_token().await?.access_token.secret())
+            .send()
+            .await?
+            .json()
+            .await?;
+
+        Ok(invitation)
     }
 
     /// Creates a new role for an organization.
@@ -538,20 +591,30 @@ impl KeycloakClient {
         role: &str,
     ) -> Result<()> {
         let auth_token = self.get_current_access_token().await?;
-        (|| {
+        let url = format!(
+            "{}/orgs/{}/roles/{}/users/{}",
+            self.private_realm_url, org_id, role, user_id
+        );
+        let response = (|| {
             self.http_client
-                .put(format!(
-                    "{}/orgs/{}/roles/{}/users/{}",
-                    self.private_realm_url, org_id, role, user_id
-                ))
+                .put(url.clone())
                 .bearer_auth(auth_token.access_token.secret())
                 .send()
         })
         .retry(&Self::retry_strategy())
-        .await?
-        .error_for_status()?;
+        .await?;
 
-        Ok(())
+        match response.status() {
+            StatusCode::NO_CONTENT | StatusCode::OK | StatusCode::CREATED => Ok(()),
+            StatusCode::NOT_FOUND => Err(Error::NotFound),
+            _ => {
+                let status = response.status().as_u16();
+                let response_body = response.text().await.unwrap_or_default();
+                Err(Error::TechnicalFailure(anyhow!(
+                    "Failed HTTP request with URL '{url}', status '{status}' and response body: '{response_body}'"
+                )))
+            }
+        }
     }
 
     /// Lists the organization roles of a user within an organization.
@@ -564,21 +627,33 @@ impl KeycloakClient {
         user_id: Uuid,
     ) -> Result<Vec<OrgnanizationRole>> {
         let auth_token = self.get_current_access_token().await?;
+        let url = format!(
+            "{}/users/{}/orgs/{}/roles",
+            self.private_realm_url, user_id, org_id
+        );
         let response = (|| {
             self.http_client
-                .get(format!(
-                    "{}/users/{}/orgs/{}/roles",
-                    self.private_realm_url, user_id, org_id
-                ))
+                .get(url.clone())
                 .bearer_auth(auth_token.access_token.secret())
                 .send()
         })
         .retry(&Self::retry_strategy())
-        .await?
-        .error_for_status()?;
+        .await?;
 
-        let roles: Vec<OrgnanizationRole> = response.json().await?;
-        Ok(roles)
+        match response.status() {
+            StatusCode::OK => {
+                let roles: Vec<OrgnanizationRole> = response.json().await?;
+                Ok(roles)
+            }
+            StatusCode::NOT_FOUND => Err(Error::NotFound),
+            _ => {
+                let status = response.status().as_u16();
+                let response_body = response.text().await.unwrap_or_default();
+                Err(Error::TechnicalFailure(anyhow!(
+                    "Failed HTTP request with URL '{url}', status '{status}' and response body: '{response_body}'"
+                )))
+            }
+        }
     }
 
     /// Revokes a role from a user within an organization.
@@ -606,6 +681,97 @@ impl KeycloakClient {
         .error_for_status()?;
 
         Ok(())
+    }
+
+    /// Retrieves a single invitation by its ID within an organization.
+    ///
+    /// Returns the invitation on success or an error if the operation fails.
+    #[tracing::instrument(skip(self))]
+    pub(super) async fn get_invitation_by_id(
+        &self,
+        org_id: Uuid,
+        invitation_id: Uuid,
+    ) -> Result<Invitation> {
+        let auth_token = self.get_current_access_token().await?;
+        let response = (|| {
+            self.http_client
+                .get(format!(
+                    "{}/orgs/{}/invitations/{}",
+                    self.private_realm_url, org_id, invitation_id
+                ))
+                .bearer_auth(auth_token.access_token.secret())
+                .send()
+        })
+        .retry(&Self::retry_strategy())
+        .await?;
+
+        if response.status() == StatusCode::NOT_FOUND {
+            Err(Error::NotFound)
+        } else {
+            let invitation = response.error_for_status()?.json().await?;
+            Ok(invitation)
+        }
+    }
+
+    /// Removes a pending invitation by its ID within an organization.
+    ///
+    /// Returns Ok(()) on success or an error if the operation fails.
+    #[tracing::instrument(skip(self))]
+    pub(super) async fn remove_invitation_by_id(
+        &self,
+        org_id: Uuid,
+        invitation_id: Uuid,
+    ) -> Result<()> {
+        let auth_token = self.get_current_access_token().await?;
+        let response = (|| {
+            self.http_client
+                .delete(format!(
+                    "{}/orgs/{}/invitations/{}",
+                    self.private_realm_url, org_id, invitation_id
+                ))
+                .bearer_auth(auth_token.access_token.secret())
+                .send()
+        })
+        .retry(&Self::retry_strategy())
+        .await?;
+
+        if response.status() == StatusCode::NOT_FOUND {
+            Err(Error::NotFound)
+        } else {
+            response.error_for_status()?;
+            Ok(())
+        }
+    }
+
+    /// Lists pending invitations for an organization.
+    ///
+    /// Returns a vector of Invitation on success or an error if the operation fails.
+    #[tracing::instrument(skip(self))]
+    pub(super) async fn list_pending_invitations(
+        &self,
+        org_id: Uuid,
+        first: u32,
+        max: u32,
+    ) -> Result<Vec<Invitation>> {
+        let auth_token = self.get_current_access_token().await?;
+        let response = (|| {
+            self.http_client
+                .get(format!(
+                    "{}/orgs/{}/invitations?first={}&max={}",
+                    self.private_realm_url, org_id, first, max
+                ))
+                .bearer_auth(auth_token.access_token.secret())
+                .send()
+        })
+        .retry(&Self::retry_strategy())
+        .await?;
+
+        if response.status() == StatusCode::NOT_FOUND {
+            Err(Error::NotFound)
+        } else {
+            let invitations: Vec<Invitation> = response.json().await?;
+            Ok(invitations)
+        }
     }
 
     /// Obtain an access token for the Keycloak API, either by reading a valid token from memory, or by exchanging client credentials
@@ -696,7 +862,10 @@ impl KeycloakClient {
     async fn fetch_jwks(&self) -> anyhow::Result<CachedJwks> {
         let action = || {
             self.http_client
-                .get(format!("{}/protocol/openid-connect/certs", self.private_realm_url))
+                .get(format!(
+                    "{}/protocol/openid-connect/certs",
+                    self.private_realm_url
+                ))
                 .send()
         };
 

@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import { useBreakpoints, breakpointsBootstrapV5 } from "@vueuse/core";
-import SideBar from "@/components/SideBar.vue";
-import UserMenu from "@/components/UserMenu.vue";
 
+
+const route = useRoute();
 const auth = useAuthMandatory();
-
 const breakpoints = useBreakpoints(breakpointsBootstrapV5);
 const lgOrLarger = breakpoints.greaterOrEqual("lg");
 const messageHandler = useFirebaseMessageHandler();
@@ -23,7 +22,7 @@ onMounted(() => {
         <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
       </div>
       <div class="offcanvas-body">
-        <SideBar v-if="!lgOrLarger"></SideBar>
+        <DashboardDynamicSidebar v-if="!lgOrLarger" />
       </div>
     </div>
     <div class="container-fluid g-0">
@@ -31,7 +30,7 @@ onMounted(() => {
         <div class="d-none d-lg-block d-flex sticky-top" id="dashboard-sidebar">
           <div id="dashboard-sidebar-content">
             <SidebarBrand />
-            <SideBar v-if="lgOrLarger"></SideBar>
+            <DashboardDynamicSidebar v-if="lgOrLarger" />
           </div>
         </div>
         <div class="col">

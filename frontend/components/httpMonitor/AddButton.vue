@@ -1,10 +1,11 @@
 <script setup lang="ts">
-  const localePath = useLocalePath();
-  const { can } = useAuth();
-  const canCreateMonitors = can('writeHttpMonitors');
+const localePath = useLocalePath();
+const { canComputed } = useAuth();
+const canCreateMonitors = canComputed('writeHttpMonitors');
 </script>
 <template>
-  <BButton class="icon-link" variant="primary" size="sm" icon :to="localePath('/dashboard/httpMonitors/new')" v-if="canCreateMonitors">
+  <BButton class="icon-link" variant="primary" size="sm" icon :to="localePath('/dashboard/httpMonitors/new')"
+    v-if="canCreateMonitors">
     <Icon name="ph:plus-bold" />
     {{ $t('dashboard.monitors.createMonitorBtn') }}
   </BButton>
