@@ -58,6 +58,8 @@ pub async fn sign_up(
     user_repository: &impl UserRepository,
     command: SignUpCommand,
 ) -> Result<(), SignUpError> {
+    info!(command = ?command, "Signing up a new user");
+
     // 0: Check e-mail and password validity
     let email = EmailAddress::from_str(&command.email)
         .map_err(|_| SignUpError::InvalidEmail)?

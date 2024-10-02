@@ -2,11 +2,13 @@ use anyhow::Context;
 use lettre::Message;
 use serde::Deserialize;
 use thiserror::Error;
+use tracing::info;
 use ts_rs::TS;
 use uuid::Uuid;
+use veil::Redact;
 
 use crate::{
-    application::application_config::{AppConfig},
+    application::application_config::AppConfig,
     domain::{
         entities::{
             authorization::{AuthContext, Permission},
@@ -19,10 +21,11 @@ use crate::{
     },
 };
 
-#[derive(Debug, Deserialize, TS)]
+#[derive(Redact, Deserialize, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct InviteOrganizationMemberCommand {
+    #[redact(partial)]
     pub email: String,
     pub role: OrganizationUserRole,
 }
@@ -63,6 +66,8 @@ pub async fn invite_organization_member_use_case<M: Mailer>(
         return Err(InviteOrganizationMemberError::Forbidden);
     }
 
+    info!(command = ?command, "Inviting user to organization");
+
     let organization = match organization_repository
         .get_organization(organization_id)
         .await
@@ -95,7 +100,10 @@ pub async fn invite_organization_member_use_case<M: Mailer>(
     };
 
     let email = build_invitation_message::<M>(application_config, &invitation, &organization)?;
-    mailer.send(email).await.with_context(|| "Failed to send invitation email")?;
+    mailer
+        .send(email)
+        .await
+        .with_context(|| "Failed to send invitation email")?;
 
     Ok(())
 }

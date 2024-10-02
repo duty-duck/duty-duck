@@ -46,6 +46,10 @@ pub struct AppConfig {
     pub smtp_server_port: u16,
     #[envconfig(from = "SMTP_SERVER_DISABLE_TLS")]
     pub smtp_disable_tls: bool,
+    #[envconfig(from = "SMTP_USERNAME")]
+    pub smtp_username: Option<String>,
+    #[envconfig(from = "SMTP_PASSWORD")]
+    pub smtp_password: Option<String>,
 }
 
 impl AppConfig {

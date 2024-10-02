@@ -48,16 +48,19 @@ pub struct UserItem {
     pub attributes: AttributeMap,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Redact, Clone)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateUserRequest {
     pub first_name: Option<String>,
     pub last_name: Option<String>,
+    #[redact(partial)]
     pub email: Option<String>,
     pub email_verified: bool,
     pub enabled: bool,
     pub groups: Vec<String>,
+    #[redact]
     pub attributes: AttributeMap,
+    #[redact]
     pub credentials: Vec<Credentials>,
 }
 

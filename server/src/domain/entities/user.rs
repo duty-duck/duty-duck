@@ -2,6 +2,7 @@ use serde::Serialize;
 use thiserror::*;
 use ts_rs::TS;
 use uuid::Uuid;
+use veil::Redact;
 
 #[derive(Debug, Clone, Serialize, TS)]
 #[serde(rename_all = "camelCase")]
@@ -14,12 +15,15 @@ pub struct User {
     pub phone_number: Option<String>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Redact, Clone)]
 pub struct CreateUserCommand {
     pub first_name: String,
     pub last_name: String,
+    #[redact(partial)]
     pub email: String,
+    #[redact]
     pub password: String,
+    #[redact(partial)]
     pub phone_number: Option<String>,
 }
 
