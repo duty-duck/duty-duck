@@ -17,7 +17,7 @@ use openidconnect::{OAuth2TokenResponse, TokenResponse};
 use reqwest::header::LOCATION;
 use reqwest::{StatusCode, Url};
 use tokio::sync::Mutex;
-use tracing::debug;
+use tracing::{debug, warn};
 use uuid::Uuid;
 
 #[derive(Clone)]
@@ -171,6 +171,9 @@ impl KeycloakClient {
                 .send()
         })
         .retry(&Self::retry_strategy())
+        .notify(|err, dur| {
+            warn!("Failed to get user by id from Keycloak: {err}. Retrying in {dur:?}");
+        })
         .await?;
 
         if response.status() == StatusCode::NOT_FOUND {
@@ -194,6 +197,9 @@ impl KeycloakClient {
                 .send()
         })
         .retry(&Self::retry_strategy())
+        .notify(|err, dur| {
+            warn!("Failed to get user by email from Keycloak: {err}. Retrying in {dur:?}");
+        })
         .await?;
 
         if response.status() == StatusCode::OK {
@@ -222,6 +228,9 @@ impl KeycloakClient {
                 .send()
         })
         .retry(&Self::retry_strategy())
+        .notify(|err, dur| {
+            warn!("Failed to update user by id from Keycloak: {err}. Retrying in {dur:?}");
+        })
         .await?;
 
         debug!(user_id = ?id, keycloak_response_status = response.status().as_u16(), "Updated user, got response from Keycloak server");
@@ -265,6 +274,9 @@ impl KeycloakClient {
                 .send()
         })
         .retry(&Self::retry_strategy())
+        .notify(|err, dur| {
+            warn!("Failed to get organizations from Keycloak: {err}. Retrying in {dur:?}");
+        })
         .await?;
         let orgs = res.json().await?;
         Ok(orgs)
@@ -285,6 +297,9 @@ impl KeycloakClient {
                 .send()
         })
         .retry(&Self::retry_strategy())
+        .notify(|err, dur| {
+            warn!("Failed to get organization by id from Keycloak: {err}. Retrying in {dur:?}");
+        })
         .await?;
 
         match response.status() {
@@ -318,6 +333,9 @@ impl KeycloakClient {
                 .send()
         })
         .retry(&Self::retry_strategy())
+        .notify(|err, dur| {
+            warn!("Failed to delete organization by id from Keycloak: {err}. Retrying in {dur:?}");
+        })
         .await?;
 
         match response.status() {
@@ -351,6 +369,9 @@ impl KeycloakClient {
                 .send()
         })
         .retry(&Self::retry_strategy())
+        .notify(|err, dur| {
+            warn!("Failed to create organization from Keycloak: {err}. Retrying in {dur:?}");
+        })
         .await?;
 
         if response.status() == StatusCode::CONFLICT {
@@ -406,6 +427,9 @@ impl KeycloakClient {
                 .send()
         })
         .retry(&Self::retry_strategy())
+        .notify(|err, dur| {
+            warn!("Failed to update organization by id from Keycloak: {err}. Retrying in {dur:?}");
+        })
         .await?;
 
         if response.status() == StatusCode::NOT_FOUND {
@@ -441,6 +465,9 @@ impl KeycloakClient {
                 .send()
         })
         .retry(&Self::retry_strategy())
+        .notify(|err, dur| {
+            warn!("Failed to list organization members from Keycloak: {err}. Retrying in {dur:?}");
+        })
         .await?;
 
         let orgs = res.json().await?;
@@ -467,6 +494,9 @@ impl KeycloakClient {
                 .send()
         })
         .retry(&Self::retry_strategy())
+        .notify(|err, dur| {
+            warn!("Failed to add an organization member from Keycloak: {err}. Retrying in {dur:?}");
+        })
         .await?
         .error_for_status()?;
 
@@ -493,6 +523,11 @@ impl KeycloakClient {
                 .send()
         })
         .retry(&Self::retry_strategy())
+        .notify(|err, dur| {
+            warn!(
+                "Failed to remove an organization member from Keycloak: {err}. Retrying in {dur:?}"
+            );
+        })
         .await?;
 
         response.error_for_status()?;
@@ -518,6 +553,9 @@ impl KeycloakClient {
                 .send()
         })
         .retry(&Self::retry_strategy())
+        .notify(|err, dur| {
+            warn!("Failed to invite user to organization in Keycloak: {err}. Retrying in {dur:?}");
+        })
         .await?;
 
         match response.status() {
@@ -574,6 +612,9 @@ impl KeycloakClient {
                 .send()
         })
         .retry(&Self::retry_strategy())
+        .notify(|err, dur| {
+            warn!("Failed to create an organization role in Keycloak: {err}. Retrying in {dur:?}");
+        })
         .await?
         .error_for_status()?;
 
@@ -602,6 +643,9 @@ impl KeycloakClient {
                 .send()
         })
         .retry(&Self::retry_strategy())
+        .notify(|err, dur| {
+            warn!("Failed to grant an organization role to a user in Keycloak: {err}. Retrying in {dur:?}");
+        })
         .await?;
 
         match response.status() {
@@ -638,6 +682,9 @@ impl KeycloakClient {
                 .send()
         })
         .retry(&Self::retry_strategy())
+        .notify(|err, dur| {
+            warn!("Failed to list organization roles for a user in Keycloak: {err}. Retrying in {dur:?}");
+        })
         .await?;
 
         match response.status() {
@@ -677,6 +724,9 @@ impl KeycloakClient {
                 .send()
         })
         .retry(&Self::retry_strategy())
+        .notify(|err, dur| {
+            warn!("Failed to revoke an organization role from a user in Keycloak: {err}. Retrying in {dur:?}");
+        })
         .await?
         .error_for_status()?;
 
@@ -703,6 +753,9 @@ impl KeycloakClient {
                 .send()
         })
         .retry(&Self::retry_strategy())
+        .notify(|err, dur| {
+            warn!("Failed to get invitation by id from Keycloak: {err}. Retrying in {dur:?}");
+        })
         .await?;
 
         if response.status() == StatusCode::NOT_FOUND {
@@ -733,6 +786,9 @@ impl KeycloakClient {
                 .send()
         })
         .retry(&Self::retry_strategy())
+        .notify(|err, dur| {
+            warn!("Failed to remove invitation by id from Keycloak: {err}. Retrying in {dur:?}");
+        })
         .await?;
 
         if response.status() == StatusCode::NOT_FOUND {
@@ -764,6 +820,9 @@ impl KeycloakClient {
                 .send()
         })
         .retry(&Self::retry_strategy())
+        .notify(|err, dur| {
+            warn!("Failed to list pending invitations from Keycloak: {err}. Retrying in {dur:?}");
+        })
         .await?;
 
         if response.status() == StatusCode::NOT_FOUND {
@@ -847,7 +906,12 @@ impl KeycloakClient {
                 .request_async(async_http_client)
         };
 
-        let res = action.retry(&Self::retry_strategy()).await?;
+        let res = action
+            .retry(&Self::retry_strategy())
+            .notify(|err, dur| {
+                warn!("Failed to refresh access token from Keycloak: {err}. Retrying in {dur:?}");
+            })
+            .await?;
         let access_token = AccessToken {
             access_token: res.access_token().clone(),
             refresh_token: res.refresh_token().cloned(),

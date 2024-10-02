@@ -13,7 +13,7 @@ use crate::{
             http_client_adapter::HttpClientAdapter,
             http_monitor_repository_adapter::HttpMonitorRepositoryAdapter,
             incident_notification_repository_adapter::IncidentNotificationRepositoryAdapter,
-            incident_repository_adapter::IncidentRepositoryAdapter, mailer_adapter::MailerAdapter,
+            incident_repository_adapter::IncidentRepositoryAdapter, mailer_adapter::{MailerAdapter, MailerAdapterConfig},
             organization_repository_adapter::OrganizationRepositoryAdapter,
             push_notification_server_adapter::PushNotificationServerAdapter,
             user_devices_repository_adapter::UserDevicesRepositoryAdapter,
@@ -102,11 +102,13 @@ async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationSt
         user_devices_repository: UserDevicesRepositoryAdapter { pool: pool.clone() },
         http_client: HttpClientAdapter::new(&config),
         push_notification_server: PushNotificationServerAdapter::new().await?,
-        mailer: MailerAdapter::new(
-            &config.smtp_server_host,
-            config.smtp_server_port,
-            config.smtp_disable_tls,
-        )?,
+        mailer: MailerAdapter::new(MailerAdapterConfig {
+            smtp_server_host: config.smtp_server_host.clone(),
+            smtp_server_port: config.smtp_server_port,
+            smtp_disable_tls: config.smtp_disable_tls,
+            smtp_username: config.smtp_username.clone(),
+            smtp_password: config.smtp_password.clone(),
+        })?,
     };
     Ok(ApplicationState {
         config: config.clone(),
