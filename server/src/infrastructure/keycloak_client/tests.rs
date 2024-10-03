@@ -17,7 +17,7 @@ async fn build_client() -> anyhow::Result<KeycloakClient> {
 #[ignore]
 async fn test_obtain_token() -> anyhow::Result<()> {
     let client = build_client().await?;
-    let access_token = client.obtain_access_token().await?;
+    let access_token = client.obtain_access_token().await;
     println!("{:#?}", access_token);
     Ok(())
 }
@@ -27,8 +27,8 @@ async fn test_obtain_token() -> anyhow::Result<()> {
 async fn test_refresh_token() -> anyhow::Result<()> {
     let client = build_client().await?;
 
-    let access_token = client.obtain_access_token().await?;
-    let access_token = client.refresh_access_token(&access_token).await?;
+    let access_token = client.obtain_access_token().await;
+    let access_token = client.refresh_access_token(&access_token).await;
     println!("{:#?}", access_token);
     Ok(())
 }

@@ -167,8 +167,6 @@ pub type Result<T> = core::result::Result<T, self::Error>;
 
 #[derive(Error, Debug)]
 pub enum Error {
-    #[error("Cannot obtain access token: {0}")]
-    CannotObtainAccessToken(#[source] anyhow::Error),
     #[error("HTTP Error: {0}")]
     Http(#[from] reqwest::Error),
     #[error("Conflicting resource already exists")]
