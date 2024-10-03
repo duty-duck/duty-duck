@@ -80,7 +80,7 @@ impl KeycloakClient {
         };
 
         // Pre-load access token for subsequent requests
-        let _ = client.get_current_access_token().await?;
+        let _ = client.get_current_access_token().await;
 
         Ok(client)
     }
@@ -108,7 +108,7 @@ impl KeycloakClient {
     /// Returns the created user or an error if the operation fails.
     #[tracing::instrument(skip(self))]
     pub(super) async fn create_user(&self, user: &CreateUserRequest) -> Result<UserItem> {
-        let auth_token = self.get_current_access_token().await?;
+        let auth_token = self.get_current_access_token().await;
         let url = format!("{}/users", self.private_realm_admin_url);
         let response = (|| {
             self.http_client
@@ -148,7 +148,7 @@ impl KeycloakClient {
             let user = self
                 .http_client
                 .get(location_header)
-                .bearer_auth(self.get_current_access_token().await?.access_token.secret())
+                .bearer_auth(self.get_current_access_token().await.access_token.secret())
                 .send()
                 .await?
                 .json()
@@ -163,7 +163,7 @@ impl KeycloakClient {
     /// Returns the user details or a NotFound error if the user doesn't exist.
     #[tracing::instrument(skip(self))]
     pub(super) async fn get_user_by_id(&self, id: Uuid) -> Result<UserItem> {
-        let auth_token = self.get_current_access_token().await?;
+        let auth_token = self.get_current_access_token().await;
         let response = (|| {
             self.http_client
                 .get(format!("{}/users/{}", self.private_realm_admin_url, id))
@@ -188,7 +188,7 @@ impl KeycloakClient {
     /// Returns the user details or a NotFound error if the user doesn't exist.
     #[tracing::instrument(skip(self))]
     pub(super) async fn get_user_by_email(&self, email: &str) -> Result<UserItem> {
-        let auth_token = self.get_current_access_token().await?;
+        let auth_token = self.get_current_access_token().await;
         let response = (|| {
             self.http_client
                 .get(format!("{}/users", self.private_realm_admin_url))
@@ -219,7 +219,7 @@ impl KeycloakClient {
     /// Returns the updated user details or an error if the operation fails.
     #[tracing::instrument(skip(self))]
     pub(super) async fn update_user(&self, id: Uuid, user: &UpdateUserRequest) -> Result<UserItem> {
-        let auth_token = self.get_current_access_token().await?;
+        let auth_token = self.get_current_access_token().await;
         let response = (|| {
             self.http_client
                 .put(format!("{}/users/{}", self.private_realm_admin_url, id))
@@ -261,7 +261,7 @@ impl KeycloakClient {
         max: u32,
         query: &str,
     ) -> Result<Vec<Organization>> {
-        let auth_token = self.get_current_access_token().await?;
+        let auth_token = self.get_current_access_token().await;
         let res = (|| {
             self.http_client
                 .get(format!("{}/orgs", self.private_realm_url))
@@ -287,7 +287,7 @@ impl KeycloakClient {
     /// Returns the organization details or a NotFound error if it doesn't exist.
     #[tracing::instrument(skip(self))]
     pub(super) async fn get_organization(&self, id: Uuid) -> Result<Organization> {
-        let auth_token = self.get_current_access_token().await?;
+        let auth_token = self.get_current_access_token().await;
         let url = format!("{}/orgs/{}", self.private_realm_url, id);
 
         let response = (|| {
@@ -323,7 +323,7 @@ impl KeycloakClient {
     /// Returns Ok(()) on success or an error if the operation fails.
     #[tracing::instrument(skip(self))]
     pub(super) async fn delete_organization(&self, id: Uuid) -> Result<()> {
-        let auth_token = self.get_current_access_token().await?;
+        let auth_token = self.get_current_access_token().await;
         let url = format!("{}/orgs/{}", self.private_realm_url, id);
 
         let response = (|| {
@@ -360,7 +360,7 @@ impl KeycloakClient {
         request: &WriteOrganizationRequest<'_>,
     ) -> Result<Organization> {
         let url = format!("{}/orgs", self.private_realm_url);
-        let auth_token = self.get_current_access_token().await?;
+        let auth_token = self.get_current_access_token().await;
         let response = (|| {
             self.http_client
                 .post(&url)
@@ -399,7 +399,7 @@ impl KeycloakClient {
             let org = self
                 .http_client
                 .get(location_header)
-                .bearer_auth(self.get_current_access_token().await?.access_token.secret())
+                .bearer_auth(self.get_current_access_token().await.access_token.secret())
                 .send()
                 .await?
                 .json()
@@ -418,7 +418,7 @@ impl KeycloakClient {
         org_id: Uuid,
         request: &WriteOrganizationRequest<'_>,
     ) -> Result<()> {
-        let auth_token = self.get_current_access_token().await?;
+        let auth_token = self.get_current_access_token().await;
         let response = (|| {
             self.http_client
                 .put(format!("{}/orgs/{}", self.private_realm_url, org_id))
@@ -453,7 +453,7 @@ impl KeycloakClient {
         first: u32,
         max: u32,
     ) -> Result<Vec<UserItem>> {
-        let auth_token = self.get_current_access_token().await?;
+        let auth_token = self.get_current_access_token().await;
         let res = (|| {
             self.http_client
                 .get(format!(
@@ -483,7 +483,7 @@ impl KeycloakClient {
         org_id: Uuid,
         user_id: Uuid,
     ) -> Result<()> {
-        let auth_token = self.get_current_access_token().await?;
+        let auth_token = self.get_current_access_token().await;
         (|| {
             self.http_client
                 .put(format!(
@@ -512,7 +512,7 @@ impl KeycloakClient {
         org_id: Uuid,
         user_id: Uuid,
     ) -> Result<()> {
-        let auth_token = self.get_current_access_token().await?;
+        let auth_token = self.get_current_access_token().await;
         let response = (|| {
             self.http_client
                 .delete(format!(
@@ -543,7 +543,7 @@ impl KeycloakClient {
         org_id: Uuid,
         invite_request: &InviteUserRequest,
     ) -> Result<Invitation> {
-        let auth_token = self.get_current_access_token().await?;
+        let auth_token = self.get_current_access_token().await;
         let url = format!("{}/orgs/{}/invitations", self.private_realm_url, org_id);
         let response = (|| {
             self.http_client
@@ -587,7 +587,7 @@ impl KeycloakClient {
         let invitation = self
             .http_client
             .get(location_header)
-            .bearer_auth(self.get_current_access_token().await?.access_token.secret())
+            .bearer_auth(self.get_current_access_token().await.access_token.secret())
             .send()
             .await?
             .json()
@@ -601,7 +601,7 @@ impl KeycloakClient {
     /// Returns Ok(()) on success or an error if the operation fails.
     #[tracing::instrument(skip(self))]
     pub(super) async fn create_an_organization_role(&self, org_id: Uuid, role: &str) -> Result<()> {
-        let auth_token = self.get_current_access_token().await?;
+        let auth_token = self.get_current_access_token().await;
         (|| {
             self.http_client
                 .post(format!("{}/orgs/{}/roles", self.private_realm_url, org_id))
@@ -631,7 +631,7 @@ impl KeycloakClient {
         user_id: Uuid,
         role: &str,
     ) -> Result<()> {
-        let auth_token = self.get_current_access_token().await?;
+        let auth_token = self.get_current_access_token().await;
         let url = format!(
             "{}/orgs/{}/roles/{}/users/{}",
             self.private_realm_url, org_id, role, user_id
@@ -670,7 +670,7 @@ impl KeycloakClient {
         org_id: Uuid,
         user_id: Uuid,
     ) -> Result<Vec<OrgnanizationRole>> {
-        let auth_token = self.get_current_access_token().await?;
+        let auth_token = self.get_current_access_token().await;
         let url = format!(
             "{}/users/{}/orgs/{}/roles",
             self.private_realm_url, user_id, org_id
@@ -713,7 +713,7 @@ impl KeycloakClient {
         user_id: Uuid,
         role: &str,
     ) -> Result<()> {
-        let auth_token = self.get_current_access_token().await?;
+        let auth_token = self.get_current_access_token().await;
         (|| {
             self.http_client
                 .delete(format!(
@@ -742,7 +742,7 @@ impl KeycloakClient {
         org_id: Uuid,
         invitation_id: Uuid,
     ) -> Result<Invitation> {
-        let auth_token = self.get_current_access_token().await?;
+        let auth_token = self.get_current_access_token().await;
         let response = (|| {
             self.http_client
                 .get(format!(
@@ -775,7 +775,7 @@ impl KeycloakClient {
         org_id: Uuid,
         invitation_id: Uuid,
     ) -> Result<()> {
-        let auth_token = self.get_current_access_token().await?;
+        let auth_token = self.get_current_access_token().await;
         let response = (|| {
             self.http_client
                 .delete(format!(
@@ -809,7 +809,7 @@ impl KeycloakClient {
         first: u32,
         max: u32,
     ) -> Result<Vec<Invitation>> {
-        let auth_token = self.get_current_access_token().await?;
+        let auth_token = self.get_current_access_token().await;
         let response = (|| {
             self.http_client
                 .get(format!(
@@ -836,91 +836,79 @@ impl KeycloakClient {
     /// Obtain an access token for the Keycloak API, either by reading a valid token from memory, or by exchanging client credentials
     /// with Keycloak for a new token
     #[tracing::instrument(skip(self))]
-    async fn get_current_access_token(&self) -> Result<AccessToken> {
+    async fn get_current_access_token(&self) -> AccessToken {
         let mut current_access_token = self.access_token.lock().await;
 
         match &*current_access_token {
             None => {
-                let new_token = self
-                    .obtain_access_token()
-                    .await
-                    .map_err(Error::CannotObtainAccessToken)?;
+                let new_token = self.obtain_access_token().await;
                 *current_access_token = Some(new_token.clone());
-                Ok(new_token)
+                new_token
             }
-            Some(token) if token.is_expired() => match self.refresh_access_token(token).await {
-                Ok(new_token) => {
-                    *current_access_token = Some(new_token.clone());
-                    Ok(new_token)
-                }
-                Err(_) => match self.obtain_access_token().await {
-                    Ok(new_token) => {
-                        *current_access_token = Some(new_token.clone());
-                        Ok(new_token)
-                    }
-                    Err(e) => {
-                        *current_access_token = None;
-                        Err(Error::CannotObtainAccessToken(e))
-                    }
-                },
-            },
-            Some(token) => Ok(token.clone()),
+            Some(token) if token.is_expired() => {
+                let new_token = self.refresh_access_token(token).await;
+                *current_access_token = Some(new_token.clone());
+                new_token
+            }
+            Some(token) => token.clone(),
         }
     }
 
-    async fn obtain_access_token(&self) -> anyhow::Result<AccessToken> {
+    async fn obtain_access_token(&self) -> AccessToken {
         let action = || {
             self.oidc_client
                 .exchange_client_credentials()
                 .request_async(async_http_client)
         };
-        let res = action.retry(&Self::retry_strategy()).await?;
-
-        let access_token = AccessToken {
-            access_token: res.access_token().clone(),
-            refresh_token: res.refresh_token().cloned(),
-            expires_at: res
-                .expires_in()
-                .map(|duration| Instant::now() + (duration - Duration::from_secs(2))),
-            id_token: res.id_token().cloned(),
-        };
-        debug!(
-            client_id = self.client_id,
-            "Obtained a new keycloak access token"
-        );
-        Ok(access_token)
+        match action.retry(&Self::retry_strategy()).await {
+            Ok(res) => {
+                debug!(
+                    client_id = self.client_id,
+                    "Obtained a new keycloak access token"
+                );
+                AccessToken {
+                    access_token: res.access_token().clone(),
+                    refresh_token: res.refresh_token().cloned(),
+                    expires_at: res
+                        .expires_in()
+                        .map(|duration| Instant::now() + (duration - Duration::from_secs(2))),
+                    id_token: res.id_token().cloned(),
+                }
+            }
+            Err(e) => {
+                tracing::error!("Failed to obtain access token from Keycloak: {e}. This is a critical error and should be investigated. Exiting now");
+                std::process::exit(1)
+            }
+        }
     }
 
-    async fn refresh_access_token(
-        &self,
-        access_token: &AccessToken,
-    ) -> anyhow::Result<AccessToken> {
-        let refresh_token = access_token
-            .refresh_token
-            .as_ref()
-            .with_context(|| "no refresh token available in access token")?;
-
-        let action = || {
-            self.oidc_client
-                .exchange_refresh_token(refresh_token)
-                .request_async(async_http_client)
+    async fn refresh_access_token(&self, access_token: &AccessToken) -> AccessToken {
+        let refresh_token = match &access_token.refresh_token {
+            Some(token) => token,
+            None => {
+                warn!("no refresh token available in access token. Falling back to client credentials grant.");
+                return self.obtain_access_token().await;
+            }
         };
-
-        let res = action
-            .retry(&Self::retry_strategy())
-            .notify(|err, dur| {
-                warn!("Failed to refresh access token from Keycloak: {err}. Retrying in {dur:?}");
-            })
-            .await?;
-        let access_token = AccessToken {
-            access_token: res.access_token().clone(),
-            refresh_token: res.refresh_token().cloned(),
-            expires_at: res
-                .expires_in()
-                .map(|duration| Instant::now() + (duration - Duration::from_secs(2))),
-            id_token: res.id_token().cloned(),
-        };
-        Ok(access_token)
+        match self
+            .oidc_client
+            .exchange_refresh_token(refresh_token)
+            .request_async(async_http_client)
+            .await
+        {
+            Ok(res) => AccessToken {
+                access_token: res.access_token().clone(),
+                refresh_token: res.refresh_token().cloned(),
+                expires_at: res
+                    .expires_in()
+                    .map(|duration| Instant::now() + (duration - Duration::from_secs(2))),
+                id_token: res.id_token().cloned(),
+            },
+            Err(e) => {
+                warn!("Failed to refresh access token from Keycloak: {e}. Falling back to client credentials grant.");
+                self.obtain_access_token().await
+            }
+        }
     }
 
     async fn fetch_jwks(&self) -> anyhow::Result<CachedJwks> {
