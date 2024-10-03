@@ -4,6 +4,7 @@ $primary: #5FAB3C;
 
 body {
   background-image: linear-gradient(to bottom, rgba(112, 190, 77, 0.05) 30%, var(--bs-tertiary-bg) 50%);
+  overflow-x: hidden;
 }
 
 .btn[aria-disabled] {
