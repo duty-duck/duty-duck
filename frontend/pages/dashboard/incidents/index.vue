@@ -132,15 +132,10 @@ useIntervalFn(() => {
           {{ $t("dashboard.incidents.emptyPage.text") }}
         </p>
       </div>
-      <IncidentTableView v-if="data && lgOrLarger" :incidents="data!.items" />
-      <IncidentCard
-        v-if="!lgOrLarger"
-        v-for="incident in data?.items"
-        :key="incident.id"
-        v-bind="incident"
-      />
+      <IncidentTableView v-if="data" :incidents="data!.items" />
       <BPagination
         v-model="pageNumber"
+        v-if="data?.totalNumberOfFilteredResults! > 10"
         :prev-text="$t('pagination.prev')"
         :next-text="$t('pagination.next')"
         :total-rows="data?.totalNumberOfFilteredResults"

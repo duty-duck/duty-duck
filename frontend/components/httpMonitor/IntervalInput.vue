@@ -1,18 +1,20 @@
 <script setup lang="ts">
+const { t } = useI18n();
+
 const secondsInterval = [10, 30].map((seconds) => ({
   seconds,
-  label: `${seconds} seconds`,
-  shortLabel: `${seconds}s`,
+  label: t(`intervalInput.seconds`, { count: seconds }),
+  shortLabel: t(`intervalInput.secondsShort`, { count: seconds }),
 }));
 const minutesInterval = [1, 5, 10, 30].map((minutes) => ({
   seconds: minutes * 60,
-  label: `${minutes} ${minutes == 1 ? "minute" : "minutes"}`,
-  shortLabel: `${minutes}m`,
+  label: t(`intervalInput.minutes`, { count: minutes }),
+  shortLabel: t(`intervalInput.minutesShort`, { count: minutes }),
 }));
 const hoursInterval = [1, 2, 6, 12, 24].map((hours) => ({
   seconds: hours * 3600,
-  label: `${hours} ${hours == 1 ? "hour" : "hours"}`,
-  shortLabel: `${hours}h`,
+  label: t(`intervalInput.hours`, { count: hours }),
+  shortLabel: t(`intervalInput.hoursShort`, { count: hours }),
 }));
 const intervals = [...secondsInterval, ...minutesInterval, ...hoursInterval];
 const props = defineProps<{ value: number }>();

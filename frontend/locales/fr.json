@@ -76,6 +76,8 @@
                 "downtimeConfirmationThresholdDescription": "Détermine combien d'échecs consécutifs sont nécessaires avant que le moniteur soit considéré comme en panne. En cas d'échec de l'appel HTTP, le moniteur deviendra \"Suspect\" jusqu'à ce qu'il atteigne ce seuil. Si ce seuil est atteint, le moniteur passera de \"Suspect\" à \"En panne\".",
                 "recoveryConfirmationThreshold": "Seuil de récupération",
                 "recoveryConfirmationThresholdDescription": "Si le moniteur tombe en panne, détermine combien de réussites consécutives sont nécessaires avant que ce moniteur ne soit plus considéré en panne. En dessous de ce seuil, le moniteur sera considéré comme \"En récupération\".",
+                "notificationSettings": "Notifications",
+                "notificationSettingsDescription": "Détermine les notifications qui seront envoyées en cas de panne du moniteur",
                 "save": "Sauvegarder"
             }
         },
@@ -239,7 +241,7 @@
             "organizationRename": "Ne vous inquiétez pas, vous pourrez renommer votre organisation plus tard",
             "organizationPlaceholder": "Entrez le nom de votre organisation",
             "submit": "S'inscrire"
-          },
+        },
         "success": {
             "title": "Merci pour votre inscription !",
             "message": "Vous pouvez maintenant accéder à votre tableau de bord personnel pour créer vos premiers moniteurs",
@@ -267,5 +269,13 @@
             "title": "Accès Refusé",
             "body": "Vous n'avez pas la permission d'effectuer cette action."
         }
+    },
+    "intervalInput": {
+        "seconds": "{count} seconde | {count} secondes",
+        "secondsShort": "{count}s",
+        "minutes": "{count} minute | {count} minutes",
+        "minutesShort": "{count}m",
+        "hours": "{count} heure | {count} heures",
+        "hoursShort": "{count}h"
     }
 }

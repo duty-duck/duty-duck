@@ -10,6 +10,7 @@ const localePath = useLocalePath();
 const onSubmit = async (data: HttpMonitorFormData) => {
   await repo.createHttpMonitor({
     ...data,
+    ...data.notificationSettings,
     isActive: true
   });
   router.push(localePath("/dashboard/httpMonitors"));

@@ -41,7 +41,10 @@ impl IncidentNotificationRepository for IncidentNotificationRepositoryAdapter {
                 i.incident_source_type as "incident_source_type!",
                 i.incident_source_id as "incident_source_id!",
                 hm.id as "http_monitor_id?",
-                hm.url as "http_monitor_url?"
+                hm.url as "http_monitor_url?",
+                hm.email_notification_enabled as "http_monitor_email_notification_enabled?",
+                hm.push_notification_enabled as "http_monitor_push_notification_enabled?",
+                hm.sms_notification_enabled as "http_monitor_sms_notification_enabled?"
             FROM incidents i
             LEFT JOIN http_monitors hm
             ON hm.organization_id = i.organization_id AND hm.id = i.incident_source_id
@@ -79,7 +82,10 @@ impl IncidentNotificationRepository for IncidentNotificationRepositoryAdapter {
                     source: match incident.incident_source_type {
                         IncidentSourceType::HttpMonitor => IncidentSourceWithDetails::HttpMonitor {
                             id: incident.incident_source_id,
-                            url: record.http_monitor_url.expect("HTTP Monitor URL cannot be empty")
+                            url: record.http_monitor_url.unwrap(),
+                            email_notification_enabled: record.http_monitor_email_notification_enabled.unwrap(),
+                            push_notification_enabled: record.http_monitor_push_notification_enabled.unwrap(),
+                            sms_notification_enabled: record.http_monitor_sms_notification_enabled.unwrap(),
                         },
                     },
                     incident,

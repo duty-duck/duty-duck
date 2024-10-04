@@ -5,8 +5,8 @@
   <div class="text-secondary form-help">
     <Icon
       style="vertical-align: middle"
-      name="ph:question-duotone"
-      size="1.5rem"
+      name="ph:question"
+      size="1.rem"
     />
     {{ text }}
   </div>

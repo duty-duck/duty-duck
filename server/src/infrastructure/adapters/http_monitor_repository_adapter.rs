@@ -115,9 +115,12 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
                 error_kind, 
                 tags,
                 downtime_confirmation_threshold,
-                recovery_confirmation_threshold
+                recovery_confirmation_threshold,
+                email_notification_enabled,
+                push_notification_enabled,
+                sms_notification_enabled
             ) 
-            values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+            values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
             returning id",
             monitor.organization_id,
             monitor.url,
@@ -128,8 +131,14 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
             HttpMonitorErrorKind::None as i16,
             &monitor.tags,
             monitor.downtime_confirmation_threshold as i64,
-            monitor.recovery_confirmation_threshold as i64
-        ).fetch_one(&self.pool).await?.id;
+            monitor.recovery_confirmation_threshold as i64,
+            monitor.email_notification_enabled,
+            monitor.push_notification_enabled,
+            monitor.sms_notification_enabled,
+        )
+        .fetch_one(&self.pool)
+        .await?
+        .id;
         Ok(new_monitor_id)
     }
 
@@ -195,8 +204,11 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
                 interval_seconds = $5,
                 recovery_confirmation_threshold = $6,
                 downtime_confirmation_threshold = $7,
-                organization_id = $8
-            WHERE organization_id = $8 and id = $9",
+                email_notification_enabled = $8,
+                push_notification_enabled = $9,
+                sms_notification_enabled = $10,
+                organization_id = $11
+            WHERE organization_id = $11 and id = $12",
             monitor.url,
             monitor.status as i16,
             monitor.next_ping_at,
@@ -204,6 +216,9 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
             monitor.interval_seconds as i64,
             monitor.recovery_confirmation_threshold as i64,
             monitor.downtime_confirmation_threshold as i64,
+            monitor.email_notification_enabled,
+            monitor.push_notification_enabled,
+            monitor.sms_notification_enabled,
             monitor.organization_id,
             id,
         )

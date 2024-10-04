@@ -32,7 +32,6 @@ pub struct IncidentWithSourcesDetails {
     pub source: IncidentSourceWithDetails,
 }
 
-
 #[derive(Serialize, Deserialize, TS, Debug, Clone)]
 #[serde(tag = "causeType", rename_all_fields = "camelCase")]
 #[ts(export)]
@@ -121,7 +120,6 @@ impl From<i16> for IncidentSourceType {
     }
 }
 
-
 /// An enum the can hold one of the different incident types at runtime
 #[derive(Serialize, Deserialize, TS, Debug, Clone, PartialEq, Eq, Hash)]
 #[ts(export)]
@@ -134,7 +132,42 @@ pub enum IncidentSource {
 #[ts(export)]
 #[serde(tag = "type")]
 pub enum IncidentSourceWithDetails {
-    HttpMonitor { id: Uuid, url: String },
+    HttpMonitor {
+        id: Uuid,
+        url: String,
+        email_notification_enabled: bool,
+        push_notification_enabled: bool,
+        sms_notification_enabled: bool,
+    },
+}
+
+impl IncidentSourceWithDetails {
+    pub fn email_notification_enabled(&self) -> bool {
+        match self {
+            IncidentSourceWithDetails::HttpMonitor {
+                email_notification_enabled,
+                ..
+            } => *email_notification_enabled,
+        }
+    }
+
+    pub fn push_notification_enabled(&self) -> bool {
+        match self {
+            IncidentSourceWithDetails::HttpMonitor {
+                push_notification_enabled,
+                ..
+            } => *push_notification_enabled,
+        }
+    }
+
+    pub fn sms_notification_enabled(&self) -> bool {
+        match self {
+            IncidentSourceWithDetails::HttpMonitor {
+                sms_notification_enabled,
+                ..
+            } => *sms_notification_enabled,
+        }
+    }
 }
 
 #[derive(Debug)]

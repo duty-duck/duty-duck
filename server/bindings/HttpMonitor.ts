@@ -2,4 +2,4 @@
 import type { HttpMonitorErrorKind } from "./HttpMonitorErrorKind";
 import type { HttpMonitorStatus } from "./HttpMonitorStatus";
 
-export type HttpMonitor = { organizationId: string, id: string, createdAt: string, url: string, firstPingAt: string | null, nextPingAt: string | null, lastPingAt: string | null, lastStatusChangeAt: string, recoveryConfirmationThreshold: number, downtimeConfirmationThreshold: number, intervalSeconds: number, lastHttpCode: number | null, status: HttpMonitorStatus, statusCounter: number, errorKind: HttpMonitorErrorKind, tags: Array<string>, };
+export type HttpMonitor = { organizationId: string, id: string, createdAt: string, url: string, firstPingAt: string | null, nextPingAt: string | null, lastPingAt: string | null, lastStatusChangeAt: string, recoveryConfirmationThreshold: number, downtimeConfirmationThreshold: number, intervalSeconds: number, lastHttpCode: number | null, status: HttpMonitorStatus, statusCounter: number, errorKind: HttpMonitorErrorKind, tags: Array<string>, emailNotificationEnabled: boolean, pushNotificationEnabled: boolean, smsNotificationEnabled: boolean, };

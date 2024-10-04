@@ -56,6 +56,9 @@ pub struct NewHttpMonitor {
     pub tags: Vec<String>,
     pub recovery_confirmation_threshold: u32,
     pub downtime_confirmation_threshold: u32,
+    pub email_notification_enabled: bool,
+    pub push_notification_enabled: bool,
+    pub sms_notification_enabled: bool,
 }
 
 #[derive(Debug)]

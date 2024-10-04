@@ -24,6 +24,9 @@ pub struct UpdateHttpMonitorCommand {
     pub tags: HashSet<String>,
     pub recovery_confirmation_threshold: u32,
     pub downtime_confirmation_threshold: u32,
+    pub email_notification_enabled: bool,
+    pub push_notification_enabled: bool,
+    pub sms_notification_enabled: bool,
 }
 
 #[derive(Error, Debug)]
@@ -62,7 +65,10 @@ pub async fn update_http_monitor(
         interval_seconds: command.interval_seconds,
         tags: command.tags.into_iter().collect(),
         downtime_confirmation_threshold: command.downtime_confirmation_threshold,
-        recovery_confirmation_threshold: command.recovery_confirmation_threshold
+        recovery_confirmation_threshold: command.recovery_confirmation_threshold,
+        email_notification_enabled: command.email_notification_enabled,
+        push_notification_enabled: command.push_notification_enabled,
+        sms_notification_enabled: command.sms_notification_enabled,
     };
     let monitor_updated = repository.update_http_monitor(id, new_monitor).await?;
     if monitor_updated {

@@ -32,8 +32,6 @@ $navbar-height: 50px;
 
   #auth-menu {
     height: $navbar-height;
-    border-left: solid $gray-300 2px;
-    border-right: solid $gray-300 2px;
     display: flex;
     align-items: center;
   }

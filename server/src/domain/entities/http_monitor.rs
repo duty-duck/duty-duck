@@ -29,6 +29,9 @@ pub struct HttpMonitor {
     pub status_counter: i16,
     pub error_kind: HttpMonitorErrorKind,
     pub tags: Vec<String>,
+    pub email_notification_enabled: bool,
+    pub push_notification_enabled: bool,
+    pub sms_notification_enabled: bool,
 }
 
 impl HttpMonitor {

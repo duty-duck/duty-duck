@@ -136,28 +136,32 @@ async fn proces_incident<M: Mailer>(
 ) -> anyhow::Result<()> {
     let org_id = incident.incident.organization_id;
     let (org, org_users) = fetch_organization_and_users(org_repository, org_id, org_cache).await?;
-    let devices_tokens =
-        fetch_organization_devices_token(user_devices_repository, user_devices_cache, org_id)
+
+    // Send e-mails, if e-email notifications are enabled
+    if incident.source.email_notification_enabled() {
+        let messages = org_users
+            .into_iter()
+            .filter_map(|user| match build_message::<M>(incident, &user, &org) {
+                Ok(message) => Some(message),
+                Err(e) => {
+                    warn!(error = ?e, user = ?user, "Failed to build e-mail message for user");
+                    None
+                }
+            })
+            .collect();
+        mailer.send_batch(messages).await?;
+    }
+
+    // Send push notification, if push notifications are enabled
+    if incident.source.push_notification_enabled() {
+        let devices_tokens =
+            fetch_organization_devices_token(user_devices_repository, user_devices_cache, org_id)
+                .await?;
+        let push_notification = build_notification(incident);
+        push_notificaton_server
+            .send(&devices_tokens, &push_notification)
             .await?;
-    let push_notification = build_notification(incident);
-
-    // Send e-mails
-    let messages = org_users
-        .into_iter()
-        .filter_map(|user| match build_message::<M>(incident, &user, &org) {
-            Ok(message) => Some(message),
-            Err(e) => {
-                warn!(error = ?e, user = ?user, "Failed to build e-mail message for user");
-                None
-            }
-        })
-        .collect();
-    mailer.send_batch(messages).await?;
-
-    // Send push notification
-    push_notificaton_server
-        .send(&devices_tokens, &push_notification)
-        .await?;
+    }
 
     Ok(())
 }
