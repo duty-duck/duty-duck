@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { AsyncDataRequestStatus } from "#app";
 import type { HttpMonitor } from "bindings/HttpMonitor";
-import type { IncidentWithSources } from "bindings/IncidentWithSources";
+import type { Incident } from "bindings/Incident";
 import type { ListIncidentsResponse } from "bindings/ListIncidentsResponse";
 
 const { monitor, onGoingIncident, incidents, currentTab } = defineProps<{
   monitor: HttpMonitor;
-  onGoingIncident: IncidentWithSources | null;
+  onGoingIncident: Incident | null;
   incidents: {
     status: AsyncDataRequestStatus;
     data: ListIncidentsResponse | null;

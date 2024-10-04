@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import type { IncidentWithSources } from 'bindings/IncidentWithSources';
+import type { Incident } from 'bindings/Incident';
+
 const localePath = useLocalePath();
 
 const props = defineProps<{
-    incidents: IncidentWithSources[]
+    incidents: Incident[]
 }>() 
 </script>
 
@@ -47,10 +48,8 @@ const props = defineProps<{
                         {{ $t(`dashboard.incidentStatus.${incident.status}`) }}
                     </BTd>
                     <BTd>
-                        <div v-for="s in incident.sources" :key="s.id">
-                            <IncidentCardHttpMonitorDetails :http-monitor-id="s.id" :incident="incident"
-                                v-if="s.type == 'HttpMonitor'" />
-                        </div>
+                            <IncidentCardHttpMonitorDetails  :http-monitor-id="incident.incidentSourceId" :incident="incident"
+                                v-if="incident.incidentSourceType == 'httpmonitor'" />
                     </BTd>
                     <BTd>
                         <IncidentCause :incident="incident" concise />

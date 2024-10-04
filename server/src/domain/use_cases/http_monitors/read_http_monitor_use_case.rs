@@ -7,7 +7,7 @@ use crate::domain::{
     entities::{
         authorization::{AuthContext, Permission},
         http_monitor::HttpMonitor,
-        incident::{IncidentPriority, IncidentSource, IncidentStatus, IncidentWithSources},
+        incident::{IncidentPriority, IncidentSource, IncidentStatus, Incident},
     },
     ports::{
         http_monitor_repository::HttpMonitorRepository, incident_repository::IncidentRepository,
@@ -19,7 +19,7 @@ use crate::domain::{
 #[ts(export)]
 pub struct ReadHttpMonitorResponse {
     pub monitor: HttpMonitor,
-    pub ongoing_incident: Option<IncidentWithSources>,
+    pub ongoing_incident: Option<Incident>,
 }
 
 #[derive(Error, Debug)]

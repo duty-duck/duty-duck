@@ -5,7 +5,7 @@ use ts_rs::TS;
 use crate::domain::{
     entities::{
         authorization::{AuthContext, Permission},
-        incident::{IncidentPriority, IncidentStatus, IncidentWithSources},
+        incident::{IncidentPriority, IncidentStatus, Incident},
     },
     ports::incident_repository::{IncidentRepository, ListIncidentsOutput},
 };
@@ -24,7 +24,7 @@ pub struct ListIncidentsParams {
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct ListIncidentsResponse {
-    pub items: Vec<IncidentWithSources>,
+    pub items: Vec<Incident>,
     pub total_number_of_results: u32,
     pub total_number_of_filtered_results: u32,
 }

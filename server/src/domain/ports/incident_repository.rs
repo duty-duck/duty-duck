@@ -2,7 +2,7 @@ use axum::async_trait;
 use uuid::Uuid;
 
 use crate::domain::entities::incident::{
-    IncidentPriority, IncidentSource, IncidentStatus, IncidentWithSources, NewIncident,
+    Incident, IncidentPriority, IncidentSource, IncidentStatus, NewIncident
 };
 
 use super::transactional_repository::TransactionalRepository;
@@ -55,7 +55,7 @@ pub trait IncidentRepository: TransactionalRepository + Clone + Send + Sync + 's
 }
 
 pub struct ListIncidentsOutput {
-    pub incidents: Vec<IncidentWithSources>,
+    pub incidents: Vec<Incident>,
     pub total_incidents: u32,
     pub total_filtered_incidents: u32,
 }

@@ -15,7 +15,7 @@ const props = withDefaults(defineProps<HttpMonitorFormData>(), {
   downtimeConfirmationThreshold: 1
 });
 const emits = defineEmits<{
-  submit: [HttpMonitorFormData];
+  (e: 'submit', form: HttpMonitorFormData): void;
 }>();
 
 const form = reactive({ ...props });

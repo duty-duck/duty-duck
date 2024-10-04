@@ -10,7 +10,7 @@ use crate::domain::{
     entities::{
         http_monitor::{HttpMonitor, HttpMonitorErrorKind, HttpMonitorStatus},
         incident::{
-            IncidentCause, IncidentPriority, IncidentSource, IncidentStatus, IncidentWithSources,
+            IncidentCause, IncidentPriority, IncidentSource, IncidentStatus, Incident,
             NewIncident,
         },
     },
@@ -255,7 +255,7 @@ async fn get_existing_incident_for_monitor<IR>(
     transaction: &mut IR::Transaction,
     incident_repo: &IR,
     monitor: &HttpMonitor,
-) -> anyhow::Result<Option<IncidentWithSources>>
+) -> anyhow::Result<Option<Incident>>
 where
     IR: IncidentRepository,
 {
@@ -293,7 +293,7 @@ where
         status: IncidentStatus::Ongoing,
         // TODO: let users configure this
         priority: IncidentPriority::Major,
-        sources: vec![IncidentSource::HttpMonitor { id: monitor.id }],
+        source: IncidentSource::HttpMonitor { id: monitor.id },
         cause: Some(IncidentCause::HttpMonitorIncidentCause {
             error_kind: monitor.error_kind,
             http_code: monitor.last_http_code,

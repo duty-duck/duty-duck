@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
@@ -22,14 +20,8 @@ pub struct Incident {
     pub cause: Option<IncidentCause>,
     pub status: IncidentStatus,
     pub priority: IncidentPriority,
-}
-
-#[derive(Serialize, Deserialize, TS, Debug, Clone)]
-#[ts(export)]
-pub struct IncidentWithSources {
-    #[serde(flatten)]
-    pub incident: Incident,
-    pub sources: HashSet<IncidentSource>,
+    pub incident_source_type: IncidentSourceType,
+    pub incident_source_id: Uuid,
 }
 
 #[derive(Serialize, Deserialize, TS, Debug, Clone)]
@@ -37,7 +29,7 @@ pub struct IncidentWithSources {
 pub struct IncidentWithSourcesDetails {
     #[serde(flatten)]
     pub incident: Incident,
-    pub sources: HashSet<IncidentSourceWithDetails>,
+    pub source: IncidentSourceWithDetails,
 }
 
 
@@ -112,6 +104,24 @@ impl IncidentPriority {
     ];
 }
 
+#[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq)]
+#[repr(i16)]
+#[serde(rename_all = "lowercase")]
+#[ts(export)]
+pub enum IncidentSourceType {
+    HttpMonitor = 0,
+}
+
+impl From<i16> for IncidentSourceType {
+    fn from(value: i16) -> Self {
+        match value {
+            0 => Self::HttpMonitor,
+            _ => panic!("invalid IncidentSourceType discriminant: {value}"),
+        }
+    }
+}
+
+
 /// An enum the can hold one of the different incident types at runtime
 #[derive(Serialize, Deserialize, TS, Debug, Clone, PartialEq, Eq, Hash)]
 #[ts(export)]
@@ -133,6 +143,6 @@ pub struct NewIncident {
     pub created_by: Option<Uuid>,
     pub status: IncidentStatus,
     pub priority: IncidentPriority,
-    pub sources: Vec<IncidentSource>,
+    pub source: IncidentSource,
     pub cause: Option<IncidentCause>,
 }

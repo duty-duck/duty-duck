@@ -19,14 +19,6 @@ invitationEmailBody:
 
 # Push notificatiosn
 
-# Default incident body and title
-newIncidentDefaultPushNotificationTitle:
-    en: "A new incident has been created"
-    fr: "Un nouvel incident est en cours"
-newIncidentDefaultPushNotificationBody:
-    en: "A new incident is ongoing. Head over to DutyDuck to investigate the incident."
-    fr: "Un incident est en cours. Rendez-vous sur DutyDuck pour investiguer l'incident."
-
 # Http monitor incidents
 newHttpMonitorIncidentPushNotificationTitle:
     en: "New incident for URL %{url}"
@@ -36,24 +28,6 @@ newHttpMonitorIncidentPushNotificationBody:
     fr: "Un moniteur HTTP pour l'url %{url} est en panne. Rendez-vous sur DutyDuck pour investiguer l'incident."
 
 # E-mails
-newIncidentDefaultEmailTitle:
-    en: "A new incident has been created"
-    fr: "Un nouvel incident est en cours"
-newIncidentDefaultEmailBody:
-    en: |
-        Hello %{userName},
-        There is an ongoing incident that requires your attention.
-
-        Head over to DutyDuck.net to investigate the incident.
-
-        You are receiving this alert because you are a member of the %{org} organization. 
-        Do not reply to this e-mail.
-    fr: |
-        Bonjour %{userName},
-        Un incident réclame votre attention:
-
-        Vous recevez cette alerte car vous êtes membre de l'organisation %{org}.
-        Rendez-vous sur DutyDuck.net pour investiguer l'incident.
 
 # Http monitor incident email
 newHttpMonitorIncidentEmailSubject:

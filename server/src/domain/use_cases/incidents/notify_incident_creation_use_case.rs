@@ -176,23 +176,12 @@ async fn proces_incident<M: Mailer>(
 ///
 /// Returns a `PushNotification` struct with a title and body tailored to the incident.
 fn build_notification(incident: &IncidentWithSourcesDetails) -> PushNotification {
-    let mut notification = PushNotification {
-        title: t!("newIncidentDefaultPushNotificationTitle").to_string(),
-        body: t!("newIncidentDefaultPushNotificationBody").to_string(),
-    };
-
-    for source in &incident.sources {
-        match source {
-            IncidentSourceWithDetails::HttpMonitor { url, .. } => {
-                notification.title =
-                    t!("newHttpMonitorIncidentPushNotificationTitle", url = url).to_string();
-                notification.body =
-                    t!("newHttpMonitorIncidentPushNotificationBody", url = url).to_string();
-            }
-        }
+    match &incident.source {
+        IncidentSourceWithDetails::HttpMonitor { url, .. } => PushNotification {
+            title: t!("newHttpMonitorIncidentPushNotificationTitle", url = url).to_string(),
+            body: t!("newHttpMonitorIncidentPushNotificationBody", url = url).to_string(),
+        },
     }
-
-    notification
 }
 
 /// Builds an email message for an incident.
@@ -217,20 +206,18 @@ fn build_message<M: Mailer>(
         .to(user.email.parse()?)
         .subject(t!("newIncidentDefaultEmailSubject"));
 
-    let mut body = t!("newIncidentDefaultEmailBody").to_string();
+    let body;
 
-    for source in &incident.sources {
-        match source {
-            IncidentSourceWithDetails::HttpMonitor { url, .. } => {
-                builder = builder.subject(t!("newHttpMonitorIncidentEmailSubject", url = url));
-                body = t!(
-                    "newHttpMonitorIncidentEmailBody",
-                    url = url,
-                    org = user_org.display_name,
-                    userName = user.first_name
-                )
-                .to_string();
-            }
+    match &incident.source {
+        IncidentSourceWithDetails::HttpMonitor { url, .. } => {
+            builder = builder.subject(t!("newHttpMonitorIncidentEmailSubject", url = url));
+            body = t!(
+                "newHttpMonitorIncidentEmailBody",
+                url = url,
+                org = user_org.display_name,
+                userName = user.first_name
+            )
+            .to_string();
         }
     }
 
