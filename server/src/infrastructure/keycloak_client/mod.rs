@@ -17,7 +17,7 @@ use openidconnect::{OAuth2TokenResponse, TokenResponse};
 use reqwest::header::LOCATION;
 use reqwest::{StatusCode, Url};
 use tokio::sync::Mutex;
-use tracing::{debug, warn};
+use tracing::{debug, info, warn};
 use uuid::Uuid;
 
 #[derive(Clone)]
@@ -862,7 +862,7 @@ impl KeycloakClient {
         };
         match action.retry(&Self::retry_strategy()).await {
             Ok(res) => {
-                debug!(
+                info!(
                     client_id = self.client_id,
                     "Obtained a new keycloak access token"
                 );

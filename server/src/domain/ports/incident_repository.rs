@@ -2,13 +2,19 @@ use axum::async_trait;
 use uuid::Uuid;
 
 use crate::domain::entities::incident::{
-    Incident, IncidentPriority, IncidentSource, IncidentStatus, NewIncident
+    Incident, IncidentPriority, IncidentSource, IncidentStatus, NewIncident,
 };
 
 use super::transactional_repository::TransactionalRepository;
 
 #[async_trait]
 pub trait IncidentRepository: TransactionalRepository + Clone + Send + Sync + 'static {
+    async fn get_incident(
+        &self,
+        organization_id: Uuid,
+        incident_id: Uuid,
+    ) -> anyhow::Result<Option<Incident>>;
+
     async fn create_incident(
         &self,
         transaction: &mut Self::Transaction,
@@ -46,12 +52,23 @@ pub trait IncidentRepository: TransactionalRepository + Clone + Send + Sync + 's
         offset: u32,
     ) -> anyhow::Result<ListIncidentsOutput>;
 
+    /// Resolves all incidents for the given sources.
+    ///
+    /// # Arguments
+    ///
+    /// * `transaction` - A mutable reference to the transaction object.
+    /// * `organization_id` - The ID of the organization to resolve incidents for.
+    /// * `sources` - A slice of `IncidentSource` values to resolve incidents for.
+    ///
+    /// # Returns
+    ///
+    /// A `Vec<Uuid>` containing the IDs of the resolved incidents.
     async fn resolve_incidents_by_source(
         &self,
         transaction: &mut Self::Transaction,
         organization_id: Uuid,
         sources: &[IncidentSource],
-    ) -> anyhow::Result<()>;
+    ) -> anyhow::Result<Vec<Uuid>>;
 }
 
 pub struct ListIncidentsOutput {

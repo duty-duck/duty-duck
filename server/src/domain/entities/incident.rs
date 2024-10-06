@@ -25,14 +25,6 @@ pub struct Incident {
 }
 
 #[derive(Serialize, Deserialize, TS, Debug, Clone)]
-#[ts(export)]
-pub struct IncidentWithSourcesDetails {
-    #[serde(flatten)]
-    pub incident: Incident,
-    pub source: IncidentSourceWithDetails,
-}
-
-#[derive(Serialize, Deserialize, TS, Debug, Clone)]
 #[serde(tag = "causeType", rename_all_fields = "camelCase")]
 #[ts(export)]
 pub enum IncidentCause {
@@ -128,49 +120,7 @@ pub enum IncidentSource {
     HttpMonitor { id: Uuid },
 }
 
-#[derive(Serialize, Deserialize, TS, Debug, Clone, PartialEq, Eq, Hash)]
-#[ts(export)]
-#[serde(tag = "type")]
-pub enum IncidentSourceWithDetails {
-    HttpMonitor {
-        id: Uuid,
-        url: String,
-        email_notification_enabled: bool,
-        push_notification_enabled: bool,
-        sms_notification_enabled: bool,
-    },
-}
-
-impl IncidentSourceWithDetails {
-    pub fn email_notification_enabled(&self) -> bool {
-        match self {
-            IncidentSourceWithDetails::HttpMonitor {
-                email_notification_enabled,
-                ..
-            } => *email_notification_enabled,
-        }
-    }
-
-    pub fn push_notification_enabled(&self) -> bool {
-        match self {
-            IncidentSourceWithDetails::HttpMonitor {
-                push_notification_enabled,
-                ..
-            } => *push_notification_enabled,
-        }
-    }
-
-    pub fn sms_notification_enabled(&self) -> bool {
-        match self {
-            IncidentSourceWithDetails::HttpMonitor {
-                sms_notification_enabled,
-                ..
-            } => *sms_notification_enabled,
-        }
-    }
-}
-
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct NewIncident {
     pub organization_id: Uuid,
     pub created_by: Option<Uuid>,

@@ -1,6 +1,7 @@
 use std::{collections::HashMap, time::Duration};
 
 use anyhow::Context;
+use chrono::Utc;
 use lettre::Message;
 use tokio::task::JoinSet;
 use tracing::*;
@@ -8,13 +9,10 @@ use uuid::Uuid;
 
 use crate::domain::{
     entities::{
-        incident::{IncidentSourceWithDetails, IncidentWithSourcesDetails},
-        organization::Organization,
-        push_notification::{PushNotification, PushNotificationToken},
-        user::User,
-        user_device::UserDevice,
+        incident::IncidentCause, incident_event::{IncidentEvent, IncidentEventPayload, IncidentEventType, NotificationEventPayload}, incident_notification::IncidentNotification, organization::Organization, push_notification::{PushNotification, PushNotificationToken}, user::User, user_device::UserDevice
     },
     ports::{
+        incident_event_repository::IncidentEventRepository,
         incident_notification_repository::IncidentNotificationRepository, mailer::Mailer,
         organization_repository::OrganizationRepository,
         push_notification_server::PushNotificationServer,
@@ -23,16 +21,25 @@ use crate::domain::{
 };
 
 #[allow(clippy::too_many_arguments)]
-pub fn spawn_new_incident_notification_tasks(
+pub fn spawn_tasks<OR, INR, IER, PNS, UDR, M>(
     n_tasks: usize,
     delay_between_two_executions: Duration,
-    organization_repository: impl OrganizationRepository,
-    incident_notification_repository: impl IncidentNotificationRepository,
-    push_notificaton_server: impl PushNotificationServer,
-    mailer: impl Mailer,
-    user_devices_repository: impl UserDevicesRepository,
+    organization_repository: OR,
+    incident_notification_repository: INR,
+    incident_event_repository: IER,
+    push_notificaton_server: PNS,
+    mailer: M,
+    user_devices_repository: UDR,
     select_limit: u32,
-) -> JoinSet<()> {
+) -> JoinSet<()>
+where
+    OR: OrganizationRepository,
+    INR: IncidentNotificationRepository,
+    IER: IncidentEventRepository<Transaction = INR::Transaction>,
+    PNS: PushNotificationServer,
+    UDR: UserDevicesRepository,
+    M: Mailer,
+{
     let mut join_set = JoinSet::new();
 
     for _ in 0..n_tasks {
@@ -41,14 +48,16 @@ pub fn spawn_new_incident_notification_tasks(
         let push_notificaton_server = push_notificaton_server.clone();
         let user_devices_repository = user_devices_repository.clone();
         let organization_repository = organization_repository.clone();
+        let incident_event_repository = incident_event_repository.clone();
         let mailer = mailer.clone();
 
         join_set.spawn(async move {
             loop {
                 let _ = interval.tick().await;
-                match fetch_due_incidents_and_notify_incident_creation(
+                match fetch_and_execute_due_notifications(
                     &organization_repository,
                     &incident_notification_repository,
+                    &incident_event_repository,
                     &push_notificaton_server,
                     &mailer,
                     &user_devices_repository,
@@ -74,32 +83,55 @@ pub fn spawn_new_incident_notification_tasks(
     join_set
 }
 
-async fn fetch_due_incidents_and_notify_incident_creation<M: Mailer>(
-    org_repository: &impl OrganizationRepository,
-    incident_notification_repository: &impl IncidentNotificationRepository,
-    push_notificaton_server: &impl PushNotificationServer,
+async fn fetch_and_execute_due_notifications<M, OR, INR, IER, PNS, UDR>(
+    org_repository: &OR,
+    incident_notification_repository: &INR,
+    incident_event_repository: &IER,
+    push_notificaton_server: &PNS,
     mailer: &M,
-    user_devices_repository: &impl UserDevicesRepository,
+    user_devices_repository: &UDR,
     select_limit: u32,
-) -> anyhow::Result<usize> {
+) -> anyhow::Result<usize>
+where
+    OR: OrganizationRepository,
+    INR: IncidentNotificationRepository,
+    IER: IncidentEventRepository<Transaction = INR::Transaction>,
+    PNS: PushNotificationServer,
+    UDR: UserDevicesRepository,
+    M: Mailer,
+{
     let mut user_devices_cache: UserDevicesByOrgCache = UserDevicesByOrgCache::new();
     let mut org_cache: OrgCache = OrgCache::new();
 
     let mut tx = incident_notification_repository.begin_transaction().await?;
-    let incidents = incident_notification_repository
-        .list_new_incidents_due_for_notification(&mut tx, select_limit)
+    let incident_notifications = incident_notification_repository
+        .get_next_notifications_to_send(&mut tx, select_limit)
         .await?;
 
-    let incidents_len = incidents.len();
+    let incident_notifications_len = incident_notifications.len();
 
     debug!(
-        incidents = incidents_len,
-        "{} newly-created incidents are due for notification", incidents_len
+        notifications = incident_notifications_len,
+        "{} incident notifications are due to be sent", incident_notifications_len
     );
 
-    for incident in incidents {
-        proces_incident::<M>(
-            &incident,
+    for notification in incident_notifications {
+        let should_create_event = notification.send_email || notification.send_push_notification || notification.send_sms;
+        let event = IncidentEvent {
+            organization_id: notification.organization_id,
+            incident_id: notification.incident_id,
+            created_at: Utc::now(),
+            event_type: IncidentEventType::Notification,
+            event_payload: Some(IncidentEventPayload::Notification(NotificationEventPayload {
+                escalation_level: notification.escalation_level,
+                sent_via_email: notification.send_email,
+                sent_via_push_notification: notification.send_push_notification,
+                sent_via_sms: notification.send_sms,
+            })),
+        };
+
+       send_notification::<M>(
+            notification,
             user_devices_repository,
             org_repository,
             push_notificaton_server,
@@ -108,25 +140,24 @@ async fn fetch_due_incidents_and_notify_incident_creation<M: Mailer>(
             &mut org_cache,
         )
         .await?;
-        // Save in the database that the notification has been properly sent
-        incident_notification_repository
-            .acknowledge_incident_creation_notification(
-                &mut tx,
-                incident.incident.organization_id,
-                incident.incident.id,
-            )
-            .await?;
+
+        if should_create_event {
+            incident_event_repository.create_incident_event(&mut tx, event).await?;
+        }
     }
 
+    // Commit the transaction.
+    // Once the transaction is committed, the due notifications are deleted from the database
     incident_notification_repository
         .commit_transaction(tx)
         .await?;
 
-    Ok(incidents_len)
+    Ok(incident_notifications_len)
 }
 
-async fn proces_incident<M: Mailer>(
-    incident: &IncidentWithSourcesDetails,
+/// Sends an event notification, if any notification channel is enabled
+async fn send_notification<M: Mailer>(
+    notification: IncidentNotification,
     user_devices_repository: &impl UserDevicesRepository,
     org_repository: &impl OrganizationRepository,
     push_notificaton_server: &impl PushNotificationServer,
@@ -134,33 +165,42 @@ async fn proces_incident<M: Mailer>(
     user_devices_cache: &mut UserDevicesByOrgCache,
     org_cache: &mut OrgCache,
 ) -> anyhow::Result<()> {
-    let org_id = incident.incident.organization_id;
+    let org_id = notification.organization_id;
     let (org, org_users) = fetch_organization_and_users(org_repository, org_id, org_cache).await?;
 
     // Send e-mails, if e-email notifications are enabled
-    if incident.source.email_notification_enabled() {
+    if notification.send_email {
         let messages = org_users
             .into_iter()
-            .filter_map(|user| match build_message::<M>(incident, &user, &org) {
-                Ok(message) => Some(message),
-                Err(e) => {
-                    warn!(error = ?e, user = ?user, "Failed to build e-mail message for user");
-                    None
-                }
-            })
+            .filter_map(
+                |user| match build_message::<M>(&notification, &user, &org) {
+                    Ok(message) => Some(message),
+                    Err(e) => {
+                        warn!(error = ?e, user = ?user, "Failed to build e-mail message for user");
+                        None
+                    }
+                },
+            )
             .collect();
         mailer.send_batch(messages).await?;
     }
 
     // Send push notification, if push notifications are enabled
-    if incident.source.push_notification_enabled() {
+    if notification.send_push_notification {
         let devices_tokens =
             fetch_organization_devices_token(user_devices_repository, user_devices_cache, org_id)
                 .await?;
-        let push_notification = build_notification(incident);
-        push_notificaton_server
-            .send(&devices_tokens, &push_notification)
-            .await?;
+
+        match build_push_notification(&notification) {
+            Ok(push_notification) => {
+                push_notificaton_server
+                    .send(&devices_tokens, &push_notification)
+                    .await?;
+            }
+            Err(e) => {
+                warn!(error = ?e, "Failed to build push notification");
+            }
+        }
     }
 
     Ok(())
@@ -174,17 +214,22 @@ async fn proces_incident<M: Mailer>(
 ///
 /// # Arguments
 ///
-/// * `incident` - A reference to an `IncidentWithSourcesDetails` containing information about the incident.
+/// * `notification` - A reference to an `IncidentNotification` containing information about the incident.
 ///
 /// # Returns
 ///
 /// Returns a `PushNotification` struct with a title and body tailored to the incident.
-fn build_notification(incident: &IncidentWithSourcesDetails) -> PushNotification {
-    match &incident.source {
-        IncidentSourceWithDetails::HttpMonitor { url, .. } => PushNotification {
-            title: t!("newHttpMonitorIncidentPushNotificationTitle", url = url).to_string(),
-            body: t!("newHttpMonitorIncidentPushNotificationBody", url = url).to_string(),
-        },
+fn build_push_notification(
+    notification: &IncidentNotification,
+) -> anyhow::Result<PushNotification> {
+    match &notification.notification_payload.incident_cause {
+        IncidentCause::HttpMonitorIncidentCause { .. } => {
+            let url = notification.notification_payload.incident_http_monitor_url.as_ref().context("Cannot build push notification, cause is HttpMonitorIncidentCause but HTTP monitor URL is not set")?;
+            Ok(PushNotification {
+                title: t!("newHttpMonitorIncidentPushNotificationTitle", url = url).to_string(),
+                body: t!("newHttpMonitorIncidentPushNotificationBody", url = url).to_string(),
+            })
+        }
     }
 }
 
@@ -195,37 +240,33 @@ fn build_notification(incident: &IncidentWithSourcesDetails) -> PushNotification
 ///
 /// # Arguments
 ///
-/// * `incident` - A reference to an `IncidentWithSourcesDetails` containing information about the incident.
+/// * `notification` - A reference to an `IncidentNotification` containing information about the incident.
 /// * `recipient_email` - The email address of the recipient.
 ///
 /// # Returns
 ///
 /// Returns a `Result` containing the `lettre::Message` if successful, or an error if message building fails.
 fn build_message<M: Mailer>(
-    incident: &IncidentWithSourcesDetails,
+    notification: &IncidentNotification,
     user: &User,
-    user_org: &Organization,
+    _user_org: &Organization,
 ) -> anyhow::Result<Message> {
-    let mut builder = M::builder()
-        .to(user.email.parse()?)
-        .subject(t!("newIncidentDefaultEmailSubject"));
-
+    let subject;
     let body;
 
-    match &incident.source {
-        IncidentSourceWithDetails::HttpMonitor { url, .. } => {
-            builder = builder.subject(t!("newHttpMonitorIncidentEmailSubject", url = url));
-            body = t!(
-                "newHttpMonitorIncidentEmailBody",
-                url = url,
-                org = user_org.display_name,
-                userName = user.first_name
-            )
-            .to_string();
+    match &notification.notification_payload.incident_cause {
+        IncidentCause::HttpMonitorIncidentCause {
+            ..
+        } => {
+            let url = notification.notification_payload.incident_http_monitor_url.as_ref().context("Cannot build e-mail message, cause is HttpMonitorIncidentCause but HTTP monitor URL is not set")?;
+            subject = t!("newHttpMonitorIncidentEmailSubject", url = url).to_string();
+            body = t!("newHttpMonitorIncidentEmailBody", url = url).to_string();
         }
     }
 
-    builder
+    M::builder()
+        .to(user.email.parse()?)
+        .subject(subject)
         .body(body)
         .with_context(|| "Failed to build message")
 }

@@ -1,5 +1,5 @@
 use crate::domain::{
-    entities::incident::*,
+    entities::{incident::*, incident_event::IncidentEvent},
     ports::incident_repository::{IncidentRepository, ListIncidentsOutput},
 };
 use async_trait::async_trait;
@@ -55,12 +55,23 @@ impl IncidentRepository for IncidentRepositoryAdapter {
         Ok(new_incident_id)
     }
 
+    /// Resolves all incidents for the given sources.
+    ///
+    /// # Arguments
+    ///
+    /// * `transaction` - A mutable reference to the transaction object.
+    /// * `organization_id` - The ID of the organization to resolve incidents for.
+    /// * `sources` - A slice of `IncidentSource` values to resolve incidents for.
+    ///
+    /// # Returns
+    ///
+    /// A `Vec<Uuid>` containing the IDs of the resolved incidents.
     async fn resolve_incidents_by_source(
         &self,
         transaction: &mut Self::Transaction,
         organization_id: Uuid,
         sources: &[IncidentSource],
-    ) -> anyhow::Result<()> {
+    ) -> anyhow::Result<Vec<Uuid>> {
         let http_monitors_ids = sources
             .iter()
             .map(|source| match source {
@@ -69,22 +80,26 @@ impl IncidentRepository for IncidentRepositoryAdapter {
             .unique()
             .collect::<Vec<_>>();
 
-        sqlx::query!(
+        let resolved_incidents = sqlx::query!(
             "
             UPDATE incidents i
             SET resolved_at = now(), status = $1
             WHERE organization_id = $2
             AND (i.incident_source_type = $3 AND i.incident_source_id = ANY($4::uuid[]))
+            RETURNING id
            ",
             &(IncidentStatus::Resolved as i16),
             &organization_id,
             &(IncidentSourceType::HttpMonitor as i16),
             &http_monitors_ids
         )
-        .execute(transaction.as_mut())
-        .await?;
+        .fetch_all(transaction.as_mut())
+        .await?
+        .into_iter()
+        .map(|record| record.id)
+        .collect::<Vec<_>>();
 
-        Ok(())
+        Ok(resolved_incidents)
     }
 
     async fn list_incidents(
@@ -177,5 +192,31 @@ impl IncidentRepository for IncidentRepositoryAdapter {
             total_filtered_incidents: total_filtered_count as u32,
             incidents,
         })
+    }
+
+    async fn get_incident(
+        &self,
+        organization_id: Uuid,
+        incident_id: Uuid,
+    ) -> anyhow::Result<Option<Incident>> {
+        let record = sqlx::query!(
+            "SELECT * FROM incidents WHERE organization_id = $1 AND id = $2",
+            organization_id,
+            incident_id
+        )
+        .fetch_optional(&self.pool)
+        .await?;
+        Ok(record.map(|record| Incident {
+            organization_id: record.organization_id,
+            id: record.id,
+            created_at: record.created_at,
+            created_by: record.created_by,
+            resolved_at: record.resolved_at,
+            cause: record.cause.and_then(|value| serde_json::from_value(value).ok()),
+            status: record.status.into(),
+            priority: record.priority.into(),
+            incident_source_id: record.incident_source_id,
+            incident_source_type: record.incident_source_type.into(),
+        }))
     }
 }

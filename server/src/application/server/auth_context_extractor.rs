@@ -6,7 +6,7 @@ use axum::http::StatusCode;
 use jsonwebtoken::errors::ErrorKind;
 use jsonwebtoken::{DecodingKey, Validation};
 use serde::Deserialize;
-use tracing::{debug, error};
+use tracing::error;
 use uuid::Uuid;
 
 use crate::application::application_state::ApplicationState;
@@ -67,7 +67,7 @@ impl FromRequestParts<ApplicationState> for AuthContext {
         let token = jsonwebtoken::decode::<Claims>(token, &key, &validation).map_err(|e| {
             match e.kind() {
                 ErrorKind::InvalidAudience =>  error!(error = ?e, "Failed to decode access token because of invalid audience. Verify the ACCESS_TOKEN_AUDIENCE configuration variable."),
-                _ =>  debug!(error = ?e, "Failed to decode access token")
+                _ =>  error!(error = ?e, "Failed to decode access token. This should not happen, maybe scopes are missing in Keycloak ?")
             };
             StatusCode::FORBIDDEN
         })?;

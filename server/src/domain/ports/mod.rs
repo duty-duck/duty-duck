@@ -8,3 +8,4 @@ pub mod transactional_repository;
 pub mod user_devices_repository;
 pub mod user_repository;
 pub mod mailer;
+pub mod incident_event_repository;

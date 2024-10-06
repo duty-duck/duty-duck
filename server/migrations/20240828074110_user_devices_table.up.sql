@@ -15,19 +15,15 @@ create index on user_devices (organization_id, user_id);
 create table incidents_notifications (
     organization_id uuid not null,
     incident_id uuid not null,
-    creation_notification_sent_at timestamp with time zone,
-    resolution_notification_sent_at timestamp with time zone,
+    escalation_level smallint not null default 0,
+    -- 0: incident creation, 1: incident resolution
+    notification_type smallint not null default 0,
+    notification_due_at timestamp with time zone not null,
+    notification_payload jsonb not null,
+    send_sms boolean not null,
+    send_push_notification boolean not null,
+    send_email boolean not null,
+    primary key (organization_id, incident_id, escalation_level),
     foreign key (organization_id, incident_id) references incidents (organization_id, id)
 );
-
-create index on incidents_notifications (creation_notification_sent_at);
-
--- automatically create an entry in this table every time a new incident is opened
-create or replace function create_new_incident_notifications() returns trigger as $$
-BEGIN
-    INSERT INTO incidents_notifications (organization_id, incident_id) VALUES(new.organization_id, new.id);
-    RETURN new;
-END;
-$$ language plpgsql;
-
-create or replace trigger incidents_notifications_creation after insert on incidents for each row execute procedure create_new_incident_notifications();
+create index on incidents_notifications (notification_due_at desc);
