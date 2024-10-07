@@ -3,6 +3,7 @@ use crate::domain::{
     ports::incident_repository::{IncidentRepository, ListIncidentsOutput},
 };
 use async_trait::async_trait;
+use chrono::*;
 use itertools::Itertools;
 use sqlx::PgPool;
 use uuid::Uuid;
@@ -102,6 +103,24 @@ impl IncidentRepository for IncidentRepositoryAdapter {
         Ok(resolved_incidents)
     }
 
+    /// Lists all incidents for the given organization.
+    ///
+    /// # Arguments
+    ///
+    /// * `transaction` - A mutable reference to the transaction object.
+    /// * `organization_id` - The ID of the organization to list incidents for.
+    /// * `include_statuses` - A slice of `IncidentStatus` values to include in the results. Make sure to include every status you are interested in. Otherwise, the query will return an empty list.
+    /// * `include_priorities` - A slice of `IncidentPriority` values to include in the results. Make sure to include every priority you are interested in. Otherwise, the query will return an empty list.
+    /// * `include_sources` - A slice of `IncidentSource` values to include in the results.
+    /// * `limit` - The maximum number of incidents to return.
+    /// * `offset` - The number of incidents to skip before returning the results.
+    /// * `from_date` - The start date to filter incidents by.
+    /// * `to_date` - The end date to filter incidents by.
+    ///
+    /// # Returns
+    ///
+    /// A `ListIncidentsOutput` struct containing the incidents, total number of incidents, and total number of filtered incidents.
+    #[allow(clippy::too_many_arguments)]
     async fn list_incidents(
         &self,
         transaction: &mut Self::Transaction,
@@ -111,6 +130,8 @@ impl IncidentRepository for IncidentRepositoryAdapter {
         include_sources: &[IncidentSource],
         limit: u32,
         offset: u32,
+        from_date: Option<DateTime<Utc>>,
+        to_date: Option<DateTime<Utc>>,
     ) -> anyhow::Result<ListIncidentsOutput> {
         let statuses = include_statuses
             .iter()
@@ -149,9 +170,11 @@ impl IncidentRepository for IncidentRepositoryAdapter {
                    $7::uuid[] = '{}' OR
                    (i.incident_source_type = $6 AND i.incident_source_id = ANY($7::uuid[]))
                 )
+                -- Filter by date
+                AND ($8::timestamptz IS NULL OR i.created_at >= $8::timestamptz)
+                AND ($9::timestamptz IS NULL OR i.created_at <= $9::timestamptz)
                 ORDER BY created_at DESC
                 LIMIT $4 OFFSET $5
-
             ",
             organization_id,
             &statuses,
@@ -159,7 +182,9 @@ impl IncidentRepository for IncidentRepositoryAdapter {
             limit as i64,
             offset as i64,
             &(IncidentSourceType::HttpMonitor as i16),
-            &http_monitor_sources_ids
+            &http_monitor_sources_ids,
+            from_date,
+            to_date
         )
         .fetch_all(transaction.as_mut())
         .await?;

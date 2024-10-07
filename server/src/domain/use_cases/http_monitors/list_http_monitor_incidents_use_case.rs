@@ -38,6 +38,8 @@ pub async fn list_http_monitor_incidents(
             &[IncidentSource::HttpMonitor { id: monitor_id }],
             items_per_page,
             items_per_page * (page_number - 1),
+            params.from_date,
+            params.to_date, 
         )
         .await?;
     Ok(ListIncidentsResponse {

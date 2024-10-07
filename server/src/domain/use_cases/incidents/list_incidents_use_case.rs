@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use ts_rs::TS;
+use chrono::{Utc, DateTime};
 
 use crate::domain::{
     entities::{
@@ -18,6 +19,8 @@ pub struct ListIncidentsParams {
     pub items_per_page: Option<u32>,
     pub status: Option<Vec<IncidentStatus>>,
     pub priority: Option<Vec<IncidentPriority>>,
+    pub from_date: Option<DateTime<Utc>>,
+    pub to_date: Option<DateTime<Utc>>,
 }
 
 #[derive(Serialize, TS, Clone, Debug)]
@@ -65,6 +68,8 @@ pub async fn list_incidents(
             &[],
             items_per_page,
             items_per_page * (page_number - 1),
+            params.from_date,
+            params.to_date,
         )
         .await?;
     Ok(ListIncidentsResponse {

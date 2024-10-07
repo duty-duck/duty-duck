@@ -1,4 +1,5 @@
 use axum::async_trait;
+use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::domain::entities::incident::{
@@ -48,6 +49,8 @@ pub trait IncidentRepository: TransactionalRepository + Clone + Send + Sync + 's
     /// * `include_sources` - A slice of `IncidentSource` values to include in the results.
     /// * `limit` - The maximum number of incidents to return.
     /// * `offset` - The number of incidents to skip before returning the results.
+    /// * `from_date` - The start date to filter incidents by.
+    /// * `to_date` - The end date to filter incidents by.
     ///
     /// # Returns
     ///
@@ -62,6 +65,8 @@ pub trait IncidentRepository: TransactionalRepository + Clone + Send + Sync + 's
         include_sources: &[IncidentSource],
         limit: u32,
         offset: u32,
+        from_date: Option<DateTime<Utc>>,
+        to_date: Option<DateTime<Utc>>,
     ) -> anyhow::Result<ListIncidentsOutput>;
 
     /// Resolves all incidents for the given sources.

@@ -301,6 +301,8 @@ where
             &[IncidentSource::HttpMonitor { id: monitor.id }],
             1,
             0,
+            None,
+            None,
         )
         .await?
         .incidents
