@@ -8,12 +8,6 @@ pub struct IncidentEventRepositoryAdapter {
     pub pool: PgPool,
 }
 
-impl IncidentEventRepositoryAdapter {
-    pub fn new(pool: PgPool) -> Self {
-        Self { pool }
-    }
-}
-
 crate::postgres_transactional_repo!(IncidentEventRepositoryAdapter);
 
 #[async_trait::async_trait]

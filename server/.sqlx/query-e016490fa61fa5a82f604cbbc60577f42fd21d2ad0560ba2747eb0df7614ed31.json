@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT i.*, COUNT(i.id) OVER () as filtered_count from incidents i\n                WHERE organization_id = $1 \n                AND status IN (SELECT unnest($2::integer[]))\n                AND priority IN (SELECT unnest($3::integer[]))\n                -- Filter by http monitor ids\n                AND (\n                   $7::uuid[] = '{}' OR\n                   (i.incident_source_type = $6 AND i.incident_source_id = ANY($7::uuid[]))\n                )\n                ORDER BY created_at DESC\n                LIMIT $4 OFFSET $5\n\n            ",
+  "query": "SELECT * FROM incidents WHERE organization_id = $1 AND id = $2",
   "describe": {
     "columns": [
       {
@@ -57,22 +57,12 @@
         "ordinal": 10,
         "name": "acknowledged_by",
         "type_info": "UuidArray"
-      },
-      {
-        "ordinal": 11,
-        "name": "filtered_count",
-        "type_info": "Int8"
       }
     ],
     "parameters": {
       "Left": [
         "Uuid",
-        "Int4Array",
-        "Int4Array",
-        "Int8",
-        "Int8",
-        "Int2",
-        "UuidArray"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -86,9 +76,8 @@
       false,
       false,
       false,
-      false,
-      null
+      false
     ]
   },
-  "hash": "a2d5458d1a7f4428332b5f5c9ae9c257692114dd8e7d7ec5f331e39e4d28ffd1"
+  "hash": "e016490fa61fa5a82f604cbbc60577f42fd21d2ad0560ba2747eb0df7614ed31"
 }

@@ -45,6 +45,12 @@ impl AuthContext {
             Permission::ListOrganizationInvitations => self
                 .active_organization_roles
                 .contains(OrganizationUserRole::MemberInviter),
+            Permission::CommentIncidents => self
+                .active_organization_roles
+                .contains(OrganizationUserRole::Reporter),
+            Permission::EditIncidents => self
+                .active_organization_roles
+                .contains(OrganizationUserRole::Editor),
         }
     }
 }
@@ -75,5 +81,9 @@ custom_derive! {
         ReadIncidents,
         /// Permission to list all invitations for the organization
         ListOrganizationInvitations,
+        /// Comment incidents
+        CommentIncidents,
+        /// Edit incidents (acknowledge, resolve, etc.)
+        EditIncidents,
     }
 }

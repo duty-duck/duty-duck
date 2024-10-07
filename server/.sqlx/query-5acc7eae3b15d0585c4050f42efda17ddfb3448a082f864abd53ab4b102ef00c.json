@@ -1,0 +1,21 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO incidents_notifications (\n                organization_id,\n                incident_id,\n                escalation_level,\n                notification_type,\n                notification_payload,\n                send_sms,\n                send_push_notification,\n                send_email\n            )\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)\n            ON CONFLICT (organization_id, incident_id, escalation_level) DO UPDATE SET\n                notification_type = EXCLUDED.notification_type,\n                notification_payload = EXCLUDED.notification_payload,\n                send_sms = EXCLUDED.send_sms,\n                send_push_notification = EXCLUDED.send_push_notification,\n                send_email = EXCLUDED.send_email\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Int2",
+        "Int2",
+        "Jsonb",
+        "Bool",
+        "Bool",
+        "Bool"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "5acc7eae3b15d0585c4050f42efda17ddfb3448a082f864abd53ab4b102ef00c"
+}

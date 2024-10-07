@@ -1,5 +1,5 @@
 use crate::domain::{
-    entities::{incident::*, incident_event::IncidentEvent},
+    entities::incident::*,
     ports::incident_repository::{IncidentRepository, ListIncidentsOutput},
 };
 use async_trait::async_trait;
@@ -184,6 +184,7 @@ impl IncidentRepository for IncidentRepositoryAdapter {
                 priority: record.priority.into(),
                 incident_source_id: record.incident_source_id,
                 incident_source_type: record.incident_source_type.into(),
+                acknowledged_by: record.acknowledged_by,
             })
             .collect();
 
@@ -194,8 +195,20 @@ impl IncidentRepository for IncidentRepositoryAdapter {
         })
     }
 
+    /// Gets the incident with the given ID.
+    ///
+    /// # Arguments
+    ///
+    /// * `organization_id` - The ID of the organization to get the incident for.
+    /// * `incident_id` - The ID of the incident to get.
+    /// * `transaction` - A mutable reference to the transaction object.
+    ///
+    /// # Returns
+    ///
+    /// An `Option<Incident>` containing the incident if it exists, or `None` if it does not.
     async fn get_incident(
         &self,
+        transaction: &mut Self::Transaction,
         organization_id: Uuid,
         incident_id: Uuid,
     ) -> anyhow::Result<Option<Incident>> {
@@ -204,7 +217,7 @@ impl IncidentRepository for IncidentRepositoryAdapter {
             organization_id,
             incident_id
         )
-        .fetch_optional(&self.pool)
+        .fetch_optional(transaction.as_mut())
         .await?;
         Ok(record.map(|record| Incident {
             organization_id: record.organization_id,
@@ -212,11 +225,35 @@ impl IncidentRepository for IncidentRepositoryAdapter {
             created_at: record.created_at,
             created_by: record.created_by,
             resolved_at: record.resolved_at,
-            cause: record.cause.and_then(|value| serde_json::from_value(value).ok()),
+            cause: record
+                .cause
+                .and_then(|value| serde_json::from_value(value).ok()),
             status: record.status.into(),
             priority: record.priority.into(),
             incident_source_id: record.incident_source_id,
             incident_source_type: record.incident_source_type.into(),
+            acknowledged_by: record.acknowledged_by,
         }))
+    }
+
+    /// Marks the incident as acknowledged by the given user.
+    ///
+    /// # Arguments
+    ///
+    /// * `transaction` - A mutable reference to the transaction object.
+    /// * `organization_id` - The ID of the organization to acknowledge incidents for.
+    /// * `incident_id` - The ID of the incident to acknowledge.
+    /// * `user_id` - The ID of the user acknowledging the incident.
+    async fn acknowledge_incident(
+        &self,
+        transaction: &mut Self::Transaction,
+        organization_id: Uuid,
+        incident_id: Uuid,
+        user_id: Uuid,
+    ) -> anyhow::Result<()> {
+        sqlx::query!("UPDATE incidents SET acknowledged_by = array_append(acknowledged_by, $1) WHERE organization_id = $2 AND id = $3", user_id, organization_id, incident_id)
+            .execute(transaction.as_mut())
+            .await?;
+        Ok(())
     }
 }

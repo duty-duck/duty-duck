@@ -7,4 +7,4 @@ import type { IncidentStatus } from "./IncidentStatus";
 /**
  * The base struct used by all incident types
  */
-export type Incident = { organizationId: string, id: string, createdAt: string, createdBy: string | null, resolvedAt: string | null, cause: IncidentCause | null, status: IncidentStatus, priority: IncidentPriority, incidentSourceType: IncidentSourceType, incidentSourceId: string, };
+export type Incident = { organizationId: string, id: string, createdAt: string, createdBy: string | null, resolvedAt: string | null, cause: IncidentCause | null, status: IncidentStatus, priority: IncidentPriority, incidentSourceType: IncidentSourceType, incidentSourceId: string, acknowledgedBy: Array<string>, };

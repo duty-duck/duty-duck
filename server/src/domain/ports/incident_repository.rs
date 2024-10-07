@@ -9,8 +9,20 @@ use super::transactional_repository::TransactionalRepository;
 
 #[async_trait]
 pub trait IncidentRepository: TransactionalRepository + Clone + Send + Sync + 'static {
+    /// Gets the incident with the given ID.
+    ///
+    /// # Arguments
+    ///
+    /// * `organization_id` - The ID of the organization to get the incident for.
+    /// * `incident_id` - The ID of the incident to get.
+    /// * `transaction` - A mutable reference to the transaction object.
+    ///
+    /// # Returns
+    ///
+    /// An `Option<Incident>` containing the incident if it exists, or `None` if it does not.
     async fn get_incident(
         &self,
+        transaction: &mut Self::Transaction,
         organization_id: Uuid,
         incident_id: Uuid,
     ) -> anyhow::Result<Option<Incident>>;
@@ -69,6 +81,22 @@ pub trait IncidentRepository: TransactionalRepository + Clone + Send + Sync + 's
         organization_id: Uuid,
         sources: &[IncidentSource],
     ) -> anyhow::Result<Vec<Uuid>>;
+
+    /// Marks the incident as acknowledged by the given user.
+    ///
+    /// # Arguments
+    ///
+    /// * `transaction` - A mutable reference to the transaction object.
+    /// * `organization_id` - The ID of the organization to acknowledge incidents for.
+    /// * `incident_id` - The ID of the incident to acknowledge.
+    /// * `user_id` - The ID of the user acknowledging the incident.
+    async fn acknowledge_incident(
+        &self,
+        transaction: &mut Self::Transaction,
+        organization_id: Uuid,
+        incident_id: Uuid,
+        user_id: Uuid,
+    ) -> anyhow::Result<()>;
 }
 
 pub struct ListIncidentsOutput {

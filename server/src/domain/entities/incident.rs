@@ -22,6 +22,7 @@ pub struct Incident {
     pub priority: IncidentPriority,
     pub incident_source_type: IncidentSourceType,
     pub incident_source_id: Uuid,
+    pub acknowledged_by: Vec<Uuid>,
 }
 
 #[derive(Serialize, Deserialize, TS, Debug, Clone)]

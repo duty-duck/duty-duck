@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            DELETE FROM incidents_notifications\n            WHERE organization_id = $1 AND incident_id = $2\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "91df800e73681109de3fd55f2db5f3004265e659ff079708a9f96564c90dffc7"
+}

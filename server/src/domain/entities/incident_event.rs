@@ -1,6 +1,6 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
-use sqlx::*;
+use sqlx::prelude::FromRow;
 use ts_rs::TS;
 use uuid::Uuid;
 
@@ -22,6 +22,7 @@ pub struct IncidentEvent {
 pub enum IncidentEventPayload {
     Comment(CommentPayload),
     Notification(NotificationEventPayload),
+    Acknowledged(AcknowledgedEventPayload),
 }
 
 #[derive(Serialize, Deserialize, TS, Debug, Clone)]
@@ -30,6 +31,14 @@ pub enum IncidentEventPayload {
 pub struct CommentPayload {
     editorjs_data: serde_json::Value 
 }
+
+#[derive(Serialize, Deserialize, TS, Debug, Clone)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct AcknowledgedEventPayload {
+    pub user_id: Uuid,
+}
+
 
 #[derive(Serialize, Deserialize, TS, Debug, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -50,6 +59,7 @@ pub enum IncidentEventType {
     Notification = 1,
     Resolution = 2,
     Comment = 3,
+    Acknowledged = 4,
 }
 
 impl From<i16> for IncidentEventType {

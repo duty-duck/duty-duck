@@ -32,7 +32,8 @@ pub async fn get_incident(
         return Err(GetIncidentError::Forbidden);
     }
 
-    match repository.get_incident(auth_context.active_organization_id, incident_id).await? {
+    let mut transaction = repository.begin_transaction().await?;
+    match repository.get_incident(&mut transaction, auth_context.active_organization_id, incident_id).await? {
         Some(incident) => Ok(GetIncidentResponse { incident }),
         None => Err(GetIncidentError::IncidentNotFound),
     }
