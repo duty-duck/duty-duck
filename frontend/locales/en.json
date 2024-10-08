@@ -213,6 +213,11 @@
                 "instructionMessage": "To complete the action, please enter the user name below:",
                 "inputPlaceholder": "Type '{firstName} {lastName}' to confirm"
             }
+        },
+        "notificationSettingsForm": {
+            "pushNotification": "Push Notifications",
+            "smsNotification": "SMS Notifications",
+            "emailNotification": "Email Notifications"
         }
     },
     "signup": {

@@ -42,7 +42,7 @@ pub async fn get_user_profile(
         Err(ReadOrganizationError::TechnicalFailure(e)) => return Err(GetProfileError::TechnicalFailure(e)),
     };
 
-    let user = match user_repository.get_user(auth_context.active_user_id).await {
+    let user = match user_repository.get_user(auth_context.active_user_id, false).await {
         Ok(Some(user)) => user,
         Ok(None) => return Err(GetProfileError::NotFound),
         Err(e) => return Err(GetProfileError::TechnicalFailure(e)),

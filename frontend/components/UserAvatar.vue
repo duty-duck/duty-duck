@@ -13,7 +13,7 @@ const colors = [
     "#cc8e35",
     "#ccae62"
 ];
-const props = withDefaults(defineProps<{ firstName?: string, lastName?: string, size: string, fontSize: string }>(), {
+const props = withDefaults(defineProps<{ firstName?: string, lastName?: string, size?: string, fontSize?: string }>(), {
     fontSize: '.7rem',
     size: '1.5rem'
 })

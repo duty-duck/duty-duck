@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::*;
 use uuid::Uuid;
@@ -11,6 +12,7 @@ pub struct IncidentNotification {
     pub incident_id: Uuid,
     pub escalation_level: i16,
     pub notification_type: IncidentNotificationType,
+    pub notification_due_at: DateTime<Utc>,
     #[sqlx(json)]
     pub notification_payload: IncidentNotificationPayload,
     pub send_sms: bool,

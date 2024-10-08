@@ -49,6 +49,7 @@ pub async fn comment_incident<IR: IncidentRepository, IER: IncidentEventReposito
         organization_id: auth_context.active_organization_id,
         incident_id,
         created_at: Utc::now(),
+        user_id: Some(auth_context.active_user_id),
         event_type: IncidentEventType::Comment,
         event_payload: Some(IncidentEventPayload::Comment(request.payload)),
     };

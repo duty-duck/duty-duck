@@ -50,6 +50,7 @@ impl IncidentNotificationRepository for IncidentNotificationRepositoryAdapter {
             notification_type: record.notification_type.into(),
             notification_payload: serde_json::from_value(record.notification_payload)
                 .expect("Failed to deserialize notification payload"),
+            notification_due_at: record.notification_due_at,
             send_sms: record.send_sms,
             send_push_notification: record.send_push_notification,
             send_email: record.send_email,
@@ -72,14 +73,16 @@ impl IncidentNotificationRepository for IncidentNotificationRepositoryAdapter {
                 escalation_level,
                 notification_type,
                 notification_payload,
+                notification_due_at,
                 send_sms,
                 send_push_notification,
                 send_email
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             ON CONFLICT (organization_id, incident_id, escalation_level) DO UPDATE SET
                 notification_type = EXCLUDED.notification_type,
                 notification_payload = EXCLUDED.notification_payload,
+                notification_due_at = EXCLUDED.notification_due_at,
                 send_sms = EXCLUDED.send_sms,
                 send_push_notification = EXCLUDED.send_push_notification,
                 send_email = EXCLUDED.send_email
@@ -90,6 +93,7 @@ impl IncidentNotificationRepository for IncidentNotificationRepositoryAdapter {
             notification.notification_type as i16,
             serde_json::to_value(&notification.notification_payload)
                 .expect("Failed to serialize notification payload"),
+            notification.notification_due_at,
             notification.send_sms,
             notification.send_push_notification,
             notification.send_email

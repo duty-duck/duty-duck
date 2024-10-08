@@ -72,6 +72,7 @@ async fn get_incident_timeline_handler(
     match incidents::get_incident_timeline(
         &auth_context,
         &app_state.adapters.incident_event_repository,
+        &app_state.adapters.user_repository,
         incident_id,
         params,
     )

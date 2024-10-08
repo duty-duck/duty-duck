@@ -10,6 +10,7 @@ use uuid::Uuid;
 pub struct IncidentEvent {
     pub organization_id: Uuid,
     pub incident_id: Uuid,
+    pub user_id: Option<Uuid>,
     pub created_at: DateTime<Utc>,
     pub event_type: IncidentEventType,
     #[sqlx(json)]

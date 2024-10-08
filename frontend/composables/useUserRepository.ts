@@ -1,15 +1,19 @@
 import type { UseFetchOptions } from "#app";
-import { useDebounceFn } from "@vueuse/core";
+import { createSharedComposable, useDebounceFn } from "@vueuse/core";
 import type { GetProfileResponse } from "bindings/GetProfileResponse";
 import { type SignUpCommand } from "bindings/SignUpCommand"
 import type { UpdateProfileCommand } from "bindings/UpdateProfileCommand";
 import type { UpdateProfileResponse } from "bindings/UpdateProfileResponse";
 import { FetchError, type FetchOptions } from "ofetch";
 
-export const useUserRepository = () => {
+export type UserRepository = ReturnType<typeof useUserRepository>;
+
+export const useUserRepository = createSharedComposable(() => {
     const $fetch = useServer$fetch();
+    const userProfile = ref<GetProfileResponse | "loading" | null>(null);
 
     return {
+        userProfile,
         checkPasswordStrength: useDebounceFn(async (password, firstName, lastName) => {
             const res = await $fetch<{ score: number }>("/users/check-password", {
                 method: "post",
@@ -32,11 +36,12 @@ export const useUserRepository = () => {
                 return "error"
             }
         },
-        fetchUserProfile() {
-            return $fetch<GetProfileResponse>("/users/me", { retry: 3, retryDelay: 1000 })
+        async refreshUserProfile() {
+            userProfile.value = "loading";
+            userProfile.value = await $fetch<GetProfileResponse>("/users/me", { retry: 3, retryDelay: 1000 })
         },
         async updateProfile(command: UpdateProfileCommand) {
             return await $fetch<UpdateProfileResponse>("/users/me", { method: "put", body: command, retry: 3, retryDelay: 1000 })
         }
     }
-}
+})

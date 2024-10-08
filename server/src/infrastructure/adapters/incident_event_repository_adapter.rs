@@ -18,10 +18,11 @@ impl IncidentEventRepository for IncidentEventRepositoryAdapter {
         event: IncidentEvent,
     ) -> anyhow::Result<()> {
         sqlx::query!(
-            "INSERT INTO incident_timeline_events (organization_id, incident_id, created_at, event_type, event_payload)
-            VALUES ($1, $2, $3, $4, $5)",
+            "INSERT INTO incident_timeline_events (organization_id, incident_id, user_id, created_at, event_type, event_payload)
+            VALUES ($1, $2, $3, $4, $5, $6)",
             event.organization_id,
             event.incident_id,
+            event.user_id,
             event.created_at,
             event.event_type as i16,
             serde_json::to_value(event.event_payload)?
@@ -55,6 +56,7 @@ impl IncidentEventRepository for IncidentEventRepositoryAdapter {
             organization_id: record.organization_id,
             incident_id: record.incident_id,
             created_at: record.created_at,
+            user_id: record.user_id,
             event_type: record.event_type.into(),
             event_payload: record
                 .event_payload

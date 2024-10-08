@@ -65,10 +65,10 @@ where
                 )
                 .await
                 {
-                    Ok(incidents) if incidents > 0 => {
-                        debug!(
-                            incidents,
-                            "Notified users of {} newly-created incidents", incidents
+                    Ok(notifications) if notifications > 0 => {
+                        info!(
+                            notifications,
+                            "Send {} incident notifications", notifications
                         );
                     }
                     Err(e) => {
@@ -109,7 +109,6 @@ where
         .await?;
 
     let incident_notifications_len = incident_notifications.len();
-
     debug!(
         notifications = incident_notifications_len,
         "{} incident notifications are due to be sent", incident_notifications_len
@@ -121,6 +120,7 @@ where
             organization_id: notification.organization_id,
             incident_id: notification.incident_id,
             created_at: Utc::now(),
+            user_id: None,
             event_type: IncidentEventType::Notification,
             event_payload: Some(IncidentEventPayload::Notification(NotificationEventPayload {
                 escalation_level: notification.escalation_level,

@@ -55,7 +55,7 @@ pub async fn receive_invitation_use_case(
         .await
         .map_err(|_| ReceiveInvitationError::InvitationNotFound)?;
 
-    let inviter = match user_repository.get_user(invitation.inviter_id).await {
+    let inviter = match user_repository.get_user(invitation.inviter_id, false).await {
         Ok(Some(user)) => user,
         Ok(None) => return Err(ReceiveInvitationError::InviterUserNotFound),
         Err(e) => return Err(ReceiveInvitationError::TechnicalFailure(e)),

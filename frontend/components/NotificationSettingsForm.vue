@@ -5,15 +5,16 @@ export type NotificationSettings = {
     emailNotificationEnabled: boolean;
 };
 
+const { t } = useI18n();
 const model = defineModel<NotificationSettings>({ required: true });
 const options = [{
-    text: "Push Notification",
+    text: t("dashboard.notificationSettingsForm.pushNotification"),
     value: "pushNotificationEnabled",
 }, {
-    text: "SMS Notification",
+    text: t("dashboard.notificationSettingsForm.smsNotification"),
     value: "smsNotificationEnabled",
 }, {
-    text: "Email Notification",
+    text: t("dashboard.notificationSettingsForm.emailNotification"),
     value: "emailNotificationEnabled",
 }];
 const checkBoxModel = computed({

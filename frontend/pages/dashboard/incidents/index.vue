@@ -1,24 +1,17 @@
 <script lang="ts" setup>
-import { useIntervalFn, useBreakpoints, breakpointsBootstrapV5 } from "@vueuse/core";
+import { useIntervalFn } from "@vueuse/core";
 import type { IncidentStatus } from "bindings/IncidentStatus";
 import type { ListIncidentsParams } from "bindings/ListIncidentsParams";
 import { allStatuses } from "~/components/incident/StatusDropdown.vue";
 
-const breakpoints = useBreakpoints(breakpointsBootstrapV5);
-const lgOrLarger = breakpoints.greaterOrEqual("lg");
-
-const localePath = useLocalePath();
-const path = localePath("/dashboard/incidents");
 const route = useRoute();
-const router = useRouter();
 
 const pageNumber = computed({
   get() {
     return route.query.page ? Number(route.query.page) : 1
   },
   set(value: number) {
-    router.push({
-      path,
+    navigateTo({
       query: { page: value, statuses: includeStatuses.value },
     });
   }
@@ -39,17 +32,15 @@ const fetchParams = computed<ListIncidentsParams>(() => ({
 }));
 
 const repository = useIncidentRepository();
-const { status, data, refresh } = await repository.useIncidents(fetchParams);
+const { data, refresh } = await repository.useIncidents(fetchParams);
 
 const onIncludeStatusChange = (statuses: IncidentStatus[]) => {
-  router.push({
-    path,
+  navigateTo({
     query: { pageNumber: pageNumber.value, statuses },
   });
 };
 const onClearFilters = () => {
-  router.push({
-    path,
+  navigateTo({
     query: { pageNumber: pageNumber.value, statuses: allStatuses },
   });
 };
@@ -64,7 +55,7 @@ const hiddenIncidentsCount = computed(() => {
 });
 
 if (data.value?.items.length == 0 && pageNumber.value > 1) {
-  router.replace(path);
+  navigateTo({ query: { pageNumber: 1 } });
 }
 
 useIntervalFn(() => {
@@ -119,9 +110,6 @@ useIntervalFn(() => {
       </BButton>
     </nav>
     <BContainer>
-      <BAlert variant="danger" :model-value="status == 'error'">
-        Failed to fetch HTTP incidents from the server. Please try again.
-      </BAlert>
       <div
         v-if="data?.totalNumberOfResults == 0"
         class="text-secondary text-center my-5"

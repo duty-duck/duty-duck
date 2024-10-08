@@ -1,15 +1,5 @@
 <script setup lang="ts">
-import { useIntervalFn } from '@vueuse/core';
-    const route = useRoute();
-    let incidentRepo = useIncidentRepository();
     const localePath = useLocalePath()
-    const { canComputed } = useAuth();
-    const canReadHttpMonitors = canComputed('readHttpMonitors');
-    const canReadIncidents = canComputed('readIncidents');
-
-    let { refresh: refreshIncidentCount, data: incidentCount } = await incidentRepo.useOngoingIncidentsCount();
-    useIntervalFn(() => refreshIncidentCount(), 30000);
-    watch(() => route.fullPath, () => refreshIncidentCount());
 </script>
 
 <template>

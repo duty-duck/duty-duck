@@ -6,7 +6,6 @@ ensurePemissionOnBeforeMount("writeHttpMonitors");
 
 const repo = useHttpMonitorRepository();
 const route = useRoute();
-const router = useRouter();
 const localePath = useLocalePath();
 
 const { data: monitorData } = await repo.useHttpMonitor(
@@ -21,7 +20,7 @@ const onSubmit = async (monitor: HttpMonitorFormData) => {
   };
   await repo.updateHttpMonitor(route.params.monitorId as string, command);
 
-  router.push(localePath(`/dashboard/httpMonitors/${route.params.monitorId}`));
+  navigateTo(localePath(`/dashboard/httpMonitors/${route.params.monitorId}`));
 };
 </script>
 

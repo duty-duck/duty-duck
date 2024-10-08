@@ -8,17 +8,39 @@ use crate::domain::ports::user_repository::UserRepository;
 use crate::infrastructure::keycloak_client::{
     self, AttributeMap, CreateUserRequest, Credentials, KeycloakClient, UpdateUserRequest,
 };
+use moka::future::Cache;
 
 #[derive(Clone)]
 pub struct UserRepositoryAdapter {
-    pub keycloak_client: Arc<KeycloakClient>,
+    keycloak_client: Arc<KeycloakClient>,
+    cache: Arc<Cache<Uuid, User>>,
+}
+
+impl UserRepositoryAdapter {
+    pub fn new(keycloak_client: Arc<KeycloakClient>) -> Self {
+        Self {
+            keycloak_client,
+            cache: Arc::new(Cache::new(1000)),
+        }
+    }
 }
 
 impl UserRepository for UserRepositoryAdapter {
     #[tracing::instrument(skip(self))]
-    async fn get_user(&self, id: Uuid) -> anyhow::Result<Option<User>> {
+    async fn get_user(&self, id: Uuid, allow_stale_reads: bool) -> anyhow::Result<Option<User>> {
+        if allow_stale_reads {
+            let user = self.cache.get(&id);
+            if let Some(user) = user {
+                return Ok(Some(user));
+            }
+        }
+
         match self.keycloak_client.get_user_by_id(id).await {
-            Ok(user) => Ok(Some(user.try_into()?)),
+            Ok(user) => {
+                let user: User = user.try_into()?;
+                self.cache.insert(id, user.clone()).await;
+                Ok(Some(user))
+            }
             Err(keycloak_client::Error::NotFound) => Ok(None),
             Err(e) => Err(e.into()),
         }
@@ -102,7 +124,9 @@ impl UserRepository for UserRepositoryAdapter {
         };
 
         match self.keycloak_client.update_user(id, &request).await {
-            Ok(response) => Ok(response.try_into().with_context(|| "Failed to deserialize user")?),
+            Ok(response) => Ok(response
+                .try_into()
+                .with_context(|| "Failed to deserialize user")?),
             Err(keycloak_client::Error::NotFound) => Err(UpdateUserError::UserNotFound),
             Err(e) => Err(UpdateUserError::TechnicalFailure(e.into())),
         }

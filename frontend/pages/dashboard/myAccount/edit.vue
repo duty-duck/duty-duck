@@ -6,7 +6,6 @@ import PhoneInput from "~/components/PhoneInput.vue";
 
 const { t } = useI18n();
 const { show } = useToast();
-const router = useRouter();
 const auth = useAuthMandatory();
 const userInfo = auth.userProfile.user;
 const localePath = useLocalePath();
@@ -98,8 +97,8 @@ const onSubmit = async () => {
   };
 
   const response = await repo.updateProfile(command);
-  auth.refreshUserProfile();
-  router.replace(localePath("/dashboard/myAccount"));
+  repo.refreshUserProfile();
+  navigateTo(localePath("/dashboard/myAccount"));
 
   if (response.needsSessionInvalidation) {
     show?.({

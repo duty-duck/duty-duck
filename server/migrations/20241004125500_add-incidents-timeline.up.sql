@@ -2,6 +2,7 @@
 create table if not exists incident_timeline_events (
     organization_id uuid not null,
     incident_id uuid not null,
+    user_id uuid,
     created_at timestamptz not null,
     -- 0: creation, 1: notification, 2: resolution, 3: comment
     event_type smallint not null,

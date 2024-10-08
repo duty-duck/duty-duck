@@ -87,9 +87,7 @@ async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationSt
         organization_repository: OrganizationRepositoryAdapter {
             keycloak_client: keycloak_client.clone(),
         },
-        user_repository: UserRepositoryAdapter {
-            keycloak_client: keycloak_client.clone(),
-        },
+        user_repository: UserRepositoryAdapter::new(keycloak_client.clone()),
         http_monitors_repository: HttpMonitorRepositoryAdapter { pool: pool.clone() },
         incident_repository: IncidentRepositoryAdapter { pool: pool.clone() },
         incident_event_repository: IncidentEventRepositoryAdapter { pool: pool.clone() },

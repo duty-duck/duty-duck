@@ -3,10 +3,15 @@ use chrono::Utc;
 use crate::domain::{
     entities::{
         incident::NewIncident,
-        incident_event::{IncidentEvent, IncidentEventType}, incident_notification::{IncidentNotification, IncidentNotificationPayload, IncidentNotificationType},
+        incident_event::{IncidentEvent, IncidentEventType},
+        incident_notification::{
+            IncidentNotification, IncidentNotificationPayload, IncidentNotificationType,
+        },
     },
     ports::{
-        incident_event_repository::IncidentEventRepository, incident_notification_repository::IncidentNotificationRepository, incident_repository::IncidentRepository
+        incident_event_repository::IncidentEventRepository,
+        incident_notification_repository::IncidentNotificationRepository,
+        incident_repository::IncidentRepository,
     },
 };
 
@@ -24,7 +29,12 @@ pub async fn create_incident<IR, IER, INR>(
     incident_event_repo: &IER,
     incident_notification_repo: &INR,
     new_incident: NewIncident,
-    NotificationOpts { send_sms, send_push_notification, send_email, notification_payload }: NotificationOpts
+    NotificationOpts {
+        send_sms,
+        send_push_notification,
+        send_email,
+        notification_payload,
+    }: NotificationOpts,
 ) -> anyhow::Result<()>
 where
     IR: IncidentRepository,
@@ -38,6 +48,7 @@ where
     let event = IncidentEvent {
         incident_id,
         organization_id: new_incident.organization_id,
+        user_id: None,
         created_at: Utc::now(),
         event_type: IncidentEventType::Creation,
         event_payload: None,
@@ -48,6 +59,7 @@ where
         organization_id: new_incident.organization_id,
         escalation_level: 0,
         notification_type: IncidentNotificationType::IncidentCreation,
+        notification_due_at: Utc::now(),
         notification_payload,
         send_sms,
         send_push_notification,
@@ -58,7 +70,9 @@ where
         .create_incident_event(transaction, event)
         .await?;
 
-incident_notification_repo.upsert_incident_notification(transaction, event_notification).await?;
+    incident_notification_repo
+        .upsert_incident_notification(transaction, event_notification)
+        .await?;
 
     Ok(())
 }

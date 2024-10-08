@@ -38,6 +38,7 @@ where
         let event = IncidentEvent {
             organization_id,
             incident_id,
+            user_id: None,
             created_at: Utc::now(),
             event_type: IncidentEventType::Resolution,
             event_payload: None,

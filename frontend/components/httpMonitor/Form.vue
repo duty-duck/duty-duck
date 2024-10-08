@@ -15,7 +15,12 @@ const props = withDefaults(defineProps<HttpMonitorFormData>(), {
   intervalSeconds: 60,
   tags: () => [],
   recoveryConfirmationThreshold: 2,
-  downtimeConfirmationThreshold: 1
+  downtimeConfirmationThreshold: 1,
+  notificationSettings: {
+    pushNotificationEnabled: true,
+    smsNotificationEnabled: false,
+    emailNotificationEnabled: true,
+  }
 });
 const emits = defineEmits<{
   (e: 'submit', form: HttpMonitorFormData): void;

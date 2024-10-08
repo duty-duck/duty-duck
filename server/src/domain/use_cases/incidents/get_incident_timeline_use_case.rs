@@ -1,3 +1,4 @@
+use futures::{stream::FuturesOrdered, StreamExt};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use ts_rs::TS;
@@ -7,8 +8,9 @@ use crate::domain::{
     entities::{
         authorization::{AuthContext, Permission},
         incident_event::IncidentEvent,
+        user::User,
     },
-    ports::incident_event_repository::IncidentEventRepository,
+    ports::{incident_event_repository::IncidentEventRepository, user_repository::UserRepository},
 };
 
 #[derive(Serialize, Deserialize, TS, Clone, Debug)]
@@ -23,7 +25,15 @@ pub struct GetIncidentTimelineParams {
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct GetIncidentTimelineResponse {
-    pub events: Vec<IncidentEvent>,
+    pub items: Vec<TimelineItem>,
+}
+
+#[derive(Serialize, TS, Clone, Debug)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct TimelineItem {
+    pub event: IncidentEvent,
+    pub user: Option<User>,
 }
 
 #[derive(Error, Debug)]
@@ -36,7 +46,8 @@ pub enum GetIncidentTimelineError {
 
 pub async fn get_incident_timeline(
     auth_context: &AuthContext,
-    repository: &impl IncidentEventRepository,
+    incident_event_repository: &impl IncidentEventRepository,
+    user_repository: &impl UserRepository,
     incident_id: Uuid,
     params: GetIncidentTimelineParams,
 ) -> anyhow::Result<GetIncidentTimelineResponse, GetIncidentTimelineError> {
@@ -46,7 +57,7 @@ pub async fn get_incident_timeline(
     let items_per_page = params.items_per_page.unwrap_or(10).min(50);
     let page_number = params.page_number.unwrap_or(1);
 
-    let events = repository
+    let events = incident_event_repository
         .get_incident_timeline(
             auth_context.active_organization_id,
             incident_id,
@@ -54,5 +65,20 @@ pub async fn get_incident_timeline(
             page_number,
         )
         .await?;
-    Ok(GetIncidentTimelineResponse { events })
+
+    let items = events
+        .into_iter()
+        .map(|event| async move {
+            if let Some(user_id) = event.user_id {
+                let user = user_repository.get_user(user_id, true).await.ok().flatten();
+                TimelineItem { event, user }
+            } else {
+                TimelineItem { event, user: None }
+            }
+        })
+        .collect::<FuturesOrdered<_>>()
+        .collect()
+        .await;
+
+    Ok(GetIncidentTimelineResponse { items })
 }

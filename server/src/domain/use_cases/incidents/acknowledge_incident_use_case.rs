@@ -56,6 +56,7 @@ pub async fn acknowledge_incident<
                 organization_id: auth_context.active_organization_id,
                 incident_id,
                 created_at: Utc::now(),
+                user_id: Some(auth_context.active_user_id),
                 event_type: IncidentEventType::Acknowledged,
                 event_payload: Some(IncidentEventPayload::Acknowledged(
                     AcknowledgedEventPayload {

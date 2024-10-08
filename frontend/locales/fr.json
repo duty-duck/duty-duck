@@ -217,6 +217,11 @@
             "failed": "Échec",
             "thisDevice": "(cet appareil)",
             "removeDevice": "Supprimer l'appareil"
+        },
+        "notificationSettingsForm": {
+            "pushNotification": "Notifications Push",
+            "smsNotification": "Notifications SMS",
+            "emailNotification": "Notifications par e-mail"
         }
     },
     "signup": {
