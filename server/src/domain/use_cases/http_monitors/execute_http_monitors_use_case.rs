@@ -19,7 +19,7 @@ use crate::domain::{
         http_monitor_repository::{HttpMonitorRepository, UpdateHttpMonitorStatusCommand},
         incident_event_repository::IncidentEventRepository,
         incident_notification_repository::IncidentNotificationRepository,
-        incident_repository::IncidentRepository,
+        incident_repository::{IncidentRepository, ListIncidentsOpts},
     },
     use_cases::incidents::{create_incident, resolve_incidents, NotificationOpts},
 };
@@ -296,13 +296,13 @@ where
         .list_incidents(
             transaction,
             monitor.organization_id,
-            &[IncidentStatus::Ongoing],
-            &IncidentPriority::ALL,
-            &[IncidentSource::HttpMonitor { id: monitor.id }],
-            1,
-            0,
-            None,
-            None,
+            ListIncidentsOpts {
+                include_statuses: &[IncidentStatus::Ongoing],
+                include_priorities: &IncidentPriority::ALL,
+                include_sources: &[IncidentSource::HttpMonitor { id: monitor.id }],
+                limit: 1,
+                ..Default::default()
+            },
         )
         .await?
         .incidents

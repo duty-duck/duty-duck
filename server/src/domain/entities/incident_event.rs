@@ -2,9 +2,11 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 use ts_rs::TS;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Serialize, Deserialize, TS, Debug, Clone, FromRow)]
+/// An event that is recorded for an incident.
+#[derive(Serialize, Deserialize, TS, Debug, Clone, FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct IncidentEvent {
@@ -17,7 +19,7 @@ pub struct IncidentEvent {
     pub event_payload: Option<IncidentEventPayload>,
 }
 
-#[derive(Serialize, Deserialize, TS, Debug, Clone)]
+#[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]
 #[serde(rename_all_fields = "camelCase")]
 #[ts(export)]
 pub enum IncidentEventPayload {
@@ -26,14 +28,14 @@ pub enum IncidentEventPayload {
     Acknowledged(AcknowledgedEventPayload),
 }
 
-#[derive(Serialize, Deserialize, TS, Debug, Clone)]
+#[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct CommentPayload {
     editorjs_data: serde_json::Value 
 }
 
-#[derive(Serialize, Deserialize, TS, Debug, Clone)]
+#[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct AcknowledgedEventPayload {
@@ -41,7 +43,7 @@ pub struct AcknowledgedEventPayload {
 }
 
 
-#[derive(Serialize, Deserialize, TS, Debug, Clone)]
+#[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct NotificationEventPayload {
@@ -51,7 +53,7 @@ pub struct NotificationEventPayload {
     pub sent_via_sms: bool,
 }
 
-#[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq, ToSchema)]
 #[repr(i16)]
 #[serde(rename_all = "lowercase")]
 #[ts(export)]

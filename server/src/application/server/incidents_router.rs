@@ -1,4 +1,10 @@
-use axum::{extract::{Path, State}, http::StatusCode, response::IntoResponse, routing::{get, post}, Json, Router};
+use axum::{
+    extract::{Path, State},
+    http::StatusCode,
+    response::IntoResponse,
+    routing::{get, post},
+    Json, Router,
+};
 use axum_extra::extract::Query;
 use tracing::warn;
 use uuid::Uuid;
@@ -7,7 +13,11 @@ use crate::{
     application::application_state::{ApplicationState, ExtractAppState},
     domain::{
         entities::authorization::AuthContext,
-        use_cases::incidents::{self, AcknowledgeIncidentError, CommentIncidentError, CommentIncidentRequest, GetIncidentError, GetIncidentTimelineError, GetIncidentTimelineParams, ListIncidentsError, ListIncidentsParams},
+        use_cases::incidents::{
+            self, AcknowledgeIncidentError, CommentIncidentError, CommentIncidentRequest,
+            GetIncidentError, GetIncidentTimelineError, GetIncidentTimelineParams,
+            ListIncidentsError, ListIncidentsParams,
+        },
     },
 };
 
@@ -15,11 +25,30 @@ pub fn incidents_router() -> Router<ApplicationState> {
     Router::new()
         .route("/", get(list_incidents_handler))
         .route("/:incident_id", get(get_incident_handler))
-        .route("/:incident_id/acknowledge", post(acknowledge_incident_handler))
+        .route(
+            "/:incident_id/acknowledge",
+            post(acknowledge_incident_handler),
+        )
         .route("/:incident_id/events", get(get_incident_timeline_handler))
         .route("/:incident_id/comment", post(comment_incident_handler))
 }
 
+/// List incidents
+///
+/// Returns a list of incidents matching the given filters.
+/// If no filters are provided, all incidents are returned.
+#[utoipa::path(
+    get,
+    path = "/incidents",
+    responses(
+        (status = 200, description = "Incidents fetched successfully", body = ListIncidentsResponse),
+        (status = 403, description = "User is not authorized to fetch incidents"),
+        (status = 500, description = "Technical failure occured while fetching incidents from the database")
+    ),
+    params(
+        ListIncidentsParams
+    )
+)]
 async fn list_incidents_handler(
     auth_context: AuthContext,
     State(app_state): ExtractAppState,
@@ -41,6 +70,17 @@ async fn list_incidents_handler(
     }
 }
 
+/// Get a single incident by id
+#[utoipa::path(
+    get,
+    path = "/incidents/{incident_id}",
+    responses(
+        (status = 200, description = "Incident fetched successfully", body = GetIncidentResponse),
+        (status = 404, description = "Incident not found"),
+        (status = 403, description = "User is not authorized to fetch incident"),
+        (status = 500, description = "Technical failure occured while fetching incident from the database")
+    ),
+)]
 async fn get_incident_handler(
     auth_context: AuthContext,
     State(app_state): ExtractAppState,
@@ -63,6 +103,19 @@ async fn get_incident_handler(
     }
 }
 
+/// Get the timeline of events for an incident
+#[utoipa::path(
+    get,
+    path = "/incidents/{incident_id}/events",
+    responses(
+        (status = 200, description = "Incident events fetched successfully", body = GetIncidentTimelineResponse),
+        (status = 403, description = "User is not authorized to fetch incident events"),
+        (status = 500, description = "Technical failure occured while fetching incident events from the database")
+    ),
+    params(
+        GetIncidentTimelineParams
+    )
+)]
 async fn get_incident_timeline_handler(
     auth_context: AuthContext,
     State(app_state): ExtractAppState,

@@ -57,6 +57,8 @@ sqlx = { version = "0.8", features = [
 jsonwebtoken = "=9.3.0"
 bigdecimal = "0.4.5"
 rust-i18n = "3.1.2"
+utoipa = { version = "4", features = ["axum_extras", "uuid", "chrono"] }
+utoipa-redoc = { version = "4", features = ["axum"] }
 
 [build-dependencies]
 built = { version = "0.7.3", features = ["chrono", "git2"] }

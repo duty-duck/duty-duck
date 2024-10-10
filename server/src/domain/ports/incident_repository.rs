@@ -2,9 +2,9 @@ use axum::async_trait;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::domain::entities::incident::{
+use crate::domain::{entities::incident::{
     Incident, IncidentPriority, IncidentSource, IncidentStatus, NewIncident,
-};
+}, use_cases::{incidents::OrderIncidentsBy, shared::OrderDirection}};
 
 use super::transactional_repository::TransactionalRepository;
 
@@ -56,17 +56,11 @@ pub trait IncidentRepository: TransactionalRepository + Clone + Send + Sync + 's
     ///
     /// A `ListIncidentsOutput` struct containing the incidents, total number of incidents, and total number of filtered incidents.
     #[allow(clippy::too_many_arguments)]
-    async fn list_incidents(
+    async fn list_incidents<'a>(
         &self,
         transaction: &mut Self::Transaction,
         organization_id: Uuid,
-        include_statuses: &[IncidentStatus],
-        include_priorities: &[IncidentPriority],
-        include_sources: &[IncidentSource],
-        limit: u32,
-        offset: u32,
-        from_date: Option<DateTime<Utc>>,
-        to_date: Option<DateTime<Utc>>,
+        opts: ListIncidentsOpts<'a>,
     ) -> anyhow::Result<ListIncidentsOutput>;
 
     /// Resolves all incidents for the given sources.
@@ -108,4 +102,17 @@ pub struct ListIncidentsOutput {
     pub incidents: Vec<Incident>,
     pub total_incidents: u32,
     pub total_filtered_incidents: u32,
+}
+
+#[derive(Clone, Debug, Default)]
+pub struct ListIncidentsOpts<'a> {
+    pub include_statuses: &'a [IncidentStatus],
+    pub include_priorities: &'a [IncidentPriority],
+    pub include_sources: &'a [IncidentSource],
+    pub limit: u32,
+    pub offset: u32,
+    pub from_date: Option<DateTime<Utc>>,
+    pub to_date: Option<DateTime<Utc>>,
+    pub order_by: OrderIncidentsBy,
+    pub order_direction: OrderDirection,
 }

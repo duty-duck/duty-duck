@@ -2,12 +2,13 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 use ts_rs::TS;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 use super::http_monitor::HttpMonitorErrorKind;
 
 /// The base struct used by all incident types
-#[derive(Serialize, Deserialize, TS, Debug, Clone, FromRow)]
+#[derive(Serialize, Deserialize, TS, Debug, Clone, FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct Incident {
@@ -25,7 +26,7 @@ pub struct Incident {
     pub acknowledged_by: Vec<Uuid>,
 }
 
-#[derive(Serialize, Deserialize, TS, Debug, Clone)]
+#[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]
 #[serde(tag = "causeType", rename_all_fields = "camelCase")]
 #[ts(export)]
 pub enum IncidentCause {
@@ -35,7 +36,7 @@ pub enum IncidentCause {
     },
 }
 
-#[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq, ToSchema)]
 #[repr(i16)]
 #[serde(rename_all = "lowercase")]
 #[ts(export)]
@@ -58,7 +59,7 @@ impl IncidentStatus {
     pub const ALL: [Self; 2] = [Self::Resolved, Self::Ongoing];
 }
 
-#[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq, ToSchema)]
 #[repr(i16)]
 #[serde(rename_all = "lowercase")]
 #[ts(export)]
@@ -96,7 +97,7 @@ impl IncidentPriority {
     ];
 }
 
-#[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq, ToSchema)]
 #[repr(i16)]
 #[serde(rename_all = "lowercase")]
 #[ts(export)]

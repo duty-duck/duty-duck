@@ -1,11 +1,11 @@
 use crate::domain::{
     entities::incident::*,
-    ports::incident_repository::{IncidentRepository, ListIncidentsOutput},
+    ports::incident_repository::{IncidentRepository, ListIncidentsOpts, ListIncidentsOutput},
+    use_cases::{incidents::OrderIncidentsBy, shared::OrderDirection},
 };
 use async_trait::async_trait;
-use chrono::*;
 use itertools::Itertools;
-use sqlx::PgPool;
+use sqlx::{PgPool, Row};
 use uuid::Uuid;
 
 #[derive(Clone)]
@@ -121,29 +121,26 @@ impl IncidentRepository for IncidentRepositoryAdapter {
     ///
     /// A `ListIncidentsOutput` struct containing the incidents, total number of incidents, and total number of filtered incidents.
     #[allow(clippy::too_many_arguments)]
-    async fn list_incidents(
+    async fn list_incidents<'a>(
         &self,
         transaction: &mut Self::Transaction,
         organization_id: Uuid,
-        include_statuses: &[IncidentStatus],
-        include_priorities: &[IncidentPriority],
-        include_sources: &[IncidentSource],
-        limit: u32,
-        offset: u32,
-        from_date: Option<DateTime<Utc>>,
-        to_date: Option<DateTime<Utc>>,
+        opts: ListIncidentsOpts<'a>,
     ) -> anyhow::Result<ListIncidentsOutput> {
-        let statuses = include_statuses
+        let statuses = opts
+            .include_statuses
             .iter()
             .map(|s| *s as i32)
             .collect::<Vec<_>>();
-        let priorities = include_priorities
+        let priorities = opts
+            .include_priorities
             .iter()
             .map(|s| *s as i32)
             .collect::<Vec<_>>();
 
         // Used to retrieve incidents by speciifc sources
-        let http_monitor_sources_ids = include_sources
+        let http_monitor_sources_ids = opts
+            .include_sources
             .iter()
             .map(|s| match s {
                 IncidentSource::HttpMonitor { id } => *id,
@@ -159,7 +156,9 @@ impl IncidentRepository for IncidentRepositoryAdapter {
         .count
         .unwrap_or_default();
 
-        let rows = sqlx::query!(
+        // here we must use a dynamic sql query instead of the `sqlx::query!` macro because
+        // we need to order results by a dynamic column name
+        let rows = sqlx::query(&format!(
             "
                 SELECT i.*, COUNT(i.id) OVER () as filtered_count from incidents i
                 WHERE organization_id = $1 
@@ -167,49 +166,66 @@ impl IncidentRepository for IncidentRepositoryAdapter {
                 AND priority IN (SELECT unnest($3::integer[]))
                 -- Filter by http monitor ids
                 AND (
-                   $7::uuid[] = '{}' OR
+                   $7::uuid[] = '{{}}' OR
                    (i.incident_source_type = $6 AND i.incident_source_id = ANY($7::uuid[]))
                 )
                 -- Filter by date
                 AND ($8::timestamptz IS NULL OR i.created_at >= $8::timestamptz)
                 AND ($9::timestamptz IS NULL OR i.created_at <= $9::timestamptz)
-                ORDER BY created_at DESC
+                ORDER BY {} {}
                 LIMIT $4 OFFSET $5
             ",
-            organization_id,
-            &statuses,
-            &priorities,
-            limit as i64,
-            offset as i64,
-            &(IncidentSourceType::HttpMonitor as i16),
-            &http_monitor_sources_ids,
-            from_date,
-            to_date
-        )
+            match opts.order_by {
+                OrderIncidentsBy::CreatedAt => "created_at",
+                OrderIncidentsBy::Priority => "priority",
+            },
+            match opts.order_direction {
+                OrderDirection::Asc => "ASC",
+                OrderDirection::Desc => "DESC",
+            }
+        ))
+        // $1: organization_id
+        .bind(organization_id)
+        // $2: statuses
+        .bind(&statuses)
+        // $3: priorities
+        .bind(&priorities)
+        // $4: limit
+        .bind(opts.limit as i64)
+        // $5: offset
+        .bind(opts.offset as i64)
+        // $6: http_monitor incident_source_type
+        .bind(IncidentSourceType::HttpMonitor as i16)
+        // $7: http monitor ids
+        .bind(&http_monitor_sources_ids)
+        // $8: from date
+        .bind(opts.from_date)
+        // $8: to date
+        .bind(opts.to_date)
         .fetch_all(transaction.as_mut())
         .await?;
 
         let total_filtered_count = rows
             .first()
-            .and_then(|record| record.filtered_count)
+            .map(|row| row.get::<i64, _>("filtered_count"))
             .unwrap_or_default();
 
         let incidents = rows
             .into_iter()
-            .map(|record| Incident {
+            .map(|row| Incident {
                 organization_id,
-                id: record.id,
-                created_at: record.created_at,
-                created_by: record.created_by,
-                resolved_at: record.resolved_at,
-                cause: record
-                    .cause
+                id: row.get("id"),
+                created_at: row.get("created_at"),
+                created_by: row.get("created_by"),
+                resolved_at: row.get("resolved_at"),
+                cause: row
+                    .get::<Option<serde_json::Value>, _>("cause")
                     .and_then(|value| serde_json::from_value(value).ok()),
-                status: record.status.into(),
-                priority: record.priority.into(),
-                incident_source_id: record.incident_source_id,
-                incident_source_type: record.incident_source_type.into(),
-                acknowledged_by: record.acknowledged_by,
+                status: row.get::<i16, _>("status").into(),
+                priority: row.get::<i16, _>("priority").into(),
+                incident_source_id: row.get::<Uuid, _>("incident_source_id"),
+                incident_source_type: row.get::<i16, _>("incident_source_type").into(),
+                acknowledged_by: row.get::<Vec<Uuid>, _>("acknowledged_by"),
             })
             .collect();
 

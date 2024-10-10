@@ -1,13 +1,14 @@
 use serde::Serialize;
 use thiserror::Error;
 use ts_rs::TS;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::domain::{
     entities::{authorization::{AuthContext, Permission}, incident::Incident}, ports::incident_repository::IncidentRepository,
 };
 
-#[derive(Debug, Serialize, TS)]
+#[derive(Debug, Serialize, TS, ToSchema)]
 #[ts(export)]
 pub struct GetIncidentResponse {
     pub incident: Incident,

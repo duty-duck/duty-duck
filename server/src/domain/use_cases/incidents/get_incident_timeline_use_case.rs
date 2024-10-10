@@ -2,6 +2,7 @@ use futures::{stream::FuturesOrdered, StreamExt};
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use ts_rs::TS;
+use utoipa::{IntoParams, ToSchema};
 use uuid::Uuid;
 
 use crate::domain::{
@@ -13,7 +14,7 @@ use crate::domain::{
     ports::{incident_event_repository::IncidentEventRepository, user_repository::UserRepository},
 };
 
-#[derive(Serialize, Deserialize, TS, Clone, Debug)]
+#[derive(Serialize, Deserialize, TS, Clone, Debug, IntoParams)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct GetIncidentTimelineParams {
@@ -21,19 +22,28 @@ pub struct GetIncidentTimelineParams {
     pub items_per_page: Option<u32>,
 }
 
-#[derive(Serialize, TS, Clone, Debug)]
+#[derive(Serialize, TS, Clone, Debug, ToSchema)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct GetIncidentTimelineResponse {
     pub items: Vec<TimelineItem>,
 }
 
-#[derive(Serialize, TS, Clone, Debug)]
+#[derive(Serialize, TS, Clone, Debug, ToSchema)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct TimelineItem {
     pub event: IncidentEvent,
-    pub user: Option<User>,
+    pub user: Option<TimelineItemUser>,
+}
+
+#[derive(Serialize, TS, Clone, Debug, ToSchema)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct TimelineItemUser {
+    pub id: Uuid,
+    pub first_name: String,
+    pub last_name: String,
 }
 
 #[derive(Error, Debug)]
@@ -70,7 +80,16 @@ pub async fn get_incident_timeline(
         .into_iter()
         .map(|event| async move {
             if let Some(user_id) = event.user_id {
-                let user = user_repository.get_user(user_id, true).await.ok().flatten();
+                let user = user_repository
+                    .get_user(user_id, true)
+                    .await
+                    .ok()
+                    .flatten()
+                    .map(|user| TimelineItemUser {
+                        id: user.id,
+                        first_name: user.first_name,
+                        last_name: user.last_name,
+                    });
                 TimelineItem { event, user }
             } else {
                 TimelineItem { event, user: None }

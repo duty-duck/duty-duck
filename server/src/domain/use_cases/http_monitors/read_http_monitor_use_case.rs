@@ -7,10 +7,10 @@ use crate::domain::{
     entities::{
         authorization::{AuthContext, Permission},
         http_monitor::HttpMonitor,
-        incident::{IncidentPriority, IncidentSource, IncidentStatus, Incident},
+        incident::{Incident, IncidentPriority, IncidentSource, IncidentStatus},
     },
     ports::{
-        http_monitor_repository::HttpMonitorRepository, incident_repository::IncidentRepository,
+        http_monitor_repository::HttpMonitorRepository, incident_repository::{IncidentRepository, ListIncidentsOpts},
     },
 };
 
@@ -61,13 +61,13 @@ where
         .list_incidents(
             &mut tx,
             auth_context.active_organization_id,
-            &[IncidentStatus::Ongoing],
-            &IncidentPriority::ALL,
-            &sources,
-            1,
-            0,
-            None,
-            None,
+            ListIncidentsOpts {
+                include_statuses: &[IncidentStatus::Ongoing],
+                include_priorities: &IncidentPriority::ALL,
+                include_sources: &sources,
+                limit: 1,
+                ..Default::default()
+            }
         )
         .await?
         .incidents
