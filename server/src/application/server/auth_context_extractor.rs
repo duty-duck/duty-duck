@@ -77,6 +77,8 @@ impl FromRequestParts<ApplicationState> for AuthContext {
             active_organization_roles: token.claims.active_organization.role.into(),
             first_name: token.claims.first_name,
             last_name: token.claims.last_name,
+            // TODO: populate this field from the api access token when available
+            restricted_to_scopes: vec![],
         };
 
         Ok(auth_context)

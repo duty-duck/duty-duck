@@ -140,6 +140,5 @@ useIntervalFn(() => {
   top: 50px;
   z-index: 1;
   backdrop-filter: blur(10px);
-  background-color: rgba(248, 249, 250, 0.6);
 }
 </style>

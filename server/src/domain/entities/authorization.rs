@@ -1,8 +1,10 @@
+use chrono::{DateTime, Utc};
 use custom_derive::custom_derive;
 use enum_derive::*;
 use serde::Serialize;
 use ts_rs::TS;
 use uuid::Uuid;
+use veil::Redact;
 
 use super::organization::{OrganizationRoleSet, OrganizationUserRole};
 
@@ -13,10 +15,16 @@ pub struct AuthContext {
     pub active_organization_roles: OrganizationRoleSet,
     pub last_name: Option<String>,
     pub first_name: Option<String>,
+    pub restricted_to_scopes: Vec<Permission>,
 }
 
 impl AuthContext {
     pub fn can(&self, permission: Permission) -> bool {
+        if !self.restricted_to_scopes.is_empty() && !self.restricted_to_scopes.contains(&permission)
+        {
+            return false;
+        }
+
         match permission {
             Permission::TransferOwnershipOfOrganization | Permission::RemoveOrganization => self
                 .active_organization_roles
@@ -57,33 +65,68 @@ impl AuthContext {
 
 custom_derive! {
     #[derive(Clone, Copy, Debug, EnumDisplay, IterVariants(GetVariants))]
-    #[derive(Serialize, TS)]
+    #[derive(Serialize, TS, PartialEq, Eq)]
+    #[derive(sqlx::Type)]
     #[serde(rename_all = "camelCase")]
     #[ts(export)]
+    #[repr(i16)]
     pub enum Permission {
         /// Permission to transfer ownership of the organization
-        TransferOwnershipOfOrganization,
+        TransferOwnershipOfOrganization = 1,
         /// Permission to invite a new member to the organization
-        InviteOrganizationMember,
+        InviteOrganizationMember = 2,
         /// Permission to remove a member from the organization
-        RemoveOrganizationMember,
+        RemoveOrganizationMember = 3,
         /// Permission to list all members of the organization
-        ListOrganizationMembers,
+        ListOrganizationMembers = 4,
         /// Permission to edit a member's details within the organization
-        EditOrganizationMember,
+        EditOrganizationMember = 5,
         /// Permission to remove the organization
-        RemoveOrganization,
+        RemoveOrganization = 6,
         /// Permission to read HTTP monitors
-        ReadHttpMonitors,
+        ReadHttpMonitors = 7,
         /// Permission to write HTTP monitors
-        WriteHttpMonitors,
+        WriteHttpMonitors = 8,
         /// Permission to read incidents
-        ReadIncidents,
+        ReadIncidents = 9,
         /// Permission to list all invitations for the organization
-        ListOrganizationInvitations,
+        ListOrganizationInvitations = 10,
         /// Comment incidents
-        CommentIncidents,
+        CommentIncidents = 11,
         /// Edit incidents (acknowledge, resolve, etc.)
-        EditIncidents,
+        EditIncidents = 12,
     }
+}
+
+impl From<i16> for Permission {
+    fn from(value: i16) -> Self {
+        match value {
+            1 => Self::TransferOwnershipOfOrganization,
+            2 => Self::InviteOrganizationMember,
+            3 => Self::RemoveOrganizationMember,
+            4 => Self::ListOrganizationMembers,
+            5 => Self::EditOrganizationMember,
+            6 => Self::RemoveOrganization,
+            7 => Self::ReadHttpMonitors,
+            8 => Self::WriteHttpMonitors,
+            9 => Self::ReadIncidents,
+            10 => Self::ListOrganizationInvitations,
+            11 => Self::CommentIncidents,
+            12 => Self::EditIncidents,
+            _ => panic!("invalid Permission discriminant: {value}"),
+        }
+    }
+}
+
+#[derive(sqlx::FromRow, Clone, Redact)]
+pub struct ApiAccessToken {
+    pub id: Uuid,
+    pub organization_id: Uuid,
+    pub user_id: Uuid,
+    pub label: String,
+    #[redact]
+    pub secret_key: String,
+    pub scopes: Vec<Permission>,
+    pub expires_at: DateTime<Utc>,
+    pub created_at: DateTime<Utc>,
 }

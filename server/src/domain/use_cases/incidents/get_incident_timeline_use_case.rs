@@ -9,7 +9,6 @@ use crate::domain::{
     entities::{
         authorization::{AuthContext, Permission},
         incident_event::IncidentEvent,
-        user::User,
     },
     ports::{incident_event_repository::IncidentEventRepository, user_repository::UserRepository},
 };
