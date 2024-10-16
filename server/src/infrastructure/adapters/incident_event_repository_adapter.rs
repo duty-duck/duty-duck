@@ -42,7 +42,7 @@ impl IncidentEventRepository for IncidentEventRepositoryAdapter {
     ) -> anyhow::Result<Vec<IncidentEvent>> {
         let events = sqlx::query!(
             "SELECT * FROM incident_timeline_events WHERE organization_id = $1 AND incident_id = $2
-            ORDER BY created_at DESC
+            ORDER BY created_at ASC
             LIMIT $3 OFFSET $4",
             organization_id,
             incident_id,

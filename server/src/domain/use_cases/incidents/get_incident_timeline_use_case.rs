@@ -71,7 +71,7 @@ pub async fn get_incident_timeline(
             auth_context.active_organization_id,
             incident_id,
             items_per_page,
-            page_number,
+            (page_number - 1) * items_per_page,
         )
         .await?;
 

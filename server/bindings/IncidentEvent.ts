@@ -2,4 +2,7 @@
 import type { IncidentEventPayload } from "./IncidentEventPayload";
 import type { IncidentEventType } from "./IncidentEventType";
 
-export type IncidentEvent = { organizationId: string, incidentId: string, createdAt: string, eventType: IncidentEventType, eventPayload: IncidentEventPayload | null, };
+/**
+ * An event that is recorded for an incident.
+ */
+export type IncidentEvent = { organizationId: string, incidentId: string, userId: string | null, createdAt: string, eventType: IncidentEventType, eventPayload: IncidentEventPayload | null, };

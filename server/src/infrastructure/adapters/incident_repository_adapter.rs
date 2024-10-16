@@ -86,6 +86,7 @@ impl IncidentRepository for IncidentRepositoryAdapter {
             UPDATE incidents i
             SET resolved_at = now(), status = $1
             WHERE organization_id = $2
+            AND i.status != $1
             AND (i.incident_source_type = $3 AND i.incident_source_id = ANY($4::uuid[]))
             RETURNING id
            ",

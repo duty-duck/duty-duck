@@ -72,6 +72,7 @@ impl From<i16> for IncidentEventType {
             1 => Self::Notification,
             2 => Self::Resolution,
             3 => Self::Comment,
+            4 => Self::Acknowledged,
             _ => panic!("invalid IncidentEventType discriminant: {value}"),
         }
     }
