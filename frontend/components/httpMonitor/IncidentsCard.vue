@@ -8,6 +8,7 @@ const { onGoingIncident, incidents } = defineProps<{
   onGoingIncident: Incident | null;
   incidents: ListIncidentsResponse | null
 }>();
+const localePath = useLocalePath();
 const currentTab = defineModel<"ongoing" | "history">("currentTab", { required: true });
 const currentTabIndex = computed({
   get() {
@@ -55,7 +56,7 @@ const incidentsPageNumber = defineModel<number>("incidentsPageNumber", { require
       </template>
       <BCard class="mt-3" no-body >
         <BListGroup flush class="mb-3">
-          <BListGroupItem href="#" v-for="i in incidents?.items" :key="i.id">
+          <BListGroupItem href="#" v-for="i in incidents?.items" :key="i.id" :to="localePath(`/dashboard/incidents/${i.id}`)">
             <span class="icon-link">
               <Icon aria-label="Incident started at" name="ph:clock" />
               {{ $d(new Date(i.createdAt), "long") }}
@@ -66,7 +67,7 @@ const incidentsPageNumber = defineModel<number>("incidentsPageNumber", { require
           </BListGroupItem>
         </BListGroup>
         <div class="px-3">
-          <BPagination v-model="incidentsPageNumber" :prev-text="$t('pagination.prev')"
+          <BPagination v-model="incidentsPageNumber" :prev-text="$t('pagination.prev')" pills limit="10"
             :next-text="$t('pagination.next')" :total-rows="incidents?.totalNumberOfFilteredResults || 0"
             :per-page="10" />
         </div>

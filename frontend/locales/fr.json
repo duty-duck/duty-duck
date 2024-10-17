@@ -107,6 +107,20 @@
             "emptyPage": {
                 "title": "Tout va bien pour le moment",
                 "text": "Si nous détectons une anomalie, un incident apparaîtra ici."
+            },
+            "incidentDetails": "Détails de l'incident",
+            "people": "Personnes",  
+            "notAcknowledged": "Aucun(e) personne n'a pris en charge l'incident",
+            "acknowledgedBy": "{count} personne(s) ont pris en charge l'incident",
+            "acknowledge": "Prendre en charge",
+            "incidentLength": "Durée de l'incident",
+            "defaultIncidentTitle": "Incident du {date}",
+            "timeline": {
+                "sectionTitle": "Chronologie de l'incident",
+                "incidentAcknowledged": "{firstName} {lastName} a pris en charge l'incident",
+                "incidentCreated": "Incident créé",
+                "notificationSent": "Notification envoyée",
+                "incidentResolved": "Incident résolu"
             }
         },
         "incidentStatus": {

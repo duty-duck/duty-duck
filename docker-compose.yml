@@ -11,15 +11,15 @@ services:
     volumes:
       - .:/home/workspace:cached
 
-  # fake-internet:
-  #   build: ./fake-internet
-  #   environment:
-  #     - PORT=80
-  #   networks:
-  #     default:
-  #       aliases:
-  #         - www.mediapart.fr
-  #         - www.fake-internet.com
+  fake-internet:
+    build: ./fake-internet
+    environment:
+      - PORT=80
+    networks:
+      default:
+        aliases:
+          - www.mediapart.fr
+          - www.fake-internet.com
 
   main-database:
     build: ./database

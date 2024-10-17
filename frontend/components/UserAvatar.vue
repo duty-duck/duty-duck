@@ -13,7 +13,7 @@ const colors = [
     "#cc8e35",
     "#ccae62"
 ];
-const props = withDefaults(defineProps<{ firstName?: string, lastName?: string, size?: string, fontSize?: string }>(), {
+const props = withDefaults(defineProps<{ firstName?: string, lastName?: string, size?: string, fontSize?: string, showTooltip?: boolean }>(), {
     fontSize: '.7rem',
     size: '1.5rem'
 })
@@ -25,6 +25,7 @@ const color = computed(() => colors[(firstName.value.length + lastName.value.len
 
 <template>
     <div class="d-flex align-items-center justify-content-center"
+        v-b-tooltip.hover.top="props.showTooltip ? `${firstName} ${lastName}` : undefined"
         :style="{ height: props.size, width: props.size, borderRadius: '50%', backgroundColor: color, color: 'white', fontSize: props.fontSize }">
         {{ firstName[0] }}{{ lastName[0] }}
     </div>

@@ -107,6 +107,20 @@
             "emptyPage": {
                 "title": "Everything is OK right now",
                 "text": "When we detect a failure, an incident will appear here."
+            },
+            "incidentDetails": "Incident details",
+            "defaultIncidentTitle": "Incident on {date}",
+            "people": "People",
+            "notAcknowledged": "No one has acknowledged the incident",
+            "acknowledgedBy": "{count} person(s) have acknowledged the incident",
+            "acknowledge": "Acknowledge",
+            "incidentLength": "Incident length",
+            "timeline": {
+                "sectionTitle": "Incident timeline",
+                "incidentAcknowledged": "{firstName} {lastName} acknowledged the incident",
+                "incidentCreated": "Incident created",
+                "notificationSent": "Notification sent",
+                "incidentResolved": "Incident resolved"
             }
         },
         "incidentStatus": {

@@ -10,9 +10,6 @@ export default defineNuxtConfig({
 
   experimental: {
     defaults: {
-      nuxtLink: {
-        exactActiveClass: 'active',
-      }
     }
   },
 

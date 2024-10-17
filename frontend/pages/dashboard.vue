@@ -28,7 +28,7 @@ onBeforeMount(() => {
       <div class="row g-0">
         <div class="d-none d-lg-block d-flex sticky-top" id="dashboard-sidebar">
           <div id="dashboard-sidebar-content">
-            <SidebarBrand />
+            <DashboardSidebarBrand />
             <DashboardDynamicSidebar v-if="lgOrLarger" />
           </div>
         </div>
