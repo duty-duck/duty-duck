@@ -15,6 +15,9 @@
   },
   "dependencies": {
     "@bootstrap-vue-next/nuxt": "0.24.22",
+    "@editorjs/editorjs": "^2.30.6",
+    "@editorjs/header": "^2.8.8",
+    "@editorjs/paragraph": "^2.11.6",
     "@nuxt/icon": "^1.4.4",
     "@nuxtjs/i18n": "^8.3.3",
     "@vite-pwa/nuxt": "^0.10.5",

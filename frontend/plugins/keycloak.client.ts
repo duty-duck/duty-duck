@@ -1,5 +1,3 @@
-import type { GetProfileResponse } from 'bindings/GetProfileResponse';
-import type { Permission } from 'bindings/Permission';
 import Keycloak, { type KeycloakConfig, type KeycloakLoginOptions, type KeycloakTokenParsed } from 'keycloak-js';
 
 /**

@@ -90,6 +90,7 @@
             "unknown": "En attente"
         },
         "incidents": {
+            "goToIncident": "Voir l'incident",
             "rootCause": "Cause de l'incident",
             "date": "Date",
             "startOfIncident": "Début de l'incident",
@@ -120,7 +121,10 @@
                 "incidentAcknowledged": "{firstName} {lastName} a pris en charge l'incident",
                 "incidentCreated": "Incident créé",
                 "notificationSent": "Notification envoyée",
-                "incidentResolved": "Incident résolu"
+                "incidentResolved": "Incident résolu",
+                "addCommentPlaceholder": "Ajouter un commentaire ou un post-mortem...",
+                "addCommentButtonLabel": "Commenter",
+                "addComment": "Ajouter un commentaire"
             }
         },
         "incidentStatus": {

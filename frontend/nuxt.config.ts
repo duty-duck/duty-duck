@@ -15,6 +15,7 @@ export default defineNuxtConfig({
 
   routeRules: {
     // These pages are rendered on the client only because they use the Keycloak SDK
+    '/en/dashboard/**': { ssr: false },
     '/dashboard/**': { ssr: false },
   },
 

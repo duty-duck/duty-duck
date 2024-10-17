@@ -34,17 +34,21 @@ const incidentsPageNumber = defineModel<number>("incidentsPageNumber", { require
         </span>
       </template>
       <BCard v-if="onGoingIncident" class="mt-3">
+        <NuxtLink :to="localePath(`/dashboard/incidents/${onGoingIncident.id}`)" class="icon-link mb-3">
+          <Icon aria-hidden name="ph:arrow-up-right" size="1.3rem" />
+          {{ $t("dashboard.incidents.goToIncident") }}
+        </NuxtLink>
         <p>
-          <span class="text-secondary">
+          <h5>
             {{ $t("dashboard.incidents.startOfIncident") }}
-          </span>
-          <br />
+          </h5>
           {{ $d(new Date(onGoingIncident.createdAt), "long") }}
         </p>
         <p>
-          <span class="text-secondary">{{ $t("dashboard.incidents.rootCause") }}:</span><br />
+          <h5>{{ $t("dashboard.incidents.rootCause") }}:</h5>
           <IncidentCause :incident="onGoingIncident" />
         </p>
+        <LazyIncidentTimeline :incident-id="onGoingIncident.id" :show-comment-editor="false" />
       </BCard>
     </BTab>
     <BTab class="px-0 pb-0">

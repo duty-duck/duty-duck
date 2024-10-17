@@ -6,6 +6,7 @@ import { allStatuses } from "~/components/httpMonitor/StatusDropdown.vue";
 
 ensurePemissionOnBeforeMount("readHttpMonitors");
 
+const localePath = useLocalePath();
 const query = useRouteQuery("query", "");
 const queryDebounced = refDebounced(query, 250);
 const pageNumber = useRouteQuery("pageNumber", 1, { transform: Number });
@@ -64,7 +65,7 @@ useIntervalFn(() => {
   <div>
     <BContainer>
       <BBreadcrumb>
-        <BBreadcrumbItem to="/dashboard">{{
+        <BBreadcrumbItem :to="localePath('/dashboard')">{{
           $t("dashboard.mainSidebar.home")
         }}</BBreadcrumbItem>
         <BBreadcrumbItem active>{{

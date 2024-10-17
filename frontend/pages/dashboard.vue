@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useBreakpoints, breakpointsBootstrapV5 } from "@vueuse/core";
 
-
 const auth = useAuthMandatory();
 const breakpoints = useBreakpoints(breakpointsBootstrapV5);
 const lgOrLarger = breakpoints.greaterOrEqual("lg");
@@ -43,7 +42,7 @@ onBeforeMount(() => {
               <UserMenu />
             </div>
           </nav>
-          <div class="container-fluid py-2 px-2 mt-4 px-lg-4" id="dashboard-container">
+          <div id="dashboard-container">
             <DashboardErrorBoundary>
               <NuxtPage :transition="{ name: 'page', mode: 'out-in' }" />
             </DashboardErrorBoundary>
@@ -84,6 +83,14 @@ onBeforeMount(() => {
   &:hover {
     background-color: white;
   }
+}
 
+#dashboard-container {
+  @extend .container-fluid;
+  @extend .pt-2;
+  @extend .px-2;
+  @extend .mt-4;
+  @extend .px-lg-4;
+  padding-bottom: 5rem;
 }
 </style>

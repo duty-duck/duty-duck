@@ -1,9 +1,12 @@
 import type { UseFetchOptions } from "#app";
+import type { CommentIncidentRequest } from "bindings/CommentIncidentRequest";
+import type { CommentPayload } from "bindings/CommentPayload";
 import type { GetIncidentResponse } from "bindings/GetIncidentResponse";
 import type { GetIncidentTimelineParams } from "bindings/GetIncidentTimelineParams";
 import type { GetIncidentTimelineResponse } from "bindings/GetIncidentTimelineResponse";
 import type { ListIncidentsParams } from "bindings/ListIncidentsParams";
 import type { ListIncidentsResponse } from "bindings/ListIncidentsResponse";
+import type { FetchOptions } from "ofetch";
 
 export const useIncidentRepository = () => {
     const $fetch = useServer$fetch();
@@ -30,11 +33,14 @@ export const useIncidentRepository = () => {
         async useIncident(incidentId: string, opts?: UseFetchOptions<GetIncidentResponse>) {
             return await useServerFetch<GetIncidentResponse>(`/incidents/${incidentId}`, { retry: 3, retryDelay: 5000, ...(opts || {}) });
         },
-        async useIncidentTimeline(incidentId: string, params: Ref<GetIncidentTimelineParams> | GetIncidentTimelineParams, opts?: UseFetchOptions<GetIncidentTimelineResponse>) {
-            return await useServerFetch<GetIncidentTimelineResponse>(`/incidents/${incidentId}/events`, { retry: 3, retryDelay: 5000, query: params, ...(opts || {}) });
+        async getIncidentTimeline(incidentId: string, params: Ref<GetIncidentTimelineParams> | GetIncidentTimelineParams) {
+            return await $fetch<GetIncidentTimelineResponse>(`/incidents/${incidentId}/events`, { query: params });
         },
         async acknowledgeIncident(incidentId: string) {
             return await $fetch<void>(`/incidents/${incidentId}/acknowledge`, { method: "POST" });
+        },
+        async commentIncident(incidentId: string, request: CommentIncidentRequest) {
+            return await $fetch<void>(`/incidents/${incidentId}/comment`, { method: "POST", body: request });
         }
     }
 }

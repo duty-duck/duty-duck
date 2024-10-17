@@ -4,6 +4,8 @@ import type { IncidentStatus } from "bindings/IncidentStatus";
 import type { ListIncidentsParams } from "bindings/ListIncidentsParams";
 import { allStatuses } from "~/components/incident/StatusDropdown.vue";
 
+const localePath = useLocalePath();
+
 const route = useRoute();
 
 const pageNumber = computed({
@@ -67,7 +69,7 @@ useIntervalFn(() => {
   <div>
     <BContainer>
       <BBreadcrumb>
-        <BBreadcrumbItem to="/dashboard">{{
+        <BBreadcrumbItem :to="localePath('/dashboard')">{{
           $t("dashboard.mainSidebar.home")
         }}</BBreadcrumbItem>
         <BBreadcrumbItem active>{{
