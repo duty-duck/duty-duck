@@ -15,8 +15,6 @@ pub struct AuthContext {
     pub active_organization_id: Uuid,
     pub active_user_id: Uuid,
     pub active_organization_roles: OrganizationRoleSet,
-    pub last_name: Option<String>,
-    pub first_name: Option<String>,
     pub restricted_to_scopes: Vec<Permission>,
 }
 

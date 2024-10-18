@@ -7,7 +7,7 @@ use reqwest::Url;
 use sqlx::postgres::PgPoolOptions;
 
 use crate::{
-    domain::use_cases,
+    domain::use_cases::{self, incidents::ExecuteIncidentNotificationsUseCase},
     infrastructure::{
         adapters::{
             http_client_adapter::HttpClientAdapter,
@@ -50,19 +50,22 @@ pub async fn start_application() -> anyhow::Result<()> {
         config.http_monitors_ping_concurrency,
     );
 
-    let _new_incident_notification_task = use_cases::incidents::spawn_tasks(
-        config.notifications_concurrent_tasks,
-        Duration::from_secs(config.notifications_tasks_interval_seconds),
-        application_state.adapters.organization_repository.clone(),
-        application_state
+    let execute_incident_notifications = ExecuteIncidentNotificationsUseCase {
+        organization_repository: application_state.adapters.organization_repository.clone(),
+        incident_notification_repository: application_state
             .adapters
             .incident_notification_repository
             .clone(),
-        application_state.adapters.incident_event_repository.clone(),
-        application_state.adapters.push_notification_server.clone(),
-        application_state.adapters.mailer.clone(),
-        application_state.adapters.user_devices_repository.clone(),
-        config.notifications_tasks_select_size,
+        incident_event_repository: application_state.adapters.incident_event_repository.clone(),
+        push_notificaton_server: application_state.adapters.push_notification_server.clone(),
+        sms_notificaton_server: application_state.adapters.sms_notification_server.clone(),
+        mailer: application_state.adapters.mailer.clone(),
+        user_devices_repository: application_state.adapters.user_devices_repository.clone(),
+        select_limit: config.notifications_tasks_select_size,
+    };
+    let _new_incident_notification_task = execute_incident_notifications.spawn_tasks(
+        config.notifications_concurrent_tasks,
+        Duration::from_secs(config.notifications_tasks_interval_seconds),
     );
 
     tokio::select! {

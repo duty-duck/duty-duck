@@ -106,6 +106,15 @@ impl UserRepository for UserRepositoryAdapter {
         if let Some(number) = command.phone_number {
             attributes.put("phoneNumber", number);
         }
+        if let Some(verified) = command.phone_number_verified {
+            attributes.put("phoneNumberVerified", verified.to_string());
+        }
+        if let Some(otp) = command.phone_number_otp {
+            attributes.put(
+                "phoneNumberOtp",
+                serde_json::to_string(&otp).context("Failed to serialize phone number OTP")?,
+            );
+        }
 
         let request = UpdateUserRequest {
             first_name: command.first_name.or(kc_user.first_name),
@@ -148,6 +157,15 @@ impl TryFrom<keycloak_client::UserItem> for User {
                 .attributes
                 .get("phoneNumber")
                 .map(|str| str.to_string()),
+            phone_number_verified: value
+                .attributes
+                .get("phoneNumberVerified")
+                .and_then(|str| str.parse::<bool>().ok())
+                .unwrap_or_default(),
+            phone_number_otp: value
+                .attributes
+                .get("phoneNumberOtp")
+                .and_then(|attr| serde_json::from_str(attr).ok()),
         })
     }
 }

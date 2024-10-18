@@ -26,6 +26,8 @@ pub fn users_router() -> Router<ApplicationState> {
             "/me",
             Router::new()
                 .nest("/devices", user_devices_router())
+                .route("/send-phone-otp", post(send_phone_otp_handler))
+                .route("/verify-phone-otp", post(verify_phone_otp_handler))
                 .route("/", get(get_profile_handler).put(update_profile_handler)),
         )
 }
@@ -105,5 +107,56 @@ async fn signup_handler(
             )
         }
         Ok(_) => (StatusCode::OK, "OK".to_string()),
+    }
+}
+
+async fn send_phone_otp_handler(
+    auth_context: AuthContext,
+    State(app_state): ExtractAppState,
+) -> impl IntoResponse {
+    match send_phone_number_verification_code(
+        &auth_context,
+        &app_state.adapters.user_repository,
+        &app_state.adapters.sms_notification_server,
+    )
+    .await
+    {
+        Ok(_) => (StatusCode::OK, "OK".to_string()).into_response(),
+        Err(VerifyPhoneNumberError::UserNotFound | VerifyPhoneNumberError::PhoneNumberNotFound) => {
+            StatusCode::NOT_FOUND.into_response()
+        }
+        Err(VerifyPhoneNumberError::AlreadyVerified) => {
+            (StatusCode::CONFLICT, "User already verified".to_string()).into_response()
+        }
+        Err(VerifyPhoneNumberError::InvalidCode) => {
+            (StatusCode::BAD_REQUEST, "Invalid code".to_string()).into_response()
+        }
+        Err(VerifyPhoneNumberError::TechnicalFailure(e)) => {
+            warn!(error = ?e, "Internal server error while sending a phone number verification code");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
+}
+
+async fn verify_phone_otp_handler(
+    auth_context: AuthContext,
+    State(app_state): ExtractAppState,
+    Json(command): Json<VerifyPhoneNumberCommand>,
+) -> impl IntoResponse {
+    match verify_phone_number(&auth_context, &app_state.adapters.user_repository, command).await {
+        Ok(_) => (StatusCode::OK, "OK".to_string()).into_response(),
+        Err(VerifyPhoneNumberError::UserNotFound | VerifyPhoneNumberError::PhoneNumberNotFound) => {
+            StatusCode::NOT_FOUND.into_response()
+        }
+        Err(VerifyPhoneNumberError::AlreadyVerified) => {
+            (StatusCode::CONFLICT, "User already verified".to_string()).into_response()
+        }
+        Err(VerifyPhoneNumberError::InvalidCode) => {
+            (StatusCode::BAD_REQUEST, "Invalid code".to_string()).into_response()
+        }
+        Err(VerifyPhoneNumberError::TechnicalFailure(e)) => {
+            warn!(error = ?e, "Internal server error while verifying a phone number");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
     }
 }

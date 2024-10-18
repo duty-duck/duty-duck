@@ -52,3 +52,9 @@ newHttpMonitorIncidentEmailBody:
 
         Vous recevez cette alerte car vous êtes membre de l'organisation %{org}.
         Rendez-vous sur DutyDuck.net pour investiguer l'incident.
+
+
+# SMS 
+smsPhoneNumberVerificationCode:
+    en: "DutyDuck - Your verification code is %{code}"
+    fr: "DutyDuck - Votre code de vérification est %{code}"
