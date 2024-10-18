@@ -10,7 +10,17 @@ use crate::{
     domain::use_cases,
     infrastructure::{
         adapters::{
-            http_client_adapter::HttpClientAdapter, http_monitor_repository_adapter::HttpMonitorRepositoryAdapter, incident_event_repository_adapter::IncidentEventRepositoryAdapter, incident_notification_repository_adapter::IncidentNotificationRepositoryAdapter, incident_repository_adapter::IncidentRepositoryAdapter, mailer_adapter::{MailerAdapter, MailerAdapterConfig}, organization_repository_adapter::OrganizationRepositoryAdapter, push_notification_server_adapter::PushNotificationServerAdapter, user_devices_repository_adapter::UserDevicesRepositoryAdapter, user_repository_adapter::UserRepositoryAdapter
+            http_client_adapter::HttpClientAdapter,
+            http_monitor_repository_adapter::HttpMonitorRepositoryAdapter,
+            incident_event_repository_adapter::IncidentEventRepositoryAdapter,
+            incident_notification_repository_adapter::IncidentNotificationRepositoryAdapter,
+            incident_repository_adapter::IncidentRepositoryAdapter,
+            mailer_adapter::{MailerAdapter, MailerAdapterConfig},
+            organization_repository_adapter::OrganizationRepositoryAdapter,
+            push_notification_server_adapter::PushNotificationServerAdapter,
+            sms_notification_server_adapter::SmsNotificationServerAdapter,
+            user_devices_repository_adapter::UserDevicesRepositoryAdapter,
+            user_repository_adapter::UserRepositoryAdapter,
         },
         keycloak_client::KeycloakClient,
     },
@@ -31,27 +41,29 @@ pub async fn start_application() -> anyhow::Result<()> {
         application_state.adapters.http_monitors_repository.clone(),
         application_state.adapters.incident_repository.clone(),
         application_state.adapters.incident_event_repository.clone(),
-        application_state.adapters.incident_notification_repository.clone(),
+        application_state
+            .adapters
+            .incident_notification_repository
+            .clone(),
         application_state.adapters.http_client.clone(),
         config.http_monitors_select_size,
         config.http_monitors_ping_concurrency,
     );
 
-    let _new_incident_notification_task =
-        use_cases::incidents::spawn_tasks(
-            config.notifications_concurrent_tasks,
-            Duration::from_secs(config.notifications_tasks_interval_seconds),
-            application_state.adapters.organization_repository.clone(),
-            application_state
-                .adapters
-                .incident_notification_repository
-                .clone(),
-            application_state.adapters.incident_event_repository.clone(),
-            application_state.adapters.push_notification_server.clone(),
-            application_state.adapters.mailer.clone(),
-            application_state.adapters.user_devices_repository.clone(),
-            config.notifications_tasks_select_size,
-        );
+    let _new_incident_notification_task = use_cases::incidents::spawn_tasks(
+        config.notifications_concurrent_tasks,
+        Duration::from_secs(config.notifications_tasks_interval_seconds),
+        application_state.adapters.organization_repository.clone(),
+        application_state
+            .adapters
+            .incident_notification_repository
+            .clone(),
+        application_state.adapters.incident_event_repository.clone(),
+        application_state.adapters.push_notification_server.clone(),
+        application_state.adapters.mailer.clone(),
+        application_state.adapters.user_devices_repository.clone(),
+        config.notifications_tasks_select_size,
+    );
 
     tokio::select! {
         _ = _http_monitors_tasks.join_all() => (),
@@ -96,14 +108,20 @@ async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationSt
         },
         user_devices_repository: UserDevicesRepositoryAdapter { pool: pool.clone() },
         http_client: HttpClientAdapter::new(&config),
-        push_notification_server: PushNotificationServerAdapter::new().await?,
+        push_notification_server: PushNotificationServerAdapter::new()
+            .await
+            .context("Failed to create push notification server adapter")?,
         mailer: MailerAdapter::new(MailerAdapterConfig {
             smtp_server_host: config.smtp_server_host.clone(),
             smtp_server_port: config.smtp_server_port,
             smtp_disable_tls: config.smtp_disable_tls,
             smtp_username: config.smtp_username.clone(),
             smtp_password: config.smtp_password.clone(),
-        })?,
+        })
+        .context("Failed to create mailer adapter")?,
+        sms_notification_server: SmsNotificationServerAdapter::new()
+            .await
+            .context("Failed to create SMS notification server adapter")?,
     };
     Ok(ApplicationState {
         config: config.clone(),

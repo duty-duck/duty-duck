@@ -8,3 +8,4 @@ pub mod push_notification_server_adapter;
 pub mod incident_notification_repository_adapter;
 pub mod mailer_adapter;
 pub mod incident_event_repository_adapter;
+pub mod sms_notification_server_adapter;
