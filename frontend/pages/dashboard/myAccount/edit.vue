@@ -21,6 +21,7 @@ const state = reactive({
   phoneNumber: {
     isValid: null as boolean | null,
     value: userInfo.phoneNumber || "",
+    formattedNumber: userInfo.phoneNumber || "" as string | null
   },
 });
 
@@ -67,6 +68,7 @@ const rules = {
   },
   phoneNumber: {
     value: {},
+    formattedNumber: {},
     isValid: { isValid: phoneNumberValidator },
   },
 };
@@ -88,9 +90,9 @@ const onSubmit = async () => {
     firstName: state.firstName != userInfo.firstName ? state.firstName : null,
     lastName: state.lastName != userInfo.lastName ? state.lastName : null,
     phoneNumber:
-      state.phoneNumber.value != userInfo.phoneNumber &&
-      state.phoneNumber.value != ""
-        ? state.phoneNumber.value
+      state.phoneNumber.formattedNumber != userInfo.phoneNumber &&
+      state.phoneNumber.formattedNumber != ""
+        ? state.phoneNumber.formattedNumber
         : null,
     email: state.email != userInfo.email ? state.email : null,
     password: state.password != "" ? state.password : null,

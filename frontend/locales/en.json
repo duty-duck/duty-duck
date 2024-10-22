@@ -34,7 +34,13 @@
             "ongoingIncidents": "No ongoing incident | Ongoing incident | Ongoing incidents",
             "downMonitors": "No monitor is down or suspicious | Monitor down or suspicious | Monitors down or suspicious",
             "goToIncidents": "Go to incidents",
-            "goToMonitors": "Go to monitors"
+            "goToMonitors": "Go to monitors",
+            "verifyPhoneNumber": "Verify my number",
+            "phoneNumberVerificationRequired": "You have not yet verified your mobile number",
+            "phoneNumberVerificationRequiredDescription": "Don't miss any incident with SMS notifications. To receive SMS notifications, you must verify your mobile number.",
+            "pushNotificationsRequired": "You have not yet configured Push notifications",
+            "pushNotificationsRequiredDescription": "Don't miss any incident with push notifications. Configure push notifications to receive notifications on your device.",
+            "configurePushNotifications": "Configure push notifications"
         },
         "monitors": {
             "httpMonitor": "HTTP Monitor",
@@ -174,7 +180,25 @@
             "lastName": "Last name",
             "email": "E-mail address",
             "phoneNumber": "Mobile number",
-            "editButton": "Edit my info"
+            "phoneNumberDescription": "Your mobile number will be used to send you SMS notifications in case of incidents. It will never be used for advertising purposes.",
+            "editButton": "Edit my info",
+            "phoneNumberVerification": "Phone number verification",
+            "phoneNumberNotVerified": "Your mobile number is not verified. Please verify your mobile number to receive SMS notifications.",
+            "phoneNumberVerified": "Your mobile number is verified. You will receive SMS notifications if they are enabled.",
+            "noPhoneNumberConfigured": "You have not configured a mobile number. Edit your information to configure your mobile number.",
+            "verifyPhoneNumber": "Verify my number",
+            "phoneVerificationModal": {
+                "title": "Phone number verification",
+                "initialInstructions": "Click the button below to receive a verification code to your mobile number. You will then be prompted to enter the code you received to verify your mobile number.",
+                "sendCodeButton": "Send code",
+                "codeSentInstructions": "A verification code has been sent to your mobile number ({phoneNumber}). Please enter the code below to verify your mobile number.",
+                "codeInputPlaceholder": "Enter the verification code you have received",
+                "sendErrorMessage": "The code could not be sent. Please try again later.",
+                "confirmErrorMessage": "The code you entered was incorrect or the verification process failed. Please try again.",
+                "requestNewCodeInstructions": "You can request a new verification code by clicking the button below.",
+                "sendingCodeMessage": "Sending code...",
+                "verifyingCodeMessage": "Verifying code..."
+              }
         },
         "myOrg": {
             "pageTitle": "My organization",
@@ -296,5 +320,9 @@
         "minutesShort": "{count}m",
         "hours": "{count} hour | {count} hours",
         "hoursShort": "{count}h"
+    },
+    "blog": {
+        "title": "Blog",
+        "readMore": "Read more"
     }
 }

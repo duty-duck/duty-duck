@@ -14,7 +14,7 @@ const variants: Record<IncidentStatus, [keyof BaseColorVariant, string]> = {
 </script>
 
 <template>
-    <BBadge :variant="variants[status][0]" class="rounded-pill pill">
+    <BBadge :variant="variants[status][0]" class="rounded-pill pill text-white">
         <Icon :name="variants[status][1]" size="1.5rem" />
         {{ $t(`dashboard.incidentStatus.${status}`) }}
     </BBadge>

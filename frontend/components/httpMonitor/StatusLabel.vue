@@ -17,7 +17,7 @@ const variants: Record<HttpMonitorStatus, keyof BaseColorVariant> = {
 </script>
 
 <template>
-  <BBadge :variant="variants[status]" class="rounded-pill">
+  <BBadge :variant="variants[status]" class="rounded-pill text-white">
     {{ $t(`dashboard.monitorStatus.${status}`) }}
   </BBadge>
 </template>

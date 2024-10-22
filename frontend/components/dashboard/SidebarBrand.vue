@@ -15,15 +15,13 @@
   #sidebar-brand {
     text-decoration: none;
     height: $navbar-height;
-    background-color: white;
-    box-shadow: rgba(154, 161, 171, 0.15) 0px 0px 35px 0px;
     position: relative;
     overflow: hidden;
     color: $primary;
     display: flex;
     align-items: center;
     font-family: $headings-font-family;
-    padding-left: $spacer;
+    border-bottom: 1px solid rgb(234 236 241);
 
     &:hover {
       img {

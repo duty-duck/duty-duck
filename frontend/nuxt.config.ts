@@ -37,16 +37,13 @@ export default defineNuxtConfig({
     }
   },
 
-  modules: [
-    '@bootstrap-vue-next/nuxt',
-    "@nuxt/icon",
-    '@nuxtjs/i18n',
-    '@vite-pwa/nuxt'
-  ],
+  modules: ['@bootstrap-vue-next/nuxt', "@nuxt/icon", '@nuxtjs/i18n', '@vite-pwa/nuxt', "@nuxt/content"],
 
   alias: {
     "bindings": resolve(__dirname, "../server/bindings")
   },
+
+  content: {},
 
   i18n: {
     strategy: 'prefix_except_default',

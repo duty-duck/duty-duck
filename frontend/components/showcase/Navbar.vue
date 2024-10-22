@@ -3,7 +3,7 @@ const localePath = useLocalePath();
 </script>
 
 <template>
-    <BNavbar id="navbar" toggleable="lg">
+    <BNavbar id="navbar" toggleable="lg" class="shadow-sm">
         <BNavbarBrand href="#" id="brand">
             <NuxtLink :to="localePath('/')">
                 <img src="@/assets/navbar-duck.png" alt="Duty Duck logo" />
@@ -42,6 +42,7 @@ $navbar-height: 50px;
 #navbar {
     background-color: white;
     padding: 0;
+    z-index: 1;
 }
 
 #brand {

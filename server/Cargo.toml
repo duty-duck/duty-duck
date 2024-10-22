@@ -63,6 +63,7 @@ utoipa-redoc = { version = "4", features = ["axum"] }
 hex = "0.4.3"
 aws-sdk-sns = "1.47.0"
 aws-config = "1.5.8"
+phonenumber = "0.3.6"
 
 [build-dependencies]
 built = { version = "0.7.3", features = ["chrono", "git2"] }

@@ -19,6 +19,8 @@ use crate::domain::{
 pub enum UpdateProfileError {
     #[error("e-mail is invalid")]
     InvalidEmail,
+    #[error("phone number is invalid")]
+    InvalidPhoneNumber,
     #[error("password too weak")]
     PasswordTooWeak,
     #[error("Failed to update user profile: {0}")]
@@ -49,7 +51,7 @@ pub struct UpdateProfileResponse {
 pub async fn update_user_profile(
     auth_context: &AuthContext,
     repository: &impl UserRepository,
-    command: UpdateProfileCommand,
+    mut command: UpdateProfileCommand,
 ) -> Result<UpdateProfileResponse, UpdateProfileError> {
     let user = repository
         .get_user(auth_context.active_user_id, false)
@@ -65,6 +67,18 @@ pub async fn update_user_profile(
         if EmailAddress::from_str(email).is_err() {
             return Err(UpdateProfileError::InvalidEmail);
         }
+    }
+
+    // Check the new phone number is valid
+    if let Some(phone_number) = &command.phone_number {
+        let phone_number_str = phone_number.replace(" ", "");
+        let parsed_phone_number = match phonenumber::parse(None, phone_number_str) {
+            Ok(n) => n,
+            Err(_) => return Err(UpdateProfileError::InvalidPhoneNumber)
+        };
+
+        command.phone_number = Some(parsed_phone_number.format().mode(phonenumber::Mode::E164).to_string());
+        
     }
 
     // Check the new password is valid

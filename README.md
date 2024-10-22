@@ -56,10 +56,20 @@ docker build -t duty-duck-server:latest -f server/Dockerfile .
         - add to ID token: true
         - add to access token: true
         - add to userinfo: true
-- Make sure there is a "phoneNumber" user attribute in the Realm settings
-- Make sure there is a "phone" client scope with a "phone number" mapper
-    - token claim name: phoneNumber (camelCase!)
-    - Claim JSON type: String
+- Make sure these user attributes exist in the Realm settings:
+    - phoneNumber
+    - phoneNumberVerified
+    - phoneNumberOtp
+- Make sure there is a "phone" client scope with:
+    - a "phone number" mapper
+        - token claim name: phoneNumber (camelCase!)
+        - Claim JSON type: String
+    - a "phone number verified" mapper
+        - token claim name: phoneNumberVerified
+        - Claim JSON type: Boolean
+    - a "phoneNumberOtp" mapper
+        - token claim name: phoneNumberOtp
+        - Claim JSON type: JSON
 - Make sure the "active_organization" and the "phone" client scopes are enabled for the "duty-duck-dashboard" client
 - Check e-mail server configuration
 - Check the theme configuration for the realm. To see the organization swticher, the admin theme phasetwo.v2 must be enabled **on the master realm**

@@ -68,6 +68,9 @@ async fn update_profile_handler(
         Err(e @ UpdateProfileError::InvalidEmail) => {
             (StatusCode::BAD_REQUEST, e.to_string()).into_response()
         }
+        Err(e @ UpdateProfileError::InvalidPhoneNumber) => {
+            (StatusCode::BAD_REQUEST, e.to_string()).into_response()
+        }
         Err(e @ UpdateProfileError::PasswordTooWeak) => {
             (StatusCode::BAD_REQUEST, e.to_string()).into_response()
         }

@@ -12,7 +12,7 @@ const config = useRuntimeConfig();
 
 <template>
   <NuxtPwaManifest />
-  <NuxtLoadingIndicator color="#70BE4D" />
+  <NuxtLoadingIndicator color="#05c46b" />
   <NuxtPage />
   <BToastOrchestrator />
 </template>

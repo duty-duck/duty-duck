@@ -31,12 +31,12 @@ onUnmounted(() => {
 });
 </script>
 <template>
-    <div id="homepage">
-        <ShowcaseNavbar />
+    <ShowcaseLayout>
         <section id="hero">
             <h1>On garde un œil sur vos systèmes</h1>
             <p class="lead">
-                Que vous soyez un dev solo ou une équipe qui cartonne,<br />notre plateforme d'observabilité garde vos
+                Que vous soyez un dev solo ou une équipe qui cartonne,<br />notre plateforme d'observabilité garde
+                vos
                 systèmes au top, sans vider votre portefeuille.
                 <br />On vous simplifie la vie en quelques clics !
             </p>
@@ -98,7 +98,7 @@ onUnmounted(() => {
                 </p>
             </section>
         </div>
-    </div>
+    </ShowcaseLayout>
 </template>
 
 <style scoped lang="scss">
@@ -118,8 +118,11 @@ onUnmounted(() => {
         @include media-breakpoint-up(md) {
             font-size: 3.5rem;
         }
-
         font-size: 2.5rem;
+        line-height: 5rem;
+        background: linear-gradient(to right, $info, $primary);
+        background-clip: text;
+        color: transparent;
     }
 
     p.lead {
@@ -141,7 +144,8 @@ onUnmounted(() => {
     position: sticky;
     top: 0;
     background-color: $white;
-    box-shadow: 0 0 10px 0 rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid rgb(234 236 241);
+    border-top: 1px solid rgb(234 236 241);
     overflow-x: auto;
 
     @include media-breakpoint-up(md) {

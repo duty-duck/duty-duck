@@ -19,7 +19,8 @@ const model = defineModel<IncidentStatus[]>();
         </template>
         <BDropdownItem v-for="s in allStatuses">
             <input :id="`${s}-checkbox`" :key="s" type="checkbox" v-model="model" :value="s" />
-            <label :for="`${s}-checkbox`" style="width: 100%; text-transform: capitalize;" class="ps-2">{{ $t(`dashboard.incidentStatus.${s}`) }}</label>
+            <label :for="`${s}-checkbox`" style="width: 100%; text-transform: capitalize;" class="ps-2">{{
+                $t(`dashboard.incidentStatus.${s}`) }}</label>
         </BDropdownItem>
     </BDropdown>
 </template>

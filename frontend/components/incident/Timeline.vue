@@ -62,9 +62,15 @@ const addComment = async (payload: CommentPayload) => {
     isCommentLoading.value = true;
     const request: CommentIncidentRequest = { payload };
     await repo.commentIncident(incidentId, request);
-    await loadNextPage({ force: true});
+    await loadNextPage({ force: true });
     isCommentLoading.value = false;
 }
+
+defineExpose({
+    refresh: async () => {
+        await loadNextPage({ force: true });
+    }
+});
 </script>
 
 <template>
