@@ -34,7 +34,13 @@
             "ongoingIncidents": "No ongoing incident | Ongoing incident | Ongoing incidents",
             "downMonitors": "No monitor is down or suspicious | Monitor down or suspicious | Monitors down or suspicious",
             "goToIncidents": "Go to incidents",
-            "goToMonitors": "Go to monitors"
+            "goToMonitors": "Go to monitors",
+            "verifyPhoneNumber": "Verify my number",
+            "phoneNumberVerificationRequired": "You have not yet verified your mobile number",
+            "phoneNumberVerificationRequiredDescription": "Don't miss any incident with SMS notifications. To receive SMS notifications, you must verify your mobile number.",
+            "pushNotificationsRequired": "You have not yet configured Push notifications",
+            "pushNotificationsRequiredDescription": "Don't miss any incident with push notifications. Configure push notifications to receive notifications on your device.",
+            "configurePushNotifications": "Configure push notifications"
         },
         "monitors": {
             "httpMonitor": "HTTP Monitor",
@@ -76,6 +82,8 @@
                 "downtimeConfirmationThresholdDescription": "Determines how many consecutive failures can occur before this monitor becomes down. When a failure occurs, the monitor will become 'Suspicious' until this threshold is reached, then it will transition from 'Suspicious' to 'Down'.",
                 "recoveryConfirmationThreshold": "Recovery confirmation threshold",
                 "recoveryConfirmationThresholdDescription": "Determines how many consecutive successes need to occur before a 'Down' monitor becomes 'Up' again. Until this threshold is reached, the monitor will be marked as 'Recovering'",
+                "notificationSettings": "Notifications",
+                "notificationSettingsDescription": "Determines the notifications that will be sent in case of monitor failure",
                 "save": "Save"
             }
         },
@@ -88,6 +96,7 @@
             "unknown": "Pending"
         },
         "incidents": {
+            "goToIncident": "Go to incident",
             "rootCause": "Root cause",
             "date": "Date",
             "startOfIncident": "Start of incident",
@@ -105,6 +114,23 @@
             "emptyPage": {
                 "title": "Everything is OK right now",
                 "text": "When we detect a failure, an incident will appear here."
+            },
+            "incidentDetails": "Incident details",
+            "defaultIncidentTitle": "Incident on {date}",
+            "people": "People",
+            "notAcknowledged": "No one has acknowledged the incident",
+            "acknowledgedBy": "{count} person(s) have acknowledged the incident",
+            "acknowledge": "Acknowledge",
+            "incidentLength": "Incident length",
+            "timeline": {
+                "sectionTitle": "Incident timeline",
+                "incidentAcknowledged": "{firstName} {lastName} acknowledged the incident",
+                "incidentCreated": "Incident created",
+                "notificationSent": "Notification sent",
+                "incidentResolved": "Incident resolved",
+                "addComment": "Add a comment",
+                "addCommentButtonLabel": "Add a comment",
+                "addCommentPlaceholder": "Add a comment to this incident or write a post-mortem..."
             }
         },
         "incidentStatus": {
@@ -154,7 +180,25 @@
             "lastName": "Last name",
             "email": "E-mail address",
             "phoneNumber": "Mobile number",
-            "editButton": "Edit my info"
+            "phoneNumberDescription": "Your mobile number will be used to send you SMS notifications in case of incidents. It will never be used for advertising purposes.",
+            "editButton": "Edit my info",
+            "phoneNumberVerification": "Phone number verification",
+            "phoneNumberNotVerified": "Your mobile number is not verified. Please verify your mobile number to receive SMS notifications.",
+            "phoneNumberVerified": "Your mobile number is verified. You will receive SMS notifications if they are enabled.",
+            "noPhoneNumberConfigured": "You have not configured a mobile number. Edit your information to configure your mobile number.",
+            "verifyPhoneNumber": "Verify my number",
+            "phoneVerificationModal": {
+                "title": "Phone number verification",
+                "initialInstructions": "Click the button below to receive a verification code to your mobile number. You will then be prompted to enter the code you received to verify your mobile number.",
+                "sendCodeButton": "Send code",
+                "codeSentInstructions": "A verification code has been sent to your mobile number ({phoneNumber}). Please enter the code below to verify your mobile number.",
+                "codeInputPlaceholder": "Enter the verification code you have received",
+                "sendErrorMessage": "The code could not be sent. Please try again later.",
+                "confirmErrorMessage": "The code you entered was incorrect or the verification process failed. Please try again.",
+                "requestNewCodeInstructions": "You can request a new verification code by clicking the button below.",
+                "sendingCodeMessage": "Sending code...",
+                "verifyingCodeMessage": "Verifying code..."
+              }
         },
         "myOrg": {
             "pageTitle": "My organization",
@@ -211,9 +255,13 @@
                 "instructionMessage": "To complete the action, please enter the user name below:",
                 "inputPlaceholder": "Type '{firstName} {lastName}' to confirm"
             }
+        },
+        "notificationSettingsForm": {
+            "pushNotification": "Push Notifications",
+            "smsNotification": "SMS Notifications",
+            "emailNotification": "Email Notifications"
         }
     },
-
     "signup": {
         "form": {
             "aboutYourself": "Tell us about yourself",
@@ -236,7 +284,7 @@
             "organizationRename": "Don't worry, you will be able to rename your organization later",
             "organizationPlaceholder": "Enter your organization's name",
             "submit": "Sign up"
-          },
+        },
         "success": {
             "title": "Thank you for registering!",
             "message": "You may now go to your personal dashboard to create your first monitors",
@@ -264,5 +312,17 @@
             "title": "Permission Denied",
             "body": "You do not have permission to perform this action."
         }
+    },
+    "intervalInput": {
+        "seconds": "{count} second | {count} seconds",
+        "secondsShort": "{count}s",
+        "minutes": "{count} minute | {count} minutes",
+        "minutesShort": "{count}m",
+        "hours": "{count} hour | {count} hours",
+        "hoursShort": "{count}h"
+    },
+    "blog": {
+        "title": "Blog",
+        "readMore": "Read more"
     }
 }

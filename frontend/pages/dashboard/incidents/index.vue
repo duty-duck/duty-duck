@@ -1,56 +1,74 @@
 <script lang="ts" setup>
-import { useIntervalFn, useBreakpoints, breakpointsBootstrapV5 } from "@vueuse/core";
+import { useIntervalFn } from "@vueuse/core";
 import type { IncidentStatus } from "bindings/IncidentStatus";
 import type { ListIncidentsParams } from "bindings/ListIncidentsParams";
+import type { TimeRange } from "~/components/dashboard/TimeRangePicker.vue";
 import { allStatuses } from "~/components/incident/StatusDropdown.vue";
 
-const breakpoints = useBreakpoints(breakpointsBootstrapV5);
-const lgOrLarger = breakpoints.greaterOrEqual("lg");
-
 const localePath = useLocalePath();
-const path = localePath("/dashboard/incidents");
+
 const route = useRoute();
-const router = useRouter();
 
 const pageNumber = computed({
   get() {
     return route.query.page ? Number(route.query.page) : 1
   },
   set(value: number) {
-    router.push({
-      path,
-      query: { page: value, statuses: includeStatuses.value },
+    navigateTo({
+      query: { page: value, statuses: includeStatuses.value, timeRange: timeRange.value },
     });
   }
-})
+});
 
+const timeRange = computed<TimeRange | null>({
+  get() {
+    // no filtering if the timeRange query param is explicitly set to null
+    // keep only the last 7 days as default
+    return route.query.timeRange == "null" ? null : (route.query.timeRange as TimeRange ?? "-7d");
+  },
+  set(value: TimeRange) {
+    navigateTo({ query: { pageNumber: pageNumber.value, statuses: includeStatuses.value, timeRange: value ?? "null" } });
+  }
+});
 
-const includeStatuses = computed<IncidentStatus[]>(() =>
-  route.query.statuses && route.query.statuses.length
-    ? (route.query.statuses as IncidentStatus[])
-    : ["ongoing"]
-);
+const includeStatuses = computed<IncidentStatus[]>({
+  get() {
+    return route.query.statuses ? (route.query.statuses as IncidentStatus[]) : ["ongoing"];
+  },
+  set(value: IncidentStatus[]) {
+    navigateTo({ query: { pageNumber: pageNumber.value, statuses: value, timeRange: timeRange.value } });
+  }
+});
 
-const fetchParams = computed<ListIncidentsParams>(() => ({
-  pageNumber: pageNumber.value,
-  status: includeStatuses.value,
-  priority: null,
-  itemsPerPage: 10,
-}));
+const fetchParams = computed<ListIncidentsParams>(() => {
+  let fromDate = timeRange.value ? {
+    "-10m": new Date(Date.now() - 10 * 60 * 1000),
+    "-1h": new Date(Date.now() - 3600 * 1000),
+    "-6h": new Date(Date.now() - 6 * 3600 * 1000),
+    "-12h": new Date(Date.now() - 12 * 3600 * 1000),
+    "-24h": new Date(Date.now() - 24 * 3600 * 1000),
+    "-7d": new Date(Date.now() - 7 * 24 * 3600 * 1000),
+    "-30d": new Date(Date.now() - 30 * 24 * 3600 * 1000),
+  }[timeRange.value] : null;
+
+  return {
+    pageNumber: pageNumber.value,
+    status: includeStatuses.value,
+    priority: null,
+    itemsPerPage: 10,
+    toDate: null,
+    fromDate: fromDate ? fromDate.toISOString() : null
+  }
+});
+
 
 const repository = useIncidentRepository();
-const { status, data, refresh } = await repository.useIncidents(fetchParams);
+const { data, refresh } = await repository.useIncidents(fetchParams);
 
-const onIncludeStatusChange = (statuses: IncidentStatus[]) => {
-  router.push({
-    path,
-    query: { pageNumber: pageNumber.value, statuses },
-  });
-};
+
 const onClearFilters = () => {
-  router.push({
-    path,
-    query: { pageNumber: pageNumber.value, statuses: allStatuses },
+  navigateTo({
+    query: { pageNumber: pageNumber.value, statuses: allStatuses, timeRange: "null" },
   });
 };
 
@@ -64,7 +82,7 @@ const hiddenIncidentsCount = computed(() => {
 });
 
 if (data.value?.items.length == 0 && pageNumber.value > 1) {
-  router.replace(path);
+  navigateTo({ query: { pageNumber: 1 } });
 }
 
 useIntervalFn(() => {
@@ -76,7 +94,7 @@ useIntervalFn(() => {
   <div>
     <BContainer>
       <BBreadcrumb>
-        <BBreadcrumbItem to="/dashboard">{{
+        <BBreadcrumbItem :to="localePath('/dashboard')">{{
           $t("dashboard.mainSidebar.home")
         }}</BBreadcrumbItem>
         <BBreadcrumbItem active>{{
@@ -102,50 +120,26 @@ useIntervalFn(() => {
         </span>
       </div>
     </BContainer>
-    <nav
-      class="filtering-bar flex-column flex-md-row gap-2 mb-4 py-3 container"
-    >
-      <IncidentStatusDropdown
-        :model-value="includeStatuses"
-        @update:model-value="onIncludeStatusChange"
-      />
-      <BButton
-        class="flex-shrink-0 icon-link"
-        variant="outline-secondary"
-        @click="onClearFilters"
-      >
+    <nav class="filtering-bar flex-column flex-md-row gap-2 mb-4 py-3 container">
+      <DashboardTimeRangePicker v-model="timeRange" />
+      <IncidentStatusDropdown v-model="includeStatuses" />
+      <BButton class="flex-shrink-0 icon-link" variant="outline-secondary" @click="onClearFilters">
         <Icon name="ph:x-square-fill" />
         {{ $t("dashboard.incidents.clearFilters") }}
       </BButton>
     </nav>
     <BContainer>
-      <BAlert variant="danger" :model-value="status == 'error'">
-        Failed to fetch HTTP incidents from the server. Please try again.
-      </BAlert>
-      <div
-        v-if="data?.totalNumberOfResults == 0"
-        class="text-secondary text-center my-5"
-      >
+      <div v-if="data?.totalNumberOfResults == 0" class="text-secondary text-center my-5">
         <Icon name="ph:seal-check-duotone" size="120px" />
         <h3>{{ $t("dashboard.incidents.emptyPage.title") }}</h3>
         <p class="lead">
           {{ $t("dashboard.incidents.emptyPage.text") }}
         </p>
       </div>
-      <IncidentTableView v-if="data && lgOrLarger" :incidents="data!.items" />
-      <IncidentCard
-        v-if="!lgOrLarger"
-        v-for="incident in data?.items"
-        :key="incident.id"
-        v-bind="incident"
-      />
-      <BPagination
-        v-model="pageNumber"
-        :prev-text="$t('pagination.prev')"
-        :next-text="$t('pagination.next')"
-        :total-rows="data?.totalNumberOfFilteredResults"
-        :per-page="10"
-      />
+      <IncidentTableView v-if="data" :incidents="data!.items" />
+      <BPagination v-model="pageNumber" v-if="data?.totalNumberOfFilteredResults! > 10"
+        :prev-text="$t('pagination.prev')" :next-text="$t('pagination.next')"
+        :total-rows="data?.totalNumberOfFilteredResults" :per-page="10" />
     </BContainer>
   </div>
 </template>
@@ -157,6 +151,5 @@ useIntervalFn(() => {
   top: 50px;
   z-index: 1;
   backdrop-filter: blur(10px);
-  background-color: rgba(248, 249, 250, 0.6);
 }
 </style>

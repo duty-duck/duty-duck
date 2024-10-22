@@ -1,0 +1,34 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "insert into http_monitors (\n                organization_id, \n                url, \n                status, \n                status_counter, \n                next_ping_at, \n                interval_seconds, \n                error_kind, \n                tags,\n                downtime_confirmation_threshold,\n                recovery_confirmation_threshold,\n                email_notification_enabled,\n                push_notification_enabled,\n                sms_notification_enabled\n            ) \n            values ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)\n            returning id",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Text",
+        "Int2",
+        "Int2",
+        "Timestamptz",
+        "Int4",
+        "Int2",
+        "TextArray",
+        "Int2",
+        "Int2",
+        "Bool",
+        "Bool",
+        "Bool"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "aade354efc9c8bffd0454031c2377d02edf4814e2169d7a751773f0410de7ece"
+}

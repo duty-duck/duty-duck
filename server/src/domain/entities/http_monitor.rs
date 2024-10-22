@@ -4,9 +4,10 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 use ts_rs::TS;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Serialize, Deserialize, TS, Debug, Clone, FromRow)]
+#[derive(Serialize, Deserialize, TS, Debug, Clone, FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct HttpMonitor {
@@ -29,6 +30,9 @@ pub struct HttpMonitor {
     pub status_counter: i16,
     pub error_kind: HttpMonitorErrorKind,
     pub tags: Vec<String>,
+    pub email_notification_enabled: bool,
+    pub push_notification_enabled: bool,
+    pub sms_notification_enabled: bool,
 }
 
 impl HttpMonitor {
@@ -37,7 +41,7 @@ impl HttpMonitor {
     }
 }
 
-#[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq, ToSchema)]
 #[repr(i16)]
 #[serde(rename_all = "lowercase")]
 #[ts(export)]
@@ -75,7 +79,7 @@ impl From<i16> for HttpMonitorStatus {
     }
 }
 
-#[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq, ToSchema)]
 #[repr(i16)]
 #[serde(rename_all = "lowercase")]
 #[ts(export)]

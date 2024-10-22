@@ -1,0 +1,25 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE incidents i\n            SET resolved_at = now(), status = $1\n            WHERE organization_id = $2\n            AND i.status != $1\n            AND (i.incident_source_type = $3 AND i.incident_source_id = ANY($4::uuid[]))\n            RETURNING id\n           ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int2",
+        "Uuid",
+        "Int2",
+        "UuidArray"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "9fa20d0cb027f03d5debec2d538f1b75a677f8f047c892f14a9428249b9e1c66"
+}

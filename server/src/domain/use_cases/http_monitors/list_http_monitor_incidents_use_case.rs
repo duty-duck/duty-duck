@@ -5,8 +5,8 @@ use crate::domain::{
         authorization::{AuthContext, Permission},
         incident::{IncidentPriority, IncidentSource, IncidentStatus},
     },
-    ports::incident_repository::{IncidentRepository, ListIncidentsOutput},
-    use_cases::incidents::{ListIncidentsError, ListIncidentsParams, ListIncidentsResponse},
+    ports::incident_repository::{IncidentRepository, ListIncidentsOpts, ListIncidentsOutput},
+    use_cases::{incidents::{ListIncidentsError, ListIncidentsParams, ListIncidentsResponse, OrderIncidentsBy}, shared::OrderDirection},
 };
 
 pub async fn list_http_monitor_incidents(
@@ -33,11 +33,17 @@ pub async fn list_http_monitor_incidents(
         .list_incidents(
             &mut tx,
             auth_context.active_organization_id,
-            &include_statuses,
-            &include_priorities,
-            &[IncidentSource::HttpMonitor { id: monitor_id }],
-            items_per_page,
-            items_per_page * (page_number - 1),
+            ListIncidentsOpts {
+                include_statuses: &include_statuses,
+                include_priorities: &include_priorities,
+                include_sources: &[IncidentSource::HttpMonitor { id: monitor_id }],
+                limit: items_per_page,
+                offset: items_per_page * (page_number - 1),
+                from_date: params.from_date,
+                to_date: params.to_date,
+                order_by: params.order_by.unwrap_or(OrderIncidentsBy::CreatedAt),
+                order_direction: params.order_direction.unwrap_or(OrderDirection::Desc),
+            },
         )
         .await?;
     Ok(ListIncidentsResponse {

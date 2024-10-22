@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { useBreakpoints, breakpointsBootstrapV5 } from "@vueuse/core";
 
-
 const auth = useAuthMandatory();
 const breakpoints = useBreakpoints(breakpointsBootstrapV5);
 const lgOrLarger = breakpoints.greaterOrEqual("lg");
@@ -28,7 +27,7 @@ onBeforeMount(() => {
       <div class="row g-0">
         <div class="d-none d-lg-block d-flex sticky-top" id="dashboard-sidebar">
           <div id="dashboard-sidebar-content">
-            <SidebarBrand />
+            <DashboardSidebarBrand />
             <DashboardDynamicSidebar v-if="lgOrLarger" />
           </div>
         </div>
@@ -43,7 +42,7 @@ onBeforeMount(() => {
               <UserMenu />
             </div>
           </nav>
-          <div class="container-fluid py-2 px-2 mt-4 px-lg-4" id="dashboard-container">
+          <div id="dashboard-container">
             <DashboardErrorBoundary>
               <NuxtPage :transition="{ name: 'page', mode: 'out-in' }" />
             </DashboardErrorBoundary>
@@ -76,14 +75,39 @@ onBeforeMount(() => {
   overflow-y: auto;
   overflow-x: hidden;
   width: 260px;
-  // box-shadow: 3px 0px 4px rgba(0, 0, 0, .2);
   z-index: 100;
-  background-color: transparent;
-  transition: background-color 0.5s ease;
+  background-color: white;
+  border-right: 1px solid rgb(234 236 241);
+}
 
-  &:hover {
-    background-color: white;
+#dashboard-container {
+  @extend .container-fluid;
+  @extend .pt-2;
+  @extend .px-1;
+  @extend .mt-4;
+  @extend .px-lg-4;
+  padding-bottom: 5rem;
+}
+
+.navbar .navbar-collapse.show {
+  padding-bottom: 1rem;
+
+  @include media-breakpoint-up(lg) {
+    padding-bottom: 0;
+  }
+}
+
+#dashboard-navbar {
+  height: $navbar-height;
+
+  #auth-menu {
+    height: $navbar-height;
+    display: flex;
+    align-items: center;
   }
 
+  .user-name {
+    font-size: $font-size-base * 0.8;
+  }
 }
 </style>

@@ -1,8 +1,8 @@
 version: '3'
 services:
   dev-container:
-    depends_on:
-      - fake-internet
+    depends_on: []
+      # - fake-internet
     image: mcr.microsoft.com/devcontainers/base:bullseye
     command: ["sleep", "infinity"]
     ports:
@@ -20,20 +20,29 @@ services:
         aliases:
           - www.mediapart.fr
           - www.fake-internet.com
-  database:
+
+  main-database:
     build: ./database
     environment:
       - POSTGRES_DB=dutyduck
       - POSTGRES_USER=admin
       - POSTGRES_PASSWORD=password
     volumes:
-      - dutyduck-database:/var/lib/postgresql/data
+      - main-database:/var/lib/postgresql/data
     ports:
       - 5432:5432
-  adminer:
-    image: adminer
+
+  keycloak-database:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=keycloak
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - keycloak-database:/var/lib/postgresql/data
     ports:
-      - 8081:8080
+      - 5433:5432
+
   mailserver:
     image: maildev/maildev
     ports:
@@ -53,10 +62,11 @@ services:
       KC_DB: postgres
       KC_DB_USERNAME: admin
       KC_DB_PASSWORD: password
-      KC_DB_URL: "jdbc:postgresql://database:5432/dutyduck"
+      KC_DB_URL: "jdbc:postgresql://keycloak-database:5432/keycloak"
       KEYCLOAK_ADMIN: admin
       KEYCLOAK_ADMIN_PASSWORD: admin
       # KC_LOG_LEVEL: DEBUG
 
 volumes:
-  dutyduck-database: {}
+  main-database: {}
+  keycloak-database: {}

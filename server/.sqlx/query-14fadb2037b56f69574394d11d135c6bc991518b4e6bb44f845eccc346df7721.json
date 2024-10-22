@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE incidents SET acknowledged_by = array_append(acknowledged_by, $1) WHERE organization_id = $2 AND id = $3",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "14fadb2037b56f69574394d11d135c6bc991518b4e6bb44f845eccc346df7721"
+}

@@ -6,7 +6,6 @@ ensurePemissionOnBeforeMount("writeHttpMonitors");
 
 const repo = useHttpMonitorRepository();
 const route = useRoute();
-const router = useRouter();
 const localePath = useLocalePath();
 
 const { data: monitorData } = await repo.useHttpMonitor(
@@ -16,11 +15,12 @@ const { data: monitorData } = await repo.useHttpMonitor(
 const onSubmit = async (monitor: HttpMonitorFormData) => {
   const command: UpdateHttpMonitorCommand = {
     isActive: true,
+    ...monitor.notificationSettings,
     ...monitor,
   };
   await repo.updateHttpMonitor(route.params.monitorId as string, command);
 
-  router.push(localePath(`/dashboard/httpMonitors/${route.params.monitorId}`));
+  navigateTo(localePath(`/dashboard/httpMonitors/${route.params.monitorId}`));
 };
 </script>
 
@@ -44,6 +44,11 @@ const onSubmit = async (monitor: HttpMonitorFormData) => {
       :interval-seconds="monitorData.monitor.intervalSeconds"
       :downtime-confirmation-threshold="monitorData.monitor.downtimeConfirmationThreshold"
       :recovery-confirmation-threshold="monitorData.monitor.recoveryConfirmationThreshold"
+      :notification-settings="{
+        pushNotificationEnabled: monitorData.monitor.pushNotificationEnabled,
+        emailNotificationEnabled: monitorData.monitor.emailNotificationEnabled,
+        smsNotificationEnabled: monitorData.monitor.smsNotificationEnabled,
+      }"
     />
   </BContainer>
 </template>

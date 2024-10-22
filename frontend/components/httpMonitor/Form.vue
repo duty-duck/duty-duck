@@ -1,21 +1,29 @@
 <script lang="ts" setup>
+import type { NotificationSettings } from '../NotificationSettingsForm.vue';
+
 export type HttpMonitorFormData = {
   url: string;
   intervalSeconds: number;
   tags: string[];
   recoveryConfirmationThreshold: number,
-  downtimeConfirmationThreshold: number
-};
+  downtimeConfirmationThreshold: number,
+  notificationSettings: NotificationSettings,
+}
 
 const props = withDefaults(defineProps<HttpMonitorFormData>(), {
   url: "",
   intervalSeconds: 60,
   tags: () => [],
   recoveryConfirmationThreshold: 2,
-  downtimeConfirmationThreshold: 1
+  downtimeConfirmationThreshold: 1,
+  notificationSettings: {
+    pushNotificationEnabled: true,
+    smsNotificationEnabled: false,
+    emailNotificationEnabled: true,
+  }
 });
 const emits = defineEmits<{
-  submit: [HttpMonitorFormData];
+  (e: 'submit', form: HttpMonitorFormData): void;
 }>();
 
 const form = reactive({ ...props });
@@ -32,12 +40,7 @@ const formIsComplete = computed(
     <div class="mb-5">
       <BFormGroup>
         <label class="h5" for="urlInput">URL</label>
-        <BInput
-          id="urlInput"
-          type="text"
-          v-model="form.url"
-          placeholder="https://..."
-        />
+        <BInput id="urlInput" type="text" v-model="form.url" placeholder="https://..." />
       </BFormGroup>
       <FormHelp :text="$t('dashboard.monitors.form.urlDescription')" />
     </div>
@@ -47,14 +50,9 @@ const formIsComplete = computed(
       <label class="h5">
         {{ $t("dashboard.monitors.form.refreshInterval") }}
       </label>
-      <HttpMonitorIntervalInput
-        :value="form.intervalSeconds"
-        class="mb-3"
-        @change="(interval) => (form.intervalSeconds = interval.seconds)"
-      />
-      <FormHelp
-        :text="$t('dashboard.monitors.form.refreshIntervalDescription')"
-      />
+      <HttpMonitorIntervalInput :value="form.intervalSeconds" class="mb-3"
+        @change="(interval) => (form.intervalSeconds = interval.seconds)" />
+      <FormHelp :text="$t('dashboard.monitors.form.refreshIntervalDescription')" />
     </div>
 
     <!-- Confirmation Thresholds groups -->
@@ -64,15 +62,12 @@ const formIsComplete = computed(
           <label class="h6">
             {{ $t("dashboard.monitors.form.downtimeConfirmationThreshold") }}
           </label>
-          <BInput type="number"  min="1" max="10" v-model.number="form.downtimeConfirmationThreshold" />
+          <BInput type="number" min="1" max="10" v-model.number="form.downtimeConfirmationThreshold" />
         </BFormGroup>
-        <FormHelp
-          :text="
-            $t(
-              'dashboard.monitors.form.downtimeConfirmationThresholdDescription'
-            )
-          "
-        />
+        <FormHelp :text="$t(
+          'dashboard.monitors.form.downtimeConfirmationThresholdDescription'
+        )
+          " />
       </div>
       <div class="col-lg-6">
         <BFormGroup>
@@ -81,15 +76,21 @@ const formIsComplete = computed(
           </label>
           <BInput type="number" min="1" max="10" v-model.number="form.recoveryConfirmationThreshold" />
         </BFormGroup>
-        <FormHelp
-          :text="
-            $t(
-              'dashboard.monitors.form.recoveryConfirmationThresholdDescription'
-            )
-          "
-        />
+        <FormHelp :text="$t(
+          'dashboard.monitors.form.recoveryConfirmationThresholdDescription'
+        )
+          " />
       </div>
     </div>
+
+    <!-- Notification Settings -->
+    <BFormGroup class="mb-5">
+      <label class="h5">
+        {{ $t("dashboard.monitors.form.notificationSettings") }}
+      </label>
+      <NotificationSettingsForm v-model="form.notificationSettings" />
+      <FormHelp :text="$t('dashboard.monitors.form.notificationSettingsDescription')" />
+    </BFormGroup>
 
     <!-- Tags group -->
     <div class="mb-4">
@@ -113,7 +114,7 @@ const formIsComplete = computed(
 </template>
 
 <style scoped lang="scss">
-  #monitor-form {
-    max-width: var(--bs-breakpoint-lg);
-  }
+#monitor-form {
+  max-width: var(--bs-breakpoint-lg);
+}
 </style>

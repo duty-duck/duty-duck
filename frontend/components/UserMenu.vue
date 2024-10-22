@@ -13,8 +13,8 @@ const availableLocales = computed(() => {
 <template>
   <ul class="navbar-nav ms-auto">
     <li class="nav-item dropdown" id="auth-menu">
-      <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-        <i data-feather="user"></i>
+      <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+        <UserAvatar />
         <span class="user-name">{{ userName }}</span>
       </a>
       <ul class="dropdown-menu dropdown-menu-end">

@@ -7,7 +7,7 @@ use super::*;
 async fn build_client() -> anyhow::Result<KeycloakClient> {
     let keycloak_url = Url::parse("https://auth.dutyduck.net")?;
     let client_id = "dutyduck-server";
-    let client_secret = "a90CJPOQBafVQaUG8Iz8zUJh5agzJk3M";
+    let client_secret = "****";
     let keycloak_realm = "duty-duck-preprod";
 
     KeycloakClient::new(keycloak_url.clone(), keycloak_url, keycloak_realm, client_id, client_secret).await

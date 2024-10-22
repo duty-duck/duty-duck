@@ -1,32 +1,16 @@
 <script lang="ts" setup>
 import { refDebounced, useIntervalFn } from "@vueuse/core";
+import { useRouteQuery } from "@vueuse/router";
 import type { HttpMonitorStatus } from "bindings/HttpMonitorStatus";
 import { allStatuses } from "~/components/httpMonitor/StatusDropdown.vue";
 
 ensurePemissionOnBeforeMount("readHttpMonitors");
 
 const localePath = useLocalePath();
-const path = localePath("/dashboard/httpMonitors");
-const route = useRoute();
-const router = useRouter();
-const query = computed(() => (route.query.query as string) || "");
+const query = useRouteQuery("query", "");
 const queryDebounced = refDebounced(query, 250);
-const pageNumber = computed({
-  get() {
-    return route.query.page ? Number(route.query.page) : 1
-  },
-  set(value: number) {
-    router.push({
-      path,
-      query: { page: value, statuses: includeStatuses.value, query: query.value },
-    });
-  }
-})
-const includeStatuses = computed(() =>
-  route.query.statuses && route.query.statuses.length
-    ? (route.query.statuses as HttpMonitorStatus[])
-    : allStatuses
-);
+const pageNumber = useRouteQuery("pageNumber", 1, { transform: Number });
+const includeStatuses = useRouteQuery("statuses", allStatuses);
 
 const fetchParams = computed(() => ({
   pageNumber: pageNumber.value,
@@ -40,8 +24,7 @@ const { status, data, refresh } = await repository.useHttpMonitors(fetchParams);
 
 
 const onQueryChange = (event: Event) => {
-  router.push({
-    path,
+  navigateTo({
     query: {
       page: pageNumber.value,
       statuses: includeStatuses.value,
@@ -50,14 +33,12 @@ const onQueryChange = (event: Event) => {
   });
 };
 const onIncludeStatusChange = (statuses: HttpMonitorStatus[]) => {
-  router.push({
-    path,
+  navigateTo({
     query: { pageNumber: pageNumber.value, query: query.value, statuses },
   });
 };
 const onClearFilters = () => {
-  router.push({
-    path,
+  navigateTo({
     query: { pageNumber: pageNumber.value, query: "", statuses: [] },
   });
 };
@@ -72,7 +53,7 @@ const hiddenMonitorsCount = computed(() => {
 });
 
 if (data.value?.items.length == 0 && pageNumber.value > 1) {
-  router.replace(path);
+  navigateTo({ query: { pageNumber: 1 } });
 }
 
 useIntervalFn(() => {
@@ -84,7 +65,7 @@ useIntervalFn(() => {
   <div>
     <BContainer>
       <BBreadcrumb>
-        <BBreadcrumbItem to="/dashboard">{{
+        <BBreadcrumbItem :to="localePath('/dashboard')">{{
           $t("dashboard.mainSidebar.home")
         }}</BBreadcrumbItem>
         <BBreadcrumbItem active>{{

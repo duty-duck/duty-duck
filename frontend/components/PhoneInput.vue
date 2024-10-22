@@ -21,7 +21,7 @@ const onInput = (event: any) => {
   const isValid =  value == '' ? null : iti.value!.isValidNumber()!;
   emits("change", {
     value,
-    formattedNumber: isValid ? iti.value!.getNumber() : null,
+    formattedNumber: isValid ? iti.value!.getNumber(intlTelInput.utils?.numberFormat.E164) : null,
     isValid,
   });
 };

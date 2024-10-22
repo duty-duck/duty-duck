@@ -1,0 +1,70 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            DELETE FROM incidents_notifications\n            WHERE (organization_id, incident_id, escalation_level) IN (\n                SELECT organization_id, incident_id, escalation_level\n                FROM incidents_notifications\n                WHERE notification_due_at <= NOW()\n                ORDER BY notification_due_at\n                LIMIT $1\n                FOR UPDATE SKIP LOCKED\n            )\n            RETURNING *\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "organization_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "incident_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "escalation_level",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 3,
+        "name": "notification_type",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 4,
+        "name": "notification_due_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 5,
+        "name": "notification_payload",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 6,
+        "name": "send_sms",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 7,
+        "name": "send_push_notification",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 8,
+        "name": "send_email",
+        "type_info": "Bool"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "f96d851bef7a8a55b1d7caf70255430c17acea3c67686e681baf8fdb5610e13d"
+}

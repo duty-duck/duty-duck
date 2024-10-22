@@ -10,14 +10,12 @@ export default defineNuxtConfig({
 
   experimental: {
     defaults: {
-      nuxtLink: {
-        exactActiveClass: 'active',
-      }
     }
   },
 
   routeRules: {
     // These pages are rendered on the client only because they use the Keycloak SDK
+    '/en/dashboard/**': { ssr: false },
     '/dashboard/**': { ssr: false },
   },
 
@@ -39,16 +37,13 @@ export default defineNuxtConfig({
     }
   },
 
-  modules: [
-    '@bootstrap-vue-next/nuxt',
-    "@nuxt/icon",
-    '@nuxtjs/i18n',
-    '@vite-pwa/nuxt'
-  ],
+  modules: ['@bootstrap-vue-next/nuxt', "@nuxt/icon", '@nuxtjs/i18n', '@vite-pwa/nuxt', "@nuxt/content"],
 
   alias: {
     "bindings": resolve(__dirname, "../server/bindings")
   },
+
+  content: {},
 
   i18n: {
     strategy: 'prefix_except_default',
@@ -539,6 +534,6 @@ export default defineNuxtConfig({
     devOptions: {
       enabled: true, 
       type: "module"
-    }
+    },
   }
 })

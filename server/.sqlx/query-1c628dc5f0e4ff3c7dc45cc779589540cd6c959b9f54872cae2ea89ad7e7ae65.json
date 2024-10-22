@@ -82,6 +82,21 @@
         "ordinal": 15,
         "name": "tags",
         "type_info": "TextArray"
+      },
+      {
+        "ordinal": 16,
+        "name": "email_notification_enabled",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 17,
+        "name": "push_notification_enabled",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 18,
+        "name": "sms_notification_enabled",
+        "type_info": "Bool"
       }
     ],
     "parameters": {
@@ -108,6 +123,9 @@
       false,
       false,
       true,
+      false,
+      false,
+      false,
       false,
       false
     ]

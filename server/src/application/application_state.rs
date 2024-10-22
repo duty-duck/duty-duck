@@ -4,14 +4,7 @@ use axum::extract::State;
 
 use crate::infrastructure::{
     adapters::{
-        http_client_adapter::HttpClientAdapter,
-        http_monitor_repository_adapter::HttpMonitorRepositoryAdapter,
-        incident_notification_repository_adapter::IncidentNotificationRepositoryAdapter,
-        incident_repository_adapter::IncidentRepositoryAdapter, mailer_adapter::MailerAdapter,
-        organization_repository_adapter::OrganizationRepositoryAdapter,
-        push_notification_server_adapter::PushNotificationServerAdapter,
-        user_devices_repository_adapter::UserDevicesRepositoryAdapter,
-        user_repository_adapter::UserRepositoryAdapter,
+        http_client_adapter::HttpClientAdapter, http_monitor_repository_adapter::HttpMonitorRepositoryAdapter, incident_event_repository_adapter::IncidentEventRepositoryAdapter, incident_notification_repository_adapter::IncidentNotificationRepositoryAdapter, incident_repository_adapter::IncidentRepositoryAdapter, mailer_adapter::MailerAdapter, organization_repository_adapter::OrganizationRepositoryAdapter, push_notification_server_adapter::PushNotificationServerAdapter, sms_notification_server_adapter::SmsNotificationServerAdapter, user_devices_repository_adapter::UserDevicesRepositoryAdapter, user_repository_adapter::UserRepositoryAdapter
     },
     keycloak_client::KeycloakClient,
 };
@@ -35,8 +28,10 @@ pub struct Adapters {
     pub http_monitors_repository: HttpMonitorRepositoryAdapter,
     pub incident_repository: IncidentRepositoryAdapter,
     pub incident_notification_repository: IncidentNotificationRepositoryAdapter,
+    pub incident_event_repository: IncidentEventRepositoryAdapter,
     pub http_client: HttpClientAdapter,
     pub user_devices_repository: UserDevicesRepositoryAdapter,
     pub push_notification_server: PushNotificationServerAdapter,
+    pub sms_notification_server: SmsNotificationServerAdapter,
     pub mailer: MailerAdapter,
 }

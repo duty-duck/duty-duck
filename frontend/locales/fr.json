@@ -34,7 +34,13 @@
             "ongoingIncidents": "Pas d'incident en cours | Incident en cours | Incidents en cours",
             "downMonitors": "Aucun moniteur KO ou suspect | Moniteur KO ou suspect | Moniteurs KO ou suspects",
             "goToIncidents": "Voir les incidents",
-            "goToMonitors": "Voir les moniteurs"
+            "goToMonitors": "Voir les moniteurs",
+            "verifyPhoneNumber": "Vérifier mon numéro",
+            "phoneNumberVerificationRequired": "Vous n'avez pas encore vérifié votre numéro de téléphone mobile",
+            "phoneNumberVerificationRequiredDescription": "Ne manquez aucun incident grace aux notifications par SMS. Pour recevoir des notifications par SMS, vous devez vérifier votre numéro de téléphone mobile.",
+            "pushNotificationsRequired": "Vous n'avez pas encore configuré les notifications Push",
+            "pushNotificationsRequiredDescription": "Ne manquez aucun incident grace aux notifications push. Configurez les notifications push pour recevoir des notifications sur votre appareil.",
+            "configurePushNotifications": "Configurer les notifications Push"
         },
         "monitors": {
             "pageTitle": "Moniteurs",
@@ -76,6 +82,8 @@
                 "downtimeConfirmationThresholdDescription": "Détermine combien d'échecs consécutifs sont nécessaires avant que le moniteur soit considéré comme en panne. En cas d'échec de l'appel HTTP, le moniteur deviendra \"Suspect\" jusqu'à ce qu'il atteigne ce seuil. Si ce seuil est atteint, le moniteur passera de \"Suspect\" à \"En panne\".",
                 "recoveryConfirmationThreshold": "Seuil de récupération",
                 "recoveryConfirmationThresholdDescription": "Si le moniteur tombe en panne, détermine combien de réussites consécutives sont nécessaires avant que ce moniteur ne soit plus considéré en panne. En dessous de ce seuil, le moniteur sera considéré comme \"En récupération\".",
+                "notificationSettings": "Notifications",
+                "notificationSettingsDescription": "Détermine les notifications qui seront envoyées en cas de panne du moniteur",
                 "save": "Sauvegarder"
             }
         },
@@ -88,6 +96,7 @@
             "unknown": "En attente"
         },
         "incidents": {
+            "goToIncident": "Voir l'incident",
             "rootCause": "Cause de l'incident",
             "date": "Date",
             "startOfIncident": "Début de l'incident",
@@ -105,6 +114,23 @@
             "emptyPage": {
                 "title": "Tout va bien pour le moment",
                 "text": "Si nous détectons une anomalie, un incident apparaîtra ici."
+            },
+            "incidentDetails": "Détails de l'incident",
+            "people": "Personnes",  
+            "notAcknowledged": "Aucun(e) personne n'a pris en charge l'incident",
+            "acknowledgedBy": "{count} personne(s) ont pris en charge l'incident",
+            "acknowledge": "Prendre en charge",
+            "incidentLength": "Durée de l'incident",
+            "defaultIncidentTitle": "Incident du {date}",
+            "timeline": {
+                "sectionTitle": "Chronologie de l'incident",
+                "incidentAcknowledged": "{firstName} {lastName} a pris en charge l'incident",
+                "incidentCreated": "Incident créé",
+                "notificationSent": "Notification envoyée",
+                "incidentResolved": "Incident résolu",
+                "addCommentPlaceholder": "Ajouter un commentaire ou un post-mortem...",
+                "addCommentButtonLabel": "Commenter",
+                "addComment": "Ajouter un commentaire"
             }
         },
         "incidentStatus": {
@@ -145,7 +171,24 @@
             "passwordConfirmation": "Confirmation du mot de passe",
             "phoneNumber": "Numéro de téléphone mobile",
             "phoneNumberDescription": "Votre numéro de téléphone mobile pourra être utilisé pour vous alerter en cas d'incidents. Il ne sera jamais utilisé à des fins publicitaires.",
-            "editButton": "Éditer mes informations"
+            "editButton": "Éditer mes informations",
+            "verifyPhoneNumber": "Vérifier mon numéro",
+            "phoneNumberVerification": "Vérification du numéro de téléphone mobile",
+            "phoneNumberNotVerified": "Votre numéro de téléphone mobile n'est pas vérifié. Veuillez vérifier votre numéro de téléphone mobile pour recevoir des notifications par SMS.",
+            "phoneNumberVerified": "Votre numéro de téléphone mobile est vérifié. Vous recevrez des notifications par SMS si elles sont activées.",
+            "noPhoneNumberConfigured": "Vous n'avez pas configuré de numéro de téléphone mobile. Éditez vos informations pour configurer votre numéro de téléphone mobile.",
+            "phoneVerificationModal": {
+                "title": "Vérification du numéro de téléphone mobile",
+                "initialInstructions": "Cliquez sur le bouton ci-dessous pour recevoir un code de vérification à votre numéro de téléphone. Vous serez ensuite invité à entrer le code que vous avez reçu pour vérifier votre numéro de téléphone.",
+                "sendCodeButton": "Envoyer le code",
+                "codeSentInstructions": "Un code de vérification a été envoyé à votre numéro de téléphone ({phoneNumber}). Veuillez entrer le code ci-dessous pour vérifier votre numéro de téléphone.",
+                "codeInputPlaceholder": "Entrez le code de vérification que vous avez reçu",
+                "sendErrorMessage": "Le code ne peut pas être envoyé. Veuillez réessayer plus tard.",
+                "confirmErrorMessage": "Le code que vous avez entré est incorrect ou le processus de vérification a échoué. Veuillez réessayer.",
+                "requestNewCodeInstructions": "Vous pouvez demander un nouveau code de vérification en cliquant sur le bouton ci-dessous.",
+                "sendingCodeMessage": "Envoi du code...",
+                "verifyingCodeMessage": "Vérification du code..."
+            }
         },
         "myOrg": {
             "pageTitle": "Mon organisation",
@@ -215,6 +258,11 @@
             "failed": "Échec",
             "thisDevice": "(cet appareil)",
             "removeDevice": "Supprimer l'appareil"
+        },
+        "notificationSettingsForm": {
+            "pushNotification": "Notifications Push",
+            "smsNotification": "Notifications SMS",
+            "emailNotification": "Notifications par e-mail"
         }
     },
     "signup": {
@@ -239,7 +287,7 @@
             "organizationRename": "Ne vous inquiétez pas, vous pourrez renommer votre organisation plus tard",
             "organizationPlaceholder": "Entrez le nom de votre organisation",
             "submit": "S'inscrire"
-          },
+        },
         "success": {
             "title": "Merci pour votre inscription !",
             "message": "Vous pouvez maintenant accéder à votre tableau de bord personnel pour créer vos premiers moniteurs",
@@ -267,5 +315,29 @@
             "title": "Accès Refusé",
             "body": "Vous n'avez pas la permission d'effectuer cette action."
         }
+    },
+    "intervalInput": {
+        "seconds": "{count} seconde | {count} secondes",
+        "secondsShort": "{count}s",
+        "minutes": "{count} minute | {count} minutes",
+        "minutesShort": "{count}m",
+        "hours": "{count} heure | {count} heures",
+        "hoursShort": "{count}h"
+    },
+    "timeRangeInput": {
+        "noRange": "Aucune plage de temps",
+        "ranges": {
+            "-10m": "10 dernières minutes",
+            "-1h": "Dernière heure",
+            "-6h": "6 dernières heures",
+            "-12h": "12 dernières heures",
+            "-24h": "24 dernières heures",
+            "-7d": "7 derniers jours",
+            "-30d": "30 derniers jours"
+        }
+    },
+    "blog": {
+        "title": "Blog",
+        "readMore": "Lire la suite"
     }
 }

@@ -6,7 +6,7 @@ use axum::http::StatusCode;
 use jsonwebtoken::errors::ErrorKind;
 use jsonwebtoken::{DecodingKey, Validation};
 use serde::Deserialize;
-use tracing::{debug, error};
+use tracing::error;
 use uuid::Uuid;
 
 use crate::application::application_state::ApplicationState;
@@ -16,13 +16,6 @@ use crate::domain::entities::authorization::AuthContext;
 struct Claims {
     active_organization: ActiveOrganizationClaim,
     sub: Uuid,
-    #[serde(rename = "lastName")]
-    last_name: Option<String>,
-    #[serde(rename = "firstName")]
-    first_name: Option<String>,
-    #[serde(rename = "phoneNumber")]
-    #[allow(unused)]
-    phone_number: Option<String>,
 }
 
 #[derive(Deserialize)]
@@ -67,7 +60,7 @@ impl FromRequestParts<ApplicationState> for AuthContext {
         let token = jsonwebtoken::decode::<Claims>(token, &key, &validation).map_err(|e| {
             match e.kind() {
                 ErrorKind::InvalidAudience =>  error!(error = ?e, "Failed to decode access token because of invalid audience. Verify the ACCESS_TOKEN_AUDIENCE configuration variable."),
-                _ =>  debug!(error = ?e, "Failed to decode access token")
+                _ =>  error!(error = ?e, "Failed to decode access token. This should not happen, maybe scopes are missing in Keycloak ?")
             };
             StatusCode::FORBIDDEN
         })?;
@@ -75,8 +68,8 @@ impl FromRequestParts<ApplicationState> for AuthContext {
             active_organization_id: token.claims.active_organization.id,
             active_user_id: token.claims.sub,
             active_organization_roles: token.claims.active_organization.role.into(),
-            first_name: token.claims.first_name,
-            last_name: token.claims.last_name,
+            // TODO: populate this field from the api access token when available
+            restricted_to_scopes: vec![],
         };
 
         Ok(auth_context)

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { useIntervalFn, useThrottleFn } from "@vueuse/core";
+import { useRouteQuery } from '@vueuse/router'
+import { useIntervalFn, useNow, useThrottleFn } from "@vueuse/core";
 import type { ListIncidentsParams } from "bindings/ListIncidentsParams";
 import humanizeDuration from "humanize-duration";
 
@@ -8,33 +9,35 @@ ensurePemissionOnBeforeMount("readHttpMonitors");
 const localePath = useLocalePath();
 const repo = useHttpMonitorRepository();
 const route = useRoute();
-const now = ref(new Date());
+const now = useNow();
 const toggleIsLoading = ref(false);
 const { locale } = useI18n();
 
-const incidentPageNumber = ref(1);
+const incidentPageNumber = useRouteQuery("incidentsPageNumber", 1, { transform: Number });
+const incidentsCardCurrentTab = useRouteQuery("incidentsCurrentTab", "ongoing" as "ongoing" | "history");
 const incidentsParams = computed<ListIncidentsParams>(() => ({
   itemsPerPage: 10,
   pageNumber: incidentPageNumber.value,
   status: ["resolved"],
   priority: null,
+  fromDate: null,
+  toDate: null,
+  orderBy: "createdAt",
+  orderDirection: "desc",
 }));
 
 const { refresh: refreshMonitorData, data: monitorData } =
   await repo.useHttpMonitor(route.params.monitorId as string);
+
 const {
   data: incidentsData,
   refresh: refreshIncidents,
-  status: incidentsStatus,
 } = await repo.useHttpMonitorIncidents(
   route.params.monitorId as string,
   incidentsParams
 );
 
-const incidentsCardCurrentTab = ref<"ongoing" | "history">(
-  monitorData.value?.ongoingIncident ? "ongoing" : "history"
-);
-const refreshIncidentsThrottled = useThrottleFn(refreshIncidents, 2000);
+const refreshIncidentsThrottled = useThrottleFn(refreshIncidents, 5000);
 
 const lastStatusChange = computed(() => {
   if (!monitorData.value?.monitor.lastStatusChangeAt) {
@@ -43,15 +46,8 @@ const lastStatusChange = computed(() => {
   const duration =
     now.value.getTime() -
     new Date(monitorData.value.monitor.lastStatusChangeAt).getTime();
-  return humanizeDuration(duration, {
-    maxDecimalPoints: 0,
-    language: locale.value,
-    // only display seconds if the duration is less than a day
-    units:
-      duration >= 24 * 60 * 60000
-        ? ["y", "mo", "d", "h", "m"]
-        : ["y", "mo", "d", "h", "m", "s"],
-  });
+
+  return formatDuration(duration, locale.value);
 });
 const lastCheckedAtDuration = computed(() => {
   if (!monitorData.value?.monitor.lastPingAt) {
@@ -61,15 +57,7 @@ const lastCheckedAtDuration = computed(() => {
     now.value.getTime() -
     new Date(monitorData.value.monitor.lastPingAt).getTime();
 
-  return humanizeDuration(duration, {
-    maxDecimalPoints: 0,
-    language: locale.value,
-    // only display seconds if the duration is less than a day
-    units:
-      duration >= 24 * 60 * 60000
-        ? ["y", "mo", "d", "h", "m"]
-        : ["y", "mo", "d", "h", "m", "s"],
-  });
+  return formatDuration(duration, locale.value);
 });
 
 const toggleMonitor = async () => {
@@ -86,10 +74,6 @@ const toggleMonitor = async () => {
 };
 
 useIntervalFn(() => {
-  now.value = new Date();
-}, 1000);
-
-useIntervalFn(() => {
   refreshMonitorData();
   refreshIncidentsThrottled();
 }, 5000);
@@ -98,6 +82,7 @@ watch(
   () => incidentsCardCurrentTab.value,
   (tab) => {
     if (tab == "history") {
+      incidentPageNumber.value = 1;
       refreshIncidentsThrottled();
     }
   },
@@ -110,21 +95,17 @@ watch(
     <BBreadcrumb>
       <BBreadcrumbItem :to="localePath('/dashboard')">{{
         $t("dashboard.mainSidebar.home")
-      }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
       <BBreadcrumbItem :to="localePath('/dashboard/httpMonitors')">{{
         $t("dashboard.mainSidebar.monitors")
-      }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
       <BBreadcrumbItem active>
         {{ $t("dashboard.monitors.details") }}
       </BBreadcrumbItem>
     </BBreadcrumb>
-    <div class="d-flex align-items-center my-5 gap-3">
-      <HttpMonitorStatusIcon
-        :status="monitorData?.monitor.status"
-        class="mx-5"
-        :animated="monitorData.monitor.status != 'inactive'"
-        big
-      />
+    <div class="d-flex align-items-center my-5 py-3 gap-3">
+      <HttpMonitorStatusIcon :status="monitorData?.monitor.status" class="mx-5"
+        :animated="monitorData.monitor.status != 'inactive'" big />
       <div>
         <h2 class="h4">
           {{ monitorData?.monitor.url }}
@@ -136,17 +117,11 @@ watch(
             $t("dashboard.monitors.lastCheckedOn", {
               date: $d(new Date(monitorData.monitor.lastPingAt!), "long"),
             })
-          }}</span
-        >
+          }}</span>
       </div>
     </div>
-    <div class="mb-4 d-flex gap-2">
-      <BButton
-        class="icon-link"
-        variant="outline-secondary"
-        @click="toggleMonitor"
-        :disabled="toggleIsLoading"
-      >
+    <div class="mb-5 d-flex gap-2">
+      <BButton class="icon-link" variant="outline-secondary" @click="toggleMonitor" :disabled="toggleIsLoading">
         <template v-if="monitorData.monitor.status == 'inactive'">
           <Icon name="ph:play-fill" />
           {{ $t("dashboard.monitors.start") }}
@@ -156,22 +131,16 @@ watch(
           {{ $t("dashboard.monitors.pause") }}
         </template>
       </BButton>
-      <BButton
-        class="icon-link"
-        variant="outline-secondary"
-        :to="localePath(`/dashboard/httpMonitors/${route.params.monitorId}/edit`)"
-      >
+      <BButton class="icon-link" variant="outline-secondary"
+        :to="localePath(`/dashboard/httpMonitors/${route.params.monitorId}/edit`)">
         <Icon name="ph:pencil" />
         {{ $t("dashboard.monitors.edit") }}
       </BButton>
     </div>
-    <p
-      class="mt-2 text-secondary"
-      v-if="monitorData.monitor.status == 'inactive'"
-    >
+    <p class="mt-2 text-secondary" v-if="monitorData.monitor.status == 'inactive'">
       {{ $t("dashboard.monitors.pausedMonitorNotice") }}
     </p>
-    <div class="row mb-4 row-gap-3">
+    <div class="row mb-5 row-gap-3">
       <div class="col-md-6 col-lg-4">
         <BCard class="h-100">
           <p>{{ $t("dashboard.monitors.lastStatusChange") }}</p>
@@ -191,22 +160,16 @@ watch(
             {{
               lastCheckedAtDuration
                 ? $t("dashboard.monitors.dateAgo", {
-                    date: lastCheckedAtDuration,
-                  })
+                  date: lastCheckedAtDuration,
+                })
                 : "--"
             }}
           </p>
         </BCard>
       </div>
     </div>
-    <HttpMonitorIncidentsCard
-      :monitor="monitorData.monitor"
-      :on-going-incident="monitorData.ongoingIncident"
-      :incidents-page-number="incidentPageNumber"
-      :incidents="{ data: incidentsData, status: incidentsStatus }"
-      :current-tab="incidentsCardCurrentTab"
-      @change-page="(page) => (incidentPageNumber = page)"
-      @change-tab="(tab) => (incidentsCardCurrentTab = tab)"
-    />
+    <HttpMonitorIncidentsCard :monitor="monitorData.monitor" :on-going-incident="monitorData.ongoingIncident"
+      :incidents="incidentsData ?? null" v-model:incidents-page-number="incidentPageNumber"
+      v-model:current-tab="incidentsCardCurrentTab" />
   </BContainer>
 </template>

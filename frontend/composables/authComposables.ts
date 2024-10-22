@@ -1,112 +1,22 @@
-import { createSharedComposable } from "@vueuse/core"
+import { createSharedComposable } from "@vueuse/core";
 import type { GetProfileResponse } from "bindings/GetProfileResponse"
 import type { Permission } from "bindings/Permission"
-import type { User } from "bindings/User"
-import Keycloak, { type KeycloakLoginOptions, type KeycloakTokenParsed } from "keycloak-js"
 import type { UnwrapRef } from "vue"
-
-/**
- * Represents the state of the Keycloak authentication.
- */
-type KeycloakState = {
-    accessToken: {
-        raw: string,
-        parsed: KeycloakTokenParsed
-    },
-    idToken: {
-        raw: string,
-        parsed: KeycloakTokenParsed
-    }
-}
 
 /**
  * Composable for handling authentication and user profile management.
  * @returns An object containing authentication state and methods.
  */
 export const useAuth = createSharedComposable(() => {
-    const runtimeConfig = useRuntimeConfig();
-    const keycloakIsReady = ref(false);
+    const app = useNuxtApp();
+    if (!app.$keycloak) {
+        throw new Error("Keycloak is not initialized")
+    }
+    const { keycloakState, keycloakIsReady, updateToken, logout, login } = app.$keycloak;
     const userRepo = useUserRepository();
-    const userProfile = ref<GetProfileResponse | "loading" | null>(null);
-    const refreshUserProfile = async () => {
-        userProfile.value = "loading";
-        userProfile.value = await userRepo.fetchUserProfile();
-    }
-    const keycloakState = ref<KeycloakState | null>(null);
-    let keycloak: Keycloak | null;
-
-    /**
-     * Refreshes the user's token.
-     */
-    const updateToken = async () => {
-        try {
-            await keycloak!.updateToken(30);
-            console.log('Auth token refreshed')
-            keycloakState.value = {
-                idToken: {
-                    raw: keycloak!.idToken!,
-                    // @ts-ignore
-                    parsed: keycloak!.idTokenParsed!
-                },
-                accessToken: {
-                    raw: keycloak!.token!,
-                    parsed: keycloak!.tokenParsed!
-                },
-            }
-        } catch (e) {
-            keycloakState.value = null
-        }
-    };
-
-    if (import.meta.client) {
-        // Client-side Keycloak initialization
-        keycloak =
-            new Keycloak({
-                url: runtimeConfig.public.keycloakUrl,
-                realm: runtimeConfig.public.keycloakRealm,
-                clientId: runtimeConfig.public.keycloakClient,
-            });
-
-        // Modify the login URL to include the `prompt=select_account` parameter that triggers the Active organization authenticator
-        // See https://github.com/p2-inc/keycloak-orgs/blob/main/docs/active-organization-authenticator.md for documentation.
-        const originalKeycloakCreateLoginUrl = keycloak.createLoginUrl
-        keycloak.createLoginUrl = (options: KeycloakLoginOptions) => {
-            return `${originalKeycloakCreateLoginUrl(options)}&prompt=select_account`
-        }
-
-        keycloak.onReady = () => {
-            keycloakIsReady.value = true
-        }
-        keycloak.onAuthSuccess = () => {
-            keycloakState.value = {
-                idToken: {
-                    raw: keycloak!.idToken!,
-                    // @ts-ignore
-                    parsed: keycloak!.idTokenParsed!
-                },
-                accessToken: {
-                    raw: keycloak!.token!,
-                    parsed: keycloak!.tokenParsed!
-                },
-            };
-
-            refreshUserProfile();
-        };
-        keycloak.onAuthLogout = () => {
-            keycloakState.value = null;
-        }
-        keycloak.onTokenExpired = () => {
-            updateToken();
-        }
-        keycloak.init({
-            responseMode: 'query',
-            flow: 'standard'
-        })
-
-    }
 
     const can = (permission: Permission | Permission[]) => {
-        const user = userProfile.value;
+        const user = userRepo.userProfile.value;
         let output = true;
         const permissions: Permission[] = typeof permission == "string" ? [permission] : permission;
         for (let index = 0; index < permissions.length; index++) {
@@ -120,50 +30,33 @@ export const useAuth = createSharedComposable(() => {
 
     return reactive({
         keycloakState,
-        /**
-         * Logs out the current user.
-         */
-        async logout(redirectUri?: string) {
-            await keycloak!.logout({
-
-                redirectUri: redirectUri ?? `${location.protocol}//${location.host}`
-            })
-        },
-        /**
-         * Initiates the login process.
-         * @param options - Optional Keycloak login options.
-         */
-        async login(options?: KeycloakLoginOptions) {
-            await keycloak!.login(options)
-        },
         keycloakIsReady,
-        isLoading: computed(() => !keycloakIsReady.value || userProfile.value == "loading"),
+        isLoading: computed(() => !keycloakIsReady.value || !userRepo.userProfile.value || userRepo.userProfile.value == "loading"),
         userProfile: computed(() => {
             if (keycloakState.value) {
-                return userProfile.value
+                return userRepo.userProfile.value
             } else {
                 return null
             }
         }),
         userName: computed(() => {
-            const user = userProfile.value;
+            const user = userRepo.userProfile.value;
             if (user && user != "loading") {
                 return `${user.user.firstName} ${user.user.lastName}`
             } else {
                 return ""
             }
         }),
-        refreshUserProfile: async () => {
-            if (keycloakState.value != null) {
-                await refreshUserProfile()
-            }
-        },
-        can,
+
+        logout,
+        login,
+        updateToken,
         /**
          * Checks if the user has a specific permission.
          * @param permission - The permission to check.
          * @returns A computed boolean indicating if the user has the permission.
          */
+        can,
         canComputed(permission: Permission | Permission[]) {
             return computed(() => can(permission))
         }
@@ -177,7 +70,6 @@ export const useAuth = createSharedComposable(() => {
  */
 export const ensurePemissionOnBeforeMount = (permission: Permission | Permission[]) => {
     const { can } = useAuth();
-    const router = useRouter();
     const localePath = useLocalePath();
     const permissions: Permission[] = typeof permission == "string" ? [permission] : permission;
     const { show } = useToast();
@@ -195,7 +87,7 @@ export const ensurePemissionOnBeforeMount = (permission: Permission | Permission
                     value: 5000
                 }
             })
-            return router.replace(localePath("/dashboard"))
+            return navigateTo(localePath("/dashboard"))
         }
     })
 }
@@ -204,14 +96,21 @@ export const ensurePemissionOnBeforeMount = (permission: Permission | Permission
 but also triggers the login sequence if the user is not authenticated
 */
 export const useAuthMandatory = () => {
+    const userRepo = useUserRepository();
     const auth = useAuth();
     const { locale } = useI18n();
 
     watch(
-        () => auth.isLoading,
-        (isLoading) => {
-            if (!isLoading && !auth.userProfile) {
-                auth.login({ locale: locale.value })
+        () => [auth.keycloakIsReady, userRepo.userProfile.value],
+        async ([keycloakIsReady, userProfile]) => {
+            if (keycloakIsReady && userProfile === null) {
+                if (!auth.keycloakState) {
+                    console.log("useAuthMandatory: user is not authenticated, logging in");
+                    await auth.login({ locale: locale.value })
+                }
+
+                console.log("useAuthMandatory: refreshing user profile");
+                await userRepo.refreshUserProfile();
             }
         },
         { immediate: true }

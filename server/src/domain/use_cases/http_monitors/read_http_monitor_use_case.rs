@@ -7,10 +7,10 @@ use crate::domain::{
     entities::{
         authorization::{AuthContext, Permission},
         http_monitor::HttpMonitor,
-        incident::{IncidentPriority, IncidentSource, IncidentStatus, IncidentWithSources},
+        incident::{Incident, IncidentPriority, IncidentSource, IncidentStatus},
     },
     ports::{
-        http_monitor_repository::HttpMonitorRepository, incident_repository::IncidentRepository,
+        http_monitor_repository::HttpMonitorRepository, incident_repository::{IncidentRepository, ListIncidentsOpts},
     },
 };
 
@@ -19,7 +19,7 @@ use crate::domain::{
 #[ts(export)]
 pub struct ReadHttpMonitorResponse {
     pub monitor: HttpMonitor,
-    pub ongoing_incident: Option<IncidentWithSources>,
+    pub ongoing_incident: Option<Incident>,
 }
 
 #[derive(Error, Debug)]
@@ -61,11 +61,13 @@ where
         .list_incidents(
             &mut tx,
             auth_context.active_organization_id,
-            &[IncidentStatus::Ongoing],
-            &IncidentPriority::ALL,
-            &sources,
-            1,
-            0,
+            ListIncidentsOpts {
+                include_statuses: &[IncidentStatus::Ongoing],
+                include_priorities: &IncidentPriority::ALL,
+                include_sources: &sources,
+                limit: 1,
+                ..Default::default()
+            }
         )
         .await?
         .incidents

@@ -1,16 +1,19 @@
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use ts_rs::TS;
+use chrono::{Utc, DateTime};
+use utoipa::{IntoParams, ToSchema};
 
 use crate::domain::{
     entities::{
         authorization::{AuthContext, Permission},
-        incident::{IncidentPriority, IncidentStatus, IncidentWithSources},
+        incident::{Incident, IncidentPriority, IncidentStatus},
     },
-    ports::incident_repository::{IncidentRepository, ListIncidentsOutput},
+    ports::incident_repository::{IncidentRepository, ListIncidentsOpts, ListIncidentsOutput}, use_cases::shared::OrderDirection,
 };
 
-#[derive(Serialize, Deserialize, TS, Clone, Debug)]
+/// Parameters for listing incidents
+#[derive(Serialize, Deserialize, TS, Clone, Debug, IntoParams)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct ListIncidentsParams {
@@ -18,13 +21,26 @@ pub struct ListIncidentsParams {
     pub items_per_page: Option<u32>,
     pub status: Option<Vec<IncidentStatus>>,
     pub priority: Option<Vec<IncidentPriority>>,
+    pub from_date: Option<DateTime<Utc>>,
+    pub to_date: Option<DateTime<Utc>>,
+    pub order_by: Option<OrderIncidentsBy>,
+    pub order_direction: Option<OrderDirection>,
 }
 
-#[derive(Serialize, TS, Clone, Debug)]
+#[derive(Serialize, Deserialize, TS, Clone, Copy, Debug, Default, ToSchema)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub enum OrderIncidentsBy {
+    #[default]
+    CreatedAt,
+    Priority,
+}
+
+#[derive(Serialize, TS, Clone, Debug, ToSchema)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct ListIncidentsResponse {
-    pub items: Vec<IncidentWithSources>,
+    pub items: Vec<Incident>,
     pub total_number_of_results: u32,
     pub total_number_of_filtered_results: u32,
 }
@@ -60,11 +76,17 @@ pub async fn list_incidents(
         .list_incidents(
             &mut tx,
             auth_context.active_organization_id,
-            &include_statuses,
-            &include_priorities,
-            &[],
-            items_per_page,
-            items_per_page * (page_number - 1),
+            ListIncidentsOpts {
+                include_statuses: &include_statuses,
+                include_priorities: &include_priorities,
+                include_sources: &[],
+                limit: items_per_page,
+                offset: items_per_page * (page_number - 1),
+                from_date: params.from_date,
+                to_date: params.to_date,
+                order_by: params.order_by.unwrap_or(OrderIncidentsBy::CreatedAt),
+                order_direction: params.order_direction.unwrap_or(OrderDirection::Desc),
+            },
         )
         .await?;
     Ok(ListIncidentsResponse {

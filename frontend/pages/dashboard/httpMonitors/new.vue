@@ -4,15 +4,15 @@ import type { HttpMonitorFormData } from "~/components/httpMonitor/Form.vue";
 ensurePemissionOnBeforeMount("writeHttpMonitors");
 
 const repo = useHttpMonitorRepository();
-const router = useRouter();
 const localePath = useLocalePath();
 
 const onSubmit = async (data: HttpMonitorFormData) => {
   await repo.createHttpMonitor({
     ...data,
+    ...data.notificationSettings,
     isActive: true
   });
-  router.push(localePath("/dashboard/httpMonitors"));
+  navigateTo(localePath("/dashboard/httpMonitors"));
 };
 </script>
 <template>

@@ -24,6 +24,9 @@ pub struct CreateHttpMonitorCommand {
     pub downtime_confirmation_threshold: u32,
     pub is_active: bool,
     pub tags: HashSet<String>,
+    pub email_notification_enabled: bool,
+    pub push_notification_enabled: bool,
+    pub sms_notification_enabled: bool,
 }
 
 #[derive(Serialize, TS, Clone, Debug)]
@@ -65,7 +68,10 @@ pub async fn create_http_monitor(
         interval_seconds: command.interval_seconds,
         tags: command.tags.into_iter().collect(),
         downtime_confirmation_threshold: command.downtime_confirmation_threshold,
-        recovery_confirmation_threshold: command.recovery_confirmation_threshold
+        recovery_confirmation_threshold: command.recovery_confirmation_threshold,
+        email_notification_enabled: command.email_notification_enabled,
+        push_notification_enabled: command.push_notification_enabled,
+        sms_notification_enabled: command.sms_notification_enabled,
     };
     let id = repository.create_http_monitor(new_monitor).await?;
     Ok(CreateHttpMonitorResponse { id })

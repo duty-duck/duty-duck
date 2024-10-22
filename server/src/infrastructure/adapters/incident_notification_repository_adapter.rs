@@ -1,13 +1,10 @@
-use std::collections::HashSet;
-
 use anyhow::Context;
-use itertools::Itertools;
 use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::{
     domain::{
-        entities::incident::{Incident, IncidentSourceWithDetails, IncidentWithSourcesDetails},
+        entities::incident_notification::IncidentNotification,
         ports::incident_notification_repository::IncidentNotificationRepository,
     },
     postgres_transactional_repo,
@@ -22,100 +19,110 @@ postgres_transactional_repo!(IncidentNotificationRepositoryAdapter);
 
 #[async_trait::async_trait]
 impl IncidentNotificationRepository for IncidentNotificationRepositoryAdapter {
-    /// Returns a list of newly-created incidents for which the creation notification has not yet been sent to users
-    /// This must be executed inside a transaction. Concurrent transactions will not return the same incidents (incidents that are locked by a transaction will be skipped)
-    async fn list_new_incidents_due_for_notification(
+    async fn get_next_notifications_to_send(
         &self,
         tx: &mut Self::Transaction,
         limit: u32,
-    ) -> anyhow::Result<Vec<IncidentWithSourcesDetails>> {
-        let records = sqlx::query!(
-            r#"SELECT
-                i.organization_id as "organization_id!",
-                i.id as "id!",
-                i.created_at as "created_at!",
-                i.created_by as "created_by?",
-                i.resolved_at as "resolved_at?",
-                i.cause as "cause?",
-                i.status as "status!",
-                i.priority as "priority!",
-                hmi.http_monitor_id as "http_monitor_id?",
-                hm.url as "http_monitor_url?"
-            FROM incidents i
-            LEFT JOIN http_monitors_incidents hmi
-            ON hmi.organization_id = i.organization_id AND hmi.incident_id = i.id
-            LEFT JOIN http_monitors hm
-            ON hm.organization_id = i.organization_id AND hm.id = hmi.http_monitor_id
-            WHERE i.id IN (
-                SELECT incident_id FROM incidents_notifications
-                WHERE creation_notification_sent_at IS NULL
-                FOR UPDATE SKIP LOCKED
+    ) -> anyhow::Result<Vec<IncidentNotification>> {
+        let notifications = sqlx::query!(
+            r#"
+            DELETE FROM incidents_notifications
+            WHERE (organization_id, incident_id, escalation_level) IN (
+                SELECT organization_id, incident_id, escalation_level
+                FROM incidents_notifications
+                WHERE notification_due_at <= NOW()
+                ORDER BY notification_due_at
                 LIMIT $1
-            )"#,
+                FOR UPDATE SKIP LOCKED
+            )
+            RETURNING *
+            "#,
             limit as i64
         )
-        .fetch_all(tx.as_mut())
+        .fetch_all(&mut **tx)
         .await
-        .with_context(|| "Failed to list new incidents due for notfication")?;
+        .context("Failed to get and delete next notifications to send")?
+        .into_iter()
+        .map(|record| IncidentNotification {
+            organization_id: record.organization_id,
+            incident_id: record.incident_id,
+            escalation_level: record.escalation_level,
+            notification_type: record.notification_type.into(),
+            notification_payload: serde_json::from_value(record.notification_payload)
+                .expect("Failed to deserialize notification payload"),
+            notification_due_at: record.notification_due_at,
+            send_sms: record.send_sms,
+            send_push_notification: record.send_push_notification,
+            send_email: record.send_email,
+        })
+        .collect();
 
-        // Group consecutive rows wit the same incident id
-        let incidents = records
-            .into_iter()
-            .chunk_by(|record| record.id)
-            .into_iter()
-            .filter_map(|(_, chunk)| {
-                let mut incident = None;
-                let mut sources = HashSet::new();
-
-                for record in chunk {
-                    if incident.is_none() {
-                        incident = Some(Incident {
-                            organization_id: record.organization_id,
-                            id: record.id,
-                            created_at: record.created_at,
-                            created_by: record.created_by,
-                            resolved_at: record.resolved_at,
-                            cause: record
-                                .cause
-                                .and_then(|value| serde_json::from_value(value).ok()),
-                            status: record.status.into(),
-                            priority: record.priority.into(),
-                        })
-                    }
-
-                    if let Some(id) = record.http_monitor_id {
-                        sources.insert(IncidentSourceWithDetails::HttpMonitor {
-                            id,
-                            url: record.http_monitor_url.unwrap_or_default(),
-                        });
-                    }
-                }
-
-                Some(IncidentWithSourcesDetails {
-                    incident: incident?,
-                    sources,
-                })
-            })
-            .collect();
-
-        Ok(incidents)
+        Ok(notifications)
     }
 
-    /// Stores the fact that the creation notification has been sent for an incident
-    async fn acknowledge_incident_creation_notification(
+    async fn upsert_incident_notification(
+        &self,
+        tx: &mut Self::Transaction,
+        notification: IncidentNotification,
+    ) -> anyhow::Result<()> {
+        sqlx::query!(
+            r#"
+            INSERT INTO incidents_notifications (
+                organization_id,
+                incident_id,
+                escalation_level,
+                notification_type,
+                notification_payload,
+                notification_due_at,
+                send_sms,
+                send_push_notification,
+                send_email
+            )
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            ON CONFLICT (organization_id, incident_id, escalation_level) DO UPDATE SET
+                notification_type = EXCLUDED.notification_type,
+                notification_payload = EXCLUDED.notification_payload,
+                notification_due_at = EXCLUDED.notification_due_at,
+                send_sms = EXCLUDED.send_sms,
+                send_push_notification = EXCLUDED.send_push_notification,
+                send_email = EXCLUDED.send_email
+            "#,
+            notification.organization_id,
+            notification.incident_id,
+            notification.escalation_level,
+            notification.notification_type as i16,
+            serde_json::to_value(&notification.notification_payload)
+                .expect("Failed to serialize notification payload"),
+            notification.notification_due_at,
+            notification.send_sms,
+            notification.send_push_notification,
+            notification.send_email
+        )
+        .execute(&mut **tx)
+        .await
+        .context("Failed to upsert incident notification")?;
+
+        Ok(())
+    }
+
+    async fn cancel_all_notifications_for_incident(
         &self,
         tx: &mut Self::Transaction,
         organization_id: Uuid,
         incident_id: Uuid,
     ) -> anyhow::Result<()> {
         sqlx::query!(
-            "UPDATE incidents_notifications SET creation_notification_sent_at = NOW() WHERE organization_id = $1 AND incident_id = $2",
+            r#"
+            DELETE FROM incidents_notifications
+            WHERE organization_id = $1 AND incident_id = $2
+            "#,
             organization_id,
             incident_id
         )
-        .execute(tx.as_mut())
+        .execute(&mut **tx)
         .await
-        .with_context(|| "Failed to list new incidents due for notfication")?;
+        .context("Failed to cancel all notifications for incident")?;
+
         Ok(())
     }
 }

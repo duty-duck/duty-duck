@@ -10,24 +10,30 @@ use crate::domain::{
     entities::{
         http_monitor::{HttpMonitor, HttpMonitorErrorKind, HttpMonitorStatus},
         incident::{
-            IncidentCause, IncidentPriority, IncidentSource, IncidentStatus, IncidentWithSources,
-            NewIncident,
+            Incident, IncidentCause, IncidentPriority, IncidentSource, IncidentStatus, NewIncident,
         },
+        incident_notification::IncidentNotificationPayload,
     },
     ports::{
         http_client::{HttpClient, PingError},
         http_monitor_repository::{HttpMonitorRepository, UpdateHttpMonitorStatusCommand},
-        incident_repository::IncidentRepository,
+        incident_event_repository::IncidentEventRepository,
+        incident_notification_repository::IncidentNotificationRepository,
+        incident_repository::{IncidentRepository, ListIncidentsOpts},
     },
+    use_cases::incidents::{create_incident, resolve_incidents, NotificationOpts},
 };
 
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
 const DELAY_BETWEEN_TWO_REQUESTS: Duration = Duration::from_secs(1);
 
-pub fn spawn_http_monitors_execution_tasks<HMR, IR, HC>(
+#[allow(clippy::too_many_arguments)]
+pub fn spawn_http_monitors_execution_tasks<HMR, IR, IER, INR, HC>(
     n_tasks: usize,
     http_monitor_repository: HMR,
     incident_repository: IR,
+    incident_event_repository: IER,
+    incident_notification_repository: INR,
     http_client: HC,
     select_limit: u32,
     ping_concurrency_limit: usize,
@@ -35,21 +41,26 @@ pub fn spawn_http_monitors_execution_tasks<HMR, IR, HC>(
 where
     HMR: HttpMonitorRepository,
     IR: IncidentRepository<Transaction = HMR::Transaction>,
+    IER: IncidentEventRepository<Transaction = HMR::Transaction>,
+    INR: IncidentNotificationRepository<Transaction = HMR::Transaction>,
     HC: HttpClient,
 {
     let mut join_set = JoinSet::new();
     for _ in 0..n_tasks {
         let http_monitor_repo = http_monitor_repository.clone();
         let incident_repo = incident_repository.clone();
+        let incident_event_repo = incident_event_repository.clone();
+        let incident_notification_repository = incident_notification_repository.clone();
         let http_client = http_client.clone();
         join_set.spawn(async move {
             loop {
                 match fetch_and_execute_due_http_monitors(
                     &http_monitor_repo,
                     &incident_repo,
+                    &incident_event_repo,
+                    &incident_notification_repository,
                     &http_client,
                     select_limit,
-                    REQUEST_TIMEOUT,
                     ping_concurrency_limit,
                 )
                 .await
@@ -69,17 +80,21 @@ where
     join_set
 }
 
-async fn fetch_and_execute_due_http_monitors<HMR, IR, HC>(
+#[allow(clippy::too_many_arguments)]
+async fn fetch_and_execute_due_http_monitors<HMR, IR, IER, INR, HC>(
     http_monitor_repository: &HMR,
     incident_repository: &IR,
+    incident_event_repository: &IER,
+    incident_notification_repository: &INR,
     http_client: &HC,
     limit: u32,
-    request_timeout: Duration,
     concurrency_limit: usize,
 ) -> anyhow::Result<usize>
 where
     HMR: HttpMonitorRepository,
     IR: IncidentRepository<Transaction = HMR::Transaction>,
+    IER: IncidentEventRepository<Transaction = HMR::Transaction>,
+    INR: IncidentNotificationRepository<Transaction = HMR::Transaction>,
     HC: HttpClient,
 {
     let mut transaction = http_monitor_repository.begin_transaction().await?;
@@ -92,7 +107,7 @@ where
         .map(|monitor| {
             let url = monitor.url.clone();
             let http_client = http_client.clone();
-            async move { (monitor, http_client.ping(&url, request_timeout).await) }
+            async move { (monitor, http_client.ping(&url, REQUEST_TIMEOUT).await) }
         })
         .buffer_unordered(concurrency_limit);
 
@@ -146,17 +161,29 @@ where
                 .await?
                 .is_none()
         {
-            create_incident_for_monitor(&mut transaction, incident_repository, &monitor)
-                .await
-                .with_context(|| "Failed to create incident for failed HTTP monitor")?;
+            create_incident_for_monitor(
+                &mut transaction,
+                incident_repository,
+                incident_event_repository,
+                incident_notification_repository,
+                &monitor,
+            )
+            .await
+            .with_context(|| "Failed to create incident for failed HTTP monitor")?;
         }
         // Resolve the existing incidents if the monitor is up
-        // Don't bother checking for ongoing incidents as we are going to resolve all of them. 
+        // Don't bother checking for ongoing incidents as we are going to resolve all of them.
         // This ensures that any incident that wasn't resolved before because of a database error will be resolved.
         else if status == HttpMonitorStatus::Up {
-            resolve_incidents_for_monitor(&mut transaction, incident_repository, &monitor)
-                .await
-                .with_context(|| "Failed to resolve incidents for recovered HTTP monitor")?;
+            resolve_incidents_for_monitor(
+                &mut transaction,
+                incident_repository,
+                incident_event_repository,
+                incident_notification_repository,
+                &monitor,
+            )
+            .await
+            .with_context(|| "Failed to resolve incidents for recovered HTTP monitor")?;
         }
     }
     http_monitor_repository
@@ -234,28 +261,34 @@ fn next_status(
     }
 }
 
-async fn resolve_incidents_for_monitor<IR>(
+async fn resolve_incidents_for_monitor<IR, IER, INR>(
     transaction: &mut IR::Transaction,
     incident_repo: &IR,
+    incident_event_repo: &IER,
+    incident_notification_repo: &INR,
     monitor: &HttpMonitor,
 ) -> anyhow::Result<()>
 where
     IR: IncidentRepository,
+    IER: IncidentEventRepository<Transaction = IR::Transaction>,
+    INR: IncidentNotificationRepository<Transaction = IR::Transaction>,
 {
-    incident_repo
-        .resolve_incidents_by_source(
-            transaction,
-            monitor.organization_id,
-            &[IncidentSource::HttpMonitor { id: monitor.id }],
-        )
-        .await
+    resolve_incidents(
+        transaction,
+        incident_repo,
+        incident_event_repo,
+        incident_notification_repo,
+        monitor.organization_id,
+        &[IncidentSource::HttpMonitor { id: monitor.id }],
+    )
+    .await
 }
 
 async fn get_existing_incident_for_monitor<IR>(
     transaction: &mut IR::Transaction,
     incident_repo: &IR,
     monitor: &HttpMonitor,
-) -> anyhow::Result<Option<IncidentWithSources>>
+) -> anyhow::Result<Option<Incident>>
 where
     IR: IncidentRepository,
 {
@@ -263,11 +296,13 @@ where
         .list_incidents(
             transaction,
             monitor.organization_id,
-            &[IncidentStatus::Ongoing],
-            &IncidentPriority::ALL,
-            &[IncidentSource::HttpMonitor { id: monitor.id }],
-            1,
-            0,
+            ListIncidentsOpts {
+                include_statuses: &[IncidentStatus::Ongoing],
+                include_priorities: &IncidentPriority::ALL,
+                include_sources: &[IncidentSource::HttpMonitor { id: monitor.id }],
+                limit: 1,
+                ..Default::default()
+            },
         )
         .await?
         .incidents
@@ -278,14 +313,17 @@ where
 
 /// Creates a new incident for the given monitor
 /// The incident is created in the same transaction as the monitor update.
-/// When a new incident is created, a database trigger takes care of creating the "incidents_notifications" table entry, that, in turn, will ensure users are notified of the incident.
-async fn create_incident_for_monitor<IR>(
+async fn create_incident_for_monitor<IR, IER, INR>(
     transaction: &mut IR::Transaction,
     incident_repo: &IR,
+    incident_event_repo: &IER,
+    incident_notification_repo: &INR,
     monitor: &HttpMonitor,
 ) -> anyhow::Result<()>
 where
     IR: IncidentRepository,
+    IER: IncidentEventRepository<Transaction = IR::Transaction>,
+    INR: IncidentNotificationRepository<Transaction = IR::Transaction>,
 {
     let new_incident = NewIncident {
         organization_id: monitor.organization_id,
@@ -293,17 +331,35 @@ where
         status: IncidentStatus::Ongoing,
         // TODO: let users configure this
         priority: IncidentPriority::Major,
-        sources: vec![IncidentSource::HttpMonitor { id: monitor.id }],
+        source: IncidentSource::HttpMonitor { id: monitor.id },
         cause: Some(IncidentCause::HttpMonitorIncidentCause {
             error_kind: monitor.error_kind,
             http_code: monitor.last_http_code,
         }),
     };
 
-    incident_repo
-        .create_incident(transaction, new_incident)
-        .await?;
-    Ok(())
+    let notification = NotificationOpts {
+        send_sms: monitor.sms_notification_enabled,
+        send_push_notification: monitor.push_notification_enabled,
+        send_email: monitor.email_notification_enabled,
+        notification_payload: IncidentNotificationPayload {
+            incident_cause: IncidentCause::HttpMonitorIncidentCause {
+                error_kind: monitor.error_kind,
+                http_code: monitor.last_http_code,
+            },
+            incident_http_monitor_url: Some(monitor.url.clone()),
+        },
+    };
+
+    create_incident(
+        transaction,
+        incident_repo,
+        incident_event_repo,
+        incident_notification_repo,
+        new_incident,
+        notification,
+    )
+    .await
 }
 
 #[cfg(test)]

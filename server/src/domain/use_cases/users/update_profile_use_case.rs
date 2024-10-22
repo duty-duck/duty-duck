@@ -19,6 +19,8 @@ use crate::domain::{
 pub enum UpdateProfileError {
     #[error("e-mail is invalid")]
     InvalidEmail,
+    #[error("phone number is invalid")]
+    InvalidPhoneNumber,
     #[error("password too weak")]
     PasswordTooWeak,
     #[error("Failed to update user profile: {0}")]
@@ -49,18 +51,16 @@ pub struct UpdateProfileResponse {
 pub async fn update_user_profile(
     auth_context: &AuthContext,
     repository: &impl UserRepository,
-    command: UpdateProfileCommand,
+    mut command: UpdateProfileCommand,
 ) -> Result<UpdateProfileResponse, UpdateProfileError> {
+    let user = repository
+        .get_user(auth_context.active_user_id, false)
+        .await?
+        .ok_or(anyhow!("User not found"))?;
     let needs_session_invalidation = command.password.is_some() || command.email.is_some();
 
-    let first_name = command
-        .first_name
-        .as_deref()
-        .or(auth_context.first_name.as_deref());
-    let last_name = command
-        .last_name
-        .as_deref()
-        .or(auth_context.last_name.as_deref());
+    let first_name = command.first_name.as_deref().unwrap_or(&user.first_name);
+    let last_name = command.last_name.as_deref().unwrap_or(&user.last_name);
 
     // Check the new e-mail is valid
     if let Some(email) = &command.email {
@@ -69,25 +69,33 @@ pub async fn update_user_profile(
         }
     }
 
+    // Check the new phone number is valid
+    if let Some(phone_number) = &command.phone_number {
+        let phone_number_str = phone_number.replace(" ", "");
+        let parsed_phone_number = match phonenumber::parse(None, phone_number_str) {
+            Ok(n) => n,
+            Err(_) => return Err(UpdateProfileError::InvalidPhoneNumber)
+        };
+
+        command.phone_number = Some(parsed_phone_number.format().mode(phonenumber::Mode::E164).to_string());
+        
+    }
+
     // Check the new password is valid
     if let Some(new_password) = &command.password {
-        let password_entropy = zxcvbn(
-            new_password,
-            &[
-                first_name.unwrap_or_default(),
-                last_name.unwrap_or_default(),
-            ],
-        );
+        let password_entropy = zxcvbn(new_password, &[first_name, last_name]);
         if password_entropy.score() < Score::Three {
             return Err(UpdateProfileError::PasswordTooWeak);
         };
     }
-
+    let new_phone_number = command.phone_number != user.phone_number;
     let repo_command = UpdateUserCommand {
         first_name: command.first_name,
         last_name: command.last_name,
         email: command.email,
         password: command.password,
+        phone_number_verified: if new_phone_number { Some(false) } else { None },
+        phone_number_otp: None,
         phone_number: command.phone_number,
     };
 

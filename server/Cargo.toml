@@ -30,11 +30,16 @@ backon = "0.4"
 tracing = "0.1.40"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 tracing-test = "0.2.5"
-ts-rs = { version = "9.0.1", features = ["chrono-impl", "uuid-impl"] }
+ts-rs = { version = "9.0.1", features = [
+    "chrono-impl",
+    "uuid-impl",
+    "serde-json-impl",
+] }
 uuid = { version = "1.9", features = ["serde"] }
 zxcvbn = { version = "3.0.1", features = ["ser"] }
 email_address = "0.2.4"
 regex = "1.10.5"
+moka = { version = "0.7.1", features = ["future"] }
 lazy_static = "1.5.0"
 envconfig = "0.10.0"
 dotenv = "0.15.0"
@@ -49,9 +54,16 @@ sqlx = { version = "0.8", features = [
     "json",
     "bigdecimal",
 ] }
+rand = "0.8.5"
 jsonwebtoken = "=9.3.0"
 bigdecimal = "0.4.5"
 rust-i18n = "3.1.2"
+utoipa = { version = "4", features = ["axum_extras", "uuid", "chrono"] }
+utoipa-redoc = { version = "4", features = ["axum"] }
+hex = "0.4.3"
+aws-sdk-sns = "1.47.0"
+aws-config = "1.5.8"
+phonenumber = "0.3.6"
 
 [build-dependencies]
 built = { version = "0.7.3", features = ["chrono", "git2"] }

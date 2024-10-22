@@ -15,8 +15,6 @@ const clearError = () => {
   error.value = undefined;
 };
 
-
-
 const route = useRoute();
 watch(
   () => route.fullPath,
