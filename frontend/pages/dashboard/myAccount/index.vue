@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { BCard } from "bootstrap-vue-next";
 
-const auth = useAuthMandatory();
+const auth = await useAuthMandatory();
 const localePath = useLocalePath();
 const phoneVerificationModal = ref<boolean>(false);
 </script>
@@ -11,10 +11,10 @@ const phoneVerificationModal = ref<boolean>(false);
       <BBreadcrumb>
         <BBreadcrumbItem :to="localePath('/dashboard')">{{
           $t("dashboard.mainSidebar.home")
-        }}</BBreadcrumbItem>
+          }}</BBreadcrumbItem>
         <BBreadcrumbItem active>{{
           $t("dashboard.userMenu.myAccount")
-        }}</BBreadcrumbItem>
+          }}</BBreadcrumbItem>
       </BBreadcrumb>
 
       <h2 class="mb-3">
@@ -39,7 +39,7 @@ const phoneVerificationModal = ref<boolean>(false);
       </BCard>
       <BCard class="mb-3">
         <BCardTitle class="d-flex align-items-center gap-2">
-          {{ $t('dashboard.myAccount.phoneNumberVerification')}}
+          {{ $t('dashboard.myAccount.phoneNumberVerification') }}
           <Icon name="ph:check-circle-fill" class="text-success" v-if="auth.userProfile.user.phoneNumberVerified" />
           <Icon name="ph:x-circle-fill" class="text-danger" v-else />
         </BCardTitle>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useBreakpoints, breakpointsBootstrapV5 } from "@vueuse/core";
 
-const auth = useAuthMandatory();
+const auth = await useAuthMandatory();
 const breakpoints = useBreakpoints(breakpointsBootstrapV5);
 const lgOrLarger = breakpoints.greaterOrEqual("lg");
 const messageHandler = useFirebaseMessageHandler();

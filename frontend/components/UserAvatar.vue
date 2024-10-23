@@ -17,7 +17,7 @@ const props = withDefaults(defineProps<{ firstName?: string, lastName?: string, 
     fontSize: '.7rem',
     size: '1.5rem'
 })
-const auth = useAuthMandatory();
+const auth = await useAuthMandatory();
 const firstName = computed(() => props.firstName ?? auth.userProfile.user.firstName);
 const lastName = computed(() => props.lastName ?? auth.userProfile.user.lastName);
 const color = computed(() => colors[(firstName.value.length + lastName.value.length) % colors.length]);

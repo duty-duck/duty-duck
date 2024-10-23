@@ -8,9 +8,9 @@ import type { ListOrganizationMembersResponse } from "bindings/ListOrganizationM
 import type { ReceiveInvitationResponse } from "bindings/ReceiveInvitationResponse";
 import type { UserInvitation } from "bindings/UserInvitation";
 
-export const useOrganizationRepository = () => {
+export const useOrganizationRepository = async () => {
     const $fetch = useServer$fetch();
-    const auth = useAuthMandatory();
+    const auth = await useAuthMandatory();
 
     return {
         async useOrganizationMembers(params: Ref<ListOrganizationMembersParams> | ListOrganizationMembersParams, options?: UseFetchOptions<ListOrganizationMembersResponse>) {

@@ -3,7 +3,7 @@
     const code = ref<string>("");
     const state = ref<"initial" | "sending" | "sent" | "send-error" | "confirming" | "confirm-error">("initial");
     const userRepo = useUserRepository();
-    const auth = useAuthMandatory();
+    const auth = await useAuthMandatory();
 
     const codeIsValid = computed(() => code.value.length === 6);
 

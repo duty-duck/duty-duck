@@ -10,7 +10,7 @@ import type { UnwrapRef } from "vue"
 export const useAuth = createSharedComposable(() => {
     const app = useNuxtApp();
     if (!app.$keycloak) {
-        throw new Error("Keycloak is not initialized")
+        throw new Error(`Keycloak is not initialized. Rendered on the server page: ${!import.meta.client}. This composable cannot be used on the server. Check your nuxt.config.ts file.`)
     }
     const { keycloakState, keycloakIsReady, updateToken, logout, login } = app.$keycloak;
     const userRepo = useUserRepository();
@@ -31,7 +31,7 @@ export const useAuth = createSharedComposable(() => {
     return reactive({
         keycloakState,
         keycloakIsReady,
-        isLoading: computed(() => !keycloakIsReady.value || !userRepo.userProfile.value || userRepo.userProfile.value == "loading"),
+        isLoading: computed(() => !userRepo.userProfile.value || userRepo.userProfile.value == "loading"),
         userProfile: computed(() => {
             if (keycloakState.value) {
                 return userRepo.userProfile.value
@@ -95,26 +95,20 @@ export const ensurePemissionOnBeforeMount = (permission: Permission | Permission
 /** A composable that exposes the current authenticated user,
 but also triggers the login sequence if the user is not authenticated
 */
-export const useAuthMandatory = () => {
+export const useAuthMandatory = async () => {
     const userRepo = useUserRepository();
     const auth = useAuth();
     const { locale } = useI18n();
 
-    watch(
-        () => [auth.keycloakIsReady, userRepo.userProfile.value],
-        async ([keycloakIsReady, userProfile]) => {
-            if (keycloakIsReady && userProfile === null) {
-                if (!auth.keycloakState) {
-                    console.log("useAuthMandatory: user is not authenticated, logging in");
-                    await auth.login({ locale: locale.value })
-                }
-
-                console.log("useAuthMandatory: refreshing user profile");
-                await userRepo.refreshUserProfile();
-            }
-        },
-        { immediate: true }
-    );
+    await auth.keycloakIsReady;
+    if (userRepo.userProfile.value === null) {
+        console.log("useAuthMandatory: user is not authenticated, logging in");
+        if (!auth.keycloakState) {
+            await auth.login({ locale: locale.value })
+        }
+        console.log("useAuthMandatory: refreshing user profile");
+        await userRepo.refreshUserProfile();
+    }
 
     // here's a little trick to make Typescript aware that at this point in runtime, the user profile cannot be null
     return auth as typeof auth & { userProfile: UnwrapRef<GetProfileResponse> }

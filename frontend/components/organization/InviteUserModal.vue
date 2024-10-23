@@ -10,10 +10,10 @@ const emit = defineEmits<{
 }>();
 
 const isLoading = ref<boolean>(false);
-const repo = useOrganizationRepository();
+const repo = await useOrganizationRepository();
 const { t } = useI18n();
 const { show } = useToast();
-const { userProfile: { active_organization, organization_roles } } = useAuthMandatory();
+const { userProfile: { active_organization, organization_roles } } = await useAuthMandatory();
 
 const roleOptions: { text: string, value: OrganizationUserRole, disabled?: boolean }[] = [
     { text: t('dashboard.organizationUserRoles.administrator'), value: 'Administrator', disabled: !organization_roles.includes('Administrator') },

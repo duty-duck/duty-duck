@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const httpMonitorRepo = useHttpMonitorRepository();
 const incidentRepo = useIncidentRepository();
-const auth = useAuthMandatory();
+const auth = await useAuthMandatory();
 const localePath = useLocalePath();
 const thisDevice = await useThisDevice();
 const { refresh: refreshIncidentCount, data: incidentCount } = await incidentRepo.useOngoingIncidentsCount();

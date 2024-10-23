@@ -9,7 +9,7 @@ const localePath = useLocalePath();
 const repo = useIncidentRepository();
 const { locale } = useI18n();
 
-const { userProfile } = useAuthMandatory();
+const { userProfile } = await useAuthMandatory();
 const { data: incidentRes, status, refresh } = await repo.useIncident(incidentId);
 
 const acknowledgeIncidentLoading = ref(false);

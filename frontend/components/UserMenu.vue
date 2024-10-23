@@ -1,7 +1,7 @@
 <script setup lang="ts">
 const { locale, locales } = useI18n()
 const localePath = useLocalePath();
-const {userName, logout} = useAuthMandatory();
+const {userName, logout} = await useAuthMandatory();
 const {canComputed} = useAuth();
 
 const canListOrganizationMembers = canComputed('listOrganizationMembers');

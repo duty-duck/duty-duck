@@ -6,7 +6,7 @@ const localePath = useLocalePath();
     <BNavbar id="navbar" toggleable="lg" class="shadow-sm">
         <BNavbarBrand href="#" id="brand">
             <NuxtLink :to="localePath('/')">
-                <img src="@/assets/navbar-duck.png" alt="Duty Duck logo" />
+                <img src="@/assets/navbar-duck.png" alt="Duty Duck logo" height="45" />
                 <span>Duty Duck</span>
             </NuxtLink>
         </BNavbarBrand>

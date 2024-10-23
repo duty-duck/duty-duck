@@ -6,7 +6,7 @@ import PhoneInput from "~/components/PhoneInput.vue";
 
 const { t } = useI18n();
 const { show } = useToast();
-const auth = useAuthMandatory();
+const auth = await useAuthMandatory();
 const userInfo = auth.userProfile.user;
 const localePath = useLocalePath();
 const repo = useUserRepository();

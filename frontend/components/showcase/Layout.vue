@@ -4,7 +4,7 @@
         <div id="showcase-content">
             <slot />
         </div>
-        <ShowcaseFooter />
+        <LazyShowcaseFooter />
     </div>
 </template>
 

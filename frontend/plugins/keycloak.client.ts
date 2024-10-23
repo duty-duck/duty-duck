@@ -28,13 +28,19 @@ export default defineNuxtPlugin({
         },
     },
     setup: async function () {
+
         const runtimeConfig = useRuntimeConfig();
+        let resolveKeycloakIsReady: () => void;
+        let keycloak: Keycloak | null = null;
+        const keycloakIsReady = new Promise<void>((resolve) => {
+            resolveKeycloakIsReady = resolve;
+        });
+
         const initOptions: KeycloakConfig = {
             url: runtimeConfig.public.keycloakUrl,
             realm: runtimeConfig.public.keycloakRealm,
             clientId: runtimeConfig.public.keycloakClient,
         };
-        const keycloakIsReady = ref(false);
         const keycloakState = ref<KeycloakState | null>(null);
 
         /**
@@ -78,41 +84,45 @@ export default defineNuxtPlugin({
             })
         }
 
-        const keycloak = new Keycloak(initOptions);
-        // Modify the login URL to include the `prompt=select_account` parameter that triggers the Active organization authenticator
-        // See https://github.com/p2-inc/keycloak-orgs/blob/main/docs/active-organization-authenticator.md for documentation.
-        const originalKeycloakCreateLoginUrl = keycloak.createLoginUrl
-        keycloak.createLoginUrl = (options: KeycloakLoginOptions) => {
-            return `${originalKeycloakCreateLoginUrl(options)}&prompt=select_account`
-        }
-        keycloak.onReady = () => {
-            keycloakIsReady.value = true
-        }
-        keycloak.onAuthSuccess = () => {
-            keycloakState.value = {
-                idToken: {
-                    raw: keycloak!.idToken!,
-                    // @ts-ignore
-                    parsed: keycloak!.idTokenParsed!
-                },
-                accessToken: {
-                    raw: keycloak!.token!,
-                    parsed: keycloak!.tokenParsed!
-                },
+        if (runtimeConfig.public.keycloakUrl && runtimeConfig.public.keycloakRealm && runtimeConfig.public.keycloakClient) {
+            keycloak = new Keycloak(initOptions);
+            // Modify the login URL to include the `prompt=select_account` parameter that triggers the Active organization authenticator
+            // See https://github.com/p2-inc/keycloak-orgs/blob/main/docs/active-organization-authenticator.md for documentation.
+            const originalKeycloakCreateLoginUrl = keycloak.createLoginUrl
+            keycloak.createLoginUrl = (options: KeycloakLoginOptions) => {
+                return `${originalKeycloakCreateLoginUrl(options)}&prompt=select_account`
+            }
+            keycloak.onReady = () => {
+                resolveKeycloakIsReady();
+            }
+            keycloak.onAuthSuccess = () => {
+                keycloakState.value = {
+                    idToken: {
+                        raw: keycloak!.idToken!,
+                        // @ts-ignore
+                        parsed: keycloak!.idTokenParsed!
+                    },
+                    accessToken: {
+                        raw: keycloak!.token!,
+                        parsed: keycloak!.tokenParsed!
+                    },
+                };
             };
-        };
-        keycloak.onAuthLogout = () => {
-            keycloakState.value = null;
-        }
-        keycloak.onTokenExpired = () => {
-            updateToken();
-        }
+            keycloak.onAuthLogout = () => {
+                keycloakState.value = null;
+            }
+            keycloak.onTokenExpired = () => {
+                updateToken();
+            }
 
-        await keycloak.init({
-            responseMode: 'query',
-            flow: 'standard',
-            checkLoginIframe: false,
-        });
+            await keycloak.init({
+                responseMode: 'query',
+                flow: 'standard',
+                checkLoginIframe: false,
+            });
+        } else {
+            console.log('Keycloak is not configured. Not initializing Keycloak. This is expected on pre-rendered static pages.');
+        }
 
         return {
             provide: {

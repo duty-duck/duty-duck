@@ -4,8 +4,8 @@ import type { ListOrganizationMembersItem } from "bindings/ListOrganizationMembe
 import { useOrganizationRepository } from "~/composables/useOrganizationRepository";
 import type { ListInvitationsParams } from "bindings/ListInvitationsParams";
 const localePath = useLocalePath();
-const orgRepo = useOrganizationRepository();
-const auth = useAuthMandatory();
+const orgRepo = await useOrganizationRepository();
+const auth = await useAuthMandatory();
 
 const canRemoveMember = auth.canComputed('removeOrganizationMember');
 const canEditMember = auth.canComputed('editOrganizationMember');
