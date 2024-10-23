@@ -1,10 +1,10 @@
 <script setup lang="ts">
 const { locale, locales } = useI18n()
 const localePath = useLocalePath();
-const {userName, logout} = await useAuthMandatory();
-const {canComputed} = useAuth();
+const {userName, logout} = await useAuth();
+const {userHasPermissionComputed} = await useAuth();
 
-const canListOrganizationMembers = canComputed('listOrganizationMembers');
+const canListOrganizationMembers = userHasPermissionComputed('listOrganizationMembers');
 const switchLocalePath = useSwitchLocalePath()
 const availableLocales = computed(() => {
   return (locales.value).filter(i => i.code !== locale.value)

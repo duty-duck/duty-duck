@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { BCard } from "bootstrap-vue-next";
 
-const auth = await useAuthMandatory();
+const auth = await useAuth();
 const localePath = useLocalePath();
 const phoneVerificationModal = ref<boolean>(false);
 </script>

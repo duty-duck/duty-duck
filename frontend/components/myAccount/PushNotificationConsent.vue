@@ -5,7 +5,7 @@ import type { UserDevice } from "bindings/UserDevice";
 const { show } = useToast();
 const { t } = useI18n();
 const firebaseMessaging = useFirebaseMessaging();
-const devicesRepository = useUserDevicesRepository();
+const devicesRepository = await useUserDevicesRepository();
 const thisDevice = await useThisDevice();
 const thisDeviceType = useThisDeviceType();
 const newDeviceName = ref("");

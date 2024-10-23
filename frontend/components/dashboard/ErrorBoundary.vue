@@ -7,6 +7,7 @@ const error = ref<NuxtError>();
 const localePath = useLocalePath();
 
 onErrorCaptured((err) => {
+  console.error("Error boundary caught error:", err);
   error.value = err as NuxtError;
   return false;
 });

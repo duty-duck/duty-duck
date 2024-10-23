@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useBreakpoints, breakpointsBootstrapV5 } from "@vueuse/core";
 
-const auth = await useAuthMandatory();
+await useAuth();
 const breakpoints = useBreakpoints(breakpointsBootstrapV5);
 const lgOrLarger = breakpoints.greaterOrEqual("lg");
 const messageHandler = useFirebaseMessageHandler();
@@ -14,43 +14,41 @@ onBeforeMount(() => {
 </script>
 
 <template>
-  <template v-if="!auth?.isLoading && auth?.userProfile?.user">
-    <div class="offcanvas offcanvas-start" tabindex="-1" id="dashboard-offcanvas">
-      <div class="offcanvas-header">
-        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-      </div>
-      <div class="offcanvas-body">
-        <DashboardDynamicSidebar v-if="!lgOrLarger" />
-      </div>
+  <div class="offcanvas offcanvas-start" tabindex="-1" id="dashboard-offcanvas">
+    <div class="offcanvas-header">
+      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
-    <div class="container-fluid g-0">
-      <div class="row g-0">
-        <div class="d-none d-lg-block d-flex sticky-top" id="dashboard-sidebar">
-          <div id="dashboard-sidebar-content">
-            <DashboardSidebarBrand />
-            <DashboardDynamicSidebar v-if="lgOrLarger" />
-          </div>
+    <div class="offcanvas-body">
+      <DashboardDynamicSidebar v-if="!lgOrLarger" />
+    </div>
+  </div>
+  <div class="container-fluid g-0">
+    <div class="row g-0">
+      <div class="d-none d-lg-block d-flex sticky-top" id="dashboard-sidebar">
+        <div id="dashboard-sidebar-content">
+          <DashboardSidebarBrand />
+          <DashboardDynamicSidebar v-if="lgOrLarger" />
         </div>
-        <div class="col">
-          <nav class="navbar navbar-expand sticky-top" id="dashboard-navbar">
-            <div class="container-fluid">
-              <button class="navbar-toggler d-block d-lg-none" type="button" data-bs-toggle="offcanvas"
-                data-bs-target="#dashboard-offcanvas" aria-controls="dashboard-offcanvas" aria-expanded="false"
-                aria-label="Toggle navigation">
-                <span class="navbar-toggler-icon"></span>
-              </button>
-              <UserMenu />
-            </div>
-          </nav>
-          <div id="dashboard-container">
-            <DashboardErrorBoundary>
-              <NuxtPage :transition="{ name: 'page', mode: 'out-in' }" />
-            </DashboardErrorBoundary>
+      </div>
+      <div class="col">
+        <nav class="navbar navbar-expand sticky-top" id="dashboard-navbar">
+          <div class="container-fluid">
+            <button class="navbar-toggler d-block d-lg-none" type="button" data-bs-toggle="offcanvas"
+              data-bs-target="#dashboard-offcanvas" aria-controls="dashboard-offcanvas" aria-expanded="false"
+              aria-label="Toggle navigation">
+              <span class="navbar-toggler-icon"></span>
+            </button>
+            <UserMenu />
           </div>
+        </nav>
+        <div id="dashboard-container">
+          <DashboardErrorBoundary>
+            <NuxtPage :transition="{ name: 'page', mode: 'out-in' }" />
+          </DashboardErrorBoundary>
         </div>
       </div>
     </div>
-  </template>
+  </div>
 </template>
 
 <style lang="scss">

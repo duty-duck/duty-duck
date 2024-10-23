@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import type { HttpMonitorFormData } from "~/components/httpMonitor/Form.vue";
+import { usePermissionGrant } from "~/composables/authComposables";
 
-ensurePemissionOnBeforeMount("writeHttpMonitors");
+await usePermissionGrant("writeHttpMonitors");
 
-const repo = useHttpMonitorRepository();
+const repo = await useHttpMonitorRepository();
 const localePath = useLocalePath();
 
 const onSubmit = async (data: HttpMonitorFormData) => {

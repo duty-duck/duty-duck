@@ -3,7 +3,7 @@ import type { OrganizationUserRole } from 'bindings/OrganizationUserRole';
 import type { ListOrganizationMembersItem } from 'bindings/ListOrganizationMembersItem';
 
 const { t } = useI18n();
-const repository = useOrganizationRepository();
+const repository = await useOrganizationRepository();
 const user = defineModel<ListOrganizationMembersItem | null>();
 const emit = defineEmits<{
     (e: 'ok'): void

@@ -5,10 +5,10 @@ import { useOrganizationRepository } from "~/composables/useOrganizationReposito
 import type { ListInvitationsParams } from "bindings/ListInvitationsParams";
 const localePath = useLocalePath();
 const orgRepo = await useOrganizationRepository();
-const auth = await useAuthMandatory();
+const auth = await useAuth();
 
-const canRemoveMember = auth.canComputed('removeOrganizationMember');
-const canEditMember = auth.canComputed('editOrganizationMember');
+const canRemoveMember = auth.userHasPermissionComputed('removeOrganizationMember');
+const canEditMember = auth.userHasPermissionComputed('editOrganizationMember');
 
 const membersPageNumber = ref<number>(1);
 const invitationsPageNumber = ref<number>(1);
@@ -118,7 +118,7 @@ const revokeInvitation = async (invitationId: string) => {
                         </BTd>
                         <BTd>
                             <BButton pill variant="outline-danger" size="sm" @click="revokeInvitation(invitation.id)"
-                                v-if="auth.canComputed('inviteOrganizationMember')">
+                                v-if="auth.userHasPermissionComputed('inviteOrganizationMember')">
                                 {{ $t("dashboard.myOrg.invitations.revokeInvitation") }}
                             </BButton>
                         </BTd>

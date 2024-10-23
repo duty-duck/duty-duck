@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import useVuelidate from "@vuelidate/core";
-import { required, email, sameAs } from "@vuelidate/validators";
+import { required, sameAs } from "@vuelidate/validators";
 import { useRoute } from "vue-router";
 import { type AcceptInvitationCommand } from "bindings/AcceptInvitationCommand";
 
 const localePath = useLocalePath();
-const auth = useAuth();
-const repo = usePublicInvitationRepository();
+const auth = await useAuth();
+const repo = await usePublicInvitationRepository();
 
 const { organizationId, invitationId } = useRoute().query;
 const { data: invitation } = await repo.useInvitation(organizationId as string, invitationId as string);

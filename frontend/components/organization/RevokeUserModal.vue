@@ -7,7 +7,7 @@ const emit = defineEmits<{
 }>();
 
 const isLoading = ref(false);
-const organizationRepository = useOrganizationRepository();
+const organizationRepository = await useOrganizationRepository();
 const confirmationInput = ref('');
 
 const onSubmit = async () => {

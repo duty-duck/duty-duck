@@ -13,18 +13,18 @@ const localePath = useLocalePath();
         <BNavbarToggle target="nav-collapse" />
         <BCollapse id="nav-collapse" is-nav>
             <BNavbarNav class="mx-auto">
-                <BNavItem :to="localePath('/platform')">
+                <NuxtLink class="nav-link" :to="localePath('/platform')">
                     Platform
-                </BNavItem>
-                <BNavItem :to="localePath('/pricing')">
+                </NuxtLink>
+                <NuxtLink class="nav-link" :to="localePath('/pricing')">
                     Pricing
-                </BNavItem>
-                <BNavItem :to="localePath('/docs')">
+                </NuxtLink>
+                <NuxtLink class="nav-link" :to="localePath('/docs')">
                     Documentation
-                </BNavItem>
-                <BNavItem :to="localePath('/blog')">
+                </NuxtLink>
+                <NuxtLink class="nav-link" :to="localePath('/blog')">
                     Blog
-                </BNavItem>
+                </NuxtLink>
             </BNavbarNav>
             <BNavbarNav>
                 <BButton :to="localePath('/dashboard')" variant="outline-primary">

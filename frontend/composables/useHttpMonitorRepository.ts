@@ -8,7 +8,7 @@ import type { ListIncidentsParams } from "bindings/ListIncidentsParams";
 import type { UpdateHttpMonitorCommand } from "bindings/UpdateHttpMonitorCommand";
 import type { UseFetchOptions } from "#app";
 
-export const useHttpMonitorRepository = () => {
+export const useHttpMonitorRepository = async () => {
     const $fetch = useServer$fetch();
     return {
         async useHttpMonitors(params: Ref<ListHttpMonitorsParams> | ListHttpMonitorsParams) {

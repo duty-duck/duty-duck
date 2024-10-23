@@ -2,12 +2,12 @@
 import { useRouteQuery } from '@vueuse/router'
 import { useIntervalFn, useNow, useThrottleFn } from "@vueuse/core";
 import type { ListIncidentsParams } from "bindings/ListIncidentsParams";
-import humanizeDuration from "humanize-duration";
+import { usePermissionGrant } from "~/composables/authComposables";
 
-ensurePemissionOnBeforeMount("readHttpMonitors");
+await usePermissionGrant("readHttpMonitors");
 
 const localePath = useLocalePath();
-const repo = useHttpMonitorRepository();
+const repo = await useHttpMonitorRepository();
 const route = useRoute();
 const now = useNow();
 const toggleIsLoading = ref(false);

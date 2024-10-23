@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { useIntervalFn } from '@vueuse/core';
 const route = useRoute();
-let incidentRepo = useIncidentRepository();
+let incidentRepo = await useIncidentRepository();
 const localePath = useLocalePath()
-const { canComputed } = useAuth();
-const canReadHttpMonitors = canComputed('readHttpMonitors');
-const canReadIncidents = canComputed('readIncidents');
+const { userHasPermissionComputed } = await useAuth();
+const canReadHttpMonitors = userHasPermissionComputed('readHttpMonitors');
+const canReadIncidents = userHasPermissionComputed('readIncidents');
 
 let { refresh: refreshIncidentCount, data: incidentCount } = await incidentRepo.useOngoingIncidentsCount();
 useIntervalFn(() => refreshIncidentCount(), 20000);
@@ -16,20 +16,20 @@ watch(() => route.fullPath, () => refreshIncidentCount());
   <div class="py-2 px-lg-2">
     <ul class="nav nav-pills nav-light nav-fill flex-column gap-2">
       <li class="nav-item">
-        <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard')" :class="{ 'active': route.fullPath === localePath('/dashboard') }">
+        <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard')" :class="{ 'active': route.path === localePath('/dashboard') }">
           <Icon name="ph:house-simple-duotone" size="20px" />
           {{ $t("dashboard.mainSidebar.home") }}
         </NuxtLink>
       </li>
       <li class="nav-item">
         <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/httpMonitors')"
-          :disabled="!canReadHttpMonitors" :class="{ 'active': route.fullPath.startsWith(localePath('/dashboard/httpMonitors')) }">
+          :disabled="!canReadHttpMonitors" :class="{ 'active': route.path.startsWith(localePath('/dashboard/httpMonitors')) }">
           <Icon name="ph:pulse-duotone" size="22px" />
           {{ $t("dashboard.mainSidebar.monitors") }}
         </NuxtLink>
       </li>
       <li class="nav-item">
-        <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/incidents')" :disabled="!canReadIncidents" :class="{ 'active': route.fullPath.startsWith(localePath('/dashboard/incidents')) }">
+        <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/incidents')" :disabled="!canReadIncidents" :class="{ 'active': route.path.startsWith(localePath('/dashboard/incidents')) }">
           <Icon name="ph:seal-warning-duotone" size="22px" />
           {{ $t("dashboard.mainSidebar.incidents") }}
           <BBadge class="ms-2" variant="danger" v-if="incidentCount && incidentCount > 0">{{ incidentCount }}

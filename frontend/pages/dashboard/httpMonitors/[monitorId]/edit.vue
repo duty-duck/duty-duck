@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 import type { UpdateHttpMonitorCommand } from "bindings/UpdateHttpMonitorCommand";
 import type { HttpMonitorFormData } from "~/components/httpMonitor/Form.vue";
+import { usePermissionGrant } from "~/composables/authComposables";
 
-ensurePemissionOnBeforeMount("writeHttpMonitors");
+await usePermissionGrant("writeHttpMonitors");
 
-const repo = useHttpMonitorRepository();
+const repo = await useHttpMonitorRepository();
 const route = useRoute();
 const localePath = useLocalePath();
 

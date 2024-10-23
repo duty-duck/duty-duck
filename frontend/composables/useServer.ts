@@ -1,17 +1,21 @@
 /** A composable giving access to a custom fetch instance
  * The custom fetch instance sets the base url for all API calls and automatically sends the Authorization error
  */
-export const useServer$fetch = () => {
+export const useServer$fetch = async () => {
     const { public: { serverUrl } } = useRuntimeConfig();
+    const keycloak = await useKeycloak()
 
     return $fetch.create({
         baseURL: serverUrl,
-        onRequest: ({ options }) => {
-            const auth = useAuth();
-            options.headers = options.headers || {};
-            if (auth.keycloakState != null && auth.keycloakState?.accessToken?.raw != null) {
-                // @ts-ignore
-                options.headers["Authorization"] = `Bearer ${auth.keycloakState.accessToken.raw}`;
+        onRequest: async ({ options }) => {
+            const keycloakState = keycloak.keycloakState.value;
+            options.headers = new Headers(options.headers);
+
+            if (keycloakState && keycloakState.accessToken.raw) {
+                options.headers.set("Authorization", `Bearer ${keycloakState.accessToken.raw}`);
+            } else {
+                console.error("No access token found in keycloak state. Cannot fetch protected data");
+                throw new Error("No access token found in keycloak state. Cannot fetch protected data");
             }
         }
     })
@@ -23,26 +27,12 @@ export const useServer$fetch = () => {
  * and autoamtically sends the authorization header for all requests.
  */
 // @ts-ignore
-export const useServerFetch: typeof useFetch = (request, opts?) => {
-    const fetch = useServer$fetch();
+export const useServerFetch: typeof useFetch = async (request, opts?) => {
+    const fetch = await useServer$fetch();
 
     return useFetch(request, { $fetch: fetch, ...opts }).then(result => {
         if (result.error.value) {
-            throw createError({
-                statusMessage: "Fetch failed",
-                statusCode: result.error.value.statusCode,
-            });
-        }
-        return result
-    })
-}
-
-// @ts-ignore
-export const useLazyServerFetch: typeof useLazyFetch = (request, opts?) => {
-    const fetch = useServer$fetch();
-
-    return useLazyFetch(request, { $fetch: fetch, ...opts }).then(result => {
-        if (result.error.value) {
+            console.error("Fetch failed. Request:", request, "Error:", result.error.value);
             throw createError({
                 statusMessage: "Fetch failed",
                 statusCode: result.error.value.statusCode,

@@ -9,8 +9,8 @@ import type { ReceiveInvitationResponse } from "bindings/ReceiveInvitationRespon
 import type { UserInvitation } from "bindings/UserInvitation";
 
 export const useOrganizationRepository = async () => {
-    const $fetch = useServer$fetch();
-    const auth = await useAuthMandatory();
+    const $fetch = await useServer$fetch();
+    const auth = await useAuth();
 
     return {
         async useOrganizationMembers(params: Ref<ListOrganizationMembersParams> | ListOrganizationMembersParams, options?: UseFetchOptions<ListOrganizationMembersResponse>) {
@@ -34,8 +34,8 @@ export const useOrganizationRepository = async () => {
     }
 }
 
-export const usePublicInvitationRepository = () => {
-    const $fetch = useServer$fetch();
+export const usePublicInvitationRepository = async () => {
+    const $fetch = await useServer$fetch();
 
     return {
         async rejectInvitation(organizationId: string, invitationId: string) {

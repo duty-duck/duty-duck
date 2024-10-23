@@ -3,8 +3,9 @@ import { refDebounced, useIntervalFn } from "@vueuse/core";
 import { useRouteQuery } from "@vueuse/router";
 import type { HttpMonitorStatus } from "bindings/HttpMonitorStatus";
 import { allStatuses } from "~/components/httpMonitor/StatusDropdown.vue";
+import { usePermissionGrant } from "~/composables/authComposables";
 
-ensurePemissionOnBeforeMount("readHttpMonitors");
+await usePermissionGrant("readHttpMonitors");
 
 const localePath = useLocalePath();
 const query = useRouteQuery("query", "");
@@ -19,7 +20,7 @@ const fetchParams = computed(() => ({
   itemsPerPage: 10,
 }));
 
-const repository = useHttpMonitorRepository();
+const repository = await useHttpMonitorRepository();
 const { status, data, refresh } = await repository.useHttpMonitors(fetchParams);
 
 

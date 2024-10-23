@@ -6,22 +6,22 @@ import PhoneInput from "~/components/PhoneInput.vue";
 
 const { t } = useI18n();
 const { show } = useToast();
-const auth = await useAuthMandatory();
-const userInfo = auth.userProfile.user;
+const auth = await useAuth();
 const localePath = useLocalePath();
-const repo = useUserRepository();
+const repo = await useUserRepository();
+const { data: userProfile } = await repo.useUserProfile();
 
 const state = reactive({
-  firstName: userInfo.firstName || "",
-  lastName: userInfo.lastName || "",
-  email: userInfo.email || "",
-  emailConfirmation: userInfo.email,
+  firstName: userProfile.value?.user.firstName || "",
+  lastName: userProfile.value?.user.lastName || "",
+  email: userProfile.value?.user.email || "",
+  emailConfirmation: userProfile.value?.user.email,
   password: "",
   passwordConfirmation: "",
   phoneNumber: {
     isValid: null as boolean | null,
-    value: userInfo.phoneNumber || "",
-    formattedNumber: userInfo.phoneNumber || "" as string | null
+    value: userProfile.value?.user.phoneNumber || "",
+    formattedNumber: userProfile.value?.user.phoneNumber || "" as string | null
   },
 });
 
@@ -85,7 +85,7 @@ const onSubmit = async () => {
     });
     return;
   }
-
+  const userInfo = userProfile.value!.user;
   const command: UpdateProfileCommand = {
     firstName: state.firstName != userInfo.firstName ? state.firstName : null,
     lastName: state.lastName != userInfo.lastName ? state.lastName : null,
@@ -99,7 +99,6 @@ const onSubmit = async () => {
   };
 
   const response = await repo.updateProfile(command);
-  repo.refreshUserProfile();
   navigateTo(localePath("/dashboard/myAccount"));
 
   if (response.needsSessionInvalidation) {
@@ -184,7 +183,7 @@ const onSubmit = async () => {
           />
         </BFormGroup>
         <BFormGroup
-          v-if="state.email != userInfo.email"
+          v-if="state.email != userProfile!.user.email"
           class="mb-4"
           id="emailConfirmationGroup"
           :label="$t('dashboard.myAccount.emailConfirmation')"

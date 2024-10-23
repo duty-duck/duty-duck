@@ -17,7 +17,7 @@ export const useThisDeviceType = (): UserDeviceType => {
 
 export const useThisDevice = async () => {
     const messaging = useFirebaseMessaging();
-    const repo = useUserDevicesRepository();
+    const repo = await useUserDevicesRepository();
     const { data } = await repo.useDevices();
 
     return computed<UserDevice | null>(() => {
@@ -34,8 +34,8 @@ export const useThisDevice = async () => {
     })
 }
 
-export const useUserDevicesRepository = () => {
-    const $fetch = useServer$fetch();
+export const useUserDevicesRepository = async () => {
+    const $fetch = await useServer$fetch();
 
     return {
         async registerDevice(command: RegisterUserDeviceCommand) {

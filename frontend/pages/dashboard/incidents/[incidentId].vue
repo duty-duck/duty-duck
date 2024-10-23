@@ -6,10 +6,10 @@ import { useNow, useIntervalFn } from "@vueuse/core";
 const route = useRoute();
 const incidentId = route.params.incidentId as string;
 const localePath = useLocalePath();
-const repo = useIncidentRepository();
+const repo = await useIncidentRepository();
 const { locale } = useI18n();
 
-const { userProfile } = await useAuthMandatory();
+const { userProfile } = await useAuth();
 const { data: incidentRes, status, refresh } = await repo.useIncident(incidentId);
 
 const acknowledgeIncidentLoading = ref(false);
@@ -46,17 +46,18 @@ useIntervalFn(() => refresh(), 10000);
       <BBreadcrumb>
         <BBreadcrumbItem :to="localePath('/dashboard')">{{
           $t("dashboard.mainSidebar.home")
-        }}</BBreadcrumbItem>
+          }}</BBreadcrumbItem>
         <BBreadcrumbItem :to="localePath('/dashboard/incidents')">{{
           $t("dashboard.mainSidebar.incidents")
-        }}</BBreadcrumbItem>
+          }}</BBreadcrumbItem>
         <BBreadcrumbItem active>{{ $t("dashboard.incidents.incidentDetails")
           }}</BBreadcrumbItem>
       </BBreadcrumb>
       <section class="mb-5">
         <h1 class="mb-4 fs-2">{{ $t("dashboard.incidents.defaultIncidentTitle", {
           date: $d(new
-            Date(incidentRes!.incident.createdAt), "long") }) }}</h1>
+            Date(incidentRes!.incident.createdAt), "long")
+        }) }}</h1>
         <div class="d-flex align-items-center gap-2 mb-5">
           <IncidentStatusPill :status="incidentRes!.incident.status" />
           <span class="text-secondary">

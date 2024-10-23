@@ -14,15 +14,6 @@ export default defineNuxtConfig({
   },
 
   routeRules: {
-    // Homepage pre-rendered at build time
-    '/': { prerender: true },
-    '/en': { prerender: true },
-    // Documentation pages pre-rendered at build time
-    '/en/docs/**': { prerender: true },
-    '/docs/**': { prerender: true },
-    // Blog pages pre-rendered at build time
-    '/en/blog/**': { prerender: true },
-    '/blog/**': { prerender: true },
     // These pages are rendered on the client only because they use the Keycloak SDK
     '/en/dashboard/**': { ssr: false },
     '/dashboard/**': { ssr: false },

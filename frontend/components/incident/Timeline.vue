@@ -13,7 +13,7 @@ const { incidentId, showCommentEditor = true, infiniteScrolling = true } = defin
 const isCommentLoading = ref(false);
 const pageSize = 10;
 const state = reactive({ pages: [] as TimelineItem[][], lastIncompleteResponse: null as null | Date, isLoading: false });
-const repo = useIncidentRepository();
+const repo = await useIncidentRepository();
 
 /**
  * Attempts to load the next page of the incident timeline.

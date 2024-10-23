@@ -13,7 +13,7 @@ const isLoading = ref<boolean>(false);
 const repo = await useOrganizationRepository();
 const { t } = useI18n();
 const { show } = useToast();
-const { userProfile: { active_organization, organization_roles } } = await useAuthMandatory();
+const { userProfile: { active_organization, organization_roles } } = await useAuth();
 
 const roleOptions: { text: string, value: OrganizationUserRole, disabled?: boolean }[] = [
     { text: t('dashboard.organizationUserRoles.administrator'), value: 'Administrator', disabled: !organization_roles.includes('Administrator') },

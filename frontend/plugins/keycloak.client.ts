@@ -21,20 +21,18 @@ export default defineNuxtPlugin({
         /**
          * Fix router issue, see : https://github.com/keycloak/keycloak/issues/14742
          */
-        'app:created'() {
-            const router = useRouter();
-            router.currentRoute.value.query = {};
-            router.replace({ query: {} });
-        },
+        // 'app:created'() {
+        //     const router = useRouter();
+        //     setTimeout(() => {
+        //         router.currentRoute.value.query = {};
+        //         router.replace({ query: {} });
+        //     }, 1000)
+        // },
     },
     setup: async function () {
-
         const runtimeConfig = useRuntimeConfig();
-        let resolveKeycloakIsReady: () => void;
+
         let keycloak: Keycloak | null = null;
-        const keycloakIsReady = new Promise<void>((resolve) => {
-            resolveKeycloakIsReady = resolve;
-        });
 
         const initOptions: KeycloakConfig = {
             url: runtimeConfig.public.keycloakUrl,
@@ -71,7 +69,7 @@ export default defineNuxtPlugin({
          * @param options - Optional Keycloak login options.
          */
         const login = async (options?: KeycloakLoginOptions) => {
-            console.log("login", options);
+            console.log("[KeycloakClient] Calling 'login'", options);
             await keycloak!.login(options)
         }
 
@@ -79,56 +77,74 @@ export default defineNuxtPlugin({
          * Logs out the current user.
          */
         const logout = async (redirectUri?: string) => {
+            console.log("[KeycloakClient] Calling 'logout'", redirectUri);
             await keycloak!.logout({
                 redirectUri: redirectUri ?? `${location.protocol}//${location.host}`
             })
         }
 
-        if (runtimeConfig.public.keycloakUrl && runtimeConfig.public.keycloakRealm && runtimeConfig.public.keycloakClient) {
-            keycloak = new Keycloak(initOptions);
-            // Modify the login URL to include the `prompt=select_account` parameter that triggers the Active organization authenticator
-            // See https://github.com/p2-inc/keycloak-orgs/blob/main/docs/active-organization-authenticator.md for documentation.
-            const originalKeycloakCreateLoginUrl = keycloak.createLoginUrl
-            keycloak.createLoginUrl = (options: KeycloakLoginOptions) => {
-                return `${originalKeycloakCreateLoginUrl(options)}&prompt=select_account`
-            }
-            keycloak.onReady = () => {
-                resolveKeycloakIsReady();
-            }
-            keycloak.onAuthSuccess = () => {
-                keycloakState.value = {
-                    idToken: {
-                        raw: keycloak!.idToken!,
-                        // @ts-ignore
-                        parsed: keycloak!.idTokenParsed!
-                    },
-                    accessToken: {
-                        raw: keycloak!.token!,
-                        parsed: keycloak!.tokenParsed!
-                    },
-                };
-            };
-            keycloak.onAuthLogout = () => {
-                keycloakState.value = null;
-            }
-            keycloak.onTokenExpired = () => {
-                updateToken();
+        const getKeycloakInstance = async () => {
+            if (keycloak) {
+                return keycloak;
             }
 
-            await keycloak.init({
-                responseMode: 'query',
-                flow: 'standard',
-                checkLoginIframe: false,
-            });
-        } else {
-            console.log('Keycloak is not configured. Not initializing Keycloak. This is expected on pre-rendered static pages.');
+            console.log("[KeycloakClient] Initializing Keycloak");
+            return await new Promise<Keycloak>((resolve) => {
+                keycloak = new Keycloak(initOptions);
+
+                // Expose the keycloak instance and the keycloak state to the global window object to make it easier to debug in production
+                // @ts-ignore
+                window.KEYCLOAK = keycloak;
+                // @ts-ignore
+                window.KEYCLOAK_STATE = keycloakState;
+
+                // Modify the login URL to include the `prompt=select_account` parameter that triggers the Active organization authenticator
+                // See https://github.com/p2-inc/keycloak-orgs/blob/main/docs/active-organization-authenticator.md for documentation.
+                const originalKeycloakCreateLoginUrl = keycloak.createLoginUrl
+                keycloak.createLoginUrl = (options: KeycloakLoginOptions) => {
+                    return `${originalKeycloakCreateLoginUrl(options)}&prompt=select_account`
+                }
+                keycloak.onReady = () => {
+                    console.log("[KeycloakClient] Keycloak is ready");
+                    resolve(keycloak!);
+                }
+                keycloak.onAuthSuccess = () => {
+                    console.log("[KeycloakClient] Keycloak authentication successful");
+                    keycloakState.value = {
+                        idToken: {
+                            raw: keycloak!.idToken!,
+                            // @ts-ignore
+                            parsed: keycloak!.idTokenParsed!
+                        },
+                        accessToken: {
+                            raw: keycloak!.token!,
+                            parsed: keycloak!.tokenParsed!
+                        },
+                    };
+                };
+                keycloak.onAuthError = (e) => {
+                    console.error("[KeycloakClient] Keycloak authentication error", e);
+                }
+                keycloak.onAuthLogout = () => {
+                    console.log("[KeycloakClient] Keycloak logout");
+                    keycloakState.value = null;
+                }
+                keycloak.onTokenExpired = () => {
+                    updateToken();
+                }
+                keycloak.init({
+                    responseMode: 'query',
+                    flow: 'standard',
+                    checkLoginIframe: false,
+                });
+            })
         }
 
         return {
             provide: {
                 keycloak: {
                     keycloak,
-                    keycloakIsReady,
+                    getKeycloakInstance,
                     keycloakState,
                     updateToken,
                     logout,

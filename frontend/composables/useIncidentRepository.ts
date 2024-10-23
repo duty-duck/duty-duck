@@ -8,8 +8,8 @@ import type { ListIncidentsParams } from "bindings/ListIncidentsParams";
 import type { ListIncidentsResponse } from "bindings/ListIncidentsResponse";
 import type { FetchOptions } from "ofetch";
 
-export const useIncidentRepository = () => {
-    const $fetch = useServer$fetch();
+export const useIncidentRepository = async () => {
+    const $fetch = await useServer$fetch();
 
     return {
         async useIncidents(params: Ref<ListIncidentsParams> | ListIncidentsParams, opts?: UseFetchOptions<ListIncidentsResponse>) {

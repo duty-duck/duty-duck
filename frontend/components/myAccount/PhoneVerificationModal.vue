@@ -2,8 +2,8 @@
     const showModal = defineModel<boolean>();
     const code = ref<string>("");
     const state = ref<"initial" | "sending" | "sent" | "send-error" | "confirming" | "confirm-error">("initial");
-    const userRepo = useUserRepository();
-    const auth = await useAuthMandatory();
+    const userRepo = await useUserRepository();
+    const auth = await useAuth();
 
     const codeIsValid = computed(() => code.value.length === 6);
 
@@ -23,7 +23,6 @@
         state.value = "confirming";
         try {
             await userRepo.verifyPhoneNumber(code.value);
-            await userRepo.refreshUserProfile();
             showModal.value = false;
         } catch (error) {
             console.error(error);
