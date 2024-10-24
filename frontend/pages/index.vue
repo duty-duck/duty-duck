@@ -103,23 +103,34 @@ onUnmounted(() => {
 
 <style scoped lang="scss">
 @import "~/assets/main.scss";
+$sections-nav-height: 70px;
 
 #hero {
-    @extend .py-4;
+    @extend .px-2, .py-4;
     min-height: 65vh;
     display: flex;
     flex-direction: column;
-    align-items: center;
     justify-content: center;
+    align-items: center;
+    text-align: left;
+    min-height: calc(100vh - $sections-nav-height - $navbar-height);
+
+    @include media-breakpoint-up(md) {
+        text-align: center;
+
+        h1 {
+            font-size: 3.5rem;
+            line-height: 5rem;
+        }
+
+        p.lead {
+            font-size: 1.5rem;
+        }
+    }
 
     h1 {
         @include homepage-heading;
-
-        @include media-breakpoint-up(md) {
-            font-size: 3.5rem;
-        }
         font-size: 2.5rem;
-        line-height: 5rem;
         background: linear-gradient(to right, $info, $primary);
         background-clip: text;
         color: transparent;
@@ -127,20 +138,18 @@ onUnmounted(() => {
 
     p.lead {
         @extend .my-4;
-
-        @include media-breakpoint-up(md) {
-            font-size: 1.5rem;
-        }
+        font-size: 1.2rem;
     }
 
     background-color: #f0f0f0;
-    text-align: center;
 }
 
 #sections-nav {
     display: flex;
     justify-content: center;
+    align-items: center;
     gap: 1rem;
+    height: $sections-nav-height;
     position: sticky;
     top: 0;
     background-color: $white;
@@ -150,14 +159,9 @@ onUnmounted(() => {
 
     @include media-breakpoint-up(md) {
         gap: 2rem;
-
-        .iconify {
-            font-size: 1.5rem;
-        }
     }
 
     .item {
-
         .iconify {
             font-size: 1.2rem;
         }

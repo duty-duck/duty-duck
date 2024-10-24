@@ -1,5 +1,8 @@
 <script lang="ts" setup>
     const showModal = defineModel<boolean>();
+    const emit = defineEmits<{
+        (event: "ok"): void;
+    }>();
     const code = ref<string>("");
     const state = ref<"initial" | "sending" | "sent" | "send-error" | "confirming" | "confirm-error">("initial");
     const userRepo = await useUserRepository();
@@ -23,6 +26,7 @@
         state.value = "confirming";
         try {
             await userRepo.verifyPhoneNumber(code.value);
+            emit("ok");
             showModal.value = false;
         } catch (error) {
             console.error(error);

@@ -60,7 +60,7 @@ const phoneVerificationModal = ref<boolean>(false);
           {{ $t("dashboard.myAccount.phoneNumberVerified") }}
         </p>
       </BCard>
-      <MyAccountPhoneVerificationModal v-model="phoneVerificationModal" />
+      <MyAccountPhoneVerificationModal v-model="phoneVerificationModal" @ok="auth.refreshUserProfile()" />
       <MyAccountPushNotificationConsent />
     </BContainer>
   </div>

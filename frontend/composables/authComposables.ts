@@ -26,7 +26,7 @@ export const useAuth = async () => {
         await keycloak.login();
     }
     const userRepo = await useUserRepository();
-    const { data: userProfile } = await userRepo.useUserProfile();
+    const { data: userProfile, refresh: refreshUserProfile } = await userRepo.useUserProfile();
 
     const userHasPermission = (permission: Permission | Permission[]): boolean => {
         const user = userProfile.value!;
@@ -56,6 +56,7 @@ export const useAuth = async () => {
         userHasPermissionComputed: (permission: Permission | Permission[]) => {
             return computed(() => userHasPermission(permission))
         },
+        refreshUserProfile,
         ...keycloak,
     });
 }

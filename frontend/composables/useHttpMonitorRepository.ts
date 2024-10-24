@@ -9,7 +9,7 @@ import type { UpdateHttpMonitorCommand } from "bindings/UpdateHttpMonitorCommand
 import type { UseFetchOptions } from "#app";
 
 export const useHttpMonitorRepository = async () => {
-    const $fetch = useServer$fetch();
+    const $fetch = await useServer$fetch();
     return {
         async useHttpMonitors(params: Ref<ListHttpMonitorsParams> | ListHttpMonitorsParams) {
             return await useServerFetch<ListHttpMonitorsResponse>(`/http-monitors`, { retry: 3, retryDelay: 5000, query: params });
