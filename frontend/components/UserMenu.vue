@@ -38,7 +38,6 @@ const availableLocales = computed(() => {
             <Icon name="ph:translate" aria-label="Language selection" />
             {{ locale.name }}
           </NuxtLink>
-
         </li>
         <li>
           <hr class="dropdown-divider" />

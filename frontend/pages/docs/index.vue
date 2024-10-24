@@ -1,9 +1,11 @@
 <script setup lang="ts">
 const { locale } = useI18n()
-const { data } = await useAsyncData('docs-home', () => queryContent( 'docs', locale.value).find())
+const { data } = await useAsyncData('docs-home', () => queryContent('docs', locale.value).find())
+const localePath = useLocalePath()
 
 onBeforeMount(() => {
-    navigateTo(data?.value?.[0]?._path)
+    const path = data.value![0]!._path!.replace(`/${locale.value}/`, '/')
+    navigateTo(localePath(path))
 })
 </script>
 

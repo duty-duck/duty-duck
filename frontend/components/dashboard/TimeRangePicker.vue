@@ -9,6 +9,9 @@ import { OnClickOutside } from '@vueuse/components'
 const isOpen = ref(false);
 
 const range = defineModel<TimeRange>({ required: true });
+watch(range, () => {
+    isOpen.value = false;
+});
 </script>
 
 <template>

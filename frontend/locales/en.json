@@ -323,5 +323,6 @@
     "blog": {
         "title": "Blog",
         "readMore": "Read more"
-    }
+    },
+    "language": "Language"
 }

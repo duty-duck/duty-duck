@@ -2,7 +2,7 @@
 const localePath = useLocalePath();
 </script>
 <template>
-    <footer class="bg-dark py-5">
+    <footer>
         <BContainer>
             <div class="row row-gap-5">
                 <div class="footer-col">
@@ -12,6 +12,12 @@ const localePath = useLocalePath();
                         </div>
                         <h5>Duty Duck</h5>
                     </div>
+                    <p class="copyright">
+                        &copy; {{ new Date().getFullYear() }} Duty Duck<br />
+                        Rue Foo Bar<br>
+                        28000 Chartres<br>
+                        France
+                    </p>
                 </div>
                 <div class="footer-col">
                     <h5 class="text-secondary">Product</h5>
@@ -38,6 +44,10 @@ const localePath = useLocalePath();
 $img-height: 50px;
 
 footer {
+    @extend .bg-dark;
+    padding-top: 2rem;
+    padding-bottom: 5rem;
+
     #footer-brand {
         color: white;
         width: 100%;
@@ -58,6 +68,11 @@ footer {
         }
     }
 
+    .copyright {
+        @extend .text-secondary;
+        font-size: .8rem;
+    }
+
     @include media-breakpoint-up(md) {
         #footer-brand {
             position: absolute;
@@ -69,6 +84,12 @@ footer {
             }
         }
 
+        .copyright {
+            position: absolute;
+            bottom: 0;
+            margin: 0;
+        }
+
     }
 
     .footer-col {
@@ -78,6 +99,7 @@ footer {
         gap: .25rem;
         position: relative;
         overflow: hidden;
+        padding-bottom: 1rem;
 
         a {
             color: $primary !important;

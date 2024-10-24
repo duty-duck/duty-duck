@@ -154,5 +154,6 @@ useIntervalFn(() => {
   position: sticky;
   top: 50px;
   z-index: 1;
+  flex-wrap: wrap;
 }
 </style>

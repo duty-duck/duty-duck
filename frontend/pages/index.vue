@@ -113,7 +113,7 @@ $sections-nav-height: 70px;
     justify-content: center;
     align-items: center;
     text-align: left;
-    min-height: calc(100vh - $sections-nav-height - $navbar-height);
+    min-height: calc(100vh - $sections-nav-height - $navbar-height - $settings-bar-height);
 
     @include media-breakpoint-up(md) {
         text-align: center;

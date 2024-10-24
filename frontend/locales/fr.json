@@ -338,5 +338,6 @@
     "blog": {
         "title": "Blog",
         "readMore": "Lire la suite"
-    }
+    },
+    "language": "Langue"
 }

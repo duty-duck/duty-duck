@@ -2,6 +2,11 @@
 import { createReusableTemplate } from '@vueuse/core';
 
 const { locale } = useI18n()
+const route = useRoute()
+const docPath = computed(() => {
+    const slug: string[] = route.params.slug as string[];
+    return ["docs", locale.value, ...slug].join('/')
+})
 const docsQuery = queryContent('docs', locale.value)
 const [DefineNavigation, ReuseNavigation] = createReusableTemplate()
 </script>
@@ -29,23 +34,22 @@ const [DefineNavigation, ReuseNavigation] = createReusableTemplate()
             </div>
             <div id="docs-content">
                 <BContainer>
-                    <BButton 
-                        variant="outline-primary"
-                        data-bs-toggle="offcanvas"
-                        data-bs-target="#docs-offcanvas"
-                        aria-controls="docs-offcanvas"
-                        aria-expanded="false"
-                        aria-label="Toggle navigation"
-                        class="icon-link mb-4 d-lg-none"
-                    >
+                    <BButton variant="outline-primary" data-bs-toggle="offcanvas" data-bs-target="#docs-offcanvas"
+                        aria-controls="docs-offcanvas" aria-expanded="false" aria-label="Toggle navigation"
+                        class="icon-link mb-4 d-lg-none">
                         <Icon name="ph:list-bold" />
                         Menu
                     </BButton>
-                    <ContentDoc v-slot="{ doc }">
-                        <article>
+                    <ContentDoc :path="docPath">
+                        <template v-slot:empty="{ doc }">
                             <h1>{{ doc.title }}</h1>
-                            <ContentRenderer :value="doc" />
-                        </article>
+                        </template>
+                        <template v-slot="{ doc }">
+                            <article>
+                                <h1>{{ doc.title }}</h1>
+                                <ContentRenderer :value="doc" />
+                            </article>
+                        </template>
                     </ContentDoc>
                 </BContainer>
             </div>
@@ -68,6 +72,7 @@ const [DefineNavigation, ReuseNavigation] = createReusableTemplate()
     border-right: 1px solid var(--bs-gray-200);
     overflow-y: auto;
     padding-top: 1rem;
+    min-width: 250px;
 
     @include media-breakpoint-up(lg) {
         display: block;

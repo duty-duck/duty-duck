@@ -5,8 +5,10 @@ const eta = new Eta();
 
 export default defineEventHandler(async () => {
     const config = useRuntimeConfig()
-    const template = await useStorage('assets:templates').getItem(`firebase-messaging-sw.js.eta`);
-    const res = eta.renderString(template, {
+    const template = await useStorage('assets:templates').getItemRaw(`firebase-messaging-sw.js.eta`);
+    const decodedTemplate = new TextDecoder().decode(template);
+
+    const res = eta.renderString(decodedTemplate, {
         config: config.public
     })
     return new Response(res, {

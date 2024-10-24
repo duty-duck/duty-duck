@@ -28,8 +28,18 @@ export default defineNuxtConfig({
 
   routeRules: {
     // These pages are rendered on the client only because they use the Keycloak SDK
-    '/en/dashboard/**': { ssr: false },
     '/dashboard/**': { ssr: false },
+    '/en/dashboard/**': { ssr: false },
+    '/invitationCallback/**': { ssr: false },
+    '/en/invitationCallback/**': { ssr: false },
+
+    // Pre-render the docs pages
+    '/docs/**': { prerender: true },
+    '/en/docs/**': { prerender: true },
+
+    // Pre-render the home page
+    '/': { prerender: true },
+    '/en': { prerender: true },
   },
 
   runtimeConfig: {
