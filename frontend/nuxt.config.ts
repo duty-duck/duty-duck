@@ -13,6 +13,19 @@ export default defineNuxtConfig({
     }
   },
 
+  app: {
+    head: {
+      charset: 'utf-8',
+      viewport: 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0',
+    }
+  },
+
+  nitro: {
+    serverAssets: [
+      { baseName: 'templates', dir: resolve(__dirname, "assets", "templates") }
+    ]
+  },
+
   routeRules: {
     // These pages are rendered on the client only because they use the Keycloak SDK
     '/en/dashboard/**': { ssr: false },
@@ -86,7 +99,7 @@ export default defineNuxtConfig({
       display: 'standalone',
       orientation: 'portrait',
       theme_color: '#5FAB3C',
-      background_color: '#5FAB3C',
+      background_color: '#F8F9FC',
       "icons": [
         {
           "src": "windows11/SmallTile.scale-100.png",

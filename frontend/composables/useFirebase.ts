@@ -1,6 +1,5 @@
-import { initializeApp, type FirebaseApp, type FirebaseOptions } from "firebase/app";
+import { initializeApp, type FirebaseApp } from "firebase/app";
 import { getMessaging, getToken as getFirebaseToken, onMessage as firebaseOnMessage, type MessagePayload } from "firebase/messaging";
-import serviceWorkerUrl from "@/assets/firebase-messaging-sw.js?worker&url";
 import { createSharedComposable } from "@vueuse/core";
 
 // TODO: Add SDKs for Firebase products that you want to use
@@ -56,10 +55,9 @@ export const useFirebaseMessaging = createSharedComposable(() => {
         const { public: { firebaseVapidKey } } = useRuntimeConfig();
         token.value = "loading";
         try {
-            const absServiceWorkerUrl = new URL(serviceWorkerUrl, document.baseURI).href
-            const serviceWorkerUrlWithConfig = new URL(`/api/injectConfig?url=${encodeURIComponent(absServiceWorkerUrl)}`, document.baseURI).href;
-            console.log("Registering service worker at:", serviceWorkerUrlWithConfig);
-            const serviceWorkerRegistration = await navigator.serviceWorker.register(serviceWorkerUrlWithConfig, { type: 'module' });
+            const serviceWorkerURL = new URL("/firebase-messaging-sw", document.baseURI).href
+            console.log("Registering service worker at:", serviceWorkerURL);
+            const serviceWorkerRegistration = await navigator.serviceWorker.register(serviceWorkerURL, { type: 'classic' });
             const res = await getFirebaseToken(messaging, { vapidKey: firebaseVapidKey, serviceWorkerRegistration }) || null;
             if (res) {
                 console.log("Push notification token:", res);

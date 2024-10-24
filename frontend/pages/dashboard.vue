@@ -6,6 +6,13 @@ const breakpoints = useBreakpoints(breakpointsBootstrapV5);
 const lgOrLarger = breakpoints.greaterOrEqual("lg");
 const messageHandler = useFirebaseMessageHandler();
 const firebaseMessaging = useFirebaseMessaging();
+const showOffcanvas = ref(false);
+const route = useRoute();
+
+// Close offcanvas when route changes
+watch(route, () => {
+  showOffcanvas.value = false;
+});
 
 onBeforeMount(() => {
   // Register message handler
@@ -14,14 +21,10 @@ onBeforeMount(() => {
 </script>
 
 <template>
-  <div class="offcanvas offcanvas-start" tabindex="-1" id="dashboard-offcanvas">
-    <div class="offcanvas-header">
-      <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
-    </div>
-    <div class="offcanvas-body">
-      <DashboardDynamicSidebar v-if="!lgOrLarger" />
-    </div>
-  </div>
+  <BOffcanvas v-model="showOffcanvas" placement="start" v-if="!lgOrLarger" body-class="offcanvas-body-container">
+    <DashboardSidebarBrand />
+    <DashboardDynamicSidebar v-if="!lgOrLarger" />
+  </BOffcanvas>
   <div class="container-fluid g-0">
     <div class="row g-0">
       <div class="d-none d-lg-block d-flex sticky-top" id="dashboard-sidebar">
@@ -33,8 +36,7 @@ onBeforeMount(() => {
       <div class="col">
         <nav class="navbar navbar-expand sticky-top" id="dashboard-navbar">
           <div class="container-fluid">
-            <button class="navbar-toggler d-block d-lg-none" type="button" data-bs-toggle="offcanvas"
-              data-bs-target="#dashboard-offcanvas" aria-controls="dashboard-offcanvas" aria-expanded="false"
+            <button class="navbar-toggler d-block d-lg-none" type="button" @click="showOffcanvas = true"
               aria-label="Toggle navigation">
               <span class="navbar-toggler-icon"></span>
             </button>
@@ -53,6 +55,13 @@ onBeforeMount(() => {
 
 <style lang="scss">
 @import "~/assets/main.scss";
+
+.offcanvas-body-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 30px;
+}
 
 .page-enter-active,
 .page-leave-active {
@@ -97,6 +106,7 @@ onBeforeMount(() => {
 
 #dashboard-navbar {
   height: $navbar-height;
+  @include blurry-gray-background;
 
   #auth-menu {
     height: $navbar-height;

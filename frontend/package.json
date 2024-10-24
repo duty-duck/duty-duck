@@ -31,6 +31,7 @@
     "bootstrap": "^5.3.3",
     "bootstrap-vue-next": "0.24.22",
     "dataloader": "^2.2.2",
+    "eta": "^3.5.0",
     "firebase": "^10.13.0",
     "humanize-duration": "^3.32.1",
     "intl-tel-input": "^23.8.1",

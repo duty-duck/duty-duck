@@ -91,65 +91,68 @@ useIntervalFn(() => {
 </script>
 
 <template>
-  <div>
-    <BContainer>
-      <BBreadcrumb>
-        <BBreadcrumbItem :to="localePath('/dashboard')">{{
-          $t("dashboard.mainSidebar.home")
-        }}</BBreadcrumbItem>
-        <BBreadcrumbItem active>{{
-          $t("dashboard.mainSidebar.incidents")
-        }}</BBreadcrumbItem>
-      </BBreadcrumb>
-      <h2>{{ $t("dashboard.incidents.pageTitle") }}</h2>
-      <div class="small text-secondary mb-2">
+  <BContainer>
+    <BBreadcrumb>
+      <BBreadcrumbItem :to="localePath('/dashboard')">{{
+        $t("dashboard.mainSidebar.home")
+      }}</BBreadcrumbItem>
+      <BBreadcrumbItem active>{{
+        $t("dashboard.mainSidebar.incidents")
+      }}</BBreadcrumbItem>
+    </BBreadcrumb>
+    <h2>{{ $t("dashboard.incidents.pageTitle") }}</h2>
+    <div class="small text-secondary mb-2">
+      {{
+        $t(
+          "dashboard.incidents.totalIncidentCount",
+          data?.totalNumberOfResults || 0
+        )
+      }}, {{ $t("dashboard.incidents.itemsPerPage", 10) }}
+      <span v-if="hiddenIncidentsCount != 0">
+        ,
         {{
           $t(
-            "dashboard.incidents.totalIncidentCount",
-            data?.totalNumberOfResults || 0
+            "dashboard.incidents.filteredIncidentCount",
+            hiddenIncidentsCount
           )
-        }}, {{ $t("dashboard.incidents.itemsPerPage", 10) }}
-        <span v-if="hiddenIncidentsCount != 0">
-          ,
-          {{
-            $t(
-              "dashboard.incidents.filteredIncidentCount",
-              hiddenIncidentsCount
-            )
-          }}
-        </span>
-      </div>
-    </BContainer>
-    <nav class="filtering-bar flex-column flex-md-row gap-2 mb-4 py-3 container">
+        }}
+      </span>
+    </div>
+    <nav class="filtering-bar d-flex gap-2 mb-4 py-3">
+      <BButton class="flex-shrink-0 icon-link" variant="outline-secondary" @click="onClearFilters">
+        <Icon size="1.3rem" name="ph:funnel-simple-x-bold" />
+      </BButton>
       <DashboardTimeRangePicker v-model="timeRange" />
       <IncidentStatusDropdown v-model="includeStatuses" />
-      <BButton class="flex-shrink-0 icon-link" variant="outline-secondary" @click="onClearFilters">
-        <Icon name="ph:x-square-fill" />
-        {{ $t("dashboard.incidents.clearFilters") }}
-      </BButton>
     </nav>
-    <BContainer>
-      <div v-if="data?.totalNumberOfResults == 0" class="text-secondary text-center my-5">
-        <Icon name="ph:seal-check-duotone" size="120px" />
-        <h3>{{ $t("dashboard.incidents.emptyPage.title") }}</h3>
-        <p class="lead">
-          {{ $t("dashboard.incidents.emptyPage.text") }}
-        </p>
-      </div>
-      <IncidentTableView v-if="data" :incidents="data!.items" />
-      <BPagination v-model="pageNumber" v-if="data?.totalNumberOfFilteredResults! > 10"
-        :prev-text="$t('pagination.prev')" :next-text="$t('pagination.next')"
-        :total-rows="data?.totalNumberOfFilteredResults" :per-page="10" />
-    </BContainer>
-  </div>
+    <div v-if="data?.totalNumberOfResults == 0" class="text-secondary text-center my-5">
+      <Icon name="ph:seal-check-duotone" size="120px" />
+      <h3>{{ $t("dashboard.incidents.emptyPage.title") }}</h3>
+      <p class="lead">
+        {{ $t("dashboard.incidents.emptyPage.text") }}
+      </p>
+    </div>
+    <IncidentTableView v-if="data" :incidents="data!.items" />
+    <BPagination
+      v-model="pageNumber"
+      v-if="data?.totalNumberOfFilteredResults! > 10"
+      :prev-text="$t('pagination.prev')"
+      pills
+      :next-text="$t('pagination.next')"
+      :total-rows="data?.totalNumberOfFilteredResults"
+      :per-page="10"
+    />
+  </BContainer>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
+@import "~/assets/main.scss";
+
 .filtering-bar {
+  @include blurry-gray-background;
   display: flex;
   position: sticky;
   top: 50px;
   z-index: 1;
-  backdrop-filter: blur(10px);
 }
 </style>

@@ -15,7 +15,7 @@ export const useServer$fetch = async () => {
                 options.headers.set("Authorization", `Bearer ${keycloakState.accessToken.raw}`);
             } else {
                 console.error("No access token found in keycloak state. Cannot fetch protected data");
-                throw new Error("No access token found in keycloak state. Cannot fetch protected data");
+                await keycloak.login();
             }
         }
     })
@@ -29,9 +29,14 @@ export const useServer$fetch = async () => {
 // @ts-ignore
 export const useServerFetch: typeof useFetch = async (request, opts?) => {
     const fetch = await useServer$fetch();
+    const keycloak = await useKeycloak();
 
-    return useFetch(request, { $fetch: fetch, ...opts }).then(result => {
+    return useFetch(request, { $fetch: fetch, ...opts }).then(async result => {
         if (result.error.value) {
+            if (result.error.value.statusCode === 401) {
+                await keycloak.login();
+            }
+
             console.error("Fetch failed. Request:", request, "Error:", result.error.value);
             throw createError({
                 statusMessage: "Fetch failed",

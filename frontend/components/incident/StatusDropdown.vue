@@ -11,10 +11,10 @@ const model = defineModel<IncidentStatus[]>();
 </script>
 
 <template>
-    <BDropdown variant="outline-secondary">
+    <BDropdown variant="outline-secondary" toggle-class="d-flex align-items-center gap-1">
         <template #button-content>
-            <Icon name="ph:funnel-fill" />
-            {{ $t('dashboard.incidents.filterByStatus') }}
+            <Icon name="ph:funnel" size="1.3rem" />
+            {{ $t('dashboard.incidents.status') }}
             <span v-if="model!.length < allStatuses.length">({{ model?.length }})</span>
         </template>
         <BDropdownItem v-for="s in allStatuses">

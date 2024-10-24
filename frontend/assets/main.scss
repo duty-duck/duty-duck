@@ -1,3 +1,4 @@
+$page-background: #F8F9FC;
 $primary: #6ab04c;
 $success: #02924f;
 $info: #22a6b3;
@@ -15,9 +16,14 @@ $navbar-height: 50px;
   font-weight: 900;
 }
 
+@mixin blurry-gray-background {
+  backdrop-filter: blur(10px);
+  background-color: rgba($page-background, 0.6);
+}
+
 
 body {
-  background-color: #F8F9FC;
+  background-color: $page-background;
   overflow-x: hidden;
   min-height: 100vh;
 }
@@ -33,4 +39,9 @@ body {
 .nav.nav-pills.nav-light {
   --bs-nav-pills-link-active-bg: var(--bs-primary-bg-subtle);
   --bs-nav-pills-link-active-color: var(--bs-primary);
+}
+
+.pagination {
+  flex-wrap: wrap;
+  row-gap: .5rem;
 }

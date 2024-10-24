@@ -26,7 +26,14 @@ const onClearFilters = () => {
 </script>
 
 <template>
-  <nav class="filtering-bar flex-column flex-md-row gap-2 py-3 container">
+  <nav class="filtering-bar d-flex gap-2 py-3">
+    <BButton
+      variant="outline-secondary"
+      @click="onClearFilters"
+      class="d-flex align-items-center"
+    >
+      <Icon size="1.3rem" name="ph:funnel-simple-x-bold" />
+    </BButton>
     <HttpMonitorStatusDropdown
       :model-value="includeStatuses"
       @update:model-value="onIncludeStatusChange"
@@ -37,23 +44,18 @@ const onClearFilters = () => {
       @input="onQueryChange"
       :placeholder="$t('dashboard.monitors.search')"
     />
-    <BButton
-      class="flex-shrink-0 icon-link"
-      variant="outline-secondary"
-      @click="onClearFilters"
-    >
-      <Icon name="ph:x-square-fill" />
-      {{ $t("dashboard.monitors.clearFilters") }}
-    </BButton>
+
   </nav>
 </template>
 
 <style lang="scss" scoped>
+@import "~/assets/main.scss";
+
 .filtering-bar {
+  @include blurry-gray-background;
   display: flex;
   position: sticky;
   top: 50px;
   z-index: 1;
-  backdrop-filter: blur(10px);
 }
 </style>
