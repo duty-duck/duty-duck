@@ -92,6 +92,7 @@ useIntervalFn(() => {
         </span>
       </div>
     </BContainer>
+    <HttpMonitorFilteringBar v-model:includeStatuses="includeStatuses" v-model:query="query" @clear-filters="onClearFilters" />
     <div v-if="data?.totalNumberOfResults == 0" class="text-secondary text-center my-5">
       <Icon name="ph:pulse-duotone" size="120px" />
       <h3>{{ $t("dashboard.monitors.emptyPage.title") }}</h3>
@@ -109,7 +110,6 @@ useIntervalFn(() => {
       <BButton variant="outline-secondary" @click="onClearFilters">{{ $t("dashboard.monitors.clearFilters") }}</BButton>
     </div>
     <BContainer v-else class="d-grid row-gap-3">
-      <HttpMonitorFilteringBar v-model:includeStatuses="includeStatuses" v-model:query="query" @clear-filters="onClearFilters" />
       <HttpMonitorCard v-for="monitor in data?.items" :key="monitor.id" :monitor="monitor" animated />
       <BPagination v-if="data?.totalNumberOfFilteredResults! > 10" v-model="pageNumber"
         :prev-text="$t('pagination.prev')" :next-text="$t('pagination.next')"

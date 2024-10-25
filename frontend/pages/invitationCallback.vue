@@ -5,7 +5,7 @@ import { useRoute } from "vue-router";
 import { type AcceptInvitationCommand } from "bindings/AcceptInvitationCommand";
 
 const localePath = useLocalePath();
-const auth = await useAuth();
+const keycloak = await useKeycloak();
 const repo = await usePublicInvitationRepository();
 
 const { organizationId, invitationId } = useRoute().query;
@@ -71,6 +71,12 @@ const onReject = async () => {
         invitationState.value = 'error';
     }
 }
+
+onMounted(async () => {
+    if (keycloak.keycloakState.value) {
+        await keycloak.logout();
+    }
+});
 </script>
 
 <template>
@@ -126,7 +132,7 @@ const onReject = async () => {
         </BCard>
         <BCard title="Invitation accepted" v-else-if="invitationState === 'accepted'">
             <p>You have accepted the invitation to join the organization {{ invitation?.organization.displayName }}.</p>
-            <NuxtLink :to="localePath('/dashboard')" @click="auth.userProfile ? auth.logout() : null">Go to dashboard</NuxtLink>
+            <NuxtLink :to="localePath('/dashboard')">Go to dashboard</NuxtLink>
         </BCard>
         <BCard title="Invitation rejected" v-else-if="invitationState === 'rejected'">
             <p>You have rejected the invitation to join the organization {{ invitation?.organization.displayName }}.</p>
