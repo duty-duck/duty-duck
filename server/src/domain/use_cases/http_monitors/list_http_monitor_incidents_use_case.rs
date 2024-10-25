@@ -3,15 +3,24 @@ use uuid::Uuid;
 use crate::domain::{
     entities::{
         authorization::{AuthContext, Permission},
-        incident::{IncidentPriority, IncidentSource, IncidentStatus},
+        incident::{IncidentPriority, IncidentSource, IncidentStatus, IncidentWithUsers},
     },
-    ports::incident_repository::{IncidentRepository, ListIncidentsOpts, ListIncidentsOutput},
-    use_cases::{incidents::{ListIncidentsError, ListIncidentsParams, ListIncidentsResponse, OrderIncidentsBy}, shared::OrderDirection},
+    ports::{
+        incident_repository::{IncidentRepository, ListIncidentsOpts, ListIncidentsOutput},
+        user_repository::UserRepository,
+    },
+    use_cases::{
+        incidents::{
+            enrich_incidents_with_users, ListIncidentsError, ListIncidentsParams, ListIncidentsResponse, OrderIncidentsBy
+        },
+        shared::OrderDirection,
+    },
 };
 
 pub async fn list_http_monitor_incidents(
     auth_context: &AuthContext,
-    repository: &impl IncidentRepository,
+    incident_repository: &impl IncidentRepository,
+    user_repository: &impl UserRepository,
     monitor_id: Uuid,
     params: ListIncidentsParams,
 ) -> Result<ListIncidentsResponse, ListIncidentsError> {
@@ -23,13 +32,13 @@ pub async fn list_http_monitor_incidents(
     let page_number = params.page_number.unwrap_or(1);
     let include_statuses = params.status.unwrap_or(IncidentStatus::ALL.to_vec());
     let include_priorities = params.priority.unwrap_or(IncidentPriority::ALL.to_vec());
-    let mut tx = repository.begin_transaction().await?;
+    let mut tx = incident_repository.begin_transaction().await?;
 
     let ListIncidentsOutput {
         incidents,
         total_filtered_incidents,
         total_incidents,
-    } = repository
+    } = incident_repository
         .list_incidents(
             &mut tx,
             auth_context.active_organization_id,
@@ -46,8 +55,9 @@ pub async fn list_http_monitor_incidents(
             },
         )
         .await?;
+
     Ok(ListIncidentsResponse {
-        items: incidents,
+        items: enrich_incidents_with_users(incidents, user_repository).await?,
         total_number_of_filtered_results: total_filtered_incidents,
         total_number_of_results: total_incidents,
     })

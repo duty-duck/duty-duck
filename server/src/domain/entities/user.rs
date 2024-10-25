@@ -4,6 +4,7 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use thiserror::*;
 use ts_rs::TS;
+use utoipa::ToSchema;
 use uuid::Uuid;
 use veil::Redact;
 
@@ -20,6 +21,21 @@ pub struct User {
     pub phone_number_verified: bool,
     #[ts(skip)]
     pub phone_number_otp: Option<UserPhoneOTP>,
+}
+
+#[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct UserNameInfo {
+    pub id: Uuid,
+    pub first_name: String,
+    pub last_name: String,
+}
+
+impl From<User> for UserNameInfo {
+    fn from(user: User) -> Self {
+        Self { id: user.id, first_name: user.first_name, last_name: user.last_name }
+    }
 }
 
 /// Used to verify a phone number

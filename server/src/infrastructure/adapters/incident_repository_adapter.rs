@@ -163,16 +163,23 @@ impl IncidentRepository for IncidentRepositoryAdapter {
             "
                 SELECT i.*, COUNT(i.id) OVER () as filtered_count from incidents i
                 WHERE organization_id = $1 
+                -- Filter by status
                 AND status IN (SELECT unnest($2::integer[]))
+
+                -- Filter by priority
                 AND priority IN (SELECT unnest($3::integer[]))
+
                 -- Filter by http monitor ids
                 AND (
                    $7::uuid[] = '{{}}' OR
                    (i.incident_source_type = $6 AND i.incident_source_id = ANY($7::uuid[]))
                 )
-                -- Filter by date
-                AND ($8::timestamptz IS NULL OR i.created_at >= $8::timestamptz)
-                AND ($9::timestamptz IS NULL OR i.created_at <= $9::timestamptz)
+
+                -- Filter by date (ongoing incidents are always returned)
+                AND (
+                    i.status = 1 OR
+                    ($8::timestamptz IS NULL OR i.created_at >= $8::timestamptz) AND ($9::timestamptz IS NULL OR i.created_at <= $9::timestamptz)
+                )
                 ORDER BY {} {}
                 LIMIT $4 OFFSET $5
             ",

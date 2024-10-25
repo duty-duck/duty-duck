@@ -57,6 +57,7 @@ async fn list_incidents_handler(
     match incidents::list_incidents(
         &auth_context,
         &app_state.adapters.incident_repository,
+        &app_state.adapters.user_repository,
         params,
     )
     .await
@@ -89,6 +90,7 @@ async fn get_incident_handler(
     match incidents::get_incident(
         &auth_context,
         &app_state.adapters.incident_repository,
+        &app_state.adapters.user_repository,
         incident_id,
     )
     .await

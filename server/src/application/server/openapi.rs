@@ -17,6 +17,7 @@ use crate::domain::{
     components(schemas(
         ListIncidentsResponse,
         Incident,
+        IncidentWithUsers,
         IncidentCause,
         IncidentStatus,
         IncidentPriority,

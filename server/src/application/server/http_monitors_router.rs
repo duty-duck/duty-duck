@@ -73,6 +73,7 @@ async fn get_http_monitor_incidents_handler(
     match http_monitors::list_http_monitor_incidents(
         &auth_context,
         &app_state.adapters.incident_repository,
+        &app_state.adapters.user_repository,
         monitor_id,
         params,
     )

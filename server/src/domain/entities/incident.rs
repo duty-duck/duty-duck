@@ -5,7 +5,7 @@ use ts_rs::TS;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-use super::http_monitor::HttpMonitorErrorKind;
+use super::{http_monitor::HttpMonitorErrorKind, user::UserNameInfo};
 
 /// The base struct used by all incident types
 #[derive(Serialize, Deserialize, TS, Debug, Clone, FromRow, ToSchema)]
@@ -24,6 +24,17 @@ pub struct Incident {
     pub incident_source_type: IncidentSourceType,
     pub incident_source_id: Uuid,
     pub acknowledged_by: Vec<Uuid>,
+}
+
+#[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct IncidentWithUsers {
+    #[serde(flatten)]
+    #[ts(flatten)]
+    pub incident: Incident,
+    pub created_by: Option<UserNameInfo>,
+    pub acknowledged_by: Vec<UserNameInfo>,
 }
 
 #[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]

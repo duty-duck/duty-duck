@@ -5,13 +5,19 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::domain::{
-    entities::{authorization::{AuthContext, Permission}, incident::Incident}, ports::incident_repository::IncidentRepository,
+    entities::{
+        authorization::{AuthContext, Permission},
+        incident::{IncidentWithUsers},
+    },
+    ports::{incident_repository::IncidentRepository, user_repository::UserRepository},
 };
+
+use super::enrich_incident_with_users;
 
 #[derive(Debug, Serialize, TS, ToSchema)]
 #[ts(export)]
 pub struct GetIncidentResponse {
-    pub incident: Incident,
+    pub incident: IncidentWithUsers,
 }
 
 #[derive(Error, Debug)]
@@ -26,16 +32,26 @@ pub enum GetIncidentError {
 
 pub async fn get_incident(
     auth_context: &AuthContext,
-    repository: &impl IncidentRepository,
+    incident_repository: &impl IncidentRepository,
+    user_repository: &impl UserRepository,
     incident_id: Uuid,
 ) -> anyhow::Result<GetIncidentResponse, GetIncidentError> {
     if !auth_context.can(Permission::ReadIncidents) {
         return Err(GetIncidentError::Forbidden);
     }
 
-    let mut transaction = repository.begin_transaction().await?;
-    match repository.get_incident(&mut transaction, auth_context.active_organization_id, incident_id).await? {
-        Some(incident) => Ok(GetIncidentResponse { incident }),
+    let mut transaction = incident_repository.begin_transaction().await?;
+    match incident_repository
+        .get_incident(
+            &mut transaction,
+            auth_context.active_organization_id,
+            incident_id,
+        )
+        .await?
+    {
+        Some(incident) => Ok(GetIncidentResponse {
+            incident: enrich_incident_with_users(incident, user_repository).await?,
+        }),
         None => Err(GetIncidentError::IncidentNotFound),
     }
 }
