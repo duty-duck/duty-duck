@@ -13,20 +13,18 @@ const colors = [
     "#cc8e35",
     "#ccae62"
 ];
-const props = withDefaults(defineProps<{ firstName?: string, lastName?: string, size?: string, fontSize?: string, showTooltip?: boolean }>(), {
-    fontSize: '.7rem',
-    size: '1.5rem'
-})
+const { fontSize = '.7rem', size = '1.5rem', showTooltip = true, user } =
+    defineProps<{ fontSize?: string, size?: string, showTooltip?: boolean, user?: { firstName: string, lastName: string } }>();
+
 const auth = await useAuth();
-const firstName = computed(() => props.firstName ?? auth.userProfile.user.firstName);
-const lastName = computed(() => props.lastName ?? auth.userProfile.user.lastName);
-const color = computed(() => colors[(firstName.value.length + lastName.value.length) % colors.length]);
+const userObj = computed(() => user ?? auth.userProfile.user);
+const color = computed(() => colors[(userObj.value.firstName.length + userObj.value.lastName.length) % colors.length]);
 </script>
 
 <template>
     <div class="d-flex align-items-center justify-content-center"
-        v-b-tooltip.hover.top="props.showTooltip ? `${firstName} ${lastName}` : undefined"
-        :style="{ height: props.size, width: props.size, borderRadius: '50%', backgroundColor: color, color: 'white', fontSize: props.fontSize }">
-        {{ firstName[0] }}{{ lastName[0] }}
+        v-b-tooltip.hover.top="showTooltip ? `${userObj.firstName} ${userObj.lastName}` : undefined"
+        :style="{ height: size, width: size, borderRadius: '50%', backgroundColor: color, color: 'white', fontSize: fontSize }">
+        {{ userObj.firstName[0] }}{{ userObj.lastName[0] }}
     </div>
 </template>

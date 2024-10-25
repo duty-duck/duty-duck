@@ -24,7 +24,7 @@ const acknowledgeIncident = async () => {
 }
 
 const acknowledgedByCurrentUser = computed(() => {
-  return incidentRes.value?.incident.acknowledgedBy.some(user => user.id === userProfile.value?.id);
+  return incidentRes.value?.incident.acknowledgedBy.some(user => user.id === userProfile.user.id);
 });
 
 const now = useNow();

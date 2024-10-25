@@ -25,7 +25,7 @@ const state = reactive({
   },
 });
 
-const isStrongPassword = usePasswordValidator(
+const isStrongPassword = await usePasswordValidator(
   computed(() => [state.firstName, state.lastName])
 );
 
@@ -35,8 +35,8 @@ watch(
     // if the e-mail is equal to the original e-mail (i.e. the user did not edit their e-mail),
     // then the e-mail confirmation must also be equal to original e-mail
     // also, notice that the e-mail confirmation input is only displayed when the e-mail is edited
-    if (email == userInfo.email) {
-      state.emailConfirmation = userInfo.email;
+    if (email == userProfile.value!.user.email) {
+      state.emailConfirmation = userProfile.value!.user.email;
     }
   }
 );

@@ -1,44 +1,19 @@
 <script lang="ts" setup>
 import { useIntervalFn } from "@vueuse/core";
+import { useRouteQuery } from "@vueuse/router";
 import type { IncidentStatus } from "bindings/IncidentStatus";
 import type { ListIncidentsParams } from "bindings/ListIncidentsParams";
-import type { TimeRange } from "~/components/dashboard/TimeRangePicker.vue";
+import type { OrderDirection } from "bindings/OrderDirection";
+import type { OrderIncidentsBy } from "bindings/OrderIncidentsBy";
 import { allStatuses } from "~/components/incident/StatusDropdown.vue";
 
 const localePath = useLocalePath();
 
-const route = useRoute();
-
-const pageNumber = computed({
-  get() {
-    return route.query.page ? Number(route.query.page) : 1
-  },
-  set(value: number) {
-    navigateTo({
-      query: { page: value, statuses: includeStatuses.value, timeRange: timeRange.value },
-    });
-  }
-});
-
-const timeRange = computed<TimeRange | null>({
-  get() {
-    // no filtering if the timeRange query param is explicitly set to null
-    // keep only the last 7 days as default
-    return route.query.timeRange == "null" ? null : (route.query.timeRange as TimeRange ?? "-7d");
-  },
-  set(value: TimeRange) {
-    navigateTo({ query: { pageNumber: pageNumber.value, statuses: includeStatuses.value, timeRange: value ?? "null" } });
-  }
-});
-
-const includeStatuses = computed<IncidentStatus[]>({
-  get() {
-    return route.query.statuses ? (route.query.statuses as IncidentStatus[]) : ["ongoing"];
-  },
-  set(value: IncidentStatus[]) {
-    navigateTo({ query: { pageNumber: pageNumber.value, statuses: value, timeRange: timeRange.value } });
-  }
-});
+const pageNumber = useRouteQuery("pageNumber", 1, { transform: Number });
+const timeRange = useTimeRangeQuery();
+const includeStatuses = useRouteQuery<IncidentStatus[]>("statuses", ["ongoing"]);
+const orderBy = useRouteQuery<OrderIncidentsBy>("orderBy", "createdAt");
+const orderDirection = useRouteQuery<OrderDirection>("orderDirection", "desc");
 
 const fetchParams = computed<ListIncidentsParams>(() => {
   let fromDate = timeRange.value ? {
@@ -57,13 +32,15 @@ const fetchParams = computed<ListIncidentsParams>(() => {
     priority: null,
     itemsPerPage: 10,
     toDate: null,
-    fromDate: fromDate ? fromDate.toISOString() : null
+    fromDate: fromDate ? fromDate.toISOString() : null,
+    orderBy: orderBy.value,
+    orderDirection: orderDirection.value
   }
 });
 
 
 const repository = await useIncidentRepository();
-const { data, refresh } = await repository.useIncidents(fetchParams);
+const { data, refresh, status } = await repository.useIncidents(fetchParams);
 
 
 const onClearFilters = () => {
@@ -95,10 +72,10 @@ useIntervalFn(() => {
     <BBreadcrumb>
       <BBreadcrumbItem :to="localePath('/dashboard')">{{
         $t("dashboard.mainSidebar.home")
-      }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
       <BBreadcrumbItem active>{{
         $t("dashboard.mainSidebar.incidents")
-      }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
     </BBreadcrumb>
     <h2>{{ $t("dashboard.incidents.pageTitle") }}</h2>
     <div class="small text-secondary mb-2">
@@ -118,42 +95,27 @@ useIntervalFn(() => {
         }}
       </span>
     </div>
-    <nav class="filtering-bar d-flex gap-2 mb-4 py-3">
-      <BButton class="flex-shrink-0 icon-link" variant="outline-secondary" @click="onClearFilters">
-        <Icon size="1.3rem" name="ph:funnel-simple-x-bold" />
-      </BButton>
-      <DashboardTimeRangePicker v-model="timeRange" />
-      <IncidentStatusDropdown v-model="includeStatuses" />
-    </nav>
-    <div v-if="data?.totalNumberOfResults == 0" class="text-secondary text-center my-5">
+    <IncidentFilteringBar v-model:includeStatuses="includeStatuses" v-model:timeRange="timeRange"
+      v-model:orderBy="orderBy" v-model:orderDirection="orderDirection" @clearFilters="onClearFilters" />
+    <IncidentTableView v-if="data" :incidents="data!.items" />
+    <BSpinner v-if="status == 'pending'" />
+    <div v-else-if="data?.totalNumberOfResults == 0" class="text-secondary text-center my-5">
       <Icon name="ph:seal-check-duotone" size="120px" />
       <h3>{{ $t("dashboard.incidents.emptyPage.title") }}</h3>
       <p class="lead">
         {{ $t("dashboard.incidents.emptyPage.text") }}
       </p>
     </div>
-    <IncidentTableView v-if="data" :incidents="data!.items" />
-    <BPagination
-      v-model="pageNumber"
-      v-if="data?.totalNumberOfFilteredResults! > 10"
-      :prev-text="$t('pagination.prev')"
-      pills
-      :next-text="$t('pagination.next')"
-      :total-rows="data?.totalNumberOfFilteredResults"
-      :per-page="10"
-    />
+    <div v-else-if="data?.totalNumberOfFilteredResults == 0" class="text-secondary text-center my-5">
+      <Icon name="ph:seal-check-duotone" size="120px" />
+      <h3>{{ $t("dashboard.incidents.noResults.title") }}</h3>
+      <p class="lead">
+        {{ $t("dashboard.incidents.noResults.text") }}
+      </p>
+      <BButton variant="outline-secondary" @click="onClearFilters">{{ $t("dashboard.incidents.clearFilters") }}
+      </BButton>
+    </div>
+    <BPagination v-model="pageNumber" v-if="data?.totalNumberOfFilteredResults! > 10" :prev-text="$t('pagination.prev')"
+      pills :next-text="$t('pagination.next')" :total-rows="data?.totalNumberOfFilteredResults" :per-page="10" />
   </BContainer>
 </template>
-
-<style lang="scss" scoped>
-@import "~/assets/main.scss";
-
-.filtering-bar {
-  @include blurry-gray-background;
-  display: flex;
-  position: sticky;
-  top: 50px;
-  z-index: 1;
-  flex-wrap: wrap;
-}
-</style>

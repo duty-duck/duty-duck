@@ -1,18 +1,58 @@
 <script setup lang="ts">
-import type { HttpMonitor } from "bindings/HttpMonitor";
-import type { Incident } from "bindings/Incident";
-import type { ListIncidentsResponse } from "bindings/ListIncidentsResponse";
+import { useRouteQuery } from "@vueuse/router";
+import type { ListIncidentsParams } from "bindings/ListIncidentsParams";
+import type { OrderDirection } from "bindings/OrderDirection";
+import type { OrderIncidentsBy } from "bindings/OrderIncidentsBy";
+import type { ReadHttpMonitorResponse } from "bindings/ReadHttpMonitorResponse";
 
-const { onGoingIncident, incidents } = defineProps<{
-  monitor: HttpMonitor;
-  onGoingIncident: Incident | null;
-  incidents: ListIncidentsResponse | null
-}>();
 const localePath = useLocalePath();
-const currentTab = defineModel<"ongoing" | "history">("currentTab", { required: true });
+const repo = await useHttpMonitorRepository();
+const incidentPageNumber = useRouteQuery("incidentsPageNumber", 1, { transform: Number });
+const currentTab = useRouteQuery("incidentsCurrentTab", "ongoing" as "ongoing" | "history");
+const orderBy = useRouteQuery<OrderIncidentsBy>("orderBy", "createdAt");
+const orderDirection = useRouteQuery<OrderDirection>("orderDirection", "desc");
+const timeRange = useTimeRangeQuery();
+
+const incidentsParams = computed<ListIncidentsParams>(() => {
+  let fromDate = timeRange.value ? {
+    "-10m": new Date(Date.now() - 10 * 60 * 1000),
+    "-1h": new Date(Date.now() - 3600 * 1000),
+    "-6h": new Date(Date.now() - 6 * 3600 * 1000),
+    "-12h": new Date(Date.now() - 12 * 3600 * 1000),
+    "-24h": new Date(Date.now() - 24 * 3600 * 1000),
+    "-7d": new Date(Date.now() - 7 * 24 * 3600 * 1000),
+    "-30d": new Date(Date.now() - 30 * 24 * 3600 * 1000),
+  }[timeRange.value] : null;
+
+  return {
+    itemsPerPage: 5,
+    pageNumber: incidentPageNumber.value,
+    status: ["resolved"],
+    priority: null,
+    fromDate: fromDate ? fromDate.toISOString() : null,
+    toDate: null,
+    orderBy: orderBy.value,
+    orderDirection: orderDirection.value,
+  }
+});
+
+
+const { monitorResponse } = defineProps<{
+  monitorResponse: ReadHttpMonitorResponse;
+}>();
+
+const {
+  data: incidents,
+  refresh: refreshIncidents,
+} = await repo.useHttpMonitorIncidents(
+  monitorResponse.monitor.id,
+  incidentsParams,
+);
+
+
 const currentTabIndex = computed({
   get() {
-    if (!onGoingIncident) {
+    if (!monitorResponse.ongoingIncident) {
       return 1;
     }
     return currentTab.value == "ongoing" ? 0 : 1;
@@ -21,61 +61,83 @@ const currentTabIndex = computed({
     currentTab.value = tab == 0 ? "ongoing" : "history";
   }
 })
-const incidentsPageNumber = defineModel<number>("incidentsPageNumber", { required: true });
+
+const onClearFilters = () => {
+  navigateTo({
+    query: { pageNumber: incidentPageNumber.value, timeRange: "null" },
+  });
+}
+
+watch(
+  () => currentTab.value,
+  (tab) => {
+    if (tab == "history") {
+      incidentPageNumber.value = 1;
+      onClearFilters();
+      refreshIncidents();
+    }
+  },
+  { immediate: true }
+);
+
+defineExpose({
+  refreshIncidents,
+});
 </script>
 
 <template>
-  <BTabs v-model="currentTabIndex" pills>
-    <BTab :disabled="!onGoingIncident" lazy>
+  <BTabs v-model="currentTabIndex">
+    <BTab :disabled="!monitorResponse.ongoingIncident" lazy>
       <template #title>
         <span class="d-flex align-items-center">
           <Icon aria-label="Incident started at" name="ph:seal-warning" size="1.3rem" class="me-1" />
           {{ $t("dashboard.monitors.ongoingIncident") }}
         </span>
       </template>
-      <BCard v-if="onGoingIncident" class="mt-3">
-        <NuxtLink :to="localePath(`/dashboard/incidents/${onGoingIncident.id}`)" class="icon-link mb-3">
+      <div v-if="monitorResponse.ongoingIncident" class="mt-3">
+        <h4>
+          {{ $t("dashboard.monitors.ongoingIncident") }}
+        </h4>
+        <NuxtLink :to="localePath(`/dashboard/incidents/${monitorResponse.ongoingIncident.id}`)" class="icon-link mb-3">
           <Icon aria-hidden name="ph:arrow-up-right" size="1.3rem" />
           {{ $t("dashboard.incidents.goToIncident") }}
         </NuxtLink>
+
+        <h5>
+          {{ $t("dashboard.incidents.startOfIncident") }}
+        </h5>
+        {{ $d(new Date(monitorResponse.ongoingIncident.createdAt), "long") }}
         <p>
-          <h5>
-            {{ $t("dashboard.incidents.startOfIncident") }}
-          </h5>
-          {{ $d(new Date(onGoingIncident.createdAt), "long") }}
+        <h5>{{ $t("dashboard.incidents.rootCause") }}:</h5>
+        <IncidentCause :incident="monitorResponse.ongoingIncident" />
         </p>
-        <p>
-          <h5>{{ $t("dashboard.incidents.rootCause") }}:</h5>
-          <IncidentCause :incident="onGoingIncident" />
-        </p>
-        <LazyIncidentTimeline :incident-id="onGoingIncident.id" :show-comment-editor="false" />
-      </BCard>
+        <LazyIncidentTimeline :incident-id="monitorResponse.ongoingIncident.id" :show-comment-editor="false" />
+      </div>
     </BTab>
     <BTab class="px-0 pb-0">
       <template #title>
         <span class="d-flex align-items-center">
-          <Icon aria-label="Incident history" name="ph:clock-counter-clockwise" size="1.3rem" class="me-1"  />
+          <Icon aria-label="Incident history" name="ph:clock-counter-clockwise" size="1.3rem" class="me-1" />
           {{ $t("dashboard.monitors.incidentHistory") }}
         </span>
       </template>
-      <BCard class="mt-3" no-body >
-        <BListGroup flush class="mb-3">
-          <BListGroupItem href="#" v-for="i in incidents?.items" :key="i.id" :to="localePath(`/dashboard/incidents/${i.id}`)">
-            <span class="icon-link">
-              <Icon aria-label="Incident started at" name="ph:clock" />
-              {{ $d(new Date(i.createdAt), "long") }}
-            </span>
-            <p class="fw-semibold">
-              <HttpMonitorIncidentLabel :incident="i" />
-            </p>
-          </BListGroupItem>
-        </BListGroup>
-        <div class="px-3">
-          <BPagination v-model="incidentsPageNumber" :prev-text="$t('pagination.prev')" pills limit="10"
+      <div class="mt-3">
+        <h4>{{ $t("dashboard.monitors.incidentHistory") }}</h4>
+        <IncidentFilteringBar :shown-filters="['timeRange', 'orderBy']" @clear-filters="onClearFilters"
+          :include-statuses="['resolved']" v-model:time-range="timeRange" v-model:orderBy="orderBy"
+          v-model:orderDirection="orderDirection" />
+        <BCard v-if="incidents?.items.length == 0" class="text-center text-secondary py-5 mt-3">
+          <h5>{{ $t("dashboard.monitors.noIncident.title") }} 👍</h5>
+          <p>{{ $t("dashboard.monitors.noIncident.text") }}</p>
+        </BCard>
+        <div v-else class="mt-3">
+          <IncidentTableView :incidents="incidents?.items!"
+            :show-columns="['date', 'acknowledgedBy', 'status', 'rootCause']" />
+          <BPagination v-model="incidentPageNumber" :prev-text="$t('pagination.prev')" pills limit="10"
             :next-text="$t('pagination.next')" :total-rows="incidents?.totalNumberOfFilteredResults || 0"
             :per-page="10" />
         </div>
-      </BCard>
+      </div>
     </BTab>
   </BTabs>
 </template>

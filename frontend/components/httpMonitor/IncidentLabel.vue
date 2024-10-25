@@ -1,8 +1,8 @@
 <script lang="ts" setup>
 import type { Incident } from "bindings/Incident";
-import type { IncidentCause } from "bindings/IncidentCause";
+import type { IncidentWithUsers } from "bindings/IncidentWithUsers";
 
-const { incident } = defineProps<{ incident: Incident }>();
+const { incident } = defineProps<{ incident: Incident | IncidentWithUsers }>();
 </script>
 <template>
   <span v-if="incident.cause?.errorKind == 'httpcode'">
@@ -20,5 +20,11 @@ const { incident } = defineProps<{ incident: Incident }>();
   </span>
   <span v-else-if="incident.cause?.errorKind == 'connect'">
     {{ $t("dashboard.httpMonitorIncidents.cannotConnectToEndpoint") }}
+  </span>
+  <span v-else-if="incident.cause?.errorKind == 'request'">
+    {{ $t("dashboard.httpMonitorIncidents.requestError") }}
+  </span>
+  <span v-else>
+    {{ $t("dashboard.httpMonitorIncidents.unknownError") }}
   </span>
 </template>

@@ -16,18 +16,6 @@ export const useUserRepository = async () => {
             console.log("[UserRepository::useUserProfile] fetching user profile");
             return await useServerFetch<GetProfileResponse>("/users/me", { retry: 3, retryDelay: 2000 });
         },
-        checkPasswordStrength: useDebounceFn(async (password, firstName, lastName) => {
-            const res = await $fetch<{ score: number }>("/users/check-password", {
-                method: "post",
-                body: {
-                    password,
-                    firstName,
-                    lastName
-                },
-            });
-
-            return res.score >= 3;
-        }, 500, { rejectOnCancel: true }),
         async signUp(command: SignUpCommand) {
             try {
                 await $fetch<void>("/users/signup", { method: "post", body: command })

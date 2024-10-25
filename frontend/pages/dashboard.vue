@@ -45,7 +45,7 @@ onBeforeMount(() => {
         </nav>
         <div id="dashboard-container">
           <DashboardErrorBoundary>
-            <NuxtPage :transition="{ name: 'page', mode: 'out-in' }" />
+            <NuxtPage :fall :transition="{ name: 'page', mode: 'out-in' }" />
           </DashboardErrorBoundary>
         </div>
       </div>

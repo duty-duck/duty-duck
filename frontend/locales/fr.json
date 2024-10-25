@@ -68,9 +68,13 @@
                 "title": "Rien à voir ici pour le moment",
                 "text": "Créer votre premier moniteur pour suivre l'état de votre site Web."
             },
+            "noResults": {
+                "title": "Aucun moniteur ne correspond à ces filtres",
+                "text": "Des moniteurs existent mais ils sont masqués par les filtres sélectionnés. Retirez les filtres pour voir tous les moniteurs."
+            },
             "noIncident": {
                 "title": "Aucun incident",
-                "text": "Ce moniteur n'a jamais connu d'incident. S'il tombe en panne, l'historique des pannes apparaîtra ici."
+                "text": "Aucun incident sur cette période. Vous pouvez modifier le filtre de temps pour voir les incidents passés."
             },
             "form": {
                 "urlDescription": "Quelle URL voulez-vous surveiller ?",
@@ -114,8 +118,12 @@
                 "title": "Tout va bien pour le moment",
                 "text": "Si nous détectons une anomalie, un incident apparaîtra ici."
             },
+            "noResults": {
+                "title": "Aucun incident ne correspond à ces filtres",
+                "text": "Des incidents existent mais ils sont masqués par les filtres sélectionnés. Retirez les filtres pour voir tous les incidents."
+            },
             "incidentDetails": "Détails de l'incident",
-            "people": "Personnes",  
+            "people": "Personnes",
             "notAcknowledged": "Aucun(e) personne n'a pris en charge l'incident",
             "acknowledgedBy": "{count} personne(s) ont pris en charge l'incident",
             "acknowledge": "Prendre en charge",
@@ -136,12 +144,19 @@
             "ongoing": "En cours",
             "resolved": "Résolu"
         },
+        "incidentOrderBy": {
+            "buttonLabel": "Trier par",
+            "createdAtDesc": "Les plus récents d'abord",
+            "createdAtAsc": "Les plus anciens d'abord"
+        },
         "httpMonitorIncidents": {
             "httpMonitorFailure": "Échec de l'appel HTTP",
             "invalidHttpCode": "Le serveur a répondu avec le code HTTP invalide {httpCode}",
             "tooManyRedirections": "Le serveur a retourné trop de redirections, possible boucle de redirection",
             "cannotConnectToEndpoint": "Impossible d'établir la connexion au serveur",
-            "timedOut": "Délai d'attente dépassé, le serveur a été trop lent à répondre"
+            "timedOut": "Délai d'attente dépassé, le serveur a été trop lent à répondre",
+            "requestError": "Erreur lors de la requête",
+            "unknownError": "Erreur inconnue"
         },
         "myAccount": {
             "edit": {

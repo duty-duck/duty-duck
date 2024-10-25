@@ -92,7 +92,8 @@ useIntervalFn(() => {
         </span>
       </div>
     </BContainer>
-    <div v-if="data?.totalNumberOfResults == 0" class="text-secondary text-center my-5">
+    <BSpinner v-if="status == 'pending'" />
+    <div v-else-if="data?.totalNumberOfResults == 0" class="text-secondary text-center my-5">
       <Icon name="ph:pulse-duotone" size="120px" />
       <h3>{{ $t("dashboard.monitors.emptyPage.title") }}</h3>
       <p class="lead">
@@ -100,10 +101,16 @@ useIntervalFn(() => {
       </p>
       <HttpMonitorAddButton class="m-3" />
     </div>
+    <div v-else-if="data?.totalNumberOfFilteredResults == 0" class="text-secondary text-center my-5">
+      <Icon name="ph:seal-check-duotone" size="120px" />
+      <h3>{{ $t("dashboard.monitors.noResults.title") }}</h3>
+      <p class="lead">
+        {{ $t("dashboard.monitors.noResults.text") }}
+      </p>
+      <BButton variant="outline-secondary" @click="onClearFilters">{{ $t("dashboard.monitors.clearFilters") }}</BButton>
+    </div>
     <BContainer v-else class="d-grid row-gap-3">
-      <HttpMonitorFilteringBar :include-statuses="includeStatuses" :query="query"
-        @update-include-statuses="onIncludeStatusChange" @update-query="onQueryChange"
-        @clear-filters="onClearFilters" />
+      <HttpMonitorFilteringBar v-model:includeStatuses="includeStatuses" v-model:query="query" @clear-filters="onClearFilters" />
       <HttpMonitorCard v-for="monitor in data?.items" :key="monitor.id" :monitor="monitor" animated />
       <BPagination v-if="data?.totalNumberOfFilteredResults! > 10" v-model="pageNumber"
         :prev-text="$t('pagination.prev')" :next-text="$t('pagination.next')"

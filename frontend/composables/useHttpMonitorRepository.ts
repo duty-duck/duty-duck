@@ -26,8 +26,8 @@ export const useHttpMonitorRepository = async () => {
         async useHttpMonitor(monitorId: string, options?: UseFetchOptions<ReadHttpMonitorResponse>) {
             return await useServerFetch<ReadHttpMonitorResponse>(`/http-monitors/${monitorId}`, { retry: 3, retryDelay: 5000, ...(options || {}) })
         },
-        async useHttpMonitorIncidents(monitorId: string, params: Ref<ListIncidentsParams> | ListIncidentsParams) {
-            return await useServerFetch<ListIncidentsResponse>(`/http-monitors/${monitorId}/incidents`, { retry: 3, retryDelay: 5000, params, lazy: true, immediate: true })
+        async useHttpMonitorIncidents(monitorId: string, params: Ref<ListIncidentsParams> | ListIncidentsParams, options?: UseFetchOptions<ListIncidentsResponse>) {
+            return await useServerFetch<ListIncidentsResponse>(`/http-monitors/${monitorId}/incidents`, { retry: 3, retryDelay: 5000, params, ...(options || {}) })
         },
         async useDownMonitorsCount() {
             let res = await this.useHttpMonitors({

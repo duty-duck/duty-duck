@@ -9,7 +9,8 @@ const { item } = defineProps<{
 <template>
     <div class="event">
         <div class="dot-container">
-            <UserAvatar :user="item.user" v-if="item?.user" size="2rem" font-size=".8rem" class="user-avatar" show-tooltip />
+            <UserAvatar :user="item.user" v-if="item?.user" size="2rem" font-size=".8rem" class="user-avatar"
+                show-tooltip />
             <div class="dot" v-else></div>
         </div>
         <div class="event-inner" :class="{ 'has-content': $slots.default }">
@@ -32,11 +33,9 @@ const { item } = defineProps<{
                                 item.user?.lastName
                         }) }}
                     </span>
-                    <DashboardCommentViewer 
-                        class="mb-3 mt-2"
-                        v-else-if="item.event.eventType === 'comment' && item.event.eventPayload" 
-                        :comment="(item.event.eventPayload as any).Comment" 
-                    />
+                    <DashboardCommentViewer class="mb-3 mt-2"
+                        v-else-if="item.event.eventType === 'comment' && item.event.eventPayload"
+                        :comment="(item.event.eventPayload as any).Comment" />
                 </div>
             </template>
         </div>
@@ -46,6 +45,7 @@ const { item } = defineProps<{
 <style scoped lang="scss">
 @import "~/assets/main.scss";
 $dot-size: 0.5rem;
+
 @include media-breakpoint-up(md) {
     $dot-size: 0.75rem;
 }

@@ -1,7 +1,8 @@
 <script lang="ts" setup>
 import type { Incident } from 'bindings/Incident';
+import type { IncidentWithUsers } from 'bindings/IncidentWithUsers';
 
-const { incident, concise = false } = defineProps<{ incident: Incident, concise?: boolean }>();
+const { incident, concise = false } = defineProps<{ incident: Incident | IncidentWithUsers, concise?: boolean }>();
 </script>
 
 <template>

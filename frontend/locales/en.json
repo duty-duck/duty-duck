@@ -66,11 +66,15 @@
             "incidentHistory": "Incident history",
             "noIncident": {
                 "title": "No incident",
-                "text": "This monitor has never failed yet. If it fails, the incident history will appear here."
+                "text": "This monitor had no incident during this period. You can adjust the time range to see incidents in the past."
             },
             "emptyPage": {
                 "title": "Nothing here yet",
                 "text": "Create your first monitor to start monitoring your website."
+            },
+            "noResults": {
+                "title": "No monitor matches these filters",
+                "text": "Monitors exist but are hidden by the selected filters. Remove the filters to see all monitors."
             },
             "form": {
                 "urlDescription": "Which URL would you like us to monitor?",
@@ -114,6 +118,10 @@
                 "title": "Everything is OK right now",
                 "text": "When we detect a failure, an incident will appear here."
             },
+            "noResults": {
+                "title": "No incident matches these filters",
+                "text": "Incidents exist but are hidden by the selected filters. Remove the filters to see all incidents."
+            },
             "incidentDetails": "Incident details",
             "defaultIncidentTitle": "Incident on {date}",
             "people": "People",
@@ -136,12 +144,19 @@
             "ongoing": "Ongoing",
             "resolved": "Resolved"
         },
+        "incidentOrderBy": {
+            "buttonLabel": "Sort by",
+            "createdAtDesc": "Most recent first",
+            "createdAtAsc": "Oldest first"
+        },
         "httpMonitorIncidents": {
             "httpMonitorFailure": "HTTP Monitor failure",
             "invalidHttpCode": "The endpoint return the invalid HTTP Code {httpCode}",
             "tooManyRedirections": "Too many redirections",
             "cannotConnectToEndpoint": "Could not connect to server",
-            "timedOut": "Request timed out, the server took too long to respond"
+            "timedOut": "Request timed out, the server took too long to respond",
+            "requestError": "Request error",
+            "unknownError": "Unknown error"
         },
         "pushNotifications": {
             "title": "Push Notifications",
@@ -319,6 +334,18 @@
         "minutesShort": "{count}m",
         "hours": "{count} hour | {count} hours",
         "hoursShort": "{count}h"
+    },
+    "timeRangeInput": {
+        "noRange": "No time range",
+        "ranges": {
+            "-10m": "Last 10 minutes",
+            "-1h": "Last hour",
+            "-6h": "Last 6 hours",
+            "-12h": "Last 12 hours",
+            "-24h": "Last 24 hours",
+            "-7d": "Last 7 days",
+            "-30d": "Last 30 days"
+        }
     },
     "blog": {
         "title": "Blog",

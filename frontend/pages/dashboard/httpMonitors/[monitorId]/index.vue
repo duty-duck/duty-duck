@@ -1,8 +1,7 @@
 <script lang="ts" setup>
-import { useRouteQuery } from '@vueuse/router'
-import { useIntervalFn, useNow, useThrottleFn } from "@vueuse/core";
-import type { ListIncidentsParams } from "bindings/ListIncidentsParams";
+import { useIntervalFn, useNow } from "@vueuse/core";
 import { usePermissionGrant } from "~/composables/authComposables";
+import type { LazyHttpMonitorIncidentsCard } from '#build/components';
 
 await usePermissionGrant("readHttpMonitors");
 
@@ -11,51 +10,30 @@ const repo = await useHttpMonitorRepository();
 const route = useRoute();
 const now = useNow();
 const toggleIsLoading = ref(false);
+const incidentsCard = ref<InstanceType<typeof LazyHttpMonitorIncidentsCard>>();
 const { locale } = useI18n();
 
-const incidentPageNumber = useRouteQuery("incidentsPageNumber", 1, { transform: Number });
-const incidentsCardCurrentTab = useRouteQuery("incidentsCurrentTab", "ongoing" as "ongoing" | "history");
-const incidentsParams = computed<ListIncidentsParams>(() => ({
-  itemsPerPage: 10,
-  pageNumber: incidentPageNumber.value,
-  status: ["resolved"],
-  priority: null,
-  fromDate: null,
-  toDate: null,
-  orderBy: "createdAt",
-  orderDirection: "desc",
-}));
-
-const { refresh: refreshMonitorData, data: monitorData } =
+const { refresh: refreshMonitorResponse, data: monitorResponse } =
   await repo.useHttpMonitor(route.params.monitorId as string);
 
-const {
-  data: incidentsData,
-  refresh: refreshIncidents,
-} = await repo.useHttpMonitorIncidents(
-  route.params.monitorId as string,
-  incidentsParams
-);
-
-const refreshIncidentsThrottled = useThrottleFn(refreshIncidents, 5000);
 
 const lastStatusChange = computed(() => {
-  if (!monitorData.value?.monitor.lastStatusChangeAt) {
+  if (!monitorResponse.value?.monitor.lastStatusChangeAt) {
     return null;
   }
   const duration =
     now.value.getTime() -
-    new Date(monitorData.value.monitor.lastStatusChangeAt).getTime();
+    new Date(monitorResponse.value.monitor.lastStatusChangeAt).getTime();
 
   return formatDuration(duration, locale.value);
 });
 const lastCheckedAtDuration = computed(() => {
-  if (!monitorData.value?.monitor.lastPingAt) {
+  if (!monitorResponse.value?.monitor.lastPingAt) {
     return null;
   }
   const duration =
     now.value.getTime() -
-    new Date(monitorData.value.monitor.lastPingAt).getTime();
+    new Date(monitorResponse.value.monitor.lastPingAt).getTime();
 
   return formatDuration(duration, locale.value);
 });
@@ -64,8 +42,8 @@ const toggleMonitor = async () => {
   toggleIsLoading.value = true;
   try {
     await repo.toggleHttpMonitor(route.params.monitorId as string);
-    await refreshMonitorData();
-    await refreshIncidents();
+    await refreshMonitorResponse();
+    await incidentsCard.value?.refreshIncidents();
   } catch (e) {
     console.error("Failed to toggle monitor:", e);
   } finally {
@@ -74,24 +52,13 @@ const toggleMonitor = async () => {
 };
 
 useIntervalFn(() => {
-  refreshMonitorData();
-  refreshIncidentsThrottled();
+  refreshMonitorResponse();
+  incidentsCard.value?.refreshIncidents();
 }, 5000);
-
-watch(
-  () => incidentsCardCurrentTab.value,
-  (tab) => {
-    if (tab == "history") {
-      incidentPageNumber.value = 1;
-      refreshIncidentsThrottled();
-    }
-  },
-  { immediate: true }
-);
 </script>
 
 <template>
-  <BContainer v-if="monitorData?.monitor">
+  <BContainer v-if="monitorResponse">
     <BBreadcrumb>
       <BBreadcrumbItem :to="localePath('/dashboard')">{{
         $t("dashboard.mainSidebar.home")
@@ -103,26 +70,26 @@ watch(
         {{ $t("dashboard.monitors.details") }}
       </BBreadcrumbItem>
     </BBreadcrumb>
-    <div class="d-flex align-items-center my-5 py-3 gap-3">
-      <HttpMonitorStatusIcon :status="monitorData?.monitor.status" class="mx-5"
-        :animated="monitorData.monitor.status != 'inactive'" big />
+    <div class="d-flex flex-wrap align-items-center my-5 py-3 row-gap-5 column-gap-3">
+      <HttpMonitorStatusIcon :status="monitorResponse.monitor.status" class="mx-auto mx-md-5"
+        :animated="monitorResponse.monitor.status != 'inactive'" big />
       <div>
-        <h2 class="h4">
-          {{ monitorData?.monitor.url }}
+        <h2 class="h4 url">
+          {{ monitorResponse.monitor.url }}
         </h2>
-        <HttpMonitorStatusLabel :status="monitorData?.monitor.status" />
+        <HttpMonitorStatusLabel :status="monitorResponse.monitor.status" />
         &nbsp;
-        <span v-show="monitorData?.monitor" class="small text-secondary">
+        <span v-show="monitorResponse.monitor" class="small text-secondary">
           {{
             $t("dashboard.monitors.lastCheckedOn", {
-              date: $d(new Date(monitorData.monitor.lastPingAt!), "long"),
+              date: $d(new Date(monitorResponse.monitor.lastPingAt!), "long"),
             })
           }}</span>
       </div>
     </div>
     <div class="mb-5 d-flex gap-2">
       <BButton class="icon-link" variant="outline-secondary" @click="toggleMonitor" :disabled="toggleIsLoading">
-        <template v-if="monitorData.monitor.status == 'inactive'">
+        <template v-if="monitorResponse.monitor.status == 'inactive'">
           <Icon name="ph:play-fill" />
           {{ $t("dashboard.monitors.start") }}
         </template>
@@ -137,7 +104,7 @@ watch(
         {{ $t("dashboard.monitors.edit") }}
       </BButton>
     </div>
-    <p class="mt-2 text-secondary" v-if="monitorData.monitor.status == 'inactive'">
+    <p class="mt-2 text-secondary" v-if="monitorResponse.monitor.status == 'inactive'">
       {{ $t("dashboard.monitors.pausedMonitorNotice") }}
     </p>
     <div class="row mb-5 row-gap-3">
@@ -168,8 +135,17 @@ watch(
         </BCard>
       </div>
     </div>
-    <HttpMonitorIncidentsCard :monitor="monitorData.monitor" :on-going-incident="monitorData.ongoingIncident"
-      :incidents="incidentsData ?? null" v-model:incidents-page-number="incidentPageNumber"
-      v-model:current-tab="incidentsCardCurrentTab" />
+    <Suspense>
+      <template #fallback>
+        <BSpinner />
+      </template>
+      <LazyHttpMonitorIncidentsCard :monitor-response="monitorResponse" ref="incidentsCard" />
+    </Suspense>
   </BContainer>
 </template>
+
+<style scoped lang="scss">
+.url {
+  word-break: break-all;
+}
+</style>
