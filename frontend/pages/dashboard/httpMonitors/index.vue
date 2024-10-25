@@ -92,8 +92,7 @@ useIntervalFn(() => {
         </span>
       </div>
     </BContainer>
-    <BSpinner v-if="status == 'pending'" />
-    <div v-else-if="data?.totalNumberOfResults == 0" class="text-secondary text-center my-5">
+    <div v-if="data?.totalNumberOfResults == 0" class="text-secondary text-center my-5">
       <Icon name="ph:pulse-duotone" size="120px" />
       <h3>{{ $t("dashboard.monitors.emptyPage.title") }}</h3>
       <p class="lead">

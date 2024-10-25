@@ -98,8 +98,7 @@ useIntervalFn(() => {
     <IncidentFilteringBar v-model:includeStatuses="includeStatuses" v-model:timeRange="timeRange"
       v-model:orderBy="orderBy" v-model:orderDirection="orderDirection" @clearFilters="onClearFilters" />
     <IncidentTableView v-if="data" :incidents="data!.items" />
-    <BSpinner v-if="status == 'pending'" />
-    <div v-else-if="data?.totalNumberOfResults == 0" class="text-secondary text-center my-5">
+    <div v-if="data?.totalNumberOfResults == 0" class="text-secondary text-center my-5">
       <Icon name="ph:seal-check-duotone" size="120px" />
       <h3>{{ $t("dashboard.incidents.emptyPage.title") }}</h3>
       <p class="lead">
