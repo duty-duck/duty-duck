@@ -39,6 +39,12 @@ $(cd server && cargo sqlx prepare)
 docker build -t duty-duck-server:latest -f server/Dockerfile .
 ```
 
+### Building the browser:
+
+```shell
+docker build -t duty-duck-browser:latest -f browser/Dockerfile .
+```
+
 ## Keycloak checklist
 
 - Create a client with `duty-duck-frontend` and `duty-duck-server` redirect URIs

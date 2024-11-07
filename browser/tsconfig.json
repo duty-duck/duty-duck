@@ -1,0 +1,23 @@
+{
+	"include": ["./src/**/*", "./compiled_proto/**/*"],
+	"compilerOptions": {
+		"target": "ES2022",
+		"baseUrl": ".",
+		// Treat files as modules even if it doesn't use import/export
+		"moduleDetection": "force",
+		"module": "Node16",
+		"moduleResolution": "Node16",
+		// Allow JSON modules to be imported
+		"resolveJsonModule": true,
+		// Allow JS files to be imported from TS and vice versa
+		"allowJs": true,
+		// Use correct ESM import behavior
+		"esModuleInterop": true,
+		"skipLibCheck": true,
+		// Disallow features that require cross-file awareness
+		"isolatedModules": true,
+		"rootDir": ".",
+		// Add outDir to specify output directory
+		"outDir": "dist"
+	},
+}

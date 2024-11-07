@@ -14,7 +14,12 @@
 	"postCreateCommand": "/home/workspace/.devcontainer/postCreate.sh",
 	"customizations": {
 		"vscode": {
-			"extensions": ["Vue.volar", "mtxr.sqltools", "mtxr.sqltools-driver-pg"]
+			"extensions": [
+				"Vue.volar",
+				"mtxr.sqltools",
+				"mtxr.sqltools-driver-pg",
+				"zxh404.vscode-proto3"
+			]
 		}
 	},
 	"features": {
@@ -30,6 +35,7 @@
 			"version": "18",
 			"nvmVersion": "latest"
 		},
+		"ghcr.io/devcontainers-community/features/deno": {},
 		"ghcr.io/devcontainers/features/rust:1": {
 			"version": "1.82",
 			"profile": "complete",

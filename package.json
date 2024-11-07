@@ -2,7 +2,8 @@
   "name": "uptime-monitoring",
   "workspaces": [
     "fake-internet",
-    "frontend"
+    "frontend",
+    "http_monitor_executor"
   ],
   "scripts": {
     "dev": "concurrently npm:dev:server npm:dev:frontend",
@@ -15,6 +16,5 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/gbogard/duty-duck.git"
-  },
-  "devDependencies": {}
+  }
 }

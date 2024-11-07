@@ -1,0 +1,44 @@
+syntax = "proto3";
+package dutyduck;
+
+message HttpRequest {
+    string endpoint = 1;
+    uint64 request_timeout_ms = 2;
+    map<string, string> http_headers = 3;
+}
+
+message HttpResponse {
+    optional uint32 http_code = 1;
+    Screenshot screenshot = 2;
+    map<string, string> http_headers = 3;
+    uint64 response_time_ms = 4;
+    optional string response_ip_address = 5;
+    repeated string resolved_ip_addresses = 6;
+    uint64 response_body_size_bytes = 7;
+    optional bytes response_body_content = 8;
+    optional HttpErrorKind error = 9;
+    optional string error_message = 10;
+}
+
+enum HttpErrorKind {
+    NONE = 0;
+    HTTP_CODE = 1;
+    CONNECT = 2;
+    BUILDER = 3;
+    REQUEST = 4;
+    REDIRECT = 5;
+    BODY = 6;
+    DECODE = 7;
+    TIMEOUT = 8;
+    UNKNOWN = 1000;
+}
+
+message Screenshot {
+    bytes data = 1;
+    string content_type = 2;
+}
+
+service HttpMonitorExecutor {
+    rpc ExecuteHttpRequest (HttpRequest) returns (HttpResponse);
+}
+

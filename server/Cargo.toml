@@ -64,6 +64,9 @@ hex = "0.4.3"
 aws-sdk-sns = "1.47.0"
 aws-config = "1.5.8"
 phonenumber = "0.3.6"
+tonic = "0.12"
+prost = "0.12"
 
 [build-dependencies]
 built = { version = "0.7.3", features = ["chrono", "git2"] }
+tonic-build = "0.12"
