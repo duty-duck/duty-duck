@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::domain::entities::http_monitor::{HttpMonitor, HttpMonitorErrorKind, HttpMonitorStatus};
+use crate::domain::entities::{entity_metadata::EntityMetadata, http_monitor::{HttpMonitor, HttpMonitorErrorKind, HttpMonitorStatus}};
 
 use super::transactional_repository::TransactionalRepository;
 
@@ -53,7 +53,7 @@ pub struct NewHttpMonitor {
     pub status: HttpMonitorStatus,
     pub next_ping_at: Option<DateTime<Utc>>,
     pub interval_seconds: u32,
-    pub tags: Vec<String>,
+    pub metadata: EntityMetadata,
     pub recovery_confirmation_threshold: u32,
     pub downtime_confirmation_threshold: u32,
     pub email_notification_enabled: bool,

@@ -7,3 +7,4 @@ pub mod user_device;
 pub mod push_notification;
 pub mod incident_event;
 pub mod incident_notification;
+pub mod entity_metadata;

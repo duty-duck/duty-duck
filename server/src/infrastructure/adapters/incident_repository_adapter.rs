@@ -35,16 +35,18 @@ impl IncidentRepository for IncidentRepositoryAdapter {
                 created_by,
                 status,
                 priority,
+                metadata,
                 cause,
                 incident_source_type,
                 incident_source_id
             ) 
-            values ($1, $2, $3, $4, $5, $6, $7)
+            values ($1, $2, $3, $4, $5, $6, $7, $8)
             returning id",
             incident.organization_id,
             incident.created_by,
             incident.status as i16,
             incident.priority as i16,
+            serde_json::to_value(incident.metadata)?,
             cause,
             incident_source_type,
             incident_source_id
@@ -226,6 +228,7 @@ impl IncidentRepository for IncidentRepositoryAdapter {
                 created_at: row.get("created_at"),
                 created_by: row.get("created_by"),
                 resolved_at: row.get("resolved_at"),
+                metadata: row.get::<Option<serde_json::Value>, _>("metadata").into(),
                 cause: row
                     .get::<Option<serde_json::Value>, _>("cause")
                     .and_then(|value| serde_json::from_value(value).ok()),
@@ -274,6 +277,7 @@ impl IncidentRepository for IncidentRepositoryAdapter {
             created_at: record.created_at,
             created_by: record.created_by,
             resolved_at: record.resolved_at,
+            metadata: record.metadata.into(),
             cause: record
                 .cause
                 .and_then(|value| serde_json::from_value(value).ok()),

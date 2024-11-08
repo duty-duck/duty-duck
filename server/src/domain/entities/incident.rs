@@ -5,7 +5,7 @@ use ts_rs::TS;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-use super::{http_monitor::HttpMonitorErrorKind, user::UserNameInfo};
+use super::{entity_metadata::EntityMetadata, http_monitor::HttpMonitorErrorKind, user::UserNameInfo};
 
 /// The base struct used by all incident types
 #[derive(Serialize, Deserialize, TS, Debug, Clone, FromRow, ToSchema)]
@@ -24,6 +24,8 @@ pub struct Incident {
     pub incident_source_type: IncidentSourceType,
     pub incident_source_id: Uuid,
     pub acknowledged_by: Vec<Uuid>,
+    #[sqlx(json)]
+    pub metadata: EntityMetadata,
 }
 
 #[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]
@@ -141,4 +143,5 @@ pub struct NewIncident {
     pub priority: IncidentPriority,
     pub source: IncidentSource,
     pub cause: Option<IncidentCause>,
+    pub metadata: EntityMetadata,
 }

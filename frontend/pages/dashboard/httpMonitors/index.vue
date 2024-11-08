@@ -63,36 +63,35 @@ useIntervalFn(() => {
 </script>
 
 <template>
-  <div>
-    <BContainer>
-      <BBreadcrumb>
-        <BBreadcrumbItem :to="localePath('/dashboard')">{{
-          $t("dashboard.mainSidebar.home")
-        }}</BBreadcrumbItem>
-        <BBreadcrumbItem active>{{
-          $t("dashboard.mainSidebar.monitors")
-        }}</BBreadcrumbItem>
-      </BBreadcrumb>
-      <div class="d-flex align-items-center justify-content-between">
-        <h2>{{ $t("dashboard.monitors.pageTitle") }}</h2>
-        <HttpMonitorAddButton />
-      </div>
-      <div class="small text-secondary mb-2">
+  <BContainer>
+    <BBreadcrumb>
+      <BBreadcrumbItem :to="localePath('/dashboard')">{{
+        $t("dashboard.mainSidebar.home")
+      }}</BBreadcrumbItem>
+      <BBreadcrumbItem active>{{
+        $t("dashboard.mainSidebar.monitors")
+      }}</BBreadcrumbItem>
+    </BBreadcrumb>
+    <div class="d-flex align-items-center justify-content-between">
+      <h2>{{ $t("dashboard.monitors.pageTitle") }}</h2>
+      <HttpMonitorAddButton />
+    </div>
+    <div class="small text-secondary mb-2">
+      {{
+        $t(
+          "dashboard.monitors.totalMonitorCount",
+          data?.totalNumberOfResults || 0
+        )
+      }}, {{ $t("dashboard.monitors.itemsPerPage", 10) }}
+      <span v-if="hiddenMonitorsCount != 0">
+        ,
         {{
-          $t(
-            "dashboard.monitors.totalMonitorCount",
-            data?.totalNumberOfResults || 0
-          )
-        }}, {{ $t("dashboard.monitors.itemsPerPage", 10) }}
-        <span v-if="hiddenMonitorsCount != 0">
-          ,
-          {{
-            $t("dashboard.monitors.filteredMonitorCount", hiddenMonitorsCount)
-          }}
-        </span>
-      </div>
-    </BContainer>
-    <HttpMonitorFilteringBar v-model:includeStatuses="includeStatuses" v-model:query="query" @clear-filters="onClearFilters" />
+          $t("dashboard.monitors.filteredMonitorCount", hiddenMonitorsCount)
+        }}
+      </span>
+    </div>
+    <HttpMonitorFilteringBar v-model:includeStatuses="includeStatuses" v-model:query="query"
+      @clear-filters="onClearFilters" />
     <div v-if="data?.totalNumberOfResults == 0" class="text-secondary text-center my-5">
       <Icon name="ph:pulse-duotone" size="120px" />
       <h3>{{ $t("dashboard.monitors.emptyPage.title") }}</h3>
@@ -107,13 +106,14 @@ useIntervalFn(() => {
       <p class="lead">
         {{ $t("dashboard.monitors.noResults.text") }}
       </p>
-      <BButton variant="outline-secondary" @click="onClearFilters">{{ $t("dashboard.monitors.clearFilters") }}</BButton>
+      <BButton variant="outline-secondary" @click="onClearFilters">{{ $t("dashboard.monitors.clearFilters") }}
+      </BButton>
     </div>
-    <BContainer v-else class="d-grid row-gap-3">
+    <div v-else class="d-grid row-gap-3">
       <HttpMonitorCard v-for="monitor in data?.items" :key="monitor.id" :monitor="monitor" animated />
       <BPagination v-if="data?.totalNumberOfFilteredResults! > 10" v-model="pageNumber"
         :prev-text="$t('pagination.prev')" :next-text="$t('pagination.next')"
         :total-rows="data?.totalNumberOfFilteredResults" :per-page="10" />
-    </BContainer>
-  </div>
+    </div>
+  </BContainer>
 </template>

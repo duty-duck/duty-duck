@@ -41,7 +41,7 @@ const onSubmit = async (monitor: HttpMonitorFormData) => {
     <HttpMonitorForm
       @submit="onSubmit"
       :url="monitorData.monitor.url"
-      :tags="monitorData.monitor.tags"
+      :metadata="monitorData.monitor.metadata"
       :interval-seconds="monitorData.monitor.intervalSeconds"
       :downtime-confirmation-threshold="monitorData.monitor.downtimeConfirmationThreshold"
       :recovery-confirmation-threshold="monitorData.monitor.recoveryConfirmationThreshold"

@@ -1,5 +1,6 @@
 use std::{collections::HashMap, time::Duration};
 
+use tracing::{error, warn};
 use anyhow::Context;
 use tonic::transport::Channel;
 
@@ -57,8 +58,11 @@ impl HttpClient for HttpClientAdapter {
                             error_kind: HttpMonitorErrorKind::BrowserServiceCallFailed,
                             ..Default::default()
                         };
+                        error!("Failed to call gRPC browser service: {:?}. Giving up.", e);
                     }
+                    warn!("Failed to call gRPC browser service: {:?}. Retrying ...", e);
                     tokio::time::sleep(Duration::from_millis(1000)).await;
+                    
                 }
             }
         }

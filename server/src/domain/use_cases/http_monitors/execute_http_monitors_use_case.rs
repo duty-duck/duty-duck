@@ -330,6 +330,7 @@ where
             error_kind: monitor.error_kind,
             http_code: monitor.last_http_code,
         }),
+        metadata: monitor.metadata.clone(),
     };
 
     let notification = NotificationOpts {

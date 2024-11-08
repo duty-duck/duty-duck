@@ -9,6 +9,8 @@ use uuid::Uuid;
 
 use crate::protos;
 
+use super::entity_metadata::EntityMetadata;
+
 #[derive(Serialize, Deserialize, TS, Debug, Clone, FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
@@ -31,7 +33,8 @@ pub struct HttpMonitor {
     pub status: HttpMonitorStatus,
     pub status_counter: i16,
     pub error_kind: HttpMonitorErrorKind,
-    pub tags: Vec<String>,
+    #[sqlx(json)]
+    pub metadata: EntityMetadata,
     pub email_notification_enabled: bool,
     pub push_notification_enabled: bool,
     pub sms_notification_enabled: bool,
@@ -129,6 +132,7 @@ impl From<i16> for HttpMonitorErrorKind {
             6 => Self::Body,
             7 => Self::Decode,
             8 => Self::Timeout,
+            9 => Self::BrowserServiceCallFailed,
             _ => panic!("invalid HttpMonitorErrorKind discriminant: {value}"),
         }
     }

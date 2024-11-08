@@ -104,6 +104,7 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
         &self,
         monitor: http_monitor_repository::NewHttpMonitor,
     ) -> anyhow::Result<Uuid> {
+        let metadata = serde_json::to_value(monitor.metadata)?;
         let new_monitor_id = sqlx::query!(
             "insert into http_monitors (
                 organization_id, 
@@ -113,7 +114,7 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
                 next_ping_at, 
                 interval_seconds, 
                 error_kind, 
-                tags,
+                metadata,
                 downtime_confirmation_threshold,
                 recovery_confirmation_threshold,
                 email_notification_enabled,
@@ -129,7 +130,7 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
             monitor.next_ping_at,
             monitor.interval_seconds as i64,
             HttpMonitorErrorKind::None as i16,
-            &monitor.tags,
+            &metadata,
             monitor.downtime_confirmation_threshold as i64,
             monitor.recovery_confirmation_threshold as i64,
             monitor.email_notification_enabled,
@@ -195,12 +196,13 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
     }
 
     async fn update_http_monitor(&self, id: Uuid, monitor: NewHttpMonitor) -> anyhow::Result<bool> {
+        let metadata = serde_json::to_value(monitor.metadata)?;
         let result = sqlx::query!(
             "UPDATE http_monitors SET 
                 url = $1,
                 status = $2,
                 next_ping_at = $3, 
-                tags = $4,
+                metadata = $4,
                 interval_seconds = $5,
                 recovery_confirmation_threshold = $6,
                 downtime_confirmation_threshold = $7,
@@ -212,7 +214,7 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
             monitor.url,
             monitor.status as i16,
             monitor.next_ping_at,
-            &monitor.tags,
+            &metadata,
             monitor.interval_seconds as i64,
             monitor.recovery_confirmation_threshold as i64,
             monitor.downtime_confirmation_threshold as i64,

@@ -76,18 +76,19 @@
                 "title": "Aucun incident",
                 "text": "Aucun incident sur cette période. Vous pouvez modifier le filtre de temps pour voir les incidents passés."
             },
+                "metadata": "Métadonnées",
             "form": {
                 "urlDescription": "Quelle URL voulez-vous surveiller ?",
                 "refreshInterval": "Intervalle de surveillance",
                 "refreshIntervalDescription": "L'intervalle de surveillance détermine à quelle fréquence nous allons vérifier votre site Web. Un intervalle plus court permet de détecter plus rapidement les problèmes, mais sollicitera plus votre serveur.",
-                "tags": "Mots-clés",
-                "tagsDescription": "Les mots-clés sont optionnels. Ils vous permettent d'organiser vos moniteurs.",
                 "downtimeConfirmationThreshold": "Seuil de panne",
                 "downtimeConfirmationThresholdDescription": "Détermine combien d'échecs consécutifs sont nécessaires avant que le moniteur soit considéré comme en panne. En cas d'échec de l'appel HTTP, le moniteur deviendra \"Suspect\" jusqu'à ce qu'il atteigne ce seuil. Si ce seuil est atteint, le moniteur passera de \"Suspect\" à \"En panne\".",
                 "recoveryConfirmationThreshold": "Seuil de récupération",
                 "recoveryConfirmationThresholdDescription": "Si le moniteur tombe en panne, détermine combien de réussites consécutives sont nécessaires avant que ce moniteur ne soit plus considéré en panne. En dessous de ce seuil, le moniteur sera considéré comme \"En récupération\".",
                 "notificationSettings": "Notifications",
                 "notificationSettingsDescription": "Détermine les notifications qui seront envoyées en cas de panne du moniteur",
+                "metadata": "Métadonnées",
+                "metadataDescription": "Les métadonnées sont optionnelles. Elles vous permettent d'organiser vos moniteurs et vos incidents.",
                 "save": "Sauvegarder"
             }
         },
@@ -349,6 +350,12 @@
             "-7d": "7 derniers jours",
             "-30d": "30 derniers jours"
         }
+    },
+    "metadataInput": {
+        "newMetadata": "Nouvelle métadonnée",
+        "noMetadata": "Aucune métadonnée",
+        "newKey": "Nouvelle clé",
+        "newValue": "Nouvelle valeur"
     },
     "blog": {
         "title": "Blog",

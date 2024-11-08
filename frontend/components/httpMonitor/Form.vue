@@ -1,10 +1,11 @@
 <script lang="ts" setup>
+import type { EntityMetadata } from 'bindings/EntityMetadata';
 import type { NotificationSettings } from '../NotificationSettingsForm.vue';
 
 export type HttpMonitorFormData = {
   url: string;
   intervalSeconds: number;
-  tags: string[];
+  metadata: EntityMetadata;
   recoveryConfirmationThreshold: number,
   downtimeConfirmationThreshold: number,
   notificationSettings: NotificationSettings,
@@ -13,7 +14,7 @@ export type HttpMonitorFormData = {
 const props = withDefaults(defineProps<HttpMonitorFormData>(), {
   url: "",
   intervalSeconds: 60,
-  tags: () => [],
+  metadata: () => ({ records: {} }),
   recoveryConfirmationThreshold: 2,
   downtimeConfirmationThreshold: 1,
   notificationSettings: {
@@ -92,15 +93,15 @@ const formIsComplete = computed(
       <FormHelp :text="$t('dashboard.monitors.form.notificationSettingsDescription')" />
     </BFormGroup>
 
-    <!-- Tags group -->
+    <!-- Metadata group -->
     <div class="mb-4">
       <BFormGroup>
-        <label for="tags-input" class="h5">
-          {{ $t("dashboard.monitors.form.tags") }}
+        <label for="metadata-input" class="h5">
+          {{ $t("dashboard.monitors.form.metadata") }}
         </label>
-        <BFormTags v-model="form.tags" />
+        <DashboardMetadataInput class="mb-3" id="metadata-input" v-model="form.metadata" />
       </BFormGroup>
-      <FormHelp :text="$t('dashboard.monitors.form.tagsDescription')" />
+      <FormHelp :text="$t('dashboard.monitors.form.metadataDescription')" />
     </div>
 
     <!-- Submit button -->

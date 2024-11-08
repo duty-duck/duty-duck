@@ -11,8 +11,9 @@ services:
       - .:/home/workspace:cached
 
   browser:
-    context: .
-    build: ./browser
+    build:
+      context: .
+      dockerfile: browser/Dockerfile
     pull_policy: missing
     image: ghcr.io/duty-duck/browser:latest
     environment:
@@ -21,8 +22,9 @@ services:
       - 50051:50051
 
   fake-internet:
-    context: .
-    build: ./fake-internet
+    build:
+      context: .
+      dockerfile: fake-internet/Dockerfile
     pull_policy: missing
     image: ghcr.io/duty-duck/fake-internet:latest
     environment:

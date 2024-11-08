@@ -84,7 +84,7 @@ const createBrowser = async (options: BrowserOptions): Promise<Browser> => {
             // measure the time it takes to load the page
             const fetchStart = performance.now();
             const pageResponse = await page.goto(request.endpoint, { waitUntil: "load", timeout: request.requestTimeoutMs, signal: abortSignal });
-            response.responseTimeMs = performance.now() - fetchStart;
+            response.responseTimeMs = Math.round(performance.now() - fetchStart);
 
             // get the response headers
             response.httpHeaders = pageResponse.headers();

@@ -87,7 +87,7 @@ useIntervalFn(() => {
           }}</span>
       </div>
     </div>
-    <div class="mb-5 d-flex gap-2">
+    <div class="mb-3 d-flex gap-2">
       <BButton class="icon-link" variant="outline-secondary" @click="toggleMonitor" :disabled="toggleIsLoading">
         <template v-if="monitorResponse.monitor.status == 'inactive'">
           <Icon name="ph:play-fill" />
@@ -134,6 +134,10 @@ useIntervalFn(() => {
           </p>
         </BCard>
       </div>
+    </div>
+    <div class="mb-5">
+      <h5>{{ $t("dashboard.monitors.metadata") }}</h5>
+      <DashboardMetadataInput read-only v-model="monitorResponse.monitor.metadata" />
     </div>
     <Suspense>
       <template #fallback>

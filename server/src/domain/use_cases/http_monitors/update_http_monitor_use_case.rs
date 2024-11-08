@@ -1,5 +1,3 @@
-use std::collections::HashSet;
-
 use chrono::Utc;
 use serde::Deserialize;
 use thiserror::Error;
@@ -8,8 +6,7 @@ use uuid::Uuid;
 
 use crate::domain::{
     entities::{
-        authorization::{AuthContext, Permission},
-        http_monitor::HttpMonitorStatus,
+        authorization::{AuthContext, Permission}, entity_metadata::EntityMetadata, http_monitor::HttpMonitorStatus
     },
     ports::http_monitor_repository::{HttpMonitorRepository, NewHttpMonitor},
 };
@@ -21,7 +18,7 @@ pub struct UpdateHttpMonitorCommand {
     pub url: String,
     pub interval_seconds: u32,
     pub is_active: bool,
-    pub tags: HashSet<String>,
+    pub metadata: EntityMetadata,
     pub recovery_confirmation_threshold: u32,
     pub downtime_confirmation_threshold: u32,
     pub email_notification_enabled: bool,
@@ -63,7 +60,7 @@ pub async fn update_http_monitor(
             None
         },
         interval_seconds: command.interval_seconds,
-        tags: command.tags.into_iter().collect(),
+        metadata: command.metadata,
         downtime_confirmation_threshold: command.downtime_confirmation_threshold,
         recovery_confirmation_threshold: command.recovery_confirmation_threshold,
         email_notification_enabled: command.email_notification_enabled,

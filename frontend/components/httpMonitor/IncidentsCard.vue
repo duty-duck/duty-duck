@@ -95,9 +95,9 @@ defineExpose({
         </span>
       </template>
       <div v-if="monitorResponse.ongoingIncident" class="mt-3">
-        <h4>
+        <h5>
           {{ $t("dashboard.monitors.ongoingIncident") }}
-        </h4>
+        </h5>
         <NuxtLink :to="localePath(`/dashboard/incidents/${monitorResponse.ongoingIncident.id}`)" class="icon-link mb-3">
           <Icon aria-hidden name="ph:arrow-up-right" size="1.3rem" />
           {{ $t("dashboard.incidents.goToIncident") }}
@@ -122,7 +122,7 @@ defineExpose({
         </span>
       </template>
       <div class="mt-3">
-        <h4>{{ $t("dashboard.monitors.incidentHistory") }}</h4>
+        <h5>{{ $t("dashboard.monitors.incidentHistory") }}</h5>
         <IncidentFilteringBar :shown-filters="['timeRange', 'orderBy']" @clear-filters="onClearFilters"
           :include-statuses="['resolved']" v-model:time-range="timeRange" v-model:orderBy="orderBy"
           v-model:orderDirection="orderDirection" />

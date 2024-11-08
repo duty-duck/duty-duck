@@ -35,7 +35,6 @@
 			"version": "18",
 			"nvmVersion": "latest"
 		},
-		"ghcr.io/devcontainers-community/features/deno": {},
 		"ghcr.io/devcontainers/features/rust:1": {
 			"version": "1.82",
 			"profile": "complete",
