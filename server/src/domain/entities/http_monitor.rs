@@ -7,6 +7,8 @@ use ts_rs::TS;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
+use crate::protos;
+
 #[derive(Serialize, Deserialize, TS, Debug, Clone, FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
@@ -79,12 +81,13 @@ impl From<i16> for HttpMonitorStatus {
     }
 }
 
-#[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq, ToSchema)]
+#[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq, ToSchema, Default)]
 #[repr(i16)]
 #[serde(rename_all = "lowercase")]
 #[ts(export)]
 pub enum HttpMonitorErrorKind {
     Unknown = -1,
+    #[default]
     None = 0,
     HttpCode = 1,
     Connect = 2,
@@ -94,6 +97,23 @@ pub enum HttpMonitorErrorKind {
     Body = 6,
     Decode = 7,
     Timeout = 8,
+    BrowserServiceCallFailed = 9,
+}
+
+impl From<protos::HttpErrorKind> for HttpMonitorErrorKind {
+    fn from(value: protos::HttpErrorKind) -> Self {
+        match value {
+            protos::HttpErrorKind::Unknown => Self::Unknown,
+            protos::HttpErrorKind::HttpCode => Self::HttpCode,
+            protos::HttpErrorKind::Connect => Self::Connect,
+            protos::HttpErrorKind::Builder => Self::Builder,
+            protos::HttpErrorKind::Request => Self::Request,
+            protos::HttpErrorKind::Redirect => Self::Redirect,
+            protos::HttpErrorKind::Body => Self::Body,
+            protos::HttpErrorKind::Decode => Self::Decode,
+            protos::HttpErrorKind::Timeout => Self::Timeout,
+        }
+    }
 }
 
 impl From<i16> for HttpMonitorErrorKind {

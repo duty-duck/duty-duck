@@ -2,11 +2,8 @@ use crate::domain::entities::http_monitor::HttpMonitorErrorKind;
 use async_trait::async_trait;
 use std::time::Duration;
 
+#[derive(Default)]
 pub struct PingResponse {
-    pub http_code: u16,
-}
-
-pub struct PingError {
     pub http_code: Option<u16>,
     pub error_kind: HttpMonitorErrorKind,
 }
@@ -17,5 +14,5 @@ pub trait HttpClient: Clone + Send + Sync + 'static {
         &self,
         endpoint: &str,
         request_timeout: Duration,
-    ) -> Result<PingResponse, PingError>;
+    ) -> PingResponse;
 }

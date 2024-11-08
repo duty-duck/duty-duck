@@ -1,4 +1,3 @@
-version: '3'
 services:
   dev-container:
     depends_on: []
@@ -11,15 +10,28 @@ services:
     volumes:
       - .:/home/workspace:cached
 
-  # fake-internet:
-  #   build: ./fake-internet
-  #   environment:
-  #     - PORT=80
-  #   networks:
-  #     default:
-  #       aliases:
-  #         - www.mediapart.fr
-  #         - www.fake-internet.com
+  browser:
+    context: .
+    build: ./browser
+    pull_policy: missing
+    image: ghcr.io/duty-duck/browser:latest
+    environment:
+      - MAX_CONCURRENT_BROWSERS=1
+    ports:
+      - 50051:50051
+
+  fake-internet:
+    context: .
+    build: ./fake-internet
+    pull_policy: missing
+    image: ghcr.io/duty-duck/fake-internet:latest
+    environment:
+      - PORT=80
+    networks:
+      default:
+        aliases:
+          - www.mediapart.fr
+          - www.fake-internet.com
 
   main-database:
     build: ./database

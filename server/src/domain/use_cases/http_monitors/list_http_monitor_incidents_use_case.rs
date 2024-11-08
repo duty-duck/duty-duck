@@ -3,7 +3,7 @@ use uuid::Uuid;
 use crate::domain::{
     entities::{
         authorization::{AuthContext, Permission},
-        incident::{IncidentPriority, IncidentSource, IncidentStatus, IncidentWithUsers},
+        incident::{IncidentPriority, IncidentSource, IncidentStatus},
     },
     ports::{
         incident_repository::{IncidentRepository, ListIncidentsOpts, ListIncidentsOutput},

@@ -1,55 +1,87 @@
 use envconfig::Envconfig;
 
 #[derive(Envconfig)]
-pub struct AppConfig {
-    #[envconfig(from = "SERVER_PORT")]
-    pub server_port: u16,
+pub struct KeycloakConfig {
+    #[envconfig(from = "KEYCLOAK_PUBLIC_URL")]
+    pub public_url: String,
+    #[envconfig(from = "KEYCLOAK_PRIVATE_URL")]
+    pub private_url: String,
+    #[envconfig(from = "KEYCLOAK_REALM", default = "master")]
+    pub realm: String,
+    #[envconfig(from = "KEYCLOAK_CLIENT")]
+    pub client_id: String,
+    #[envconfig(from = "KEYCLOAK_SECRET")]
+    pub client_secret: String,
+    #[envconfig(from = "ACCESS_TOKEN_AUDIENCE", default = "dutyduck-dashboard")]
+    pub access_token_audience: String,
+}
+
+#[derive(Envconfig)]
+pub struct DbConfig {
     #[envconfig(from = "DATABASE_URL")]
     pub database_url: String,
     #[envconfig(from = "DATABASE_MAX_CONNECTIONS", default = "10")]
     pub database_max_connections: u32,
-    #[envconfig(from = "PUBLIC_URL")]
-    pub public_url: String,
-    #[envconfig(from = "KEYCLOAK_PUBLIC_URL")]
-    pub keycloak_public_url: String,
-    #[envconfig(from = "KEYCLOAK_PRIVATE_URL")]
-    pub keycloak_private_url: String,
-    #[envconfig(from = "KEYCLOAK_REALM", default = "master")]
-    pub keycloak_realm: String,
-    #[envconfig(from = "KEYCLOAK_CLIENT")]
-    pub keycloak_client: String,
-    #[envconfig(from = "KEYCLOAK_SECRET")]
-    pub keycloak_secret: String,
-    #[envconfig(from = "ACCESS_TOKEN_AUDIENCE", default = "dutyduck-dashboard")]
-    pub access_token_audience: String,
-    #[envconfig(from = "HTTP_MONITORS_CONCURRENT_TASKS", default = "2")]
-    pub http_monitors_concurrent_tasks: usize,
-    #[envconfig(from = "HTTP_MONITORS_PING_CONCURRENCY", default = "100")]
-    pub http_monitors_ping_concurrency: usize,
-    #[envconfig(from = "HTTP_MONITORS_SELECT_SIZE", default = "500")]
-    pub http_monitors_select_size: u32,
-    #[envconfig(
-        from = "USER_AGENT",
-        default = "Mozilla/5.0+(compatible; DutyDuck/2.0; http://ww.dutyduck.com/)"
-    )]
-    pub user_agent: String,
+}
+
+#[derive(Envconfig)]
+pub struct SmtpConfig {
+    #[envconfig(from = "SMTP_SERVER_HOST")]
+    pub server_host: String,
+    #[envconfig(from = "SMTP_SERVER_PORT")]
+    pub server_port: u16,
+    #[envconfig(from = "SMTP_SERVER_DISABLE_TLS")]
+    pub disable_tls: bool,
+    #[envconfig(from = "SMTP_USERNAME")]
+    pub username: Option<String>,
+    #[envconfig(from = "SMTP_PASSWORD")]
+    pub password: Option<String>,
+}
+
+#[derive(Envconfig)]
+pub struct NotificationsExecutorConfig {
     #[envconfig(from = "NOTIFICATIONS_CONCURRENT_TASKS", default = "1")]
     pub notifications_concurrent_tasks: usize,
     #[envconfig(from = "NOTIFICATIONS_TASKS_INTERVAL", default = "1")]
     pub notifications_tasks_interval_seconds: u64,
     #[envconfig(from = "NOTIFICATIONS_TASKS_SELECT_SIZE", default = "500")]
     pub notifications_tasks_select_size: u32,
+}
 
-    #[envconfig(from = "SMTP_SERVER_HOST")]
-    pub smtp_server_host: String,
-    #[envconfig(from = "SMTP_SERVER_PORT")]
-    pub smtp_server_port: u16,
-    #[envconfig(from = "SMTP_SERVER_DISABLE_TLS")]
-    pub smtp_disable_tls: bool,
-    #[envconfig(from = "SMTP_USERNAME")]
-    pub smtp_username: Option<String>,
-    #[envconfig(from = "SMTP_PASSWORD")]
-    pub smtp_password: Option<String>,
+#[derive(Envconfig)]
+pub struct HttpMonitorsExecutorConfig {
+    #[envconfig(from = "HTTP_MONITORS_CONCURRENT_TASKS", default = "2")]
+    pub http_monitors_concurrent_tasks: usize,
+    #[envconfig(from = "HTTP_MONITORS_PING_CONCURRENCY", default = "100")]
+    pub http_monitors_ping_concurrency: usize,
+    #[envconfig(from = "HTTP_MONITORS_SELECT_SIZE", default = "500")]
+    pub http_monitors_select_size: u32,
+    #[envconfig(from = "BROWSER_SERVICE_GRPC_ADDRESS")]
+    pub browser_service_grpc_address: String,
+}
+
+#[derive(Envconfig)]
+pub struct AppConfig {
+    #[envconfig(from = "SERVER_PORT")]
+    pub server_port: u16,
+
+    #[envconfig(nested = true)]
+    pub db: DbConfig,
+
+    #[envconfig(from = "PUBLIC_URL")]
+    pub public_url: String,
+
+    #[envconfig(nested = true)]
+    pub keycloak: KeycloakConfig,
+
+    #[envconfig(nested = true)]
+    pub notifications_executor: NotificationsExecutorConfig,
+
+    #[envconfig(nested = true)]
+    pub http_monitors_executor: HttpMonitorsExecutorConfig,
+
+    #[envconfig(nested = true)]
+    pub smtp: SmtpConfig
 }
 
 impl AppConfig {

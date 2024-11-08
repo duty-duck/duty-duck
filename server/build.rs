@@ -3,6 +3,6 @@ fn main() {
 
     tonic_build::configure()
         .protoc_arg("--experimental_allow_proto3_optional")
-        .compile_protos(&["../protos/http-monitor-executor.proto"], &["../protos"])
+        .compile_protos(&["../protos/browser.proto"], &["../protos"])
         .expect("Failed to compile protos");
 }

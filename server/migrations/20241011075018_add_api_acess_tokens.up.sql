@@ -4,9 +4,6 @@ create table api_access_tokens (
     organization_id uuid not null,
     user_id uuid not null,
     label text not null,
-    -- a non-hashed prefix prepended to the secret key to make it easier to identify
-    -- from the UI
-    secret_key_prefix text not null,
     -- the hashed secret key
     secret_key bytea not null unique,
     created_at timestamptz not null default now(),

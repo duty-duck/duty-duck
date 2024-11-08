@@ -16,5 +16,5 @@ COPY ./server .
 RUN touch src/main.rs && cargo build --release
 
 FROM gcr.io/distroless/cc-debian12
-COPY --from=build-env /app/target/release/server /app/server
+COPY --from=build-env /app/server/target/release/server /app/server
 CMD ["/app/server"]

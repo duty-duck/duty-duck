@@ -52,11 +52,11 @@ pub async fn create_api_access_token(
         return Err(CreateApiAccessTokenError::InvalidExpirationDate);
     }
 
-    let (secret_key_prefix, secret_key) = ApiAccessToken::generate_secret_key();
+    let secret_key = ApiAccessToken::generate_secret_key();
 
     // TODO: use a repository to store the token
     let id = todo!();
-    let encoded_secret_key = ApiAccessToken::encode_secret_key(&secret_key_prefix, &secret_key);
+    let encoded_secret_key = ApiAccessToken::encode_secret_key(&secret_key);
 
     Ok(CreateApiTokenResponse {
         id,

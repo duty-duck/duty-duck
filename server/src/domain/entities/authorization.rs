@@ -2,7 +2,7 @@ use anyhow::anyhow;
 use chrono::{DateTime, Utc};
 use custom_derive::custom_derive;
 use enum_derive::*;
-use rand::{distributions::DistString, Rng};
+use rand::Rng;
 use serde::Serialize;
 use ts_rs::TS;
 use uuid::Uuid;
@@ -124,7 +124,6 @@ pub struct ApiAccessToken {
     pub organization_id: Uuid,
     pub user_id: Uuid,
     pub label: String,
-    pub secret_key_prefix: String,
     // A hashed 256-bit key
     #[redact]
     pub secret_key: Vec<u8>,
@@ -134,26 +133,19 @@ pub struct ApiAccessToken {
 }
 
 impl ApiAccessToken {
-    pub const PREFIX_LENGTH: usize = 8;
-
-    /// Encodes a prefix and a 256-bit secret key into an alphanumeric string
-    pub fn encode_secret_key(secret_key_prefix: &str, secret_key: &[u8]) -> String {
-        let encoded_key = hex::encode(secret_key);
-        format!("{secret_key_prefix}{encoded_key}")
+    /// Encodes a 256-bit secret key into an alphanumeric string
+    pub fn encode_secret_key(secret_key: &[u8]) -> String {
+        hex::encode(secret_key)
     }
 
-    /// Decodes an alphanumeric string into a prefix and a 256-bit secret key
-    pub fn decode_secret_key(encoded_key: &str) -> anyhow::Result<(String, Vec<u8>)> {
-        let (secret_key_prefix, encoded_key) = encoded_key.split_at(Self::PREFIX_LENGTH);
-        let secret_key = hex::decode(encoded_key).map_err(|_| anyhow!("Failed to decode secret key"))?;
-        Ok((secret_key_prefix.to_string(), secret_key))
+    /// Decodes an alphanumeric string into a 256-bit secret key
+    pub fn decode_secret_key(encoded_key: &str) -> anyhow::Result<Vec<u8>> {
+        hex::decode(encoded_key).map_err(|_| anyhow!("Failed to decode secret key"))
     }
 
-    /// Generate a random secret key prefix and a 256-bit secret key
-    pub fn generate_secret_key() -> (String, Vec<u8>) {
+    /// Generate a random 256-bit secret key
+    pub fn generate_secret_key() -> Vec<u8> {
         let mut rng = rand::thread_rng();
-        let secret_key_prefix = rand::distributions::Alphanumeric.sample_string(&mut rng, Self::PREFIX_LENGTH);
-        let secret_key = (0..32).map(|_| rng.gen::<u8>()).collect::<Vec<_>>();
-        (secret_key_prefix, secret_key)
+        (0..32).map(|_| rng.gen::<u8>()).collect::<Vec<_>>()
     }
 }

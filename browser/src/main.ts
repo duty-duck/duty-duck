@@ -1,6 +1,6 @@
-import { HttpMonitorExecutorDefinition } from "../compiled_proto/http-monitor-executor.js";
+import { BrowserDefinition } from "../compiled_proto/browser.js";
 import { createServer } from "nice-grpc";
-import { httpMonitorExecutorImpl } from "./grpcService.js";
+import { browserServiceImpl } from "./grpcService.js";
 import { createLogger } from "./logger.js";
 import { createBrowserPool } from "./browser.js";
 
@@ -18,7 +18,7 @@ const browserPool = await createBrowserPool(config.maxConcurrentBrowsers, {
 
 log.info({ config }, "Starting gRPC Server");
 const server = createServer();
-server.add(HttpMonitorExecutorDefinition, httpMonitorExecutorImpl(browserPool));
+server.add(BrowserDefinition, browserServiceImpl(browserPool));
 
 await server.listen(`0.0.0.0:${config.grpcPort}`);
 log.info(`gRPC Server is running on port ${config.grpcPort}`);

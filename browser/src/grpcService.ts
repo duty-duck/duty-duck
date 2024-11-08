@@ -1,7 +1,7 @@
-import { DeepPartial, HttpMonitorExecutorServiceImplementation, HttpRequest, HttpResponse } from "../compiled_proto/http-monitor-executor.js";
+import { DeepPartial, BrowserServiceImplementation, HttpRequest, HttpResponse } from "../compiled_proto/browser.js";
 import { BrowserPool } from "./browser.js";
 
-export function httpMonitorExecutorImpl(browserPool: BrowserPool): HttpMonitorExecutorServiceImplementation {
+export function browserServiceImpl(browserPool: BrowserPool): BrowserServiceImplementation {
     return {
         executeHttpRequest: async (request: HttpRequest): Promise<DeepPartial<HttpResponse>> => {
             const browser = await browserPool.getBrowser();

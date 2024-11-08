@@ -21,15 +21,14 @@ message HttpResponse {
 }
 
 enum HttpErrorKind {
-    NONE = 0;
-    HTTP_CODE = 1;
-    CONNECT = 2;
-    BUILDER = 3;
-    REQUEST = 4;
-    REDIRECT = 5;
-    BODY = 6;
-    DECODE = 7;
-    TIMEOUT = 8;
+    HTTP_CODE = 0;
+    CONNECT = 1;
+    BUILDER = 2;
+    REQUEST = 3;
+    REDIRECT = 4;
+    BODY = 5;
+    DECODE = 6;
+    TIMEOUT = 7;
     UNKNOWN = 1000;
 }
 
@@ -38,7 +37,7 @@ message Screenshot {
     string content_type = 2;
 }
 
-service HttpMonitorExecutor {
+service Browser {
     rpc ExecuteHttpRequest (HttpRequest) returns (HttpResponse);
 }
 

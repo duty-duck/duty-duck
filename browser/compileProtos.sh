@@ -1,5 +1,7 @@
 #!/bin/bash
+rm -rf ./compiled_proto
 mkdir -p ./compiled_proto
+
 
 for proto_file in ../protos/*.proto; do
   ./node_modules/.bin/grpc_tools_node_protoc \

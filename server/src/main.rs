@@ -8,6 +8,7 @@ mod application;
 mod domain;
 mod infrastructure;
 mod shared;
+mod protos;
 
 // Initialize i18n
 rust_i18n::i18n!("locales", fallback = "en");

@@ -37,7 +37,7 @@ pub async fn start_application() -> anyhow::Result<()> {
 
     // TODO: implement graceful shutdown here
     let _http_monitors_tasks = use_cases::http_monitors::spawn_http_monitors_execution_tasks(
-        config.http_monitors_concurrent_tasks,
+        config.http_monitors_executor.http_monitors_concurrent_tasks,
         application_state.adapters.http_monitors_repository.clone(),
         application_state.adapters.incident_repository.clone(),
         application_state.adapters.incident_event_repository.clone(),
@@ -46,8 +46,8 @@ pub async fn start_application() -> anyhow::Result<()> {
             .incident_notification_repository
             .clone(),
         application_state.adapters.http_client.clone(),
-        config.http_monitors_select_size,
-        config.http_monitors_ping_concurrency,
+        config.http_monitors_executor.http_monitors_select_size,
+        config.http_monitors_executor.http_monitors_ping_concurrency,
     );
 
     let execute_incident_notifications = ExecuteIncidentNotificationsUseCase {
@@ -61,11 +61,13 @@ pub async fn start_application() -> anyhow::Result<()> {
         sms_notificaton_server: application_state.adapters.sms_notification_server.clone(),
         mailer: application_state.adapters.mailer.clone(),
         user_devices_repository: application_state.adapters.user_devices_repository.clone(),
-        select_limit: config.notifications_tasks_select_size,
+        select_limit: config.notifications_executor.notifications_tasks_select_size,
     };
     let _new_incident_notification_task = execute_incident_notifications.spawn_tasks(
-        config.notifications_concurrent_tasks,
-        Duration::from_secs(config.notifications_tasks_interval_seconds),
+        config.notifications_executor.notifications_concurrent_tasks,
+        Duration::from_secs(
+            config.notifications_executor.notifications_tasks_interval_seconds,
+        ),
     );
 
     tokio::select! {
@@ -79,20 +81,20 @@ pub async fn start_application() -> anyhow::Result<()> {
 
 async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationState> {
     let pool = PgPoolOptions::new()
-        .max_connections(config.database_max_connections)
-        .connect(&config.database_url)
+        .max_connections(config.db.database_max_connections)
+        .connect(&config.db.database_url)
         .await
         .with_context(|| "Failed to connect to the database")?;
 
     let keycloak_client = Arc::new(
         KeycloakClient::new(
-            Url::parse(&config.keycloak_public_url)
+            Url::parse(&config.keycloak.public_url)
                 .with_context(|| "Failed to parse keycloak public URL")?,
-            Url::parse(&config.keycloak_private_url)
+            Url::parse(&config.keycloak.private_url)
                 .with_context(|| "Failed to parse keycloak private URL")?,
-            &config.keycloak_realm,
-            &config.keycloak_client,
-            &config.keycloak_secret,
+            &config.keycloak.realm,
+            &config.keycloak.client_id,
+            &config.keycloak.client_secret,
         )
         .await
         .with_context(|| "Failed to create Keycloak client")?,
@@ -110,16 +112,16 @@ async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationSt
             pool: pool.clone(),
         },
         user_devices_repository: UserDevicesRepositoryAdapter { pool: pool.clone() },
-        http_client: HttpClientAdapter::new(&config),
+        http_client: HttpClientAdapter::new(&config).await.context("Failed to create http client adapter")?,
         push_notification_server: PushNotificationServerAdapter::new()
             .await
             .context("Failed to create push notification server adapter")?,
         mailer: MailerAdapter::new(MailerAdapterConfig {
-            smtp_server_host: config.smtp_server_host.clone(),
-            smtp_server_port: config.smtp_server_port,
-            smtp_disable_tls: config.smtp_disable_tls,
-            smtp_username: config.smtp_username.clone(),
-            smtp_password: config.smtp_password.clone(),
+            smtp_server_host: config.smtp.server_host.clone(),
+            smtp_server_port: config.smtp.server_port,
+            smtp_disable_tls: config.smtp.disable_tls,
+            smtp_username: config.smtp.username.clone(),
+            smtp_password: config.smtp.password.clone(),
         })
         .context("Failed to create mailer adapter")?,
         sms_notification_server: SmsNotificationServerAdapter::new()
@@ -130,6 +132,6 @@ async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationSt
         config: config.clone(),
         adapters,
         keycloak_client: keycloak_client.clone(),
-        access_token_audience: config.access_token_audience.clone(),
+        access_token_audience: config.keycloak.access_token_audience.clone(),
     })
 }

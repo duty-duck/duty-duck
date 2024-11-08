@@ -1,7 +1,7 @@
 import { Sema } from "async-sema";
 import puppeteer, { Page, PuppeteerError, TimeoutError } from "puppeteer-core";
 import { createLogger } from "./logger.js";
-import { HttpErrorKind, HttpRequest, HttpResponse } from "../compiled_proto/http-monitor-executor.js";
+import { HttpErrorKind, HttpRequest, HttpResponse } from "../compiled_proto/browser.js";
 import { Resolver } from "node:dns/promises";
 
 type BrowserOptions = {
@@ -67,7 +67,7 @@ const createBrowser = async (options: BrowserOptions): Promise<Browser> => {
             resolvedIpAddresses: [],
             responseBodySizeBytes: 0,
             responseBodyContent: undefined,
-            error: HttpErrorKind.NONE,
+            error: undefined,
             errorMessage: undefined,
         }
 

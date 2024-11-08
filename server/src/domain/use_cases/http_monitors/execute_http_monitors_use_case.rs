@@ -15,7 +15,7 @@ use crate::domain::{
         incident_notification::IncidentNotificationPayload,
     },
     ports::{
-        http_client::{HttpClient, PingError},
+        http_client::HttpClient,
         http_monitor_repository::{HttpMonitorRepository, UpdateHttpMonitorStatusCommand},
         incident_event_repository::IncidentEventRepository,
         incident_notification_repository::IncidentNotificationRepository,
@@ -117,17 +117,11 @@ where
             monitor.recovery_confirmation_threshold,
             monitor.status,
             monitor.status_counter,
-            ping_result.is_ok(),
+            ping_result.error_kind == HttpMonitorErrorKind::None,
         );
 
-        let last_http_code = match &ping_result {
-            Ok(p) => Some(p.http_code as i16),
-            Err(e) => e.http_code.map(|c| c as i16),
-        };
-        let error_kind = match &ping_result {
-            Ok(_) => HttpMonitorErrorKind::None,
-            Err(PingError { error_kind, .. }) => *error_kind,
-        };
+        let error_kind = ping_result.error_kind;
+        let last_http_code = ping_result.http_code.map(|c| c as i16);
         let next_ping_at = Some(Utc::now() + monitor.interval());
         let last_status_change_at = if status != monitor.status {
             Utc::now()
