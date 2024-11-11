@@ -63,6 +63,7 @@ pub enum IncidentEventType {
     Resolution = 2,
     Comment = 3,
     Acknowledged = 4,
+    Confirmation = 5,
 }
 
 impl From<i16> for IncidentEventType {
@@ -73,6 +74,7 @@ impl From<i16> for IncidentEventType {
             2 => Self::Resolution,
             3 => Self::Comment,
             4 => Self::Acknowledged,
+            5 => Self::Confirmation,
             _ => panic!("invalid IncidentEventType discriminant: {value}"),
         }
     }

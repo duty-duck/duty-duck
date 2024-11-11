@@ -133,13 +133,15 @@
             "timeline": {
                 "sectionTitle": "Incident timeline",
                 "incidentAcknowledged": "{firstName} {lastName} acknowledged the incident",
+                "incidentConfirmed": "Incident confirmed",
                 "incidentCreated": "Incident created",
                 "notificationSent": "Notification sent",
                 "incidentResolved": "Incident resolved",
                 "addComment": "Add a comment",
                 "addCommentButtonLabel": "Add a comment",
                 "addCommentPlaceholder": "Add a comment to this incident or write a post-mortem..."
-            }
+            },
+            "metadata": "Metadata"
         },
         "incidentStatus": {
             "ongoing": "Ongoing",

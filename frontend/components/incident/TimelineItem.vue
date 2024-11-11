@@ -21,6 +21,9 @@ const { item } = defineProps<{
                     <span v-if="item.event.eventType === 'creation'">
                         {{ $t("dashboard.incidents.timeline.incidentCreated") }}
                     </span>
+                    <span v-else-if="item.event.eventType === 'confirmation'">
+                        {{ $t("dashboard.incidents.timeline.incidentConfirmed") }}
+                    </span>
                     <span v-if="item.event.eventType === 'notification'">
                         {{ $t("dashboard.incidents.timeline.notificationSent") }}
                     </span>

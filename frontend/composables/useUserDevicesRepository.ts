@@ -45,7 +45,7 @@ export const useUserDevicesRepository = async () => {
             return $fetch(`/users/me/devices/${deviceId}`, { method: 'delete' })
         },
         async useDevices() {
-            return await useServerFetch<ListUserDevicesResponse>(`/users/me/devices`, { retry: 3, retryDelay: 5000, dedupe: "defer" });
+            return await useServerFetch<ListUserDevicesResponse>(`/users/me/devices`, { retry: 3, retryDelay: 5000, dedupe: "cancel" });
         },
     }
 }

@@ -3,7 +3,10 @@ use chrono::Utc;
 use uuid::Uuid;
 
 use crate::domain::{
-    entities::{incident::IncidentSource, incident_event::{IncidentEvent, IncidentEventType}},
+    entities::{
+        incident::IncidentSource,
+        incident_event::{IncidentEvent, IncidentEventType},
+    },
     ports::{
         incident_event_repository::IncidentEventRepository,
         incident_notification_repository::IncidentNotificationRepository,
@@ -11,6 +14,8 @@ use crate::domain::{
     },
 };
 
+/// Resolves all the ongoing incidents for the given sources and sends the appropriate notifications
+/// Deletes the unconfirmed incidents for the given sources without sending any notifications
 pub async fn resolve_incidents<IR, IER, INR>(
     transaction: &mut IR::Transaction,
     incident_repo: &IR,
@@ -25,7 +30,7 @@ where
     INR: IncidentNotificationRepository<Transaction = IR::Transaction>,
 {
     let resolved_incidents = incident_repo
-        .resolve_incidents_by_source(transaction, organization_id, sources)
+        .resolve_ongoing_incidents_by_source(transaction, organization_id, sources)
         .await
         .context("Failed to resolve incidents")?;
 
@@ -44,8 +49,17 @@ where
             event_payload: None,
         };
 
-        incident_event_repo.create_incident_event(transaction, event).await.context("Failed to create incident event")?;
+        incident_event_repo
+            .create_incident_event(transaction, event)
+            .await
+            .context("Failed to create incident event")?;
     }
+
+    // Delete the unconfirmed incidents for the given sources
+    incident_repo
+        .delete_unconfirmed_incidents_by_source(transaction, organization_id, sources)
+        .await
+        .context("Failed to delete unconfirmed incidents")?;
 
     Ok(())
 }

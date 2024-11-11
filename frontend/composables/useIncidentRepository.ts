@@ -13,7 +13,7 @@ export const useIncidentRepository = async () => {
 
     return {
         async useIncidents(params: Ref<ListIncidentsParams> | ListIncidentsParams, opts?: UseFetchOptions<ListIncidentsResponse>) {
-            return await useServerFetch<ListIncidentsResponse>(`/incidents`, { retry: 3, retryDelay: 5000, query: params, dedupe: "defer", ...(opts || {}) });
+            return await useServerFetch<ListIncidentsResponse>(`/incidents`, { retry: 3, retryDelay: 5000, query: params, dedupe: "cancel", ...(opts || {}) });
         },
         async useOngoingIncidentsCount() {
             let res = await this.useIncidents({

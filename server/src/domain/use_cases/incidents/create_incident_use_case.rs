@@ -15,6 +15,7 @@ use crate::domain::{
     },
 };
 
+#[derive(Clone)]
 pub struct NotificationOpts {
     pub send_sms: bool,
     pub send_push_notification: bool,
@@ -29,12 +30,7 @@ pub async fn create_incident<IR, IER, INR>(
     incident_event_repo: &IER,
     incident_notification_repo: &INR,
     new_incident: NewIncident,
-    NotificationOpts {
-        send_sms,
-        send_push_notification,
-        send_email,
-        notification_payload,
-    }: NotificationOpts,
+    notification_opts: Option<NotificationOpts>,
 ) -> anyhow::Result<()>
 where
     IR: IncidentRepository,
@@ -54,25 +50,33 @@ where
         event_payload: None,
     };
 
-    let event_notification = IncidentNotification {
-        incident_id,
-        organization_id: new_incident.organization_id,
-        escalation_level: 0,
-        notification_type: IncidentNotificationType::IncidentCreation,
-        notification_due_at: Utc::now(),
-        notification_payload,
-        send_sms,
-        send_push_notification,
-        send_email,
-    };
-
     incident_event_repo
         .create_incident_event(transaction, event)
         .await?;
 
-    incident_notification_repo
-        .upsert_incident_notification(transaction, event_notification)
-        .await?;
+    if let Some(NotificationOpts {
+        send_sms,
+        send_push_notification,
+        send_email,
+        notification_payload,
+    }) = notification_opts
+    {
+        let event_notification = IncidentNotification {
+            incident_id,
+            organization_id: new_incident.organization_id,
+            escalation_level: 0,
+            notification_type: IncidentNotificationType::IncidentCreation,
+            notification_due_at: Utc::now(),
+            notification_payload,
+            send_sms,
+            send_push_notification,
+            send_email,
+        };
+
+        incident_notification_repo
+            .upsert_incident_notification(transaction, event_notification)
+            .await?;
+    }
 
     Ok(())
 }

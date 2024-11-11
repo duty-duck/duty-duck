@@ -134,12 +134,14 @@
                 "sectionTitle": "Chronologie de l'incident",
                 "incidentAcknowledged": "{firstName} {lastName} a pris en charge l'incident",
                 "incidentCreated": "Incident créé",
+                "incidentConfirmed": "Incident confirmé",
                 "notificationSent": "Notification envoyée",
                 "incidentResolved": "Incident résolu",
                 "addCommentPlaceholder": "Ajouter un commentaire ou un post-mortem...",
                 "addCommentButtonLabel": "Commenter",
                 "addComment": "Ajouter un commentaire"
-            }
+            },
+            "metadata": "Métadonnées"
         },
         "incidentStatus": {
             "ongoing": "En cours",

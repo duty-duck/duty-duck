@@ -74,7 +74,12 @@ where
 
     // Resolve any incident previously associated with this monitor
     incident_repository
-        .resolve_incidents_by_source(&mut tx, auth_context.active_organization_id, &sources)
+        .resolve_ongoing_incidents_by_source(&mut tx, auth_context.active_organization_id, &sources)
+        .await?;
+
+    // Delete any unconfirmed incidents previously associated with this monitor
+    incident_repository
+        .delete_unconfirmed_incidents_by_source(&mut tx, auth_context.active_organization_id, &sources)
         .await?;
 
     incident_repository.commit_transaction(tx).await?;

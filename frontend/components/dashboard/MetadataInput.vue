@@ -46,6 +46,8 @@ const saveEditedMetadata = () => {
     currentlyEditedKey.value = null;
     newKeyFormRef.value?.focus();
 }
+
+const sortedRecords = computed(() => Object.fromEntries(Object.entries(metadata.value.records).sort(([a], [b]) => a.localeCompare(b))));
 </script>
 
 <template>
@@ -54,9 +56,9 @@ const saveEditedMetadata = () => {
             {{ $t("metadataInput.noMetadata") }}
         </div>
         <ul>
-            <li class="mb-2" v-for="(value, key) in metadata.records" :key="key">
-                <form class="d-flex gap-1 align-items-center" v-if="!readOnly && currentlyEditedKey?.originalKey === key"
-                    @submit.prevent="saveEditedMetadata">
+            <li class="mb-2" v-for="(value, key) in sortedRecords" :key="key">
+                <form class="d-flex gap-1 align-items-center"
+                    v-if="!readOnly && currentlyEditedKey?.originalKey === key" @submit.prevent="saveEditedMetadata">
                     <div class="col-0">
                         <Icon name="ph:dots-three-vertical" />
                     </div>
@@ -82,7 +84,8 @@ const saveEditedMetadata = () => {
                     <span class="col px-1">{{ key }}</span>
                     <span class="col px-1">{{ value }}</span>
                     <div class="col-1">
-                        <BButton v-if="!readOnly" @click="toggleEditMode(key as string)" variant="link-secondary" size="sm">
+                        <BButton v-if="!readOnly" @click="toggleEditMode(key as string)" variant="link-secondary"
+                            size="sm">
                             <Icon name="ph:pencil-bold" />
                         </BButton>
                     </div>

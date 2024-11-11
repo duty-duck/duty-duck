@@ -99,6 +99,7 @@ useIntervalFn(() => refresh(), 10000);
 
       </section>
 
+      <!-- People section -->
       <section class="mb-5">
         <h5>
           <Icon name="ph:users" />
@@ -126,8 +127,19 @@ useIntervalFn(() => refresh(), 10000);
             size="2.4rem" fontSize=".9rem" />
 
         </div>
-
       </section>
+
+      <!-- Metadata section -->
+      <section class="mb-5">
+        <h5>
+          <Icon name="ph:database" />
+          {{ $t("dashboard.incidents.metadata") }}
+        </h5>
+
+        <DashboardMetadataInput v-model="incidentRes!.incident.metadata" read-only />
+      </section>
+
+      <!-- Timeline section -->
       <Suspense>
         <template #fallback>
           <BSpinner />

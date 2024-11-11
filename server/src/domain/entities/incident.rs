@@ -28,6 +28,7 @@ pub struct Incident {
     pub metadata: EntityMetadata,
 }
 
+/// A struct that includes the incident, the user who created it, and the users who have acknowledged it
 #[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
@@ -39,6 +40,7 @@ pub struct IncidentWithUsers {
     pub acknowledged_by: Vec<UserNameInfo>,
 }
 
+/// An enum that represents the cause of an incident
 #[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]
 #[serde(tag = "causeType", rename_all_fields = "camelCase")]
 #[ts(export)]
@@ -49,13 +51,18 @@ pub enum IncidentCause {
     },
 }
 
+/// An enum that represents the status of an incident
 #[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq, ToSchema)]
 #[repr(i16)]
 #[serde(rename_all = "lowercase")]
 #[ts(export)]
 pub enum IncidentStatus {
+    /// The incident has been resolved
     Resolved = 0,
+    /// The incident is ongoing
     Ongoing = 1,
+    /// The incident is to be confirmed (by another system event, like an http monitor transitioning from suspicious to down)
+    ToBeConfirmed = 2,
 }
 
 impl From<i16> for IncidentStatus {
@@ -63,6 +70,7 @@ impl From<i16> for IncidentStatus {
         match value {
             0 => Self::Resolved,
             1 => Self::Ongoing,
+            2 => Self::ToBeConfirmed,
             _ => panic!("invalid IncidentStatus discriminant: {value}"),
         }
     }
@@ -135,6 +143,8 @@ pub enum IncidentSource {
     HttpMonitor { id: Uuid },
 }
 
+/// A struct that represents the data needed to create a new incident
+/// Used to communicate with the incident repository
 #[derive(Debug, Clone)]
 pub struct NewIncident {
     pub organization_id: Uuid,

@@ -75,7 +75,10 @@ defineExpose({
 
 <template>
     <section>
-        <h5 class="mb-5">{{ $t("dashboard.incidents.timeline.sectionTitle") }}</h5>
+        <h5 class="mb-5">
+            <Icon name="ph:clock-counter-clockwise" />
+            {{ $t("dashboard.incidents.timeline.sectionTitle") }}
+        </h5>
         <template v-for="(page, index) in state.pages" :key="`page-${index}`">
             <IncidentTimelineItem v-for="item in page" :key="`${item.event.incidentId}-${item.event.createdAt}`"
                 :item="item" />

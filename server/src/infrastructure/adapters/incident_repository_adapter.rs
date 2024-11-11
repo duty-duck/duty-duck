@@ -58,7 +58,7 @@ impl IncidentRepository for IncidentRepositoryAdapter {
         Ok(new_incident_id)
     }
 
-    /// Resolves all incidents for the given sources.
+    /// Resolves all ongoing incidents for the given sources.
     ///
     /// # Arguments
     ///
@@ -69,7 +69,7 @@ impl IncidentRepository for IncidentRepositoryAdapter {
     /// # Returns
     ///
     /// A `Vec<Uuid>` containing the IDs of the resolved incidents.
-    async fn resolve_incidents_by_source(
+    async fn resolve_ongoing_incidents_by_source(
         &self,
         transaction: &mut Self::Transaction,
         organization_id: Uuid,
@@ -87,12 +87,16 @@ impl IncidentRepository for IncidentRepositoryAdapter {
             "
             UPDATE incidents i
             SET resolved_at = now(), status = $1
-            WHERE organization_id = $2
-            AND i.status != $1
-            AND (i.incident_source_type = $3 AND i.incident_source_id = ANY($4::uuid[]))
+            WHERE organization_id = $3
+            AND i.status = $2
+            AND (i.incident_source_type = $4 AND i.incident_source_id = ANY($5::uuid[]))
             RETURNING id
            ",
+            // new incident status
             &(IncidentStatus::Resolved as i16),
+            // status of incidents to be updated
+            &(IncidentStatus::Ongoing as i16),
+            // organization id of incidents to be updated
             &organization_id,
             &(IncidentSourceType::HttpMonitor as i16),
             &http_monitors_ids
@@ -308,5 +312,101 @@ impl IncidentRepository for IncidentRepositoryAdapter {
             .execute(transaction.as_mut())
             .await?;
         Ok(())
+    }
+
+    /// Confirms all incidents for the given sources.
+    ///
+    /// # Arguments
+    ///
+    /// * `transaction` - A mutable reference to the transaction object.
+    /// * `organization_id` - The ID of the organization to confirm incidents for.
+    /// * `sources` - A slice of `IncidentSource` values to confirm incidents for.
+    ///
+    /// # Returns
+    ///
+    /// A `Vec<Uuid>` containing the IDs of the confirmed incidents.
+    async fn confirm_incidents_by_source(
+        &self,
+        transaction: &mut Self::Transaction,
+        organization_id: Uuid,
+        sources: &[IncidentSource],
+    ) -> anyhow::Result<Vec<Uuid>> {
+        let http_monitors_ids = sources
+            .iter()
+            .map(|source| match source {
+                IncidentSource::HttpMonitor { id } => *id,
+            })
+            .unique()
+            .collect::<Vec<_>>();
+
+        let confirmed_incidents = sqlx::query!(
+            "
+            UPDATE incidents i
+            SET status = $1
+            WHERE organization_id = $3
+            AND i.status = $2
+            AND (i.incident_source_type = $4 AND i.incident_source_id = ANY($5::uuid[]))
+            RETURNING id
+           ",
+            &(IncidentStatus::Ongoing as i16),
+            &(IncidentStatus::ToBeConfirmed as i16),
+            &organization_id,
+            &(IncidentSourceType::HttpMonitor as i16),
+            &http_monitors_ids
+        )
+        .fetch_all(transaction.as_mut())
+        .await?
+        .into_iter()
+        .map(|record| record.id)
+        .collect::<Vec<_>>();
+
+        Ok(confirmed_incidents)
+    }
+
+    /// Deletes all incidents for the given sources.
+    ///
+    /// # Arguments
+    ///
+    /// * `transaction` - A mutable reference to the transaction object.
+    /// * `organization_id` - The ID of the organization to delete incidents for.
+    /// * `sources` - A slice of `IncidentSource` values to delete incidents for.
+    ///
+    /// # Returns
+    ///
+    /// A `Vec<Uuid>` containing the IDs of the deleted incidents.
+    async fn delete_unconfirmed_incidents_by_source(
+        &self,
+        transaction: &mut Self::Transaction,
+        organization_id: Uuid,
+        sources: &[IncidentSource],
+    ) -> anyhow::Result<Vec<Uuid>> {
+        let http_monitors_ids = sources
+            .iter()
+            .map(|source| match source {
+                IncidentSource::HttpMonitor { id } => *id,
+            })
+            .unique()
+            .collect::<Vec<_>>();
+
+        let deleted_incidents = sqlx::query!(
+            "
+            DELETE FROM incidents i
+            WHERE organization_id = $1
+            AND i.status = $2   
+            AND (i.incident_source_type = $3 AND i.incident_source_id = ANY($4::uuid[]))
+            RETURNING id
+            ",
+            &organization_id,
+            &(IncidentStatus::ToBeConfirmed as i16),
+            &(IncidentSourceType::HttpMonitor as i16),
+            &http_monitors_ids
+        )
+        .fetch_all(transaction.as_mut())
+        .await?
+        .into_iter()
+        .map(|record| record.id)
+        .collect::<Vec<_>>();
+
+        Ok(deleted_incidents)
     }
 }

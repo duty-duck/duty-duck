@@ -54,11 +54,11 @@ impl HttpClient for HttpClientAdapter {
                 }
                 Err(e) => {
                     if attempt >= 3 {
+                        error!("Failed to call gRPC browser service: {:?}. Giving up.", e);
                         return PingResponse {
                             error_kind: HttpMonitorErrorKind::BrowserServiceCallFailed,
                             ..Default::default()
                         };
-                        error!("Failed to call gRPC browser service: {:?}. Giving up.", e);
                     }
                     warn!("Failed to call gRPC browser service: {:?}. Retrying ...", e);
                     tokio::time::sleep(Duration::from_millis(1000)).await;

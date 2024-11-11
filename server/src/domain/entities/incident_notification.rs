@@ -30,9 +30,11 @@ pub struct IncidentNotificationPayload {
 #[derive(sqlx::Type, Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]
 #[repr(i16)]
 #[serde(rename_all = "lowercase")]
+#[allow(clippy::enum_variant_names)]
 pub enum IncidentNotificationType {
     IncidentCreation = 0,
     IncidentResolution = 1,
+    IncidentConfirmation = 2,
 }
 
 impl From<i16> for IncidentNotificationType {
@@ -40,6 +42,7 @@ impl From<i16> for IncidentNotificationType {
         match value {
             0 => Self::IncidentCreation,
             1 => Self::IncidentResolution,
+            2 => Self::IncidentConfirmation,
             _ => panic!("invalid IncidentNotificationType discriminant: {value}"),
         }
     }

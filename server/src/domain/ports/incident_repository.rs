@@ -63,7 +63,7 @@ pub trait IncidentRepository: TransactionalRepository + Clone + Send + Sync + 's
         opts: ListIncidentsOpts<'a>,
     ) -> anyhow::Result<ListIncidentsOutput>;
 
-    /// Resolves all incidents for the given sources.
+    /// Resolves all ongoing incidents for the given sources.
     ///
     /// # Arguments
     ///
@@ -74,7 +74,26 @@ pub trait IncidentRepository: TransactionalRepository + Clone + Send + Sync + 's
     /// # Returns
     ///
     /// A `Vec<Uuid>` containing the IDs of the resolved incidents.
-    async fn resolve_incidents_by_source(
+    async fn resolve_ongoing_incidents_by_source(
+        &self,
+        transaction: &mut Self::Transaction,
+        organization_id: Uuid,
+        sources: &[IncidentSource],
+    ) -> anyhow::Result<Vec<Uuid>>;
+
+
+    /// Confirms all incidents for the given sources.
+    ///
+    /// # Arguments
+    ///
+    /// * `transaction` - A mutable reference to the transaction object.
+    /// * `organization_id` - The ID of the organization to resolve incidents for.
+    /// * `sources` - A slice of `IncidentSource` values to resolve incidents for.
+    ///
+    /// # Returns
+    ///
+    /// A `Vec<Uuid>` containing the IDs of the confirmed incidents.
+    async fn confirm_incidents_by_source(
         &self,
         transaction: &mut Self::Transaction,
         organization_id: Uuid,
@@ -96,6 +115,20 @@ pub trait IncidentRepository: TransactionalRepository + Clone + Send + Sync + 's
         incident_id: Uuid,
         user_id: Uuid,
     ) -> anyhow::Result<()>;
+
+    /// Deletes all incidents for the given sources.
+    ///
+    /// # Arguments
+    ///
+    /// * `transaction` - A mutable reference to the transaction object.
+    /// * `organization_id` - The ID of the organization to delete incidents for.
+    /// * `sources` - A slice of `IncidentSource` values to delete incidents for.
+    async fn delete_unconfirmed_incidents_by_source(
+        &self,
+        transaction: &mut Self::Transaction,
+        organization_id: Uuid,
+        sources: &[IncidentSource],
+    ) -> anyhow::Result<Vec<Uuid>>;
 }
 
 pub struct ListIncidentsOutput {

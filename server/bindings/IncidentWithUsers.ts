@@ -6,4 +6,7 @@ import type { IncidentSourceType } from "./IncidentSourceType";
 import type { IncidentStatus } from "./IncidentStatus";
 import type { UserNameInfo } from "./UserNameInfo";
 
+/**
+ * A struct that includes the incident, the user who created it, and the users who have acknowledged it
+ */
 export type IncidentWithUsers = { createdBy: UserNameInfo | null, acknowledgedBy: Array<UserNameInfo>, organizationId: string, id: string, createdAt: string, createdBy: string | null, resolvedAt: string | null, cause: IncidentCause | null, status: IncidentStatus, priority: IncidentPriority, incidentSourceType: IncidentSourceType, incidentSourceId: string, acknowledgedBy: Array<string>, metadata: EntityMetadata, };
