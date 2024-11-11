@@ -17,7 +17,7 @@ const emit = defineEmits<{
 }>();
 </script>
 <template>
-    <nav class="filtering-bar d-flex gap-2 mb-4 py-3">
+    <nav class="filtering-bar d-flex gap-2 mb-3 py-3">
         <BButton class="flex-shrink-0 icon-link" variant="outline-secondary" @click="emit('clearFilters')">
             <Icon size="1.3rem" name="ph:funnel-simple-x-bold" />
         </BButton>

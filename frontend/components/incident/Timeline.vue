@@ -5,10 +5,11 @@ import type { CommentPayload } from 'bindings/CommentPayload';
 import type { IncidentEvent } from 'bindings/IncidentEvent';
 import type { TimelineItem } from 'bindings/TimelineItem';
 
-const { incidentId, showCommentEditor = true, infiniteScrolling = true } = defineProps<{
+const { incidentId, showCommentEditor = true, infiniteScrolling = true, titleSize = "h5" } = defineProps<{
     incidentId: string,
     showCommentEditor?: boolean,
-    infiniteScrolling?: boolean
+    infiniteScrolling?: boolean,
+    titleSize?: "h5" | "h6"
 }>();
 const isCommentLoading = ref(false);
 const pageSize = 10;
@@ -75,10 +76,10 @@ defineExpose({
 
 <template>
     <section>
-        <h5 class="mb-5">
+        <component :is="titleSize" class="mb-5 icon-link">
             <Icon name="ph:clock-counter-clockwise" />
             {{ $t("dashboard.incidents.timeline.sectionTitle") }}
-        </h5>
+        </component>
         <template v-for="(page, index) in state.pages" :key="`page-${index}`">
             <IncidentTimelineItem v-for="item in page" :key="`${item.event.incidentId}-${item.event.createdAt}`"
                 :item="item" />

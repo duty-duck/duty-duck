@@ -8,7 +8,6 @@ import type { ReadHttpMonitorResponse } from "bindings/ReadHttpMonitorResponse";
 const localePath = useLocalePath();
 const repo = await useHttpMonitorRepository();
 const incidentPageNumber = useRouteQuery("incidentsPageNumber", 1, { transform: Number });
-const currentTab = useRouteQuery("incidentsCurrentTab", "ongoing" as "ongoing" | "history");
 const orderBy = useRouteQuery<OrderIncidentsBy>("orderBy", "createdAt");
 const orderDirection = useRouteQuery<OrderDirection>("orderDirection", "desc");
 const timeRange = useTimeRangeQuery();
@@ -50,17 +49,6 @@ const {
 );
 
 
-const currentTabIndex = computed({
-  get() {
-    if (!monitorResponse.ongoingIncident) {
-      return 1;
-    }
-    return currentTab.value == "ongoing" ? 0 : 1;
-  },
-  set(tab) {
-    currentTab.value = tab == 0 ? "ongoing" : "history";
-  }
-})
 
 const onClearFilters = () => {
   navigateTo({
@@ -68,76 +56,63 @@ const onClearFilters = () => {
   });
 }
 
-watch(
-  () => currentTab.value,
-  (tab) => {
-    if (tab == "history") {
-      incidentPageNumber.value = 1;
-      onClearFilters();
-      refreshIncidents();
-    }
-  },
-  { immediate: true }
-);
-
 defineExpose({
   refreshIncidents,
 });
 </script>
 
 <template>
-  <BTabs v-model="currentTabIndex">
-    <BTab :disabled="!monitorResponse.ongoingIncident" lazy>
-      <template #title>
-        <span class="d-flex align-items-center">
-          <Icon aria-label="Incident started at" name="ph:seal-warning" size="1.3rem" class="me-1" />
-          {{ $t("dashboard.monitors.ongoingIncident") }}
-        </span>
-      </template>
-      <div v-if="monitorResponse.ongoingIncident" class="mt-3">
-        <h5>
-          {{ $t("dashboard.monitors.ongoingIncident") }}
-        </h5>
-        <NuxtLink :to="localePath(`/dashboard/incidents/${monitorResponse.ongoingIncident.id}`)" class="icon-link mb-3">
-          <Icon aria-hidden name="ph:arrow-up-right" size="1.3rem" />
-          {{ $t("dashboard.incidents.goToIncident") }}
-        </NuxtLink>
+  <div>
+    <!-- Ongoing Incident Section -->
+    <section v-if="monitorResponse.ongoingIncident" class="mb-5">
+      <div class="d-flex align-items-center mb-3">
+        <Icon aria-label="Incident started at" name="ph:seal-warning-fill" size="1.3rem" class="me-2 text-danger" />
+        <h5 class="mb-0">{{ $t("dashboard.monitors.ongoingIncident") }}</h5>
+      </div>
 
-        <h5>
-          {{ $t("dashboard.incidents.startOfIncident") }}
-        </h5>
-        {{ $d(new Date(monitorResponse.ongoingIncident.createdAt), "long") }}
+      <NuxtLink :to="localePath(`/dashboard/incidents/${monitorResponse.ongoingIncident.id}`)" class="icon-link mb-3">
+        <Icon aria-hidden name="ph:arrow-up-right" size="1.3rem" />
+        {{ $t("dashboard.incidents.goToIncident") }}
+      </NuxtLink>
+
+      <BCard>
         <p>
-        <h5>{{ $t("dashboard.incidents.rootCause") }}:</h5>
+        <h6>{{ $t("dashboard.incidents.startOfIncident") }}</h6>
+        {{ $d(new Date(monitorResponse.ongoingIncident.createdAt), "long") }}
+      </p>
+
+      <p>
+        <h6>{{ $t("dashboard.incidents.rootCause") }}:</h6>
         <IncidentCause :incident="monitorResponse.ongoingIncident" />
-        </p>
-        <LazyIncidentTimeline :incident-id="monitorResponse.ongoingIncident.id" :show-comment-editor="false" />
+      </p>
+
+      <LazyIncidentTimeline :incident-id="monitorResponse.ongoingIncident.id" :show-comment-editor="false"
+        title-size="h6" />
+      </BCard>
+    </section>
+
+    <!-- Incident History Section -->
+    <section>
+      <div class="d-flex align-items-center ">
+        <Icon aria-label="Incident history" name="ph:clock-counter-clockwise" size="1.3rem" class="me-2" />
+        <h5 class="mb-0">{{ $t("dashboard.monitors.incidentHistory") }}</h5>
       </div>
-    </BTab>
-    <BTab class="px-0 pb-0">
-      <template #title>
-        <span class="d-flex align-items-center">
-          <Icon aria-label="Incident history" name="ph:clock-counter-clockwise" size="1.3rem" class="me-1" />
-          {{ $t("dashboard.monitors.incidentHistory") }}
-        </span>
-      </template>
-      <div class="mt-3">
-        <h5>{{ $t("dashboard.monitors.incidentHistory") }}</h5>
-        <IncidentFilteringBar :shown-filters="['timeRange', 'orderBy']" @clear-filters="onClearFilters"
-          :include-statuses="['resolved']" v-model:time-range="timeRange" v-model:orderBy="orderBy"
-          v-model:orderDirection="orderDirection" />
-        <BCard v-if="incidents?.items.length == 0" class="text-center text-secondary py-5 mt-3">
-          <h5>{{ $t("dashboard.monitors.noIncident.title") }} 👍</h5>
-          <p>{{ $t("dashboard.monitors.noIncident.text") }}</p>
-        </BCard>
-        <div v-else class="mt-3">
-          <IncidentTableView :incidents="incidents?.items!"
-            :show-columns="['date', 'acknowledgedBy', 'status', 'rootCause']" />
-          <BPagination v-model="incidentPageNumber" :prev-text="$t('pagination.prev')" pills limit="10"
-            :next-text="$t('pagination.next')" :total-rows="incidents?.totalNumberOfFilteredResults || 0"
-            :per-page="10" />
-        </div>
+
+      <IncidentFilteringBar :shown-filters="['timeRange', 'orderBy']" @clear-filters="onClearFilters"
+        :include-statuses="['resolved']" v-model:time-range="timeRange" v-model:orderBy="orderBy"
+        v-model:orderDirection="orderDirection" />
+
+      <BCard v-if="incidents?.items.length == 0" class="text-center text-secondary py-5 mt-3">
+        <h5>{{ $t("dashboard.monitors.noIncident.title") }} 👍</h5>
+        <p>{{ $t("dashboard.monitors.noIncident.text") }}</p>
+      </BCard>
+
+      <div v-else>
+        <IncidentTableView :incidents="incidents?.items!"
+          :show-columns="['date', 'acknowledgedBy', 'status', 'rootCause']" />
+        <BPagination v-model="incidentPageNumber" :prev-text="$t('pagination.prev')" :next-text="$t('pagination.next')"
+          :total-rows="incidents?.totalNumberOfFilteredResults || 0" :per-page="10" pills limit="10" />
       </div>
-    </BTab>
-  </BTabs>
+    </section>
+  </div>
 </template>
