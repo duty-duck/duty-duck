@@ -139,7 +139,8 @@
                 "incidentResolved": "Incident resolved",
                 "addComment": "Add a comment",
                 "addCommentButtonLabel": "Add a comment",
-                "addCommentPlaceholder": "Add a comment to this incident or write a post-mortem..."
+                "addCommentPlaceholder": "Add a comment to this incident or write a post-mortem...",
+                "comment": "{firstName} {lastName} has commented on the incident"
             },
             "metadata": "Metadata"
         },
@@ -159,7 +160,8 @@
             "cannotConnectToEndpoint": "Could not connect to server",
             "timedOut": "Request timed out, the server took too long to respond",
             "requestError": "Request error",
-            "unknownError": "Unknown error"
+            "unknownError": "Unknown error",
+            "otherCauses": "No other cause | Another cause | {count} other causes"
         },
         "pushNotifications": {
             "title": "Push Notifications",

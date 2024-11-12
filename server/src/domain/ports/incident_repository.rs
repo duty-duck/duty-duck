@@ -63,42 +63,12 @@ pub trait IncidentRepository: TransactionalRepository + Clone + Send + Sync + 's
         opts: ListIncidentsOpts<'a>,
     ) -> anyhow::Result<ListIncidentsOutput>;
 
-    /// Resolves all ongoing incidents for the given sources.
-    ///
-    /// # Arguments
-    ///
-    /// * `transaction` - A mutable reference to the transaction object.
-    /// * `organization_id` - The ID of the organization to resolve incidents for.
-    /// * `sources` - A slice of `IncidentSource` values to resolve incidents for.
-    ///
-    /// # Returns
-    ///
-    /// A `Vec<Uuid>` containing the IDs of the resolved incidents.
-    async fn resolve_ongoing_incidents_by_source(
+    /// Updates the incident with the given ID.
+    async fn update_incident(
         &self,
         transaction: &mut Self::Transaction,
-        organization_id: Uuid,
-        sources: &[IncidentSource],
-    ) -> anyhow::Result<Vec<Uuid>>;
-
-
-    /// Confirms all incidents for the given sources.
-    ///
-    /// # Arguments
-    ///
-    /// * `transaction` - A mutable reference to the transaction object.
-    /// * `organization_id` - The ID of the organization to resolve incidents for.
-    /// * `sources` - A slice of `IncidentSource` values to resolve incidents for.
-    ///
-    /// # Returns
-    ///
-    /// A `Vec<Uuid>` containing the IDs of the confirmed incidents.
-    async fn confirm_incidents_by_source(
-        &self,
-        transaction: &mut Self::Transaction,
-        organization_id: Uuid,
-        sources: &[IncidentSource],
-    ) -> anyhow::Result<Vec<Uuid>>;
+        incident: Incident,
+    ) -> anyhow::Result<()>;
 
     /// Marks the incident as acknowledged by the given user.
     ///
@@ -116,19 +86,13 @@ pub trait IncidentRepository: TransactionalRepository + Clone + Send + Sync + 's
         user_id: Uuid,
     ) -> anyhow::Result<()>;
 
-    /// Deletes all incidents for the given sources.
-    ///
-    /// # Arguments
-    ///
-    /// * `transaction` - A mutable reference to the transaction object.
-    /// * `organization_id` - The ID of the organization to delete incidents for.
-    /// * `sources` - A slice of `IncidentSource` values to delete incidents for.
-    async fn delete_unconfirmed_incidents_by_source(
+    /// Deletes an incident with the given ID.
+    async fn delete_incident(
         &self,
         transaction: &mut Self::Transaction,
         organization_id: Uuid,
-        sources: &[IncidentSource],
-    ) -> anyhow::Result<Vec<Uuid>>;
+        incident_id: Uuid,
+    ) -> anyhow::Result<()>;
 }
 
 pub struct ListIncidentsOutput {

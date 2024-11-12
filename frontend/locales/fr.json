@@ -139,7 +139,8 @@
                 "incidentResolved": "Incident résolu",
                 "addCommentPlaceholder": "Ajouter un commentaire ou un post-mortem...",
                 "addCommentButtonLabel": "Commenter",
-                "addComment": "Ajouter un commentaire"
+                "addComment": "Ajouter un commentaire",
+                "comment": "{firstName} {lastName} a commenté l'incident"
             },
             "metadata": "Métadonnées"
         },
@@ -159,7 +160,8 @@
             "cannotConnectToEndpoint": "Impossible d'établir la connexion au serveur",
             "timedOut": "Délai d'attente dépassé, le serveur a été trop lent à répondre",
             "requestError": "Erreur lors de la requête",
-            "unknownError": "Erreur inconnue"
+            "unknownError": "Erreur inconnue",
+            "otherCauses": "Aucune autre cause | Une autre cause | {count} autres causes"
         },
         "myAccount": {
             "edit": {

@@ -905,7 +905,7 @@ impl KeycloakClient {
                 id_token: res.id_token().cloned(),
             },
             Err(e) => {
-                warn!("Failed to refresh access token from Keycloak: {e}. Falling back to client credentials grant.");
+                warn!(error = ?e, "Failed to refresh access token from Keycloak: {e}. Falling back to client credentials grant.");
                 self.obtain_access_token().await
             }
         }

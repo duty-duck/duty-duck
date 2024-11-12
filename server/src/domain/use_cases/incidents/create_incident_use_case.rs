@@ -1,4 +1,5 @@
 use chrono::Utc;
+use uuid::Uuid;
 
 use crate::domain::{
     entities::{
@@ -31,7 +32,7 @@ pub async fn create_incident<IR, IER, INR>(
     incident_notification_repo: &INR,
     new_incident: NewIncident,
     notification_opts: Option<NotificationOpts>,
-) -> anyhow::Result<()>
+) -> anyhow::Result<Uuid>
 where
     IR: IncidentRepository,
     IER: IncidentEventRepository<Transaction = IR::Transaction>,
@@ -78,5 +79,5 @@ where
             .await?;
     }
 
-    Ok(())
+    Ok(incident_id)
 }

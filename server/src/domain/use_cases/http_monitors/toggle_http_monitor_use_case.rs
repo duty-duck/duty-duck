@@ -6,12 +6,15 @@ use crate::domain::{
     entities::{
         authorization::{AuthContext, Permission},
         http_monitor::HttpMonitorStatus,
-        incident::IncidentSource,
+        incident::{IncidentPriority, IncidentSource, IncidentStatus},
     },
     ports::{
         http_monitor_repository::{HttpMonitorRepository, UpdateHttpMonitorStatusCommand},
-        incident_repository::IncidentRepository,
+        incident_event_repository::IncidentEventRepository,
+        incident_notification_repository::IncidentNotificationRepository,
+        incident_repository::{IncidentRepository, ListIncidentsOpts},
     },
+    use_cases::incidents::resolve_incident,
 };
 
 #[derive(Error, Debug)]
@@ -24,15 +27,19 @@ pub enum ToggleMonitorError {
     TechnicalFailure(#[from] anyhow::Error),
 }
 
-pub async fn toggle_http_monitor<HMR, IR>(
+pub async fn toggle_http_monitor<HMR, IR, IER, INR>(
     auth_context: &AuthContext,
     http_monitor_repository: &HMR,
     incident_repository: &IR,
+    incident_event_repository: &IER,
+    incident_notification_repository: &INR,
     monitor_id: Uuid,
 ) -> Result<(), ToggleMonitorError>
 where
     HMR: HttpMonitorRepository,
     IR: IncidentRepository<Transaction = HMR::Transaction>,
+    IER: IncidentEventRepository<Transaction = HMR::Transaction>,
+    INR: IncidentNotificationRepository<Transaction = HMR::Transaction>,
 {
     if !auth_context.can(Permission::WriteHttpMonitors) {
         return Err(ToggleMonitorError::Forbidden);
@@ -49,7 +56,6 @@ where
     }?;
 
     let now = Utc::now();
-    let sources = [IncidentSource::HttpMonitor { id: monitor_id }];
     let (status, next_ping_at) = if monitor.status == HttpMonitorStatus::Inactive {
         (HttpMonitorStatus::Unknown, Some(now))
     } else {
@@ -72,15 +78,32 @@ where
         )
         .await?;
 
-    // Resolve any incident previously associated with this monitor
-    incident_repository
-        .resolve_ongoing_incidents_by_source(&mut tx, auth_context.active_organization_id, &sources)
-        .await?;
+    // Retrieve all ongoing incidents for this monitor
+    let ongoing_incidents = incident_repository
+        .list_incidents(
+            &mut tx,
+            monitor.organization_id,
+            ListIncidentsOpts {
+                include_statuses: &[IncidentStatus::Ongoing, IncidentStatus::ToBeConfirmed],
+                include_priorities: &IncidentPriority::ALL,
+                include_sources: &[IncidentSource::HttpMonitor { id: monitor.id }],
+                limit: 1,
+                ..Default::default()
+            },
+        )
+        .await?
+        .incidents;
 
-    // Delete any unconfirmed incidents previously associated with this monitor
-    incident_repository
-        .delete_unconfirmed_incidents_by_source(&mut tx, auth_context.active_organization_id, &sources)
+    for incident in ongoing_incidents {
+        resolve_incident(
+            &mut tx,
+            incident_repository,
+            incident_event_repository,
+            incident_notification_repository,
+            &incident,
+        )
         .await?;
+    }
 
     incident_repository.commit_transaction(tx).await?;
     Ok(())

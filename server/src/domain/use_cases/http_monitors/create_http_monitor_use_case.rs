@@ -2,6 +2,7 @@ use chrono::Utc;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use ts_rs::TS;
+use url::Url;
 use uuid::Uuid;
 
 use crate::domain::{
@@ -38,6 +39,8 @@ pub enum CreateHttpMonitorError {
     TechnicalFailure(#[from] anyhow::Error),
     #[error("Current user doesn't have the privilege the create HTTP monitors")]
     Forbidden,
+    #[error("Invalid URL: {0}")]
+    InvalidUrl(#[from] url::ParseError),
 }
 
 pub async fn create_http_monitor(
@@ -49,9 +52,12 @@ pub async fn create_http_monitor(
         return Err(CreateHttpMonitorError::Forbidden);
     }
 
+    // Validate URL
+    let url = Url::parse(&command.url)?;
+
     let new_monitor = NewHttpMonitor {
         organization_id: auth_context.active_organization_id,
-        url: command.url,
+        url: url.to_string(),
         status: if command.is_active {
             HttpMonitorStatus::Unknown
         } else {

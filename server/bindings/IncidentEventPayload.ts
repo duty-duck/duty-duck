@@ -2,5 +2,6 @@
 import type { AcknowledgedEventPayload } from "./AcknowledgedEventPayload";
 import type { CommentPayload } from "./CommentPayload";
 import type { NotificationEventPayload } from "./NotificationEventPayload";
+import type { PingEventPayload } from "./PingEventPayload";
 
-export type IncidentEventPayload = { "Comment": CommentPayload } | { "Notification": NotificationEventPayload } | { "Acknowledged": AcknowledgedEventPayload };
+export type IncidentEventPayload = { "Comment": CommentPayload } | { "Notification": NotificationEventPayload } | { "Acknowledged": AcknowledgedEventPayload } | { "Ping": PingEventPayload };

@@ -11,6 +11,12 @@ const { item } = defineProps<{
         <div class="dot-container">
             <UserAvatar :user="item.user" v-if="item?.user" size="2rem" font-size=".8rem" class="user-avatar"
                 show-tooltip />
+            <div v-else-if="item?.event.eventType === 'resolution'" class="big-dot bg-success">
+                <Icon name="ph:check-bold" />
+            </div>
+            <div v-else-if="item?.event.eventType === 'confirmation'" class="big-dot bg-danger">
+                <Icon name="ph:exclamation-mark-bold" />
+            </div>
             <div class="dot" v-else></div>
         </div>
         <div class="event-inner" :class="{ 'has-content': $slots.default }">
@@ -36,9 +42,13 @@ const { item } = defineProps<{
                                 item.user?.lastName
                         }) }}
                     </span>
-                    <DashboardCommentViewer class="mb-3 mt-2"
-                        v-else-if="item.event.eventType === 'comment' && item.event.eventPayload"
-                        :comment="(item.event.eventPayload as any).Comment" />
+                    <div v-else-if="item.event.eventType === 'comment' && item.event.eventPayload">
+                        <div class="mb-2">{{ $t("dashboard.incidents.timeline.comment", {
+                            firstName: item.user?.firstName, lastName:
+                                item.user?.lastName
+                        }) }}</div>
+                        <DashboardCommentViewer :comment="(item.event.eventPayload as any).Comment" />
+                    </div>
                 </div>
             </template>
         </div>
@@ -79,6 +89,19 @@ $dot-size: 0.5rem;
     height: $dot-size;
     border-radius: 50%;
     background-color: var(--bs-gray-500);
+}
+
+.big-dot {
+    width: 1.25rem;
+    height: 1.25rem;
+    font-size: .8rem;
+    border-radius: 50%;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    outline: 2px solid white;
+    box-shadow: 1px 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 .event-inner {

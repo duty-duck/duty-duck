@@ -97,6 +97,8 @@ async fn toggle_http_monitor_handler(
         &auth_context,
         &app_state.adapters.http_monitors_repository,
         &app_state.adapters.incident_repository,
+        &app_state.adapters.incident_event_repository,
+        &app_state.adapters.incident_notification_repository,
         monitor_id,
     )
     .await
@@ -146,6 +148,7 @@ async fn create_http_monitor_handler(
     {
         Ok(res) => Json(res).into_response(),
         Err(CreateHttpMonitorError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
+        Err(CreateHttpMonitorError::InvalidUrl(_)) => StatusCode::BAD_REQUEST.into_response(),
         Err(CreateHttpMonitorError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while getting creating a new monitor");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
@@ -170,6 +173,7 @@ async fn update_http_monitor_handler(
         Ok(res) => Json(res).into_response(),
         Err(UpdateHttpMonitorError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
         Err(UpdateHttpMonitorError::NotFound) => StatusCode::NOT_FOUND.into_response(),
+        Err(UpdateHttpMonitorError::InvalidUrl(_)) => StatusCode::BAD_REQUEST.into_response(),
         Err(UpdateHttpMonitorError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while getting creating a new monitor");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()

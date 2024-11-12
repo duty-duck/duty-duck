@@ -5,6 +5,8 @@ use ts_rs::TS;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
+use super::http_monitor::HttpMonitorErrorKind;
+
 /// An event that is recorded for an incident.
 #[derive(Serialize, Deserialize, TS, Debug, Clone, FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -26,6 +28,7 @@ pub enum IncidentEventPayload {
     Comment(CommentPayload),
     Notification(NotificationEventPayload),
     Acknowledged(AcknowledgedEventPayload),
+    MonitorPing(PingEventPayload),
 }
 
 #[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]
@@ -53,6 +56,14 @@ pub struct NotificationEventPayload {
     pub sent_via_sms: bool,
 }
 
+#[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct PingEventPayload {
+    pub http_code: Option<i32>,
+    pub error_kind: HttpMonitorErrorKind,
+}
+
 #[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq, ToSchema)]
 #[repr(i16)]
 #[serde(rename_all = "lowercase")]
@@ -64,6 +75,7 @@ pub enum IncidentEventType {
     Comment = 3,
     Acknowledged = 4,
     Confirmation = 5,
+    MonitorPinged = 6,
 }
 
 impl From<i16> for IncidentEventType {
@@ -75,6 +87,7 @@ impl From<i16> for IncidentEventType {
             3 => Self::Comment,
             4 => Self::Acknowledged,
             5 => Self::Confirmation,
+            6 => Self::MonitorPinged,
             _ => panic!("invalid IncidentEventType discriminant: {value}"),
         }
     }

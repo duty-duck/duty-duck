@@ -1,9 +1,11 @@
 use std::time::Duration;
 
+use anyhow::Context;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 use ts_rs::TS;
+use url::Url;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
@@ -43,6 +45,10 @@ pub struct HttpMonitor {
 impl HttpMonitor {
     pub fn interval(&self) -> Duration {
         Duration::from_secs(self.interval_seconds as u64)
+    }
+
+    pub fn url(&self) -> anyhow::Result<Url> {
+        Url::parse(&self.url).context("invalid url for monitor")
     }
 }
 

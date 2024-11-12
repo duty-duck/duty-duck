@@ -46,9 +46,17 @@ pub struct IncidentWithUsers {
 #[ts(export)]
 pub enum IncidentCause {
     HttpMonitorIncidentCause {
-        error_kind: HttpMonitorErrorKind,
-        http_code: Option<i16>,
-    },
+        last_ping: HttpMonitorIncidentCause,
+        previous_pings: Vec<HttpMonitorIncidentCause>,
+    }
+}
+
+#[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct HttpMonitorIncidentCause {
+    pub error_kind: HttpMonitorErrorKind,
+    pub http_code: Option<i16>,
 }
 
 /// An enum that represents the status of an incident
