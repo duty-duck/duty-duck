@@ -3,7 +3,7 @@
         <BTabs card>
             <BTab :title="$t('dashboard.incidents.timeline.pingEvent.tabs.summary')">
                 <div class="error-details">
-                    <p class="mb-2">
+                    <p class="mb-2" v-if="event.errorKind !== 'none'">
                         <strong>{{ $t('dashboard.incidents.timeline.pingEvent.errorKind') }}:</strong>
                         {{ getIncidentLabel({ errorKind: event.errorKind, httpCode: event.httpCode }, t) }}
                     </p>

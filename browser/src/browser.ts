@@ -77,6 +77,7 @@ const createBrowser = async (options: BrowserOptions): Promise<Browser> => {
 
             // configure the page
             page.setDefaultTimeout(request.requestTimeoutMs);
+            await page.setCacheEnabled(false);
             await page.setViewport({ width: 1280, height: 800 });
             await page.setExtraHTTPHeaders(request.httpHeaders);
 
