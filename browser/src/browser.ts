@@ -119,9 +119,12 @@ const createBrowser = async (options: BrowserOptions): Promise<Browser> => {
             if (error instanceof TimeoutError) {
                 response.error = HttpErrorKind.TIMEOUT;
                 response.errorMessage = "The page took too long to load";
+                logger.debug({ error }, "A timeout error occurred while fetching a page");
             } else {
                 for (const [key, [errorKind, errorMessage]] of Object.entries(ChromeErrorStatusMapping)) {
                     if (error.message.includes(key)) {
+                        logger.debug({ error }, "A Chrome error occurred while fetching a page");
+
                         response.error = errorKind;
                         response.errorMessage = errorMessage;
                         break;
@@ -131,6 +134,7 @@ const createBrowser = async (options: BrowserOptions): Promise<Browser> => {
                 if (!response.error) {
                     response.error = HttpErrorKind.UNKNOWN;
                     response.errorMessage = "An unknown error occurred";
+                    logger.error({ error }, "An unknown error occurred while fetching a page");
                 }
             }
         }
