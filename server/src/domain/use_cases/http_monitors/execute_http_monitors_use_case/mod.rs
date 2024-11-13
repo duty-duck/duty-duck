@@ -7,6 +7,9 @@ use tracing::{debug, error};
 mod ping_result_handler;
 mod status_machine;
 
+#[cfg(test)]
+mod tests;
+
 use crate::domain::ports::{
     http_client::HttpClient, http_monitor_repository::HttpMonitorRepository,
     incident_event_repository::IncidentEventRepository,

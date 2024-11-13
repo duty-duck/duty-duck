@@ -1,4 +1,9 @@
 use async_trait::async_trait;
+
+#[cfg(test)]
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct TransactionMock;
+
 /// A base trait for repositories that have transactions
 #[async_trait]
 pub trait TransactionalRepository {
