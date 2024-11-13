@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
@@ -62,6 +64,10 @@ pub struct NotificationEventPayload {
 pub struct PingEventPayload {
     pub http_code: Option<i32>,
     pub error_kind: HttpMonitorErrorKind,
+    pub http_headers: HashMap<String, String>,
+    pub response_time_ms: u64,
+    pub response_ip_address: Option<String>,
+    pub resolved_ip_addresses: Vec<String>,
 }
 
 #[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq, ToSchema)]

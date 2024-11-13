@@ -1,0 +1,13 @@
+{
+    "pagination": {
+        "prev": "Précédent",
+        "next": "Suivant"
+    },
+    "language": "Language",
+    "permissions": {
+        "deniedToastNotification": {
+            "title": "Permission refusée",
+            "body": "Vous n'avez pas les permissions pour effectuer cette action."
+        }
+    }
+}

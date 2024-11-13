@@ -1,0 +1,76 @@
+{
+    "incidents": {
+        "goToIncident": "Voir l'incident",
+        "rootCause": "Cause de l'incident",
+        "date": "Date",
+        "startOfIncident": "Début de l'incident",
+        "pageTitle": "Incidents",
+        "totalIncidentCount": "Aucun incident | 1 incident total | {count} incidents totaux",
+        "filteredIncidentCount": "{count} incident caché par les filtres | {count} incidents cachés par les filtres",
+        "itemsPerPage": "{count} incidents par page",
+        "status": "Statut",
+        "clearFilters": "Retirer les filtres",
+        "startedAt": "Démarré le",
+        "source": "Source",
+        "resolvedAt": "Résolu le",
+        "goToSource": "Aller à la source",
+        "emptyPage": {
+            "title": "Tout va bien pour le moment",
+            "text": "Si nous détectons une anomalie, un incident apparaîtra ici."
+        },
+        "noResults": {
+            "title": "Aucun incident ne correspond à ces filtres",
+            "text": "Des incidents existent mais ils sont masqués par les filtres sélectionnés. Retirez les filtres pour voir tous les incidents."
+        },
+        "incidentDetails": "Détails de l'incident",
+        "people": "Personnes",
+        "notAcknowledged": "Aucun(e) personne n'a pris en charge l'incident",
+        "acknowledgedBy": "{count} personne(s) ont pris en charge l'incident",
+        "acknowledge": "Prendre en charge",
+        "incidentLength": "Durée de l'incident",
+        "defaultIncidentTitle": "Incident du {date}",
+        "timeline": {
+            "sectionTitle": "Chronologie de l'incident",
+            "incidentAcknowledged": "{firstName} {lastName} a pris en charge l'incident",
+            "incidentCreated": "Incident créé",
+            "incidentConfirmed": "Incident confirmé",
+            "notificationSent": "Notification envoyée",
+            "incidentResolved": "Incident résolu",
+            "addCommentPlaceholder": "Ajouter un commentaire ou un post-mortem...",
+            "addCommentButtonLabel": "Commenter",
+            "addComment": "Ajouter un commentaire",
+            "comment": "{firstName} {lastName} a commenté l'incident",
+            "pingEvent": {
+                "tabs": {
+                    "summary": "Résumé",
+                    "headers": "En-têtes HTTP"
+                },
+                "errorKind": "Type d'erreur",
+                "httpCode": "Code HTTP",
+                "resolvedIps": "IPs résolues",
+                "responseIp": "IP de réponse",
+                "responseTime": "Temps de réponse"
+            }
+        },
+        "metadata": "Métadonnées"
+    },
+    "incidentStatus": {
+        "ongoing": "En cours",
+        "resolved": "Résolu"
+    },
+    "incidentOrderBy": {
+        "buttonLabel": "Trier par",
+        "createdAtDesc": "Les plus récents d'abord",
+        "createdAtAsc": "Les plus anciens d'abord"
+    },
+    "httpMonitorIncidents": {
+        "httpMonitorFailure": "Échec de l'appel HTTP",
+        "invalidHttpCode": "Le serveur a répondu avec le code HTTP invalide {httpCode}",
+        "tooManyRedirections": "Le serveur a retourné trop de redirections, possible boucle de redirection",
+        "cannotConnectToEndpoint": "Impossible d'établir la connexion au serveur",
+        "timedOut": "Délai d'attente dépassé, le serveur a été trop lent à répondre",
+        "requestError": "Erreur lors de la requête",
+        "unknownError": "Erreur inconnue",
+        "otherCauses": "Aucune autre cause | Une autre cause | {count} autres causes"
+    }
+}

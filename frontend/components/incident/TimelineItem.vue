@@ -22,7 +22,8 @@ const { item } = defineProps<{
         <div class="event-inner" :class="{ 'has-content': $slots.default }">
             <slot />
             <template v-if="!$slots.default && item">
-                <span class="text-secondary">{{ $d(new Date(item.event.createdAt), 'long') }}</span>
+                <!-- The date is not displayed for monitorpinged events because it's the same as the incident creation date -->
+                <span class="text-secondary" v-if="item.event.eventType !== 'monitorpinged'">{{ $d(new Date(item.event.createdAt), 'long') }}</span>
                 <div>
                     <span v-if="item.event.eventType === 'creation'">
                         {{ $t("dashboard.incidents.timeline.incidentCreated") }}
@@ -48,6 +49,9 @@ const { item } = defineProps<{
                                 item.user?.lastName
                         }) }}</div>
                         <DashboardCommentViewer :comment="(item.event.eventPayload as any).Comment" />
+                    </div>
+                    <div v-else-if="item.event.eventType === 'monitorpinged' && item.event.eventPayload">
+                        <IncidentPingEvent :event="(item.event.eventPayload as any).MonitorPing" />
                     </div>
                 </div>
             </template>

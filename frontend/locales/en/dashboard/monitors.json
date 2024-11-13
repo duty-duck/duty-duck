@@ -1,0 +1,60 @@
+{
+    "monitors": {
+        "httpMonitor": "HTTP Monitor",
+        "pageTitle": "Monitors",
+        "totalMonitorCount": "No monitor | 1 total monitor | {count} total monitors",
+        "filteredMonitorCount": "{count} monitor is hidden by the filters | {count} monitors are hidden by the filters",
+        "itemsPerPage": "{count} monitors per page",
+        "status": "Status",
+        "search": "Search by URL",
+        "clearFilters": "Clear filters",
+        "createMonitorBtn": "New monitor",
+        "createMonitorTitle": "Create a new monitor",
+        "lastCheckedOn": "Last checked on {date}",
+        "details": "Details",
+        "start": "Start",
+        "pause": "Pause",
+        "edit": "Edit",
+        "pausedMonitorNotice": "This monitor is currently inactive. Click the Start button to resume monitoring this endpoint.",
+        "lastStatusChange": "Last status change",
+        "lastCheck": "Last check",
+        "dateAgo": "{date} ago",
+        "ongoingIncident": "Ongoing incident",
+        "incidentHistory": "Incident history",
+        "metadata": "Metadata",
+        "noIncident": {
+            "title": "No incident",
+            "text": "This monitor had no incident during this period. You can adjust the time range to see incidents in the past."
+        },
+        "emptyPage": {
+            "title": "Nothing here yet",
+            "text": "Create your first monitor to start monitoring your website."
+        },
+        "noResults": {
+            "title": "No monitor matches these filters",
+            "text": "Monitors exist but are hidden by the selected filters. Remove the filters to see all monitors."
+        },
+        "form": {
+            "urlDescription": "Which URL would you like us to monitor?",
+            "refreshInterval": "Refresh interval",
+            "refreshIntervalDescription": "The refresh interval determines how often we will check your URL's health. A shorter interval enables issues to be detected more quickly, at the expense of greater load on your server.",
+            "downtimeConfirmationThreshold": "Downtime confirmation threshold",
+            "downtimeConfirmationThresholdDescription": "Determines how many consecutive failures can occur before this monitor becomes down. When a failure occurs, the monitor will become 'Suspicious' until this threshold is reached, then it will transition from 'Suspicious' to 'Down'.",
+            "recoveryConfirmationThreshold": "Recovery confirmation threshold",
+            "recoveryConfirmationThresholdDescription": "Determines how many consecutive successes need to occur before a 'Down' monitor becomes 'Up' again. Until this threshold is reached, the monitor will be marked as 'Recovering'",
+            "notificationSettings": "Notifications",
+            "notificationSettingsDescription": "Determines the notifications that will be sent in case of monitor failure",
+            "metadata": "Metadata",
+            "metadataDescription": "Metadata is optional. It allows you to organize your monitors and incidents.",
+            "save": "Save"
+        }
+    },
+    "monitorStatus": {
+        "down": "Down",
+        "inactive": "Inactive",
+        "suspicious": "Suspicious",
+        "recovering": "Recovering",
+        "up": "Healthy",
+        "unknown": "Pending"
+    }
+}

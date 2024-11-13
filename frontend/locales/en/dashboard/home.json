@@ -1,0 +1,16 @@
+{
+    "home": {
+        "pageTitle": "Home",
+        "overview": "Overview",
+        "ongoingIncidents": "No ongoing incident | Ongoing incident | Ongoing incidents",
+        "downMonitors": "No monitor is down or suspicious | Monitor down or suspicious | Monitors down or suspicious",
+        "goToIncidents": "Go to incidents",
+        "goToMonitors": "Go to monitors",
+        "verifyPhoneNumber": "Verify my number",
+        "phoneNumberVerificationRequired": "You have not yet verified your mobile number",
+        "phoneNumberVerificationRequiredDescription": "Don't miss any incident with SMS notifications. To receive SMS notifications, you must verify your mobile number.",
+        "pushNotificationsRequired": "You have not yet configured Push notifications",
+        "pushNotificationsRequiredDescription": "Don't miss any incident with push notifications. Configure push notifications to receive notifications on your device.",
+        "configurePushNotifications": "Configure push notifications"
+    }
+}

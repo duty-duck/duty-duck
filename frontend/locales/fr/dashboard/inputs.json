@@ -1,0 +1,46 @@
+{
+    "intervalInput": {
+        "seconds": "{count} seconde | {count} secondes",
+        "secondsShort": "{count}s",
+        "minutes": "{count} minute | {count} minutes",
+        "minutesShort": "{count}m",
+        "hours": "{count} heure | {count} heures",
+        "hoursShort": "{count}h"
+    },
+    "timeRangeInput": {
+        "noRange": "Aucune plage de temps",
+        "ranges": {
+            "-10m": "10 dernières minutes",
+            "-1h": "Dernière heure",
+            "-6h": "6 dernières heures",
+            "-12h": "12 dernières heures",
+            "-24h": "24 dernières heures",
+            "-7d": "7 derniers jours",
+            "-30d": "30 derniers jours"
+        }
+    },
+    "metadataInput": {
+        "newMetadata": "Nouvelle métadonnée",
+        "noMetadata": "Aucune métadonnée",
+        "newKey": "Nouvelle clé",
+        "newValue": "Nouvelle valeur"
+    },
+    "pushNotifications": {
+        "title": "Notifications Push",
+        "loading": "Chargement...",
+        "alreadyAccepted": "Vous avez déjà accepté les notifications Push",
+        "description": "Les notifications push vous permettent d'être informé en temps réel, sur votre appareil, des incidents.",
+        "deviceNamePlaceholder": "Nom de cet appareil",
+        "enableButton": "Activer les notifications push",
+        "askingPermission": "Demande d'autorisation",
+        "success": "Succès",
+        "failed": "Échec",
+        "thisDevice": "(cet appareil)",
+        "removeDevice": "Supprimer l'appareil"
+    },
+    "notificationSettingsForm": {
+        "pushNotification": "Notifications Push",
+        "smsNotification": "Notifications SMS",
+        "emailNotification": "Notifications par e-mail"
+    }
+}

@@ -1,0 +1,46 @@
+{
+    "intervalInput": {
+        "seconds": "{count} second | {count} seconds",
+        "secondsShort": "{count}s",
+        "minutes": "{count} minute | {count} minutes",
+        "minutesShort": "{count}m",
+        "hours": "{count} hour | {count} hours",
+        "hoursShort": "{count}h"
+    },
+    "timeRangeInput": {
+        "noRange": "No time range",
+        "ranges": {
+            "-10m": "Last 10 minutes",
+            "-1h": "Last hour",
+            "-6h": "Last 6 hours",
+            "-12h": "Last 12 hours",
+            "-24h": "Last 24 hours",
+            "-7d": "Last 7 days",
+            "-30d": "Last 30 days"
+        }
+    },
+    "metadataInput": {
+        "newMetadata": "New metadata",
+        "noMetadata": "No metadata",
+        "newKey": "New key",
+        "newValue": "New value"
+    },
+    "pushNotifications": {
+        "title": "Push Notifications",
+        "loading": "Loading...",
+        "alreadyAccepted": "You have already accepted Push notifications",
+        "description": "Push notifications allow you to be informed in real-time, on your device, about incidents.",
+        "deviceNamePlaceholder": "Name of this device",
+        "enableButton": "Enable push notifications",
+        "askingPermission": "Asking for permission",
+        "success": "Success",
+        "failed": "Failed",
+        "thisDevice": "(this device)",
+        "removeDevice": "Remove device"
+    },
+    "notificationSettingsForm": {
+        "pushNotification": "Push Notifications",
+        "smsNotification": "SMS Notifications",
+        "emailNotification": "Email Notifications"
+    }
+}

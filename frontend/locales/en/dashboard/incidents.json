@@ -1,0 +1,76 @@
+{
+    "incidents": {
+        "goToIncident": "Go to incident",
+        "rootCause": "Root cause",
+        "date": "Date",
+        "startOfIncident": "Start of incident",
+        "pageTitle": "Incidents",
+        "totalIncidentCount": "No incident | 1 total incident | {count} total incidents",
+        "filteredIncidentCount": "{count} incident hidden by filters | {count} incidents hidden by filters",
+        "itemsPerPage": "{count} incidents per page",
+        "clearFilters": "Clear filters",
+        "startedAt": "Started at",
+        "source": "Source",
+        "status": "Status",
+        "resolvedAt": "Resolved at",
+        "goToSource": "Go to source",
+        "emptyPage": {
+            "title": "Everything is OK right now",
+            "text": "When we detect a failure, an incident will appear here."
+        },
+        "noResults": {
+            "title": "No incident matches these filters",
+            "text": "Incidents exist but are hidden by the selected filters. Remove the filters to see all incidents."
+        },
+        "incidentDetails": "Incident details",
+        "defaultIncidentTitle": "Incident on {date}",
+        "people": "People",
+        "notAcknowledged": "No one has acknowledged the incident",
+        "acknowledgedBy": "{count} person(s) have acknowledged the incident",
+        "acknowledge": "Acknowledge",
+        "incidentLength": "Incident length",
+        "timeline": {
+            "sectionTitle": "Incident timeline",
+            "incidentAcknowledged": "{firstName} {lastName} acknowledged the incident",
+            "incidentConfirmed": "Incident confirmed",
+            "incidentCreated": "Incident created",
+            "notificationSent": "Notification sent",
+            "incidentResolved": "Incident resolved",
+            "addComment": "Add a comment",
+            "addCommentButtonLabel": "Add a comment",
+            "addCommentPlaceholder": "Add a comment to this incident or write a post-mortem...",
+            "comment": "{firstName} {lastName} has commented on the incident",
+            "pingEvent": {
+                "tabs": {
+                    "summary": "Summary",
+                    "headers": "HTTP Headers"
+                },
+                "errorKind": "Error type",
+                "httpCode": "HTTP Code",
+                "resolvedIps": "Resolved IPs",
+                "responseIp": "Response IP",
+                "responseTime": "Response time"
+            }
+        },
+        "metadata": "Metadata"
+    },
+    "incidentStatus": {
+        "ongoing": "Ongoing",
+        "resolved": "Resolved"
+    },
+    "incidentOrderBy": {
+        "buttonLabel": "Sort by",
+        "createdAtDesc": "Most recent first",
+        "createdAtAsc": "Oldest first"
+    },
+    "httpMonitorIncidents": {
+        "httpMonitorFailure": "HTTP Monitor failure",
+        "invalidHttpCode": "The endpoint return the invalid HTTP Code {httpCode}",
+        "tooManyRedirections": "Too many redirections",
+        "cannotConnectToEndpoint": "Could not connect to server",
+        "timedOut": "Request timed out, the server took too long to respond",
+        "requestError": "Request error",
+        "unknownError": "Unknown error",
+        "otherCauses": "No other cause | Another cause | {count} other causes"
+    }
+}

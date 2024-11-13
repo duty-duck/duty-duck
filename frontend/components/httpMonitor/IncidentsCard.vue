@@ -76,18 +76,12 @@ defineExpose({
       </NuxtLink>
 
       <BCard>
-        <p>
-        <h6>{{ $t("dashboard.incidents.startOfIncident") }}</h6>
-        {{ $d(new Date(monitorResponse.ongoingIncident.createdAt), "long") }}
-      </p>
 
-      <p>
         <h6>{{ $t("dashboard.incidents.rootCause") }}:</h6>
         <IncidentCause :incident="monitorResponse.ongoingIncident" />
-      </p>
 
-      <LazyIncidentTimeline :incident-id="monitorResponse.ongoingIncident.id" :show-comment-editor="false"
-        title-size="h6" />
+        <LazyIncidentTimeline :incident-id="monitorResponse.ongoingIncident.id" :show-comment-editor="false"
+          title-size="h6" class="mt-3" />
       </BCard>
     </section>
 

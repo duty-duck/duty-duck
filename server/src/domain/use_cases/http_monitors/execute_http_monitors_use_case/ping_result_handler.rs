@@ -98,6 +98,7 @@ where
             &monitor,
             false,
             incident_cause,
+            ping_response
         )
         .await?;
     }
@@ -111,6 +112,7 @@ where
             &monitor,
             true,
             incident_cause,
+            ping_response
         )
         .await
         .with_context(|| "Failed to create incident for failed HTTP monitor")?;
@@ -162,6 +164,10 @@ where
                 event_payload: Some(IncidentEventPayload::MonitorPing(PingEventPayload {
                     error_kind: monitor.error_kind,
                     http_code: monitor.last_http_code.map(|c| c as i32),
+                    http_headers: ping_response.http_headers,
+                    response_time_ms: ping_response.response_time.as_millis() as u64,
+                    response_ip_address: ping_response.response_ip_address,
+                    resolved_ip_addresses: ping_response.resolved_ip_addresses,
                 })),
                 organization_id: monitor.organization_id,
                 user_id: None,
@@ -215,6 +221,7 @@ async fn create_incident_for_monitor<IR, IER, INR>(
     monitor: &HttpMonitor,
     confirmed_incident: bool,
     incident_cause: IncidentCause,
+    ping_response: crate::domain::ports::http_client::PingResponse,
 ) -> anyhow::Result<()>
 where
     IR: IncidentRepository,
@@ -282,6 +289,10 @@ where
         event_payload: Some(IncidentEventPayload::MonitorPing(PingEventPayload {
             error_kind: monitor.error_kind,
             http_code: monitor.last_http_code.map(|c| c as i32),
+            http_headers: ping_response.http_headers,
+            response_time_ms: ping_response.response_time.as_millis() as u64,
+            response_ip_address: ping_response.response_ip_address,
+            resolved_ip_addresses: ping_response.resolved_ip_addresses,
         })),
         organization_id: monitor.organization_id,
         user_id: None,

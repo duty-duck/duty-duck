@@ -1,0 +1,51 @@
+{
+    "signup": {
+        "form": {
+            "aboutYourself": "Tell us about yourself",
+            "firstName": "First Name",
+            "nameDescription": "Let us know your name",
+            "firstNamePlaceholder": "Enter your first name please",
+            "lastName": "Last Name",
+            "lastNamePlaceholder": "Enter your last name please",
+            "email": "E-mail address",
+            "emailDescription": "We won't share your e-mail with anyone",
+            "emailPlaceholder": "Enter your email please",
+            "password": "Password",
+            "passwordDescription": "We recommend using a strong, random password",
+            "passwordPlaceholder": "Enter your password please",
+            "passwordConfirm": "Password confirmation",
+            "passwordConfirmPlaceholder": "Confirm your password please",
+            "aboutOrganization": "Tell us about your organization",
+            "organizationDescription": "After you sign up, you will be able to invite other members of your organization to collaborate. The name of your organization will show on e-mails and invoices.",
+            "organization": "Your organization",
+            "organizationRename": "Don't worry, you will be able to rename your organization later",
+            "organizationPlaceholder": "Enter your organization's name",
+            "submit": "Sign up"
+        },
+        "success": {
+            "title": "Thank you for registering!",
+            "message": "You may now go to your personal dashboard to create your first monitors",
+            "button": "Go to your dashboard"
+        },
+        "conflict": {
+            "title": "A user already exists with this e-mail address",
+            "message": "It seems you already have a user account. You may use this account to access your dashboard.",
+            "button": "Go to your dashboard"
+        },
+        "error": {
+            "message": "Something went wrong and we were not able to create your account. Please try again."
+        },
+        "intro": {
+            "title": "Start monitoring your website today",
+            "description": "Lorem ipsum dolor sit amet consectetur adipisicing elit. Rerum repudiandae laudantium cumque ex velit, autem fuga quaerat! Voluptas voluptate ipsa exercitationem reprehenderit, aspernatur perspiciatis non beatae quidem, maxime rem accusamus?",
+            "learnMore": "Learn more"
+        },
+        "altText": {
+            "logo": "Duty Duck Logo"
+        }
+    },
+    "blog": {
+        "title": "Blog",
+        "readMore": "Read more"
+    }
+}

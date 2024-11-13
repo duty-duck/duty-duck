@@ -8,7 +8,7 @@ use crate::{
     application::application_config::AppConfig,
     domain::{
         entities::http_monitor::HttpMonitorErrorKind,
-        ports::http_client::{HttpClient, PingResponse},
+        ports::http_client::{HttpClient, PingResponse, Screenshot},
     },
     protos::{browser_client::BrowserClient, HttpErrorKind, HttpRequest}
 };
@@ -50,6 +50,16 @@ impl HttpClient for HttpClientAdapter {
                     return PingResponse {
                         http_code: response.http_code.map(|code| code as u16),
                         error_kind: response.error.and_then(|kind| HttpErrorKind::try_from(kind).ok()).map(|kind| kind.into()).unwrap_or_default(),
+                        http_headers: response.http_headers,
+                        response_time: Duration::from_millis(response.response_time_ms),
+                        response_ip_address: response.response_ip_address,
+                        resolved_ip_addresses: response.resolved_ip_addresses,
+                        response_body_size_bytes: response.response_body_size_bytes,
+                        response_body_content: response.response_body_content,
+                        screenshot: response.screenshot.map(|screenshot| Screenshot {
+                            data: screenshot.data,
+                            content_type: screenshot.content_type,
+                        }),
                     };
                 }
                 Err(e) => {

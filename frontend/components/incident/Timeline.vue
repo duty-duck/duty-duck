@@ -76,7 +76,7 @@ defineExpose({
 
 <template>
     <section>
-        <component :is="titleSize" class="mb-5 icon-link">
+        <component :is="titleSize" :class="[titleSize === 'h5' ? 'mb-5' : 'mb-4', 'icon-link']">
             <Icon name="ph:clock-counter-clockwise" />
             {{ $t("dashboard.incidents.timeline.sectionTitle") }}
         </component>

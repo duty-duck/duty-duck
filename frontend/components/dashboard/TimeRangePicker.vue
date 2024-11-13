@@ -21,22 +21,22 @@ watch(range, () => {
             <BButton variant="outline-secondary" @click="isOpen = !isOpen" class="icon-link">
                 <Icon name="ph:clock-fill" />
                 <template v-if="range === null">
-                    {{ $t('timeRangeInput.noRange') }}
+                    {{ $t('dashboard.timeRangeInput.noRange') }}
                 </template>
                 <template v-else>
-                    {{ $t(`timeRangeInput.ranges.${range}`) }}
+                    {{ $t(`dashboard.timeRangeInput.ranges.${range}`) }}
                 </template>
             </BButton>
             <div v-if="isOpen" class="time-range-picker-dropdown">
                 <BListGroup class="mb-2 shadow-sm">
                     <BListGroupItem :active="range === null" @click="range = null" class="icon-link">
                         <Icon name="ph:x-square-fill" />
-                        {{ $t('timeRangeInput.noRange') }}
+                        {{ $t('dashboard.timeRangeInput.noRange') }}
                     </BListGroupItem>
                 </BListGroup>
                 <BListGroup class="mb-2 shadow-sm">
                     <BListGroupItem :active="range === r" v-for="r in standardRanges" @click="range = r">{{
-                        $t(`timeRangeInput.ranges.${r}`) }}</BListGroupItem>
+                        $t(`dashboard.timeRangeInput.ranges.${r}`) }}</BListGroupItem>
                 </BListGroup>
             </div>
         </div>

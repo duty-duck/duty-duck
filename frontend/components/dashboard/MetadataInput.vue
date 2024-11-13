@@ -53,7 +53,7 @@ const sortedRecords = computed(() => Object.fromEntries(Object.entries(metadata.
 <template>
     <div id="metadata-input">
         <div v-if="readOnly && Object.keys(metadata.records).length === 0" class="text-muted">
-            {{ $t("metadataInput.noMetadata") }}
+            {{ $t("dashboard.metadataInput.noMetadata") }}
         </div>
         <ul>
             <li class="mb-2" v-for="(value, key) in sortedRecords" :key="key">
@@ -93,14 +93,14 @@ const sortedRecords = computed(() => Object.fromEntries(Object.entries(metadata.
             </li>
 
             <li class=" mt-3" v-if="!readOnly">
-                <label class="form-label text-muted">{{ $t('metadataInput.newMetadata') }}</label>
+                <label class="form-label text-muted">{{ $t('dashboard.metadataInput.newMetadata') }}</label>
                 <form class="d-flex gap-1" @submit.prevent="addMetadata">
                     <div class="col">
-                        <BInput ref="newKeyFormRef" v-model="newKeyPair.key" :placeholder="t('metadataInput.newKey')"
+                        <BInput ref="newKeyFormRef" v-model="newKeyPair.key" :placeholder="t('dashboard.metadataInput.newKey')"
                             size="sm" @keydown.enter.prevent="newValueFormRef?.focus()" />
                     </div>
                     <div class="col">
-                        <BInput v-model="newKeyPair.value" :placeholder="t('metadataInput.newValue')" size="sm"
+                        <BInput v-model="newKeyPair.value" :placeholder="t('dashboard.metadataInput.newValue')" size="sm"
                             ref="newValueFormRef" @keydown.enter.prevent="addMetadata" />
                     </div>
                     <div class="col-1">

@@ -1,0 +1,18 @@
+{
+    "userMenu": {
+        "myOrg": "My organization",
+        "myAccount": "My account",
+        "logOut": "Log out"
+    },
+    "mainSidebar": {
+        "home": "Home",
+        "monitors": "Monitors",
+        "incidents": "Incidents",
+        "soon": "Soon"
+    },
+    "settingsSidebar": {
+        "backToDashboard": "Back to dashboard",
+        "myOrg": "My organization",
+        "myAccount": "My account"
+    }
+}
