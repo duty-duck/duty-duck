@@ -112,7 +112,12 @@ const createBrowser = async (options: BrowserOptions): Promise<Browser> => {
 
             // resolve all the IP addresses of this endpoint
             const domain = new URL(request.endpoint).hostname;
-            response.resolvedIpAddresses = await resolver.resolve(domain)
+            try {
+                response.resolvedIpAddresses = await resolver.resolve(domain)
+            } catch (error) {
+                logger.debug({ error }, "An error occurred while resolving addresses");
+                response.resolvedIpAddresses = [response.responseIpAddress];
+            }
         }
         // Catch all errors and map them to an error kind and a message
         catch (error) {
