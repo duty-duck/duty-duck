@@ -57,6 +57,11 @@
         "ordinal": 10,
         "name": "acknowledged_by",
         "type_info": "UuidArray"
+      },
+      {
+        "ordinal": 11,
+        "name": "metadata",
+        "type_info": "Jsonb"
       }
     ],
     "parameters": {
@@ -76,7 +81,8 @@
       false,
       false,
       false,
-      false
+      false,
+      true
     ]
   },
   "hash": "e016490fa61fa5a82f604cbbc60577f42fd21d2ad0560ba2747eb0df7614ed31"

@@ -80,23 +80,23 @@
       },
       {
         "ordinal": 15,
-        "name": "tags",
-        "type_info": "TextArray"
-      },
-      {
-        "ordinal": 16,
         "name": "email_notification_enabled",
         "type_info": "Bool"
       },
       {
-        "ordinal": 17,
+        "ordinal": 16,
         "name": "push_notification_enabled",
         "type_info": "Bool"
       },
       {
-        "ordinal": 18,
+        "ordinal": 17,
         "name": "sms_notification_enabled",
         "type_info": "Bool"
+      },
+      {
+        "ordinal": 18,
+        "name": "metadata",
+        "type_info": "Jsonb"
       }
     ],
     "parameters": {
@@ -127,7 +127,7 @@
       false,
       false,
       false,
-      false
+      true
     ]
   },
   "hash": "1c628dc5f0e4ff3c7dc45cc779589540cd6c959b9f54872cae2ea89ad7e7ae65"

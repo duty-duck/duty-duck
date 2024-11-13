@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE incidents SET\n                status = $1,\n                priority = $2,\n                metadata = $3,\n                cause = $4,\n                incident_source_type = $5,\n                incident_source_id = $6,\n                resolved_at = $7\n            WHERE organization_id = $8 AND id = $9",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int2",
+        "Int2",
+        "Jsonb",
+        "Jsonb",
+        "Int2",
+        "Uuid",
+        "Timestamptz",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "77fe2da66677710aebc28aec4501d86a17ae68f7665162536ffbd28e781ca31e"
+}
