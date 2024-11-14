@@ -41,20 +41,23 @@ pub struct IncidentWithUsers {
 }
 
 /// An enum that represents the cause of an incident
-#[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]
+#[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema, PartialEq, Eq)]
 #[serde(tag = "causeType", rename_all_fields = "camelCase")]
 #[ts(export)]
 pub enum IncidentCause {
-    HttpMonitorIncidentCause {
-        last_ping: HttpMonitorIncidentCause,
-        previous_pings: Vec<HttpMonitorIncidentCause>,
-    }
+    HttpMonitorIncidentCause(HttpMonitorIncidentCause),
 }
 
-#[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]
+#[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema, PartialEq, Eq)]
+pub struct HttpMonitorIncidentCause {
+    pub last_ping: HttpMonitorIncidentCausePing,
+    pub previous_pings: Vec<HttpMonitorIncidentCausePing>,
+}
+
+#[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
-pub struct HttpMonitorIncidentCause {
+pub struct HttpMonitorIncidentCausePing {
     pub error_kind: HttpMonitorErrorKind,
     pub http_code: Option<i16>,
 }

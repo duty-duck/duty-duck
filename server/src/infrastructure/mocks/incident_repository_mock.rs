@@ -194,7 +194,7 @@ mod tests {
         entities::{
             entity_metadata::EntityMetadata,
             http_monitor::HttpMonitorErrorKind,
-            incident::{HttpMonitorIncidentCause, IncidentCause, IncidentPriority, IncidentStatus},
+            incident::{HttpMonitorIncidentCause, HttpMonitorIncidentCausePing, IncidentCause, IncidentPriority, IncidentStatus},
         },
         use_cases::{incidents::OrderIncidentsBy, shared::OrderDirection},
     };
@@ -203,13 +203,13 @@ mod tests {
         NewIncident {
             organization_id: org_id,
             created_by: Some(Uuid::new_v4()),
-            cause: Some(IncidentCause::HttpMonitorIncidentCause {
-                last_ping: HttpMonitorIncidentCause {
+            cause: Some(IncidentCause::HttpMonitorIncidentCause(HttpMonitorIncidentCause {
+                last_ping: HttpMonitorIncidentCausePing {
                     error_kind: HttpMonitorErrorKind::HttpCode,
                     http_code: Some(500),
                 },
                 previous_pings: vec![],
-            }),
+            })),
             status: IncidentStatus::Ongoing,
             priority: IncidentPriority::Critical,
             source: IncidentSource::HttpMonitor { id: Uuid::new_v4() },

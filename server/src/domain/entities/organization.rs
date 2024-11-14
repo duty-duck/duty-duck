@@ -178,6 +178,13 @@ impl OrganizationRoleSet {
         }
         false
     }
+
+    #[cfg(test)]
+    pub fn test_context(roles: &[OrganizationUserRole]) -> Self {
+        Self {
+            roles: roles.to_vec(),
+        }
+    }
 }
 
 impl<I: IntoIterator<Item = String>> From<I> for OrganizationRoleSet {

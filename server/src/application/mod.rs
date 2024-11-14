@@ -7,7 +7,10 @@ use reqwest::Url;
 use sqlx::postgres::PgPoolOptions;
 
 use crate::{
-    domain::use_cases::{self, incidents::ExecuteIncidentNotificationsUseCase},
+    domain::use_cases::{
+        http_monitors::ExecuteHttpMonitorsUseCase,
+        incidents::ExecuteIncidentNotificationsUseCase,
+    },
     infrastructure::{
         adapters::{
             http_client_adapter::HttpClientAdapter,
@@ -36,16 +39,15 @@ pub async fn start_application() -> anyhow::Result<()> {
     let application_state = build_app_state(Arc::clone(&config)).await?;
 
     // TODO: implement graceful shutdown here
-    let _http_monitors_tasks = use_cases::http_monitors::spawn_http_monitors_execution_tasks(
+    let http_monitors_use_case = ExecuteHttpMonitorsUseCase {
+        http_monitor_repository: application_state.adapters.http_monitors_repository.clone(),
+        incident_repository: application_state.adapters.incident_repository.clone(),
+        incident_event_repository: application_state.adapters.incident_event_repository.clone(),
+        incident_notification_repository: application_state.adapters.incident_notification_repository.clone(),
+        http_client: application_state.adapters.http_client.clone(),
+    };
+    let _http_monitors_tasks = http_monitors_use_case.spawn_http_monitors_execution_tasks(
         config.http_monitors_executor.http_monitors_concurrent_tasks,
-        application_state.adapters.http_monitors_repository.clone(),
-        application_state.adapters.incident_repository.clone(),
-        application_state.adapters.incident_event_repository.clone(),
-        application_state
-            .adapters
-            .incident_notification_repository
-            .clone(),
-        application_state.adapters.http_client.clone(),
         config.http_monitors_executor.http_monitors_select_size,
         config.http_monitors_executor.http_monitors_ping_concurrency,
     );

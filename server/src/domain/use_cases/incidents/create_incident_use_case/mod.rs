@@ -16,6 +16,9 @@ use crate::domain::{
     },
 };
 
+#[cfg(test)]
+mod tests;
+
 #[derive(Clone)]
 pub struct NotificationOpts {
     pub send_sms: bool,

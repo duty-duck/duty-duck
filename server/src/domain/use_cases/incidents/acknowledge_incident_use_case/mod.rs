@@ -14,6 +14,9 @@ use crate::domain::{
     },
 };
 
+#[cfg(test)]
+mod tests;
+
 #[derive(Debug, Error)]
 pub enum AcknowledgeIncidentError {
     #[error("Incident not found")]

@@ -20,7 +20,7 @@ pub struct IncidentNotification {
     pub send_email: bool,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, Eq)]
 #[serde(rename_all = "camelCase")]
 pub struct IncidentNotificationPayload {
     pub incident_cause: IncidentCause,

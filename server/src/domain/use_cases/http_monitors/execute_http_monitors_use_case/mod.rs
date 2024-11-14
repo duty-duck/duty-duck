@@ -20,69 +20,16 @@ use crate::domain::ports::{
 const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
 const DELAY_BETWEEN_TWO_REQUESTS: Duration = Duration::from_secs(1);
 
-#[allow(clippy::too_many_arguments)]
-pub fn spawn_http_monitors_execution_tasks<HMR, IR, IER, INR, HC>(
-    n_tasks: usize,
-    http_monitor_repository: HMR,
-    incident_repository: IR,
-    incident_event_repository: IER,
-    incident_notification_repository: INR,
-    http_client: HC,
-    select_limit: u32,
-    ping_concurrency_limit: usize,
-) -> JoinSet<()>
-where
-    HMR: HttpMonitorRepository,
-    IR: IncidentRepository<Transaction = HMR::Transaction>,
-    IER: IncidentEventRepository<Transaction = HMR::Transaction>,
-    INR: IncidentNotificationRepository<Transaction = HMR::Transaction>,
-    HC: HttpClient,
-{
-    let mut join_set = JoinSet::new();
-    for _ in 0..n_tasks {
-        let http_monitor_repo = http_monitor_repository.clone();
-        let incident_repo = incident_repository.clone();
-        let incident_event_repo = incident_event_repository.clone();
-        let incident_notification_repository = incident_notification_repository.clone();
-        let http_client = http_client.clone();
-        join_set.spawn(async move {
-            loop {
-                match fetch_and_execute_due_http_monitors(
-                    &http_monitor_repo,
-                    &incident_repo,
-                    &incident_event_repo,
-                    &incident_notification_repository,
-                    &http_client,
-                    select_limit,
-                    ping_concurrency_limit,
-                )
-                .await
-                {
-                    Ok(monitors) if monitors > 0 => {
-                        debug!(monitors, "Executed {} monitors", monitors);
-                    }
-                    Err(e) => {
-                        error!(error = ?e, "Failed to execute one or more monitors")
-                    }
-                    Ok(_) => {}
-                }
-                tokio::time::sleep(DELAY_BETWEEN_TWO_REQUESTS).await;
-            }
-        });
-    }
-    join_set
+#[derive(Clone)]
+pub struct ExecuteHttpMonitorsUseCase<HMR, IR, IER, INR, HC> {
+    pub http_monitor_repository: HMR,
+    pub incident_repository: IR,
+    pub incident_event_repository: IER,
+    pub incident_notification_repository: INR,
+    pub http_client: HC,
 }
 
-#[allow(clippy::too_many_arguments)]
-async fn fetch_and_execute_due_http_monitors<HMR, IR, IER, INR, HC>(
-    http_monitor_repository: &HMR,
-    incident_repository: &IR,
-    incident_event_repository: &IER,
-    incident_notification_repository: &INR,
-    http_client: &HC,
-    limit: u32,
-    concurrency_limit: usize,
-) -> anyhow::Result<usize>
+impl<HMR, IR, IER, INR, HC> ExecuteHttpMonitorsUseCase<HMR, IR, IER, INR, HC>
 where
     HMR: HttpMonitorRepository,
     IR: IncidentRepository<Transaction = HMR::Transaction>,
@@ -90,34 +37,83 @@ where
     INR: IncidentNotificationRepository<Transaction = HMR::Transaction>,
     HC: HttpClient,
 {
-    let mut transaction = http_monitor_repository.begin_transaction().await?;
-    let due_monitors = http_monitor_repository
-        .list_due_http_monitors(&mut transaction, limit)
-        .await?;
-    let monitors_len = due_monitors.len();
-
-    let mut ping_results = stream::iter(due_monitors)
-        .map(|monitor| {
-            let url = monitor.url.clone();
-            let http_client = http_client.clone();
-            async move { (monitor, http_client.ping(&url, REQUEST_TIMEOUT).await) }
-        })
-        .buffer_unordered(concurrency_limit);
-
-    while let Some((monitor, ping_result)) = ping_results.next().await {
-        ping_result_handler::handle_ping_response(
-            &mut transaction,
-            http_monitor_repository,
-            incident_repository,
-            incident_event_repository,
-            incident_notification_repository,
-            monitor,
-            ping_result,
-        )
-        .await?;
+    /// Spawns a set of tasks that will ping the monitors concurrently and handle the results
+    /// Returns a join set of tasks
+    /// The tasks will run indefinitely until the application is terminated
+    pub fn spawn_http_monitors_execution_tasks(
+        self,
+        n_tasks: usize,
+        select_limit: u32,
+        ping_concurrency_limit: usize,
+    ) -> JoinSet<()> {
+        let mut join_set = JoinSet::new();
+        for _ in 0..n_tasks {
+            let this = self.clone();
+            join_set.spawn(async move {
+                loop {
+                    match this.fetch_and_execute_due_http_monitors(
+                        select_limit,
+                        ping_concurrency_limit,
+                    )
+                    .await
+                    {
+                        Ok(monitors) if monitors > 0 => {
+                            debug!(monitors, "Executed {} monitors", monitors);
+                        }
+                        Err(e) => {
+                            error!(error = ?e, "Failed to execute one or more monitors")
+                        }
+                        Ok(_) => {}
+                    }
+                    tokio::time::sleep(DELAY_BETWEEN_TWO_REQUESTS).await;
+                }
+            });
+        }
+        join_set
     }
-    http_monitor_repository
-        .commit_transaction(transaction)
-        .await?;
-    Ok(monitors_len)
+
+    async fn fetch_and_execute_due_http_monitors(
+        &self,
+        limit: u32,
+        concurrency_limit: usize,
+    ) -> anyhow::Result<usize> {
+        let mut transaction = self.http_monitor_repository.begin_transaction().await?;
+
+        // Fetch the monitors that are due to be pinged
+        let due_monitors = self
+            .http_monitor_repository
+            .list_due_http_monitors(&mut transaction, limit)
+            .await?;
+        let monitors_len = due_monitors.len();
+
+        // Ping the monitors concurrently and collect the results
+        let mut ping_results = stream::iter(due_monitors)
+            .map(|monitor| {
+                let url = monitor.url.clone();
+                let http_client = self.http_client.clone();
+                async move { (monitor, http_client.ping(&url, REQUEST_TIMEOUT).await) }
+            })
+            .buffer_unordered(concurrency_limit);
+
+        // Go through the ping results and handle them
+        while let Some((monitor, ping_result)) = ping_results.next().await {
+            let existing_incident =
+                self.get_existing_incident_for_monitor(&mut transaction, &monitor)
+                    .await?;
+
+            self.handle_ping_response(
+                &mut transaction,
+                monitor,
+                ping_result,
+                existing_incident,
+            )
+            .await?;
+        }
+
+        // Finally, commit the transaction to persist the changes
+        self.http_monitor_repository
+            .commit_transaction(transaction)
+            .await?;
+        Ok(monitors_len)
+    }
 }

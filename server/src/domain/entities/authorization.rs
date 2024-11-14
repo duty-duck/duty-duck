@@ -61,6 +61,23 @@ impl AuthContext {
                 .contains(OrganizationUserRole::Editor),
         }
     }
+
+    #[cfg(test)]
+    pub fn test_context(
+        org_id: Uuid,
+        user_id: Uuid,
+        user_roles: &[OrganizationUserRole],
+        restricted_to_scopes: &[Permission],
+    ) -> Self {
+        Self {
+            active_organization_id: org_id,
+            active_user_id: user_id,
+            // Give the user owner permissions by default so they have all permissions
+            active_organization_roles: OrganizationRoleSet::test_context(user_roles),
+            // Then specifically restrict the permissions if needed
+            restricted_to_scopes: restricted_to_scopes.to_vec(),
+        }
+    }
 }
 
 custom_derive! {

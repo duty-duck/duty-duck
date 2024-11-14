@@ -14,6 +14,9 @@ use crate::domain::{
     },
 };
 
+#[cfg(test)]
+mod tests;
+
 use super::NotificationOpts;
 
 /// Confirms a to-be-confirmed incident and sends the appropriate notifications
