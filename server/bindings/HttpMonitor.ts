@@ -2,5 +2,6 @@
 import type { EntityMetadata } from "./EntityMetadata";
 import type { HttpMonitorErrorKind } from "./HttpMonitorErrorKind";
 import type { HttpMonitorStatus } from "./HttpMonitorStatus";
+import type { RequestHeaders } from "./RequestHeaders";
 
-export type HttpMonitor = { organizationId: string, id: string, createdAt: string, url: string, firstPingAt: string | null, nextPingAt: string | null, lastPingAt: string | null, lastStatusChangeAt: string, recoveryConfirmationThreshold: number, downtimeConfirmationThreshold: number, intervalSeconds: number, lastHttpCode: number | null, status: HttpMonitorStatus, statusCounter: number, errorKind: HttpMonitorErrorKind, metadata: EntityMetadata, emailNotificationEnabled: boolean, pushNotificationEnabled: boolean, smsNotificationEnabled: boolean, };
+export type HttpMonitor = { organizationId: string, id: string, createdAt: string, url: string, firstPingAt: string | null, nextPingAt: string | null, lastPingAt: string | null, lastStatusChangeAt: string, recoveryConfirmationThreshold: number, downtimeConfirmationThreshold: number, intervalSeconds: number, lastHttpCode: number | null, status: HttpMonitorStatus, statusCounter: number, errorKind: HttpMonitorErrorKind, metadata: EntityMetadata, emailNotificationEnabled: boolean, pushNotificationEnabled: boolean, smsNotificationEnabled: boolean, archivedAt: string | null, requestHeaders: RequestHeaders, requestTimeoutMs: number, };

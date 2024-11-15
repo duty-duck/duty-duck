@@ -19,6 +19,11 @@
             "-30d": "30 derniers jours"
         }
     },
+    "requestHeadersInput": {
+        "noHeaders": "Aucune entête",
+        "newHeaderName": "Nom de l'entête",
+        "newHeaderValue": "Valeur de l'entête"
+    },
     "metadataInput": {
         "newMetadata": "Nouvelle métadonnée",
         "noMetadata": "Aucune métadonnée",

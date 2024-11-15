@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::domain::entities::{entity_metadata::EntityMetadata, http_monitor::{HttpMonitor, HttpMonitorErrorKind, HttpMonitorStatus}};
+use crate::domain::entities::{entity_metadata::EntityMetadata, http_monitor::{HttpMonitor, HttpMonitorErrorKind, HttpMonitorStatus, RequestHeaders}};
 
 use super::transactional_repository::TransactionalRepository;
 
@@ -29,6 +29,7 @@ pub trait HttpMonitorRepository: TransactionalRepository + Clone + Send + Sync +
     async fn create_http_monitor(&self, monitor: NewHttpMonitor) -> anyhow::Result<Uuid>;
 
     /// Update an HTTP monitor, returns true if the monitor existed, or false if the monitor did not exist
+    /// Used by the public API to allow users to update HTTP monitors
     async fn update_http_monitor(&self, id: Uuid, monitor: NewHttpMonitor) -> anyhow::Result<bool>;
 
     /// List all the monitors that are due for a refresh
@@ -39,6 +40,8 @@ pub trait HttpMonitorRepository: TransactionalRepository + Clone + Send + Sync +
         limit: u32,
     ) -> anyhow::Result<Vec<HttpMonitor>>;
 
+    /// Used by internal use cases to update some fields of an HTTP monitor
+    /// Not used by the public API
     async fn update_http_monitor_status(
         &self,
         transaction: &mut Self::Transaction,
@@ -59,6 +62,8 @@ pub struct NewHttpMonitor {
     pub email_notification_enabled: bool,
     pub push_notification_enabled: bool,
     pub sms_notification_enabled: bool,
+    pub request_headers: RequestHeaders,
+    pub request_timeout_ms: i32,
 }
 
 #[derive(Debug)]
@@ -70,6 +75,8 @@ pub struct UpdateHttpMonitorStatusCommand {
     pub last_status_change_at: DateTime<Utc>,
     pub status_counter: i16,
     pub error_kind: HttpMonitorErrorKind,
+    /// Used to update the last HTTP code received when the monitor is pinged
+    /// If None, the last http code will be removed
     pub last_http_code: Option<i16>,
 }
 

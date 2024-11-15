@@ -1,5 +1,6 @@
 use anyhow::Context;
 use chrono::Utc;
+use tracing::debug;
 
 use crate::domain::{
     entities::{
@@ -41,6 +42,8 @@ where
     if incident.status != IncidentStatus::ToBeConfirmed {
         return Err(anyhow::anyhow!("Incident is not to be confirmed"));
     }
+
+    debug!(incident = ?incident, "Confirming incident");
 
     incident_repo
         .update_incident(

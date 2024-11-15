@@ -11,31 +11,33 @@ mod status_machine;
 mod tests;
 
 use crate::domain::ports::{
-    http_client::HttpClient, http_monitor_repository::HttpMonitorRepository,
+    file_storage::FileStorage, http_client::HttpClient,
+    http_monitor_repository::HttpMonitorRepository,
     incident_event_repository::IncidentEventRepository,
     incident_notification_repository::IncidentNotificationRepository,
     incident_repository::IncidentRepository,
 };
 
-const REQUEST_TIMEOUT: Duration = Duration::from_secs(10);
-const DELAY_BETWEEN_TWO_REQUESTS: Duration = Duration::from_secs(1);
+const DELAY_BETWEEN_TWO_REQUESTS: Duration = Duration::from_secs(2);
 
 #[derive(Clone)]
-pub struct ExecuteHttpMonitorsUseCase<HMR, IR, IER, INR, HC> {
+pub struct ExecuteHttpMonitorsUseCase<HMR, IR, IER, INR, HC, FS> {
     pub http_monitor_repository: HMR,
     pub incident_repository: IR,
     pub incident_event_repository: IER,
     pub incident_notification_repository: INR,
     pub http_client: HC,
+    pub file_storage: FS,
 }
 
-impl<HMR, IR, IER, INR, HC> ExecuteHttpMonitorsUseCase<HMR, IR, IER, INR, HC>
+impl<HMR, IR, IER, INR, HC, FS> ExecuteHttpMonitorsUseCase<HMR, IR, IER, INR, HC, FS>
 where
     HMR: HttpMonitorRepository,
     IR: IncidentRepository<Transaction = HMR::Transaction>,
     IER: IncidentEventRepository<Transaction = HMR::Transaction>,
     INR: IncidentNotificationRepository<Transaction = HMR::Transaction>,
     HC: HttpClient,
+    FS: FileStorage,
 {
     /// Spawns a set of tasks that will ping the monitors concurrently and handle the results
     /// Returns a join set of tasks
@@ -47,15 +49,17 @@ where
         ping_concurrency_limit: usize,
     ) -> JoinSet<()> {
         let mut join_set = JoinSet::new();
-        for _ in 0..n_tasks {
+        for task_index in 0..n_tasks {
             let this = self.clone();
             join_set.spawn(async move {
                 loop {
-                    match this.fetch_and_execute_due_http_monitors(
-                        select_limit,
-                        ping_concurrency_limit,
-                    )
-                    .await
+                    match this
+                        .fetch_and_execute_due_http_monitors(
+                            task_index,
+                            select_limit,
+                            ping_concurrency_limit,
+                        )
+                        .await
                     {
                         Ok(monitors) if monitors > 0 => {
                             debug!(monitors, "Executed {} monitors", monitors);
@@ -74,6 +78,7 @@ where
 
     async fn fetch_and_execute_due_http_monitors(
         &self,
+        task_index: usize,
         limit: u32,
         concurrency_limit: usize,
     ) -> anyhow::Result<usize> {
@@ -85,29 +90,42 @@ where
             .list_due_http_monitors(&mut transaction, limit)
             .await?;
         let monitors_len = due_monitors.len();
+        if monitors_len > 0 {
+            debug!(
+                monitors = ?due_monitors,
+                task_index,
+                "{} monitors are due to be executed",
+                monitors_len
+            );
+        }
 
         // Ping the monitors concurrently and collect the results
         let mut ping_results = stream::iter(due_monitors)
             .map(|monitor| {
                 let url = monitor.url.clone();
                 let http_client = self.http_client.clone();
-                async move { (monitor, http_client.ping(&url, REQUEST_TIMEOUT).await) }
+                let request_headers = monitor.request_headers.headers.clone();
+                let request_timeout = monitor.request_timeout();
+                async move {
+                    (monitor, http_client.ping(&url, request_timeout, request_headers).await)
+                }
             })
             .buffer_unordered(concurrency_limit);
 
         // Go through the ping results and handle them
         while let Some((monitor, ping_result)) = ping_results.next().await {
-            let existing_incident =
-                self.get_existing_incident_for_monitor(&mut transaction, &monitor)
-                    .await?;
+            debug!(monitor_id = ?monitor.id, task_index, "Processing monitor ping result");
 
-            self.handle_ping_response(
-                &mut transaction,
-                monitor,
-                ping_result,
-                existing_incident,
-            )
-            .await?;
+            let existing_incident = self
+                .get_existing_incident_for_monitor(&mut transaction, &monitor)
+                .await?;
+
+            self.handle_ping_response(&mut transaction, monitor, ping_result, existing_incident)
+                .await?;
+        }
+
+        if monitors_len > 0 {
+            debug!(task_index, "All monitors processed, committing transaction");
         }
 
         // Finally, commit the transaction to persist the changes

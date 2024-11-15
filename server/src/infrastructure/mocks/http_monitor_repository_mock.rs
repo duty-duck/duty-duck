@@ -120,6 +120,9 @@ impl HttpMonitorRepository for HttpMonitorRepositoryMock {
             email_notification_enabled: monitor.email_notification_enabled,
             push_notification_enabled: monitor.push_notification_enabled,
             sms_notification_enabled: monitor.sms_notification_enabled,
+            archived_at: None,
+            request_headers: monitor.request_headers,
+            request_timeout_ms: monitor.request_timeout_ms,
         };
 
         let mut state = self.state.lock().await;
@@ -195,7 +198,7 @@ impl HttpMonitorRepository for HttpMonitorRepositoryMock {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::domain::entities::entity_metadata::EntityMetadata;
+    use crate::domain::entities::{entity_metadata::EntityMetadata, http_monitor::RequestHeaders};
 
     fn create_test_monitor(org_id: Uuid, url: &str, status: HttpMonitorStatus) -> NewHttpMonitor {
         NewHttpMonitor {
@@ -210,6 +213,8 @@ mod tests {
             email_notification_enabled: true,
             push_notification_enabled: false,
             sms_notification_enabled: false,
+            request_headers: RequestHeaders::default(),
+            request_timeout_ms: 2000,
         }
     }
 

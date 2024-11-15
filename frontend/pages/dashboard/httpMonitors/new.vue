@@ -4,11 +4,10 @@ import { usePermissionGrant } from "~/composables/authComposables";
 
 await usePermissionGrant("writeHttpMonitors");
 
-const repo = await useHttpMonitorRepository();
 const localePath = useLocalePath();
 
 const onSubmit = async (data: HttpMonitorFormData) => {
-  await repo.createHttpMonitor({
+  await createHttpMonitor({
     ...data,
     ...data.notificationSettings,
     isActive: true

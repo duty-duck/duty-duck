@@ -63,6 +63,7 @@ utoipa = { version = "4", features = ["axum_extras", "uuid", "chrono"] }
 utoipa-redoc = { version = "4", features = ["axum"] }
 hex = "0.4.3"
 aws-sdk-sns = "1.47.0"
+aws-sdk-s3 = "1.60.0"
 aws-config = "1.5.8"
 phonenumber = "0.3.6"
 tonic = "0.12.3"

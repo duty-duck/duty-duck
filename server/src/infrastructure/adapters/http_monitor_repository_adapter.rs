@@ -197,6 +197,8 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
 
     async fn update_http_monitor(&self, id: Uuid, monitor: NewHttpMonitor) -> anyhow::Result<bool> {
         let metadata = serde_json::to_value(monitor.metadata)?;
+        let request_headers = serde_json::to_value(monitor.request_headers)?;
+
         let result = sqlx::query!(
             "UPDATE http_monitors SET 
                 url = $1,
@@ -209,8 +211,10 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
                 email_notification_enabled = $8,
                 push_notification_enabled = $9,
                 sms_notification_enabled = $10,
-                organization_id = $11
-            WHERE organization_id = $11 and id = $12",
+                request_headers = $11,
+                request_timeout_ms = $12,
+                organization_id = $13
+            WHERE organization_id = $13 and id = $14",
             monitor.url,
             monitor.status as i16,
             monitor.next_ping_at,
@@ -221,6 +225,8 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
             monitor.email_notification_enabled,
             monitor.push_notification_enabled,
             monitor.sms_notification_enabled,
+            &request_headers,
+            monitor.request_timeout_ms,
             monitor.organization_id,
             id,
         )

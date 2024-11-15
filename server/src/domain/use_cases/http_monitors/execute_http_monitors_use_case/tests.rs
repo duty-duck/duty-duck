@@ -1,7 +1,9 @@
 use chrono::Utc;
 use uuid::Uuid;
 
+use crate::domain::entities::http_monitor::RequestHeaders;
 use crate::domain::entities::incident::HttpMonitorIncidentCause;
+use crate::infrastructure::mocks::file_storage_mock::FileStorageMock;
 use crate::infrastructure::mocks::{
     http_monitor_repository_mock::HttpMonitorRepositoryMock,
     incident_event_repository_mock::IncidentEventRepositoryMock,
@@ -47,6 +49,9 @@ fn create_test_monitor(org_id: Uuid, status: HttpMonitorStatus) -> HttpMonitor {
         email_notification_enabled: true,
         push_notification_enabled: true,
         sms_notification_enabled: false,
+        archived_at: None,
+        request_headers: RequestHeaders::default(),
+        request_timeout_ms: 2000,
     }
 }
 
@@ -57,13 +62,15 @@ fn create_test_incident(org_id: Uuid, monitor: &HttpMonitor, status: IncidentSta
         created_at: Utc::now(),
         created_by: None,
         resolved_at: None,
-        cause: Some(IncidentCause::HttpMonitorIncidentCause(HttpMonitorIncidentCause {
-            last_ping: HttpMonitorIncidentCausePing {
-                error_kind: HttpMonitorErrorKind::Timeout,
-                http_code: None,
+        cause: Some(IncidentCause::HttpMonitorIncidentCause(
+            HttpMonitorIncidentCause {
+                last_ping: HttpMonitorIncidentCausePing {
+                    error_kind: HttpMonitorErrorKind::Timeout,
+                    http_code: None,
+                },
+                previous_pings: vec![],
             },
-            previous_pings: vec![],
-        })),
+        )),
         status,
         priority: IncidentPriority::Critical,
         incident_source_type: IncidentSourceType::HttpMonitor,
@@ -97,6 +104,7 @@ async fn test_handle_ping_response_up_to_suspicious() -> anyhow::Result<()> {
         incident_event_repository: incident_event_repo,
         incident_notification_repository: incident_notification_repo,
         http_client: HttpClientMock::new(),
+        file_storage: FileStorageMock,
     };
 
     let ping_response = PingResponse {
@@ -158,6 +166,7 @@ async fn test_handle_ping_response_down_without_existing_incident() -> anyhow::R
         incident_event_repository: incident_event_repo,
         incident_notification_repository: incident_notification_repo,
         http_client: HttpClientMock::new(),
+        file_storage: FileStorageMock,
     };
 
     let ping_response = PingResponse {
@@ -223,6 +232,7 @@ async fn test_handle_ping_response_suspicious_to_down() -> anyhow::Result<()> {
         incident_event_repository: incident_event_repo,
         incident_notification_repository: incident_notification_repo,
         http_client: HttpClientMock::new(),
+        file_storage: FileStorageMock,
     };
 
     let ping_response = PingResponse {
@@ -296,6 +306,7 @@ async fn test_handle_ping_response_down_to_recovering() -> anyhow::Result<()> {
         incident_event_repository: incident_event_repo,
         incident_notification_repository: incident_notification_repo,
         http_client: HttpClientMock::new(),
+        file_storage: FileStorageMock,
     };
 
     let ping_response = PingResponse {
@@ -369,6 +380,7 @@ async fn test_no_new_incident_created_when_incident_exists() -> anyhow::Result<(
             incident_event_repository: incident_event_repo.clone(),
             incident_notification_repository: incident_notification_repo.clone(),
             http_client: HttpClientMock::new(),
+            file_storage: FileStorageMock,
         };
 
         let ping_response = PingResponse {
@@ -421,13 +433,15 @@ async fn test_handle_ping_response_updates_incident_cause_when_error_code_change
     monitor.last_http_code = Some(500);
 
     let mut incident = create_test_incident(org_id, &monitor, IncidentStatus::Ongoing);
-    incident.cause = Some(IncidentCause::HttpMonitorIncidentCause(HttpMonitorIncidentCause {
-        last_ping: HttpMonitorIncidentCausePing {
-            error_kind: HttpMonitorErrorKind::HttpCode,
-            http_code: Some(500),
+    incident.cause = Some(IncidentCause::HttpMonitorIncidentCause(
+        HttpMonitorIncidentCause {
+            last_ping: HttpMonitorIncidentCausePing {
+                error_kind: HttpMonitorErrorKind::HttpCode,
+                http_code: Some(500),
+            },
+            previous_pings: vec![],
         },
-        previous_pings: vec![],
-    }));
+    ));
 
     let mut tx = http_monitor_repo.begin_transaction().await?;
 
@@ -448,6 +462,7 @@ async fn test_handle_ping_response_updates_incident_cause_when_error_code_change
         incident_event_repository: incident_event_repo.clone(),
         incident_notification_repository: incident_notification_repo.clone(),
         http_client: HttpClientMock::new(),
+        file_storage: FileStorageMock,
     };
 
     let ping_response = PingResponse {
@@ -481,8 +496,10 @@ async fn test_handle_ping_response_updates_incident_cause_when_error_code_change
 
     // Verify that the previous pings field in the incident cause has been updated
     #[allow(irrefutable_let_patterns)]
-    if let IncidentCause::HttpMonitorIncidentCause(HttpMonitorIncidentCause { previous_pings, .. }) =
-        &updated_incident.cause.as_ref().unwrap()
+    if let IncidentCause::HttpMonitorIncidentCause(HttpMonitorIncidentCause {
+        previous_pings,
+        ..
+    }) = &updated_incident.cause.as_ref().unwrap()
     {
         assert_eq!(previous_pings.len(), 1);
         assert_eq!(
@@ -496,21 +513,23 @@ async fn test_handle_ping_response_updates_incident_cause_when_error_code_change
         panic!("Incident cause should be HttpMonitorIncidentCause");
     }
 
-    // Verify a ping event was created
+    // Verify a ping event and a switch to down event was created
     let events = use_case.incident_event_repository.state.lock().await;
-    assert_eq!(events.len(), 1, "A ping event should be created");
-    let event = events.first().expect("Event should exist");
-    assert_eq!(event.event_type, IncidentEventType::MonitorPinged);
+    assert_eq!(events.len(), 2, "two events should be created");
+    let ping_event = events.first().expect("Event should exist");
+    assert_eq!(ping_event.event_type, IncidentEventType::MonitorPinged);
 
-    if let Some(IncidentEventPayload::MonitorPing(payload)) = &event.event_payload {
+    if let Some(IncidentEventPayload::MonitorPing(payload)) = &ping_event.event_payload {
         assert_eq!(payload.http_code, Some(422));
     } else {
-        panic!("Event payload should be MonitorPing");
+        panic!("Ping event payload should be MonitorPing");
     }
+
+    let switch_to_down_event = events.last().expect("Event should exist");
+    assert_eq!(switch_to_down_event.event_type, IncidentEventType::MonitorSwitchedToDown);
 
     Ok(())
 }
-
 
 #[tokio::test]
 async fn test_handle_ping_response_http_code_500_to_recovering() -> anyhow::Result<()> {
@@ -534,13 +553,15 @@ async fn test_handle_ping_response_http_code_500_to_recovering() -> anyhow::Resu
 
         let mut incident_state = incident_repo.state.lock().await;
         let mut incident = create_test_incident(org_id, &monitor, IncidentStatus::Ongoing);
-        incident.cause = Some(IncidentCause::HttpMonitorIncidentCause(HttpMonitorIncidentCause {
-            last_ping: HttpMonitorIncidentCausePing {
-                error_kind: HttpMonitorErrorKind::HttpCode,
-                http_code: Some(500),
+        incident.cause = Some(IncidentCause::HttpMonitorIncidentCause(
+            HttpMonitorIncidentCause {
+                last_ping: HttpMonitorIncidentCausePing {
+                    error_kind: HttpMonitorErrorKind::HttpCode,
+                    http_code: Some(500),
+                },
+                previous_pings: vec![],
             },
-            previous_pings: vec![],
-        }));
+        ));
         incident_state.push(incident);
     }
 
@@ -550,6 +571,7 @@ async fn test_handle_ping_response_http_code_500_to_recovering() -> anyhow::Resu
         incident_event_repository: incident_event_repo,
         incident_notification_repository: incident_notification_repo,
         http_client: HttpClientMock::new(),
+        file_storage: FileStorageMock,
     };
 
     let ping_response = PingResponse {
@@ -591,8 +613,13 @@ async fn test_handle_ping_response_http_code_500_to_recovering() -> anyhow::Resu
 
     // Verify that the content of the last ping in the incident cause
     #[allow(irrefutable_let_patterns)]
-    if let IncidentCause::HttpMonitorIncidentCause(HttpMonitorIncidentCause { last_ping, previous_pings }) =
-        &updated_incident.cause.as_ref().expect("Incident should have a cause")
+    if let IncidentCause::HttpMonitorIncidentCause(HttpMonitorIncidentCause {
+        last_ping,
+        previous_pings,
+    }) = &updated_incident
+        .cause
+        .as_ref()
+        .expect("Incident should have a cause")
     {
         assert_eq!(previous_pings.len(), 0);
         assert_eq!(
@@ -606,18 +633,21 @@ async fn test_handle_ping_response_http_code_500_to_recovering() -> anyhow::Resu
         panic!("Incident cause should be HttpMonitorIncidentCause");
     }
 
-    // Verify a ping event was created
+    // Verify a ping event was created and a switch to recovering event
     let events = use_case.incident_event_repository.state.lock().await;
-    assert_eq!(events.len(), 1, "A ping event should be created");
-    let event = events.first().expect("Event should exist");
-    assert_eq!(event.event_type, IncidentEventType::MonitorPinged);
+    assert_eq!(events.len(), 2, "Two events should be created");
+    let ping_event = events.first().expect("Ping event should exist");
+    assert_eq!(ping_event.event_type, IncidentEventType::MonitorPinged);
 
-    if let Some(IncidentEventPayload::MonitorPing(payload)) = &event.event_payload {
+    if let Some(IncidentEventPayload::MonitorPing(payload)) = &ping_event.event_payload {
         assert_eq!(payload.http_code, Some(200));
         assert_eq!(payload.error_kind, HttpMonitorErrorKind::None);
     } else {
         panic!("Event payload should be MonitorPing");
     }
+
+    let switch_to_recovering_event = events.last().expect("Switch to recovering event should exist");
+    assert_eq!(switch_to_recovering_event.event_type, IncidentEventType::MonitorSwitchedToRecovering);
 
     Ok(())
 }
@@ -653,6 +683,7 @@ async fn test_handle_ping_response_up_with_ongoing_incident() -> anyhow::Result<
         incident_event_repository: incident_event_repo,
         incident_notification_repository: incident_notification_repo,
         http_client: HttpClientMock::new(),
+        file_storage: FileStorageMock,
     };
 
     let ping_response = PingResponse {
@@ -687,7 +718,9 @@ async fn test_handle_ping_response_up_with_ongoing_incident() -> anyhow::Result<
     // Verify a ping event was created
     let events = use_case.incident_event_repository.state.lock().await;
     assert_eq!(events.len(), 2); // One ping event and one resolution event
-    let ping_event = events.iter().find(|e| e.event_type == IncidentEventType::MonitorPinged)
+    let ping_event = events
+        .iter()
+        .find(|e| e.event_type == IncidentEventType::MonitorPinged)
         .expect("Ping event should exist");
 
     if let Some(IncidentEventPayload::MonitorPing(payload)) = &ping_event.event_payload {
@@ -732,6 +765,7 @@ async fn test_handle_ping_response_recovering_without_status_change() -> anyhow:
         incident_event_repository: incident_event_repo,
         incident_notification_repository: incident_notification_repo,
         http_client: HttpClientMock::new(),
+        file_storage: FileStorageMock,
     };
 
     let ping_response = PingResponse {
@@ -789,13 +823,15 @@ async fn test_handle_ping_response_suspicious_with_ongoing_incident() -> anyhow:
 
         let mut incident_state = incident_repo.state.lock().await;
         let mut incident = create_test_incident(org_id, &monitor, IncidentStatus::Ongoing);
-        incident.cause = Some(IncidentCause::HttpMonitorIncidentCause(HttpMonitorIncidentCause {
-            last_ping: HttpMonitorIncidentCausePing {
-                error_kind: HttpMonitorErrorKind::HttpCode,
-                http_code: Some(500),
+        incident.cause = Some(IncidentCause::HttpMonitorIncidentCause(
+            HttpMonitorIncidentCause {
+                last_ping: HttpMonitorIncidentCausePing {
+                    error_kind: HttpMonitorErrorKind::HttpCode,
+                    http_code: Some(500),
+                },
+                previous_pings: vec![],
             },
-            previous_pings: vec![],
-        }));
+        ));
         incident_state.push(incident);
     }
 
@@ -805,6 +841,7 @@ async fn test_handle_ping_response_suspicious_with_ongoing_incident() -> anyhow:
         incident_event_repository: incident_event_repo,
         incident_notification_repository: incident_notification_repo,
         http_client: HttpClientMock::new(),
+        file_storage: FileStorageMock,
     };
 
     let ping_response = PingResponse {
@@ -851,20 +888,139 @@ async fn test_handle_ping_response_suspicious_with_ongoing_incident() -> anyhow:
             }
         );
 
-        // verify that a ping event was created
+        // verify that a ping event and a switch to suspicious event were created
         let events = use_case.incident_event_repository.state.lock().await;
-        assert_eq!(events.len(), 1);
-        let event = events.first().expect("Event should exist");
-        assert_eq!(event.event_type, IncidentEventType::MonitorPinged);
+        assert_eq!(events.len(), 2, "Two events should be created");
+        let ping_event = events.first().expect("Ping event should exist");
+        assert_eq!(ping_event.event_type, IncidentEventType::MonitorPinged);
 
-        if let Some(IncidentEventPayload::MonitorPing(payload)) = &event.event_payload {
+        if let Some(IncidentEventPayload::MonitorPing(payload)) = &ping_event.event_payload {
             assert_eq!(payload.error_kind, HttpMonitorErrorKind::Timeout);
             assert_eq!(payload.http_code, None);
         } else {
             panic!("Event payload should be MonitorPing");
         }
+
+        let switch_to_suspicious_event = events.last().expect("Switch to suspicious event should exist");
+        assert_eq!(switch_to_suspicious_event.event_type, IncidentEventType::MonitorSwitchedToSuspicious);
     } else {
         panic!("Incident cause should be HttpMonitorIncidentCause");
+    }
+
+    Ok(())
+}
+
+#[tokio::test]
+async fn test_handle_ping_response_unknown_to_suspicious_to_up() -> anyhow::Result<()> {
+    let http_monitor_repo = HttpMonitorRepositoryMock::new();
+    let incident_repo = IncidentRepositoryMock::new();
+    let incident_event_repo = IncidentEventRepositoryMock::new();
+    let incident_notification_repo = IncidentNotificationRepositoryMock::new();
+
+    let org_id = Uuid::new_v4();
+    let mut monitor = create_test_monitor(org_id, HttpMonitorStatus::Unknown);
+    monitor.recovery_confirmation_threshold = 2;
+    monitor.downtime_confirmation_threshold = 2;
+
+    let mut tx = http_monitor_repo.begin_transaction().await?;
+
+    // Add monitor to repository
+    {
+        let mut monitor_state = http_monitor_repo.state.lock().await;
+        monitor_state.push(monitor.clone());
+    }
+
+    let use_case = ExecuteHttpMonitorsUseCase {
+        http_monitor_repository: http_monitor_repo,
+        incident_repository: incident_repo,
+        incident_event_repository: incident_event_repo,
+        incident_notification_repository: incident_notification_repo,
+        http_client: HttpClientMock::new(),
+        file_storage: FileStorageMock,
+    };
+
+    // First ping - HTTP 500
+    let ping_response = PingResponse {
+        error_kind: HttpMonitorErrorKind::HttpCode,
+        http_code: Some(500),
+        http_headers: Default::default(),
+        response_time: std::time::Duration::from_secs(1),
+        response_ip_address: None,
+        resolved_ip_addresses: vec![],
+        response_body_size_bytes: 0,
+        response_body_content: None,
+        screenshot: None,
+    };
+
+    use_case
+        .handle_ping_response(&mut tx, monitor.clone(), ping_response, None)
+        .await?;
+
+    // Verify monitor status changed to Suspicious
+    {
+        let monitor_state = use_case.http_monitor_repository.state.lock().await;
+        let updated_monitor = monitor_state.first().expect("Monitor should exist");
+        assert_eq!(updated_monitor.status, HttpMonitorStatus::Suspicious);
+        assert_eq!(updated_monitor.status_counter, 1);
+        assert_eq!(updated_monitor.error_kind, HttpMonitorErrorKind::HttpCode);
+        assert_eq!(updated_monitor.last_http_code, Some(500));
+    }
+
+    // Verify an unconfirmed incident was created
+    {
+        let incident_state = use_case.incident_repository.state.lock().await;
+        let incident = incident_state.first().expect("Incident should exist");
+        assert_eq!(incident.status, IncidentStatus::ToBeConfirmed);
+
+        // Verify incident cause
+        if let Some(IncidentCause::HttpMonitorIncidentCause(cause)) = &incident.cause {
+            assert_eq!(cause.last_ping.error_kind, HttpMonitorErrorKind::HttpCode);
+            assert_eq!(cause.last_ping.http_code, Some(500));
+            assert!(cause.previous_pings.is_empty());
+        } else {
+            panic!("Incident cause should be HttpMonitorIncidentCause");
+        }
+    }
+
+    // Second ping - HTTP 200
+    let ping_response = PingResponse {
+        error_kind: HttpMonitorErrorKind::None,
+        http_code: Some(200),
+        http_headers: Default::default(),
+        response_time: std::time::Duration::from_secs(1),
+        response_ip_address: None,
+        resolved_ip_addresses: vec![],
+        response_body_size_bytes: 0,
+        response_body_content: None,
+        screenshot: None,
+    };
+
+    let existing_incident = use_case
+        .incident_repository
+        .state
+        .lock()
+        .await
+        .first()
+        .cloned();
+
+    use_case
+        .handle_ping_response(&mut tx, monitor, ping_response, existing_incident)
+        .await?;
+
+    // Verify monitor status changed to Up
+    {
+        let monitor_state = use_case.http_monitor_repository.state.lock().await;
+        let updated_monitor = monitor_state.first().expect("Monitor should exist");
+        assert_eq!(updated_monitor.status, HttpMonitorStatus::Up);
+        assert_eq!(updated_monitor.status_counter, 1);
+        assert_eq!(updated_monitor.error_kind, HttpMonitorErrorKind::None);
+        assert_eq!(updated_monitor.last_http_code, Some(200));
+    }
+
+    // Verify incident was deleted
+    {
+        let incident_state = use_case.incident_repository.state.lock().await;
+        assert_eq!(incident_state.len(), 0);
     }
 
     Ok(())

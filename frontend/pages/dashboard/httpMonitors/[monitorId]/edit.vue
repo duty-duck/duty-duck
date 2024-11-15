@@ -5,11 +5,10 @@ import { usePermissionGrant } from "~/composables/authComposables";
 
 await usePermissionGrant("writeHttpMonitors");
 
-const repo = await useHttpMonitorRepository();
 const route = useRoute();
 const localePath = useLocalePath();
 
-const { data: monitorData } = await repo.useHttpMonitor(
+const { data: monitorData } = await useHttpMonitor(
   route.params.monitorId as string
 );
 
@@ -19,7 +18,7 @@ const onSubmit = async (monitor: HttpMonitorFormData) => {
     ...monitor.notificationSettings,
     ...monitor,
   };
-  await repo.updateHttpMonitor(route.params.monitorId as string, command);
+  await updateHttpMonitor(route.params.monitorId as string, command);
 
   navigateTo(localePath(`/dashboard/httpMonitors/${route.params.monitorId}`));
 };
@@ -45,6 +44,8 @@ const onSubmit = async (monitor: HttpMonitorFormData) => {
       :interval-seconds="monitorData.monitor.intervalSeconds"
       :downtime-confirmation-threshold="monitorData.monitor.downtimeConfirmationThreshold"
       :recovery-confirmation-threshold="monitorData.monitor.recoveryConfirmationThreshold"
+      :request-headers="monitorData.monitor.requestHeaders"
+      :request-timeout-ms="monitorData.monitor.requestTimeoutMs"
       :notification-settings="{
         pushNotificationEnabled: monitorData.monitor.pushNotificationEnabled,
         emailNotificationEnabled: monitorData.monitor.emailNotificationEnabled,

@@ -10,6 +10,9 @@ pub fn next_status(
     last_ping_ok: bool,
 ) -> (i16, HttpMonitorStatus) {
     match (current_status, last_ping_ok) {
+        // Transition from archived should not change the status
+        // An archived monitor is not monitored anymore and should never go through the status machine
+        (HttpMonitorStatus::Archived, _) => unreachable!("try to compute the next status of an archived monitor"),
         // Down monitor staying down
         (HttpMonitorStatus::Down, false) => (
             current_status_counter.saturating_add(1),

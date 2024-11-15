@@ -24,24 +24,40 @@ const { item } = defineProps<{
             <template v-if="!$slots.default && item">
                 <span class="text-secondary">{{ $d(new Date(item.event.createdAt), 'long') }}</span>
                 <div>
-                    <span v-if="item.event.eventType === 'creation'">
-                        {{ $t("dashboard.incidents.timeline.incidentCreated") }}
-                    </span>
-                    <span v-else-if="item.event.eventType === 'confirmation'">
-                        {{ $t("dashboard.incidents.timeline.incidentConfirmed") }}
-                    </span>
-                    <span v-if="item.event.eventType === 'notification'">
-                        {{ $t("dashboard.incidents.timeline.notificationSent") }}
-                    </span>
-                    <span v-else-if="item.event.eventType === 'resolution'">
-                        {{ $t("dashboard.incidents.timeline.incidentResolved") }}
-                    </span>
-                    <span v-else-if="item.event.eventType === 'acknowledged'">
-                        {{ $t("dashboard.incidents.timeline.incidentAcknowledged", {
-                            firstName: item.user?.firstName, lastName:
-                                item.user?.lastName
-                        }) }}
-                    </span>
+                    <i18n-t v-if="item.event.eventType === 'creation'"
+                        keypath="dashboard.incidents.timeline.incidentCreated" tag="span" />
+                    <i18n-t v-else-if="item.event.eventType === 'confirmation'"
+                        keypath="dashboard.incidents.timeline.incidentConfirmed" tag="span" />
+                    <i18n-t v-if="item.event.eventType === 'notification'"
+                        keypath="dashboard.incidents.timeline.notificationSent" tag="span" />
+                    <i18n-t v-else-if="item.event.eventType === 'resolution'"
+                        keypath="dashboard.incidents.timeline.incidentResolved" tag="span" />
+                    <i18n-t v-else-if="item.event.eventType === 'monitorswitchedtorecovering'"
+                        keypath="dashboard.incidents.timeline.monitorStatusSwitched" tag="span"
+                        class="d-flex align-items-center gap-2">
+                        <template #status>
+                            <BBadge pill variant="info" class="text-white">{{ $t("dashboard.monitorStatus.recovering") }}</BBadge>
+                        </template>
+                    </i18n-t>
+                    <i18n-t v-else-if="item.event.eventType === 'monitorswitchedtosuspicious'"
+                        keypath="dashboard.incidents.timeline.monitorStatusSwitched" tag="span"
+                        class="d-flex align-items-center gap-2">
+                        <template #status>
+                            <BBadge pill variant="warning">{{ $t("dashboard.monitorStatus.suspicious") }}</BBadge>
+                        </template>
+                    </i18n-t>
+                    <i18n-t v-else-if="item.event.eventType === 'monitorswitchedtodown'"
+                        keypath="dashboard.incidents.timeline.monitorStatusSwitched" tag="span"
+                        class="d-flex align-items-center gap-2">
+                        <template #status>
+                            <BBadge pill variant="danger">{{ $t("dashboard.monitorStatus.down") }}</BBadge>
+                        </template>
+                    </i18n-t>
+                    <i18n-t v-else-if="item.event.eventType === 'acknowledged'"
+                        keypath="dashboard.incidents.timeline.incidentAcknowledged" tag="span">
+                        <template #firstName>{{ item.user?.firstName }}</template>
+                        <template #lastName>{{ item.user?.lastName }}</template>
+                    </i18n-t>
                     <div v-else-if="item.event.eventType === 'comment' && item.event.eventPayload">
                         <div class="mb-2">{{ $t("dashboard.incidents.timeline.comment", {
                             firstName: item.user?.firstName, lastName:

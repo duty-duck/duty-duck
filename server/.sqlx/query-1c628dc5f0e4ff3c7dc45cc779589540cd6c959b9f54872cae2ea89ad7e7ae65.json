@@ -97,6 +97,21 @@
         "ordinal": 18,
         "name": "metadata",
         "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 19,
+        "name": "request_timeout_ms",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 20,
+        "name": "request_headers",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 21,
+        "name": "archived_at",
+        "type_info": "Timestamptz"
       }
     ],
     "parameters": {
@@ -125,6 +140,9 @@
       true,
       false,
       false,
+      false,
+      false,
+      true,
       false,
       false,
       true

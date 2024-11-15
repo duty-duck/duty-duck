@@ -46,6 +46,14 @@
             "notificationSettingsDescription": "Détermine les notifications qui seront envoyées en cas de panne du moniteur",
             "metadata": "Métadonnées",
             "metadataDescription": "Les métadonnées sont optionnelles. Elles vous permettent d'organiser vos moniteurs et vos incidents.",
+            "requestHeaders": "Entêtes de la requête",
+            "requestHeadersDescription": "Permet de personnaliser les entêtes de la requête HTTP.",
+            "advancedSettings": "Paramètres avancés",
+            "requestSettings": "Paramètres de la requête",
+            "thresholds": "Seuils pour les incidents",
+            "requestTimeout": "Délai d'attente de la requête",
+            "requestTimeoutDescription": "Détermine combien de temps nous allons attendre une réponse du serveur avant de considérer la requête comme échouée.",
+            "seconds": "secondes",
             "save": "Sauvegarder"
         }
     },

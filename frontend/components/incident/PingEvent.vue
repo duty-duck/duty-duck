@@ -1,6 +1,20 @@
 <template>
     <BCard class="ping-event-card" no-body>
-        <BTabs card>
+        <BTabs card small>
+            <template #tabs-end>
+                <li class="nav-item" v-if="event.screenshotFileId">
+                    <a class="nav-link icon-link" @click.prevent="redirectToFile(event.screenshotFileId)" href="#">
+                        <Icon name="ph:image" />
+                        {{ $t('dashboard.incidents.timeline.pingEvent.screenshot') }}
+                    </a>
+                </li>
+                <li class="nav-item" v-if="event.responseFileId">
+                    <a class="nav-link icon-link" @click.prevent="redirectToFile(event.responseFileId)" href="#">
+                        <Icon name="ph:code" />
+                        {{ $t('dashboard.incidents.timeline.pingEvent.response') }}
+                    </a>
+                </li>
+            </template>
             <BTab :title="$t('dashboard.incidents.timeline.pingEvent.tabs.summary')">
                 <div class="error-details">
                     <p class="mb-2" v-if="event.errorKind !== 'none'">
@@ -43,6 +57,7 @@ import type { PingEventPayload } from 'bindings/PingEventPayload';
 import { getIncidentLabel } from '../httpMonitor/IncidentLabel.vue';
 
 const { t } = useI18n();
+const { redirectToFile } = await useFiles();
 
 const props = defineProps<{
     event: PingEventPayload
@@ -63,7 +78,7 @@ const headerFields = [
 
 <style scoped>
 .ping-event-card {
-    max-width: 600px;
+    max-width: 650px;
 }
 
 .error-details {

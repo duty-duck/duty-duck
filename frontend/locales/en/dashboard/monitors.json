@@ -46,6 +46,14 @@
             "notificationSettingsDescription": "Determines the notifications that will be sent in case of monitor failure",
             "metadata": "Metadata",
             "metadataDescription": "Metadata is optional. It allows you to organize your monitors and incidents.",
+            "requestHeaders": "Request headers",
+            "requestHeadersDescription": "Allows to customize the HTTP request headers.",
+            "advancedSettings": "Advanced settings",
+            "requestSettings": "Request settings",
+            "thresholds": "Incident thresholds",
+            "requestTimeout": "Request timeout",
+            "requestTimeoutDescription": "Determines how long we will wait for a response from the server before considering the attempt as failed.",
+            "seconds": "seconds",
             "save": "Save"
         }
     },

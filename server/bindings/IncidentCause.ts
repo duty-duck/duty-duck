@@ -4,4 +4,4 @@ import type { HttpMonitorIncidentCause } from "./HttpMonitorIncidentCause";
 /**
  * An enum that represents the cause of an incident
  */
-export type IncidentCause = { "causeType": "HttpMonitorIncidentCause", lastPing: HttpMonitorIncidentCause, previousPings: Array<HttpMonitorIncidentCause>, };
+export type IncidentCause = { "causeType": "HttpMonitorIncidentCause" } & HttpMonitorIncidentCause;

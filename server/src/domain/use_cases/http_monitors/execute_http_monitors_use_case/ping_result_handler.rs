@@ -1,6 +1,7 @@
 use anyhow::Context;
 use chrono::Utc;
-use tracing::warn;
+use tracing::{debug, warn};
+use uuid::Uuid;
 
 use crate::domain::{
     entities::{
@@ -15,26 +16,26 @@ use crate::domain::{
         incident_notification::IncidentNotificationPayload,
     },
     ports::{
-        http_client::HttpClient,
+        file_storage::{FileStorage, FileStorageKey},
+        http_client::{HttpClient, Screenshot},
         http_monitor_repository::{HttpMonitorRepository, UpdateHttpMonitorStatusCommand},
         incident_event_repository::IncidentEventRepository,
         incident_notification_repository::IncidentNotificationRepository,
         incident_repository::{IncidentRepository, ListIncidentsOpts},
     },
-    use_cases::incidents::{
-        confirm_incident, create_incident, resolve_incident, NotificationOpts,
-    },
+    use_cases::incidents::{confirm_incident, create_incident, resolve_incident, NotificationOpts},
 };
 
 use super::{status_machine, ExecuteHttpMonitorsUseCase};
 
-impl<HMR, IR, IER, INR, HC> ExecuteHttpMonitorsUseCase<HMR, IR, IER, INR, HC>
+impl<HMR, IR, IER, INR, HC, FS> ExecuteHttpMonitorsUseCase<HMR, IR, IER, INR, HC, FS>
 where
     HMR: HttpMonitorRepository,
     IR: IncidentRepository<Transaction = HMR::Transaction>,
     IER: IncidentEventRepository<Transaction = HMR::Transaction>,
     INR: IncidentNotificationRepository<Transaction = HMR::Transaction>,
     HC: HttpClient,
+    FS: FileStorage,
 {
     ///
     /// Handles the result of pinging an HTTP monitor and updates the monitor's status accordingly.
@@ -54,11 +55,12 @@ where
     /// 1. Determines the next monitor status based on the ping result
     /// 2. Updates the monitor's status and related fields in the database
     /// 3. Creates/updates incidents if needed based on the monitor's new status
+    #[tracing::instrument(skip(self, transaction))]
     pub async fn handle_ping_response(
         &self,
         transaction: &mut HMR::Transaction,
         mut monitor: HttpMonitor,
-        ping_response: crate::domain::ports::http_client::PingResponse,
+        mut ping_response: crate::domain::ports::http_client::PingResponse,
         existing_incident: Option<Incident>,
     ) -> anyhow::Result<()> {
         let (status_counter, status) = status_machine::next_status(
@@ -101,7 +103,7 @@ where
 
         match (status, existing_incident) {
             // the monitor can never be unknown or inactive when we are handling a ping response
-            (HttpMonitorStatus::Unknown | HttpMonitorStatus::Inactive, _) => unreachable!(),
+            (HttpMonitorStatus::Unknown | HttpMonitorStatus::Inactive | HttpMonitorStatus::Archived, _) => unreachable!("tried to handle a ping response for an unknown, inactive or archived monitor"),
             // a monitor is not supposed to transition to recovering without an incident
             // however, it may happen as a result of an incident being deleted from the database, and if it happens, we don't want to panic as it would block the entire system,
             // so we log a warning and do nothing more
@@ -109,26 +111,29 @@ where
                 warn!("Monitor is transitioning to recovering but no incident exists");
             }
             // if the monitor is up and no incident exists, we do nothing
-            (HttpMonitorStatus::Up, None) => (),
+            (HttpMonitorStatus::Up, None) => {
+                debug!(
+                    monitor_id = ?monitor.id,
+                    monitor_current_status = ?monitor.status,
+                    monitor_next_status = ?status,
+                    "Monitor next status is up and there is no ongoing incident. Nothing to do."
+                );
+            }
             // if the monitor is up and there is an ongoing incident,
             // we create a ping event
             // we don't need to update the incident cause
             (HttpMonitorStatus::Up, Some(incident)) => {
-                let ping_event = IncidentEvent {
-                    organization_id: monitor.organization_id,
-                    user_id: None,
-                    created_at: Utc::now(),
-                    incident_id: incident.id,
-                    event_type: IncidentEventType::MonitorPinged,
-                    event_payload: Some(IncidentEventPayload::MonitorPing(PingEventPayload {
-                        error_kind: monitor.error_kind,
-                        http_code: monitor.last_http_code.map(|c| c as i32),
-                        http_headers: ping_response.http_headers,
-                        response_time_ms: ping_response.response_time.as_millis() as u64,
-                        response_ip_address: ping_response.response_ip_address,
-                        resolved_ip_addresses: ping_response.resolved_ip_addresses,
-                    })),
-                };
+                debug!(
+                    monitor_id = ?monitor.id,
+                    incident_id = ?incident.id,
+                    monitor_current_status = ?monitor.status,
+                    monitor_next_status = ?status,
+                    "Monitor next status is up and there is an ongoing incident"
+                );
+
+                let ping_event = self
+                    .create_ping_event(&monitor, incident.id, &mut ping_response)
+                    .await;
 
                 self.incident_event_repository
                     .create_incident_event(transaction, ping_event)
@@ -145,30 +150,45 @@ where
             }
             // if the monitor transitions to recovering for the first time, we create a ping event
             (HttpMonitorStatus::Recovering, Some(incident)) => {
+                debug!(
+                    monitor_id = ?monitor.id,
+                    incident_id = ?incident.id,
+                    monitor_current_status = ?monitor.status,
+                    monitor_next_status = ?status,
+                    "Monitor next status is recovering and there is an ongoing incident"
+                );
+
                 if status_counter == 1 {
-                    let ping_event = IncidentEvent {
+                    let ping_event = self
+                        .create_ping_event(&monitor, incident.id, &mut ping_response)
+                        .await;
+
+                    let switch_to_recovering_event = IncidentEvent {
                         organization_id: monitor.organization_id,
+                        incident_id: incident.id,
                         user_id: None,
                         created_at: Utc::now(),
-                        incident_id: incident.id,
-                        event_type: IncidentEventType::MonitorPinged,
-                        event_payload: Some(IncidentEventPayload::MonitorPing(PingEventPayload {
-                            error_kind: monitor.error_kind,
-                            http_code: monitor.last_http_code.map(|c| c as i32),
-                            http_headers: ping_response.http_headers,
-                            response_time_ms: ping_response.response_time.as_millis() as u64,
-                            response_ip_address: ping_response.response_ip_address,
-                            resolved_ip_addresses: ping_response.resolved_ip_addresses,
-                        })),
+                        event_type: IncidentEventType::MonitorSwitchedToRecovering,
+                        event_payload: None,
                     };
 
                     self.incident_event_repository
                         .create_incident_event(transaction, ping_event)
                         .await?;
+                    self.incident_event_repository
+                        .create_incident_event(transaction, switch_to_recovering_event)
+                        .await?;
                 }
             }
             // if the monitor is suspicious and there is no ongoing incident, we need to create a new unconfirmed incident
             (HttpMonitorStatus::Suspicious, None) => {
+                debug!(
+                    monitor_id = ?monitor.id,
+                    monitor_current_status = ?monitor.status,
+                    monitor_next_status = ?status,
+                    "Monitor next status is suspicious and there is no ongoing incident"
+                );
+
                 self.create_incident_for_monitor(
                     transaction,
                     &monitor,
@@ -186,6 +206,13 @@ where
             }
             // if the monitor is down and there is no ongoing incident, we need to create a new confirmed incident
             (HttpMonitorStatus::Down, None) => {
+                debug!(
+                    monitor_id = ?monitor.id,
+                    monitor_current_status = ?monitor.status,
+                    monitor_next_status = ?status,
+                    "Monitor next status is down and there is no ongoing incident"
+                );
+
                 self.create_incident_for_monitor(
                     transaction,
                     &monitor,
@@ -213,6 +240,14 @@ where
                     },
                 ),
             ) => {
+                debug!(
+                    monitor_id = ?monitor.id,
+                    incident_id = ?incident.id,
+                    monitor_current_status = ?monitor.status,
+                    monitor_next_status = ?status,
+                    "Monitor next status is down and there is an unconfirmed incident"
+                );
+
                 self.confirm_incident_for_monitor(transaction, &monitor, incident)
                     .await?;
 
@@ -230,9 +265,9 @@ where
                 }
             }
             // if the monitor is down or suspicious and there is is an ongoing incident, we may need to update the incident to reflect the new cause
-            // and create a ping event
+            // and create a ping event. We may also need to create a switch to suspicious event
             (
-                HttpMonitorStatus::Down | HttpMonitorStatus::Suspicious,
+                HttpMonitorStatus::Suspicious | HttpMonitorStatus::Down,
                 Some(
                     ref incident @ Incident {
                         cause: Some(IncidentCause::HttpMonitorIncidentCause(ref cause)),
@@ -240,6 +275,15 @@ where
                     },
                 ),
             ) => {
+                debug!(
+                    monitor_id = ?monitor.id,
+                    incident_id = ?incident.id,
+                    monitor_current_status = ?monitor.status,
+                    monitor_next_status = ?status,
+                    "Monitor next status is down or suspicious and there is an ongoing incident"
+                );
+
+                // Create a ping event if the incident cause has changed
                 if cause.last_ping.error_kind != monitor.error_kind
                     || cause.last_ping.http_code != monitor.last_http_code
                 {
@@ -251,11 +295,44 @@ where
                         ping_response,
                     )
                     .await?;
+                } 
+                // Else, create a ping event if the monitor is switching to a new status
+                else if status_counter == 1 {
+                    let ping_event = self
+                        .create_ping_event(&monitor, incident.id, &mut ping_response)
+                        .await;
+
+                    self.incident_event_repository
+                        .create_incident_event(transaction, ping_event)
+                        .await?;
                 }
-            },
+
+                // In all cases, create a switch event if the monitor is switching to a new status
+                if status_counter == 1 {
+                    let switch_to_new_status_event = IncidentEvent {
+                        organization_id: monitor.organization_id,
+                        incident_id: incident.id,
+                        user_id: None,
+                        created_at: Utc::now(),
+                        event_type: if status == HttpMonitorStatus::Suspicious {
+                            IncidentEventType::MonitorSwitchedToSuspicious
+                        } else {
+                            IncidentEventType::MonitorSwitchedToDown
+                        },
+                        event_payload: None,
+                    };
+
+                    self.incident_event_repository
+                        .create_incident_event(transaction, switch_to_new_status_event)
+                        .await?;
+                }
+            }
             // if the monitor is down or suspicious and the cause of the incident is empty or not an http monitor incident cause, we do nothing
             // this should never happen, but we do not want to panic if it does
-            (HttpMonitorStatus::Down | HttpMonitorStatus::Suspicious, Some(Incident { cause: _, .. })) => (),
+            (
+                HttpMonitorStatus::Down | HttpMonitorStatus::Suspicious,
+                Some(Incident { cause: _, .. }),
+            ) => (),
         };
 
         Ok(())
@@ -270,23 +347,27 @@ where
     where
         IR: IncidentRepository,
     {
+        let options = ListIncidentsOpts {
+            include_statuses: &[IncidentStatus::Ongoing, IncidentStatus::ToBeConfirmed],
+            include_priorities: &IncidentPriority::ALL,
+            include_sources: &[IncidentSource::HttpMonitor { id: monitor.id }],
+            limit: 1,
+            ..Default::default()
+        };
         let incident = self
             .incident_repository
-            .list_incidents(
-                transaction,
-                monitor.organization_id,
-                ListIncidentsOpts {
-                    include_statuses: &[IncidentStatus::Ongoing, IncidentStatus::ToBeConfirmed],
-                    include_priorities: &IncidentPriority::ALL,
-                    include_sources: &[IncidentSource::HttpMonitor { id: monitor.id }],
-                    limit: 1,
-                    ..Default::default()
-                },
-            )
+            .list_incidents(transaction, monitor.organization_id, options.clone())
             .await?
             .incidents
             .into_iter()
             .next();
+        if incident.is_none() {
+            debug!(
+                monitor_id = ?monitor.id,
+                options = ?options,
+                "No existing incident found for monitor"
+            );
+        }
         Ok(incident)
     }
 
@@ -299,7 +380,7 @@ where
         monitor: &HttpMonitor,
         confirmed_incident: bool,
         incident_cause: IncidentCause,
-        ping_response: crate::domain::ports::http_client::PingResponse,
+        mut ping_response: crate::domain::ports::http_client::PingResponse,
     ) -> anyhow::Result<()>
     where
         IR: IncidentRepository,
@@ -336,6 +417,8 @@ where
             metadata: monitor.metadata.clone(),
         };
 
+        debug!(incident = ?new_incident, monitor_id = ?monitor.id, "Creating new incident for monitor");
+
         // send a notification only if the incident is confirmed
         let notification = if confirmed_incident {
             Some(NotificationOpts {
@@ -361,21 +444,10 @@ where
         )
         .await?;
 
-        let ping_event = IncidentEvent {
-            incident_id,
-            event_type: IncidentEventType::MonitorPinged,
-            event_payload: Some(IncidentEventPayload::MonitorPing(PingEventPayload {
-                error_kind: monitor.error_kind,
-                http_code: monitor.last_http_code.map(|c| c as i32),
-                http_headers: ping_response.http_headers,
-                response_time_ms: ping_response.response_time.as_millis() as u64,
-                response_ip_address: ping_response.response_ip_address,
-                resolved_ip_addresses: ping_response.resolved_ip_addresses,
-            })),
-            organization_id: monitor.organization_id,
-            user_id: None,
-            created_at: Utc::now(),
-        };
+        let ping_event = self
+            .create_ping_event(monitor, incident_id, &mut ping_response)
+            .await;
+
         self.incident_event_repository
             .create_incident_event(transaction, ping_event)
             .await?;
@@ -426,7 +498,7 @@ where
         monitor: &HttpMonitor,
         incident: &Incident,
         cause: &HttpMonitorIncidentCause,
-        ping_response: crate::domain::ports::http_client::PingResponse,
+        mut ping_response: crate::domain::ports::http_client::PingResponse,
     ) -> anyhow::Result<()> {
         let mut previous_pings = cause.previous_pings.clone();
         previous_pings.push(cause.last_ping.clone());
@@ -444,21 +516,9 @@ where
             ..incident.clone()
         };
 
-        let ping_event = IncidentEvent {
-            organization_id: monitor.organization_id,
-            user_id: None,
-            created_at: Utc::now(),
-            incident_id: incident.id,
-            event_type: IncidentEventType::MonitorPinged,
-            event_payload: Some(IncidentEventPayload::MonitorPing(PingEventPayload {
-                error_kind: monitor.error_kind,
-                http_code: monitor.last_http_code.map(|c| c as i32),
-                http_headers: ping_response.http_headers,
-                response_time_ms: ping_response.response_time.as_millis() as u64,
-                response_ip_address: ping_response.response_ip_address,
-                resolved_ip_addresses: ping_response.resolved_ip_addresses,
-            })),
-        };
+        let ping_event = self
+            .create_ping_event(monitor, incident.id, &mut ping_response)
+            .await;
 
         self.incident_repository
             .update_incident(transaction, updated_incident)
@@ -468,5 +528,80 @@ where
             .await?;
 
         Ok(())
+    }
+
+    async fn create_ping_event(
+        &self,
+        monitor: &HttpMonitor,
+        incident_id: uuid::Uuid,
+        ping_response: &mut crate::domain::ports::http_client::PingResponse,
+    ) -> IncidentEvent {
+        // Store the response body in the file storage
+        let response_file_id = match ping_response.response_body_content.take() {
+            Some(body) if !body.is_empty() => {
+                let file_id = Uuid::new_v4();
+                let file_storage_key = FileStorageKey {
+                    organization_id: monitor.organization_id,
+                    file_id,
+                };
+                let content_type = ping_response
+                    .http_headers
+                    .get("content-type")
+                    .map(|s| s.as_str())
+                    .unwrap_or("text/plain");
+                match self
+                    .file_storage
+                    .store_file(file_storage_key, content_type, body)
+                    .await
+                {
+                    Ok(_) => Some(file_id),
+                    Err(e) => {
+                        warn!("Failed to store response body to file storage: {:?}", e);
+                        None
+                    }
+                }
+            }
+            _ => None,
+        };
+
+        let screenshot_file_id = match ping_response.screenshot.take() {
+            Some(Screenshot { content_type, data }) => {
+                let file_id = Uuid::new_v4();
+                let file_storage_key = FileStorageKey {
+                    organization_id: monitor.organization_id,
+                    file_id,
+                };
+                match self
+                    .file_storage
+                    .store_file(file_storage_key, &content_type, data)
+                    .await
+                {
+                    Ok(_) => Some(file_id),
+                    Err(e) => {
+                        warn!("Failed to store screenshot to file storage: {:?}", e);
+                        None
+                    }
+                }
+            }
+            _ => None,
+        };
+
+        IncidentEvent {
+            organization_id: monitor.organization_id,
+            user_id: None,
+            created_at: Utc::now(),
+            incident_id,
+            event_type: IncidentEventType::MonitorPinged,
+            event_payload: Some(IncidentEventPayload::MonitorPing(PingEventPayload {
+                error_kind: monitor.error_kind,
+                http_code: monitor.last_http_code.map(|c| c as i32),
+                http_headers: ping_response.http_headers.clone(),
+                response_time_ms: ping_response.response_time.as_millis() as u64,
+                response_ip_address: ping_response.response_ip_address.clone(),
+                resolved_ip_addresses: ping_response.resolved_ip_addresses.clone(),
+                response_file_id,
+                screenshot_file_id,
+            })),
+        }
     }
 }

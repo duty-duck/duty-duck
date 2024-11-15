@@ -39,7 +39,7 @@ const fetchParams = computed<ListIncidentsParams>(() => {
 });
 
 
-const repository = await useIncidentRepository();
+const repository = useIncidentRepository();
 const { data, refresh, status } = await repository.useIncidents(fetchParams);
 
 

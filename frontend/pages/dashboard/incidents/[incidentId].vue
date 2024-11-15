@@ -6,7 +6,7 @@ import { useNow, useIntervalFn } from "@vueuse/core";
 const route = useRoute();
 const incidentId = route.params.incidentId as string;
 const localePath = useLocalePath();
-const repo = await useIncidentRepository();
+const repo = useIncidentRepository();
 const { locale } = useI18n();
 
 const { userProfile } = await useAuth();

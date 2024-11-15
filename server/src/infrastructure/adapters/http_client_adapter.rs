@@ -1,8 +1,8 @@
 use std::{collections::HashMap, time::Duration};
 
-use tracing::{error, warn};
 use anyhow::Context;
 use tonic::transport::Channel;
+use tracing::{error, warn};
 
 use crate::{
     application::application_config::AppConfig,
@@ -10,7 +10,7 @@ use crate::{
         entities::http_monitor::HttpMonitorErrorKind,
         ports::http_client::{HttpClient, PingResponse, Screenshot},
     },
-    protos::{browser_client::BrowserClient, HttpErrorKind, HttpRequest}
+    protos::{browser_client::BrowserClient, HttpErrorKind, HttpRequest},
 };
 
 #[derive(Clone)]
@@ -20,8 +20,16 @@ pub struct HttpClientAdapter {
 
 impl HttpClientAdapter {
     pub async fn new(config: &AppConfig) -> anyhow::Result<Self> {
-        let channel = Channel::from_shared(config.http_monitors_executor.browser_service_grpc_address.clone()).context("Invalid browser service grpc address")?;
-        let client = BrowserClient::connect(channel).await.context("Failed to connect to browser service")?;
+        let channel = Channel::from_shared(
+            config
+                .http_monitors_executor
+                .browser_service_grpc_address
+                .clone(),
+        )
+        .context("Invalid browser service grpc address")?;
+        let client = BrowserClient::connect(channel)
+            .await
+            .context("Failed to connect to browser service")?;
         Ok(Self { client })
     }
 }
@@ -32,6 +40,7 @@ impl HttpClient for HttpClientAdapter {
         &self,
         endpoint: &str,
         request_timeout: Duration,
+        request_headers: HashMap<String, String>,
     ) -> PingResponse {
         let mut client = self.client.clone();
         let mut attempt = 0;
@@ -40,16 +49,20 @@ impl HttpClient for HttpClientAdapter {
             let request = HttpRequest {
                 endpoint: endpoint.to_string(),
                 request_timeout_ms: request_timeout.as_millis() as u64,
-                http_headers: HashMap::new(),
+                http_headers: request_headers.clone(),
             };
             match client.execute_http_request(request).await {
                 Ok(response) => {
                     let response = response.into_inner();
-                    
+
                     // TODO: handle screenshots and other data
                     return PingResponse {
                         http_code: response.http_code.map(|code| code as u16),
-                        error_kind: response.error.and_then(|kind| HttpErrorKind::try_from(kind).ok()).map(|kind| kind.into()).unwrap_or_default(),
+                        error_kind: response
+                            .error
+                            .and_then(|kind| HttpErrorKind::try_from(kind).ok())
+                            .map(|kind| kind.into())
+                            .unwrap_or(HttpMonitorErrorKind::None),
                         http_headers: response.http_headers,
                         response_time: Duration::from_millis(response.response_time_ms),
                         response_ip_address: response.response_ip_address,
@@ -72,7 +85,6 @@ impl HttpClient for HttpClientAdapter {
                     }
                     warn!("Failed to call gRPC browser service: {:?}. Retrying ...", e);
                     tokio::time::sleep(Duration::from_millis(1000)).await;
-                    
                 }
             }
         }

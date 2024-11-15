@@ -6,7 +6,7 @@ import type { OrderIncidentsBy } from "bindings/OrderIncidentsBy";
 import type { ReadHttpMonitorResponse } from "bindings/ReadHttpMonitorResponse";
 
 const localePath = useLocalePath();
-const repo = await useHttpMonitorRepository();
+const repo =  useHttpMonitorRepository();
 const incidentPageNumber = useRouteQuery("incidentsPageNumber", 1, { transform: Number });
 const orderBy = useRouteQuery<OrderIncidentsBy>("orderBy", "createdAt");
 const orderDirection = useRouteQuery<OrderDirection>("orderDirection", "desc");
@@ -64,25 +64,23 @@ defineExpose({
 <template>
   <div>
     <!-- Ongoing Incident Section -->
-    <section v-if="monitorResponse.ongoingIncident" class="mb-5">
+    <section v-if="monitorResponse.ongoingIncident" class="mb-3">
       <div class="d-flex align-items-center mb-3">
         <Icon aria-label="Incident started at" name="ph:seal-warning-fill" size="1.3rem" class="me-2 text-danger" />
-        <h5 class="mb-0">{{ $t("dashboard.monitors.ongoingIncident") }}</h5>
+        <h5 class="mb-0">
+          {{ $t("dashboard.monitors.ongoingIncident") }}
+        </h5>
       </div>
+
+      <BCard class="mb-3">
+        <h6>{{ $t("dashboard.incidents.rootCause") }}:</h6>
+        <IncidentCause :incident="monitorResponse.ongoingIncident" />
+      </BCard>
 
       <NuxtLink :to="localePath(`/dashboard/incidents/${monitorResponse.ongoingIncident.id}`)" class="icon-link mb-3">
         <Icon aria-hidden name="ph:arrow-up-right" size="1.3rem" />
         {{ $t("dashboard.incidents.goToIncident") }}
       </NuxtLink>
-
-      <BCard>
-
-        <h6>{{ $t("dashboard.incidents.rootCause") }}:</h6>
-        <IncidentCause :incident="monitorResponse.ongoingIncident" />
-
-        <LazyIncidentTimeline :incident-id="monitorResponse.ongoingIncident.id" :show-comment-editor="false"
-          title-size="h6" class="mt-3" />
-      </BCard>
     </section>
 
     <!-- Incident History Section -->

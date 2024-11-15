@@ -19,6 +19,11 @@
             "-30d": "Last 30 days"
         }
     },
+    "requestHeadersInput": {
+        "noHeaders": "No headers",
+        "newHeaderName": "Header name",
+        "newHeaderValue": "Header value"
+    },
     "metadataInput": {
         "newMetadata": "New metadata",
         "noMetadata": "No metadata",

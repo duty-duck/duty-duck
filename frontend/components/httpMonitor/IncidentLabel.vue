@@ -1,5 +1,5 @@
 <script lang="ts">
-export const getIncidentLabel = (cause: HttpMonitorIncidentCause, t: ReturnType<typeof useI18n>['t']): string => {
+export const getIncidentLabel = (cause: HttpMonitorIncidentCausePing, t: ReturnType<typeof useI18n>['t']): string => {
   switch (cause.errorKind) {
     case 'httpcode':
       return t("dashboard.httpMonitorIncidents.invalidHttpCode", {
@@ -21,10 +21,11 @@ export const getIncidentLabel = (cause: HttpMonitorIncidentCause, t: ReturnType<
 
 <script lang="ts" setup>
 import type { HttpMonitorIncidentCause } from "bindings/HttpMonitorIncidentCause";
+import type { HttpMonitorIncidentCausePing } from "bindings/HttpMonitorIncidentCausePing";
 import { useI18n } from "vue-i18n";
 
 const { t } = useI18n();
-const { cause } = defineProps<{ cause: HttpMonitorIncidentCause }>();
+const { cause } = defineProps<{ cause: HttpMonitorIncidentCausePing }>();
 </script>
 
 <template>

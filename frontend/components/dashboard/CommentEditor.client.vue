@@ -66,7 +66,7 @@ const submit = async () => {
 
 <style>
 #comment-editor {
-    max-width: 600px;
+    max-width: 650px;
 }
 
 .ce-block__content, 

@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::domain::{
     entities::{
-        authorization::{AuthContext, Permission}, entity_metadata::EntityMetadata, http_monitor::HttpMonitorStatus
+        authorization::{AuthContext, Permission}, entity_metadata::EntityMetadata, http_monitor::{HttpMonitorStatus, RequestHeaders, MAXIMUM_REQUEST_TIMEOUT_MS}
     },
     ports::http_monitor_repository::{HttpMonitorRepository, NewHttpMonitor},
 };
@@ -25,6 +25,8 @@ pub struct UpdateHttpMonitorCommand {
     pub email_notification_enabled: bool,
     pub push_notification_enabled: bool,
     pub sms_notification_enabled: bool,
+    pub request_headers: RequestHeaders,
+    pub request_timeout_ms: u32
 }
 
 #[derive(Error, Debug)]
@@ -37,6 +39,8 @@ pub enum UpdateHttpMonitorError {
     NotFound,
     #[error("Invalid URL: {0}")]
     InvalidUrl(#[from] url::ParseError),
+    #[error("Invalid request timeout")]
+    InvalidRequestTimeout,
 }
 
 pub async fn update_http_monitor(
@@ -51,6 +55,11 @@ pub async fn update_http_monitor(
 
     // Validate URL
     let url = Url::parse(&command.url)?;
+
+    // Validate request timeout
+    if command.request_timeout_ms > (MAXIMUM_REQUEST_TIMEOUT_MS as u32) {
+        return Err(UpdateHttpMonitorError::InvalidRequestTimeout);
+    }
 
     let new_monitor = NewHttpMonitor {
         organization_id: auth_context.active_organization_id,
@@ -72,6 +81,8 @@ pub async fn update_http_monitor(
         email_notification_enabled: command.email_notification_enabled,
         push_notification_enabled: command.push_notification_enabled,
         sms_notification_enabled: command.sms_notification_enabled,
+        request_headers: command.request_headers,
+        request_timeout_ms: command.request_timeout_ms as i32,
     };
     let monitor_updated = repository.update_http_monitor(id, new_monitor).await?;
     if monitor_updated {

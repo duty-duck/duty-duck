@@ -8,19 +8,21 @@ import type { ListIncidentsParams } from "bindings/ListIncidentsParams";
 import type { UpdateHttpMonitorCommand } from "bindings/UpdateHttpMonitorCommand";
 import type { UseFetchOptions } from "#app";
 
-export const useHttpMonitorRepository = async () => {
-    const $fetch = await useServer$fetch();
+export const useHttpMonitorRepository = () => {
     return {
         async useHttpMonitors(params: Ref<ListHttpMonitorsParams> | ListHttpMonitorsParams) {
             return await useServerFetch<ListHttpMonitorsResponse>(`/http-monitors`, { retry: 3, retryDelay: 5000, query: params });
         },
         async createHttpMonitor(command: CreateHttpMonitorCommand) {
+            const $fetch = await useServer$fetch();
             return await $fetch<CreateHttpMonitorResponse>('/http-monitors', { method: "post", body: command })
         },
         async updateHttpMonitor(monitorId: string, command: UpdateHttpMonitorCommand) {
+            const $fetch = await useServer$fetch();
             return await $fetch<void>(`/http-monitors/${monitorId}`, { method: "patch", body: command })
         },
         async toggleHttpMonitor(monitorId: string) {
+            const $fetch = await useServer$fetch();
             return await $fetch<void>(`/http-monitors/${monitorId}/toggle`, { method: "post" })
         },
         async useHttpMonitor(monitorId: string, options?: UseFetchOptions<ReadHttpMonitorResponse>) {

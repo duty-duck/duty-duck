@@ -8,7 +8,7 @@ pub struct Screenshot {
     pub content_type: String,
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Default, Clone)]
 pub struct PingResponse {
     pub http_code: Option<u16>,
     pub error_kind: HttpMonitorErrorKind,
@@ -21,11 +21,24 @@ pub struct PingResponse {
     pub screenshot: Option<Screenshot>
 }
 
+impl std::fmt::Debug for PingResponse {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        f.debug_struct("PingResponse")
+            .field("http_code", &self.http_code)
+            .field("error_kind", &self.error_kind)
+            .field("http_headers_len", &self.http_headers.len())
+            .field("response_ip_address", &self.response_ip_address)
+            .field("has_screenshot", &self.screenshot.is_some())
+            .finish()
+    }
+}
+
 #[async_trait]
 pub trait HttpClient: Clone + Send + Sync + 'static {
     async fn ping(
         &self,
         endpoint: &str,
         request_timeout: Duration,
+        request_headers: HashMap<String, String>,
     ) -> PingResponse;
 }

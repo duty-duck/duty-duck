@@ -6,7 +6,6 @@ import type { LazyHttpMonitorIncidentsCard } from '#build/components';
 await usePermissionGrant("readHttpMonitors");
 
 const localePath = useLocalePath();
-const repo = await useHttpMonitorRepository();
 const route = useRoute();
 const now = useNow();
 const toggleIsLoading = ref(false);
@@ -14,7 +13,7 @@ const incidentsCard = ref<InstanceType<typeof LazyHttpMonitorIncidentsCard>>();
 const { locale } = useI18n();
 
 const { refresh: refreshMonitorResponse, data: monitorResponse } =
-  await repo.useHttpMonitor(route.params.monitorId as string);
+  await useHttpMonitor(route.params.monitorId as string);
 
 
 const lastStatusChange = computed(() => {

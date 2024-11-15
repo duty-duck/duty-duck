@@ -61,6 +61,12 @@ pub struct HttpMonitorsExecutorConfig {
 }
 
 #[derive(Envconfig)]
+pub struct FileStorageConfig {
+    #[envconfig(from = "FILE_STORAGE_BUCKET_NAME")]
+    pub bucket_name: String,
+}
+
+#[derive(Envconfig)]
 pub struct AppConfig {
     #[envconfig(from = "SERVER_PORT")]
     pub server_port: u16,
@@ -73,6 +79,9 @@ pub struct AppConfig {
 
     #[envconfig(nested = true)]
     pub keycloak: KeycloakConfig,
+
+    #[envconfig(nested = true)]
+    pub file_storage: FileStorageConfig,
 
     #[envconfig(nested = true)]
     pub notifications_executor: NotificationsExecutorConfig,

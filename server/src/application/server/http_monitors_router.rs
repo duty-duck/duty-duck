@@ -174,6 +174,7 @@ async fn update_http_monitor_handler(
         Err(UpdateHttpMonitorError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
         Err(UpdateHttpMonitorError::NotFound) => StatusCode::NOT_FOUND.into_response(),
         Err(UpdateHttpMonitorError::InvalidUrl(_)) => StatusCode::BAD_REQUEST.into_response(),
+        Err(UpdateHttpMonitorError::InvalidRequestTimeout) => StatusCode::BAD_REQUEST.into_response(),
         Err(UpdateHttpMonitorError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while getting creating a new monitor");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()

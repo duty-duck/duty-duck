@@ -13,17 +13,7 @@ use crate::{
     },
     infrastructure::{
         adapters::{
-            http_client_adapter::HttpClientAdapter,
-            http_monitor_repository_adapter::HttpMonitorRepositoryAdapter,
-            incident_event_repository_adapter::IncidentEventRepositoryAdapter,
-            incident_notification_repository_adapter::IncidentNotificationRepositoryAdapter,
-            incident_repository_adapter::IncidentRepositoryAdapter,
-            mailer_adapter::{MailerAdapter, MailerAdapterConfig},
-            organization_repository_adapter::OrganizationRepositoryAdapter,
-            push_notification_server_adapter::PushNotificationServerAdapter,
-            sms_notification_server_adapter::SmsNotificationServerAdapter,
-            user_devices_repository_adapter::UserDevicesRepositoryAdapter,
-            user_repository_adapter::UserRepositoryAdapter,
+            file_storage_adapter::FileStorageAdapter, http_client_adapter::HttpClientAdapter, http_monitor_repository_adapter::HttpMonitorRepositoryAdapter, incident_event_repository_adapter::IncidentEventRepositoryAdapter, incident_notification_repository_adapter::IncidentNotificationRepositoryAdapter, incident_repository_adapter::IncidentRepositoryAdapter, mailer_adapter::{MailerAdapter, MailerAdapterConfig}, organization_repository_adapter::OrganizationRepositoryAdapter, push_notification_server_adapter::PushNotificationServerAdapter, sms_notification_server_adapter::SmsNotificationServerAdapter, user_devices_repository_adapter::UserDevicesRepositoryAdapter, user_repository_adapter::UserRepositoryAdapter
         },
         keycloak_client::KeycloakClient,
     },
@@ -45,6 +35,7 @@ pub async fn start_application() -> anyhow::Result<()> {
         incident_event_repository: application_state.adapters.incident_event_repository.clone(),
         incident_notification_repository: application_state.adapters.incident_notification_repository.clone(),
         http_client: application_state.adapters.http_client.clone(),
+        file_storage: application_state.adapters.file_storage.clone(),
     };
     let _http_monitors_tasks = http_monitors_use_case.spawn_http_monitors_execution_tasks(
         config.http_monitors_executor.http_monitors_concurrent_tasks,
@@ -129,6 +120,9 @@ async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationSt
         sms_notification_server: SmsNotificationServerAdapter::new()
             .await
             .context("Failed to create SMS notification server adapter")?,
+        file_storage: FileStorageAdapter::new(config.file_storage.bucket_name.clone())
+            .await
+            .context("Failed to create file storage adapter")?,
     };
     Ok(ApplicationState {
         config: config.clone(),

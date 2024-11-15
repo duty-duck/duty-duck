@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::domain::{
     entities::{
-        authorization::{AuthContext, Permission}, entity_metadata::EntityMetadata, http_monitor::HttpMonitorStatus
+        authorization::{AuthContext, Permission}, entity_metadata::EntityMetadata, http_monitor::{HttpMonitorStatus, RequestHeaders}
     },
     ports::http_monitor_repository::{HttpMonitorRepository, NewHttpMonitor},
 };
@@ -25,6 +25,8 @@ pub struct CreateHttpMonitorCommand {
     pub email_notification_enabled: bool,
     pub push_notification_enabled: bool,
     pub sms_notification_enabled: bool,
+    pub request_headers: RequestHeaders,
+    pub request_timeout_ms: i32,
 }
 
 #[derive(Serialize, TS, Clone, Debug)]
@@ -75,6 +77,8 @@ pub async fn create_http_monitor(
         email_notification_enabled: command.email_notification_enabled,
         push_notification_enabled: command.push_notification_enabled,
         sms_notification_enabled: command.sms_notification_enabled,
+        request_headers: command.request_headers,
+        request_timeout_ms: command.request_timeout_ms,
     };
     let id = repository.create_http_monitor(new_monitor).await?;
     Ok(CreateHttpMonitorResponse { id })

@@ -49,6 +49,7 @@ pub enum IncidentCause {
 }
 
 #[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
 pub struct HttpMonitorIncidentCause {
     pub last_ping: HttpMonitorIncidentCausePing,
     pub previous_pings: Vec<HttpMonitorIncidentCausePing>,

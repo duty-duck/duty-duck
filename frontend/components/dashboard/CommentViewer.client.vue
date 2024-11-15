@@ -29,6 +29,6 @@ const blocks = computed(() => {
 
 <style scoped lang="scss">
 .comment {
-    max-width: 600px;
+    max-width: 650px;
 }
 </style>

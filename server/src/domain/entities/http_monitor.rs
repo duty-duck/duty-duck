@@ -1,8 +1,9 @@
-use std::time::Duration;
+use std::{collections::HashMap, time::Duration};
 
 use anyhow::Context;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use serde_json::Value;
 use sqlx::prelude::FromRow;
 use ts_rs::TS;
 use url::Url;
@@ -12,6 +13,8 @@ use uuid::Uuid;
 use crate::protos;
 
 use super::entity_metadata::EntityMetadata;
+
+pub const MAXIMUM_REQUEST_TIMEOUT_MS: i64 = 20_000;
 
 #[derive(Serialize, Deserialize, TS, Debug, Clone, FromRow, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -40,11 +43,19 @@ pub struct HttpMonitor {
     pub email_notification_enabled: bool,
     pub push_notification_enabled: bool,
     pub sms_notification_enabled: bool,
+    pub archived_at: Option<DateTime<Utc>>,
+    #[sqlx(json)]
+    pub request_headers: RequestHeaders,
+    pub request_timeout_ms: i32
 }
 
 impl HttpMonitor {
     pub fn interval(&self) -> Duration {
         Duration::from_secs(self.interval_seconds as u64)
+    }
+
+    pub fn request_timeout(&self) -> Duration {
+        Duration::from_millis(self.request_timeout_ms as u64)
     }
 
     pub fn url(&self) -> anyhow::Result<Url> {
@@ -63,16 +74,18 @@ pub enum HttpMonitorStatus {
     Recovering = 2,
     Suspicious = 3,
     Down = 4,
+    Archived = 5,
 }
 
 impl HttpMonitorStatus {
-    pub const ALL: [Self; 6] = [
+    pub const ALL: [Self; 7] = [
         Self::Unknown,
         Self::Inactive,
         Self::Up,
         Self::Recovering,
         Self::Suspicious,
         Self::Down,
+        Self::Archived,
     ];
 }
 
@@ -85,6 +98,7 @@ impl From<i16> for HttpMonitorStatus {
             2 => Self::Recovering,
             3 => Self::Suspicious,
             4 => Self::Down,
+            5 => Self::Archived,
             _ => panic!("invalid HttpMonitorStatus discriminant: {value}"),
         }
     }
@@ -141,5 +155,17 @@ impl From<i16> for HttpMonitorErrorKind {
             9 => Self::BrowserServiceCallFailed,
             _ => panic!("invalid HttpMonitorErrorKind discriminant: {value}"),
         }
+    }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, TS, Default, ToSchema)]
+#[ts(export)]
+pub struct RequestHeaders {
+    pub headers: HashMap<String, String>,
+}
+
+impl From<Value> for RequestHeaders {
+    fn from(value: Value) -> Self {
+        serde_json::from_value(value).unwrap_or_default()
     }
 }

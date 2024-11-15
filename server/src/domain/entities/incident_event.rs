@@ -68,6 +68,8 @@ pub struct PingEventPayload {
     pub response_time_ms: u64,
     pub response_ip_address: Option<String>,
     pub resolved_ip_addresses: Vec<String>,
+    pub response_file_id: Option<Uuid>,
+    pub screenshot_file_id: Option<Uuid>,
 }
 
 #[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq, ToSchema)]
@@ -82,6 +84,9 @@ pub enum IncidentEventType {
     Acknowledged = 4,
     Confirmation = 5,
     MonitorPinged = 6,
+    MonitorSwitchedToRecovering = 7,
+    MonitorSwitchedToSuspicious = 8,
+    MonitorSwitchedToDown = 9,
 }
 
 impl From<i16> for IncidentEventType {
@@ -94,6 +99,9 @@ impl From<i16> for IncidentEventType {
             4 => Self::Acknowledged,
             5 => Self::Confirmation,
             6 => Self::MonitorPinged,
+            7 => Self::MonitorSwitchedToRecovering,
+            8 => Self::MonitorSwitchedToSuspicious,
+            9 => Self::MonitorSwitchedToDown,
             _ => panic!("invalid IncidentEventType discriminant: {value}"),
         }
     }

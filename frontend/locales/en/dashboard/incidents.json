@@ -40,6 +40,7 @@
             "addCommentButtonLabel": "Add a comment",
             "addCommentPlaceholder": "Add a comment to this incident or write a post-mortem...",
             "comment": "{firstName} {lastName} has commented on the incident",
+            "monitorStatusSwitched": "The monitor switched to {status}",
             "pingEvent": {
                 "tabs": {
                     "summary": "Summary",
@@ -49,7 +50,9 @@
                 "httpCode": "HTTP Code",
                 "resolvedIps": "Resolved IPs",
                 "responseIp": "Response IP",
-                "responseTime": "Response time"
+                "responseTime": "Response time",
+                "screenshot": "Screenshot",
+                "response": "Response"
             }
         },
         "metadata": "Metadata"

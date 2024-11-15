@@ -4,7 +4,7 @@ const { httpMonitorId } = defineProps<{
     httpMonitorId: string,
 }>();
 
-const repo = await useHttpMonitorRepository();
+const repo = useHttpMonitorRepository();
 const { data: monitorRes } = await repo.useHttpMonitor(httpMonitorId);
 </script>
 

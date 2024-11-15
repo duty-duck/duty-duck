@@ -10,3 +10,4 @@ pub mod user_repository;
 pub mod mailer;
 pub mod incident_event_repository;
 pub mod sms_notification_server;
+pub mod file_storage;

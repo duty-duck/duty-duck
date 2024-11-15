@@ -40,6 +40,7 @@
             "addCommentButtonLabel": "Commenter",
             "addComment": "Ajouter un commentaire",
             "comment": "{firstName} {lastName} a commenté l'incident",
+            "monitorStatusSwitched": "Le statut du moniteur est devenu {status}",
             "pingEvent": {
                 "tabs": {
                     "summary": "Résumé",
@@ -49,7 +50,9 @@
                 "httpCode": "Code HTTP",
                 "resolvedIps": "IPs résolues",
                 "responseIp": "IP de réponse",
-                "responseTime": "Temps de réponse"
+                "responseTime": "Temps de réponse",
+                "screenshot": "Screenshot",
+                "response": "Réponse"
             }
         },
         "metadata": "Métadonnées"

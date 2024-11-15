@@ -3,7 +3,7 @@
         "prev": "Précédent",
         "next": "Suivant"
     },
-    "language": "Language",
+    "language": "Langue",
     "permissions": {
         "deniedToastNotification": {
             "title": "Permission refusée",

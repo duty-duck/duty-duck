@@ -4,11 +4,13 @@ mod incidents_router;
 mod users_router;
 mod user_devices_router;
 mod organizations_router;
+mod file_router;
 mod openapi;
 
 use std::time::Duration;
 
 use axum::{routing::get, Json, Router};
+use file_router::file_router;
 use http_monitors_router::http_monitors_router;
 use incidents_router::incidents_router;
 use openapi::redoc_router;
@@ -26,6 +28,7 @@ pub async fn start_server(application_state: ApplicationState, port: u16) -> any
         .nest("/http-monitors", http_monitors_router())
         .nest("/incidents", incidents_router())
         .nest("/organizations", organizations_router())
+        .nest("/files", file_router())
         .nest("/redoc", redoc_router())
         .route("/", get(|| async { Json(build_info_json()) }))
         .layer(CorsLayer::permissive())
