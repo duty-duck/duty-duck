@@ -1,6 +1,7 @@
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use ts_rs::TS;
+use utoipa::{IntoParams, ToSchema};
 
 use crate::domain::{
     entities::{
@@ -9,7 +10,7 @@ use crate::domain::{
     ports::http_monitor_repository::{HttpMonitorRepository, ListHttpMonitorsOutput},
 };
 
-#[derive(Serialize, Deserialize, TS, Clone, Debug)]
+#[derive(Serialize, Deserialize, TS, Clone, Debug, IntoParams)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct ListHttpMonitorsParams {
@@ -30,7 +31,7 @@ impl ListHttpMonitorsParams {
     }
 }
 
-#[derive(Serialize, TS, Clone, Debug)]
+#[derive(Serialize, TS, Clone, Debug, ToSchema)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct ListHttpMonitorsResponse {

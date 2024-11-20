@@ -13,6 +13,7 @@ const [DefineNavigation, ReuseNavigation] = createReusableTemplate()
 
 <template>
     <DefineNavigation>
+        <NuxtLink to="/docs/api">API Docs</NuxtLink>
         <ContentNavigation v-slot="{ navigation }" :query="docsQuery">
             <BNav vertical>
                 <ShowcaseDocumentationNavItem v-for="item of navigation" :key="item._path" :item="item" />

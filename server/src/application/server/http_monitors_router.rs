@@ -44,6 +44,19 @@ pub fn http_monitors_router() -> Router<ApplicationState> {
         .route("/:monitor_id/archive", post(archive_http_monitor_handler))
 }
 
+/// Get a single HTTP monitor
+///
+/// Returns a single HTTP monitor by its ID.
+#[utoipa::path(
+    get,
+    path = "/http-monitors/:monitor_id",
+    responses(
+        (status = 200, description = "HTTP monitor fetched successfully", body = HttpMonitor),
+        (status = 403, description = "User is not authorized to fetch the HTTP monitor"),
+        (status = 404, description = "HTTP monitor not found"),
+        (status = 500, description = "Technical failure occured while fetching the HTTP monitor from the database")
+    )
+)]
 async fn get_http_monitor_handler(
     auth_context: AuthContext,
     State(app_state): ExtractAppState,
@@ -91,6 +104,20 @@ async fn get_http_monitor_incidents_handler(
     }
 }
 
+/// Toggle a HTTP monitor
+///
+/// Toggles a HTTP monitor by its ID.
+#[utoipa::path(
+    post,
+    path = "/http-monitors/:monitor_id/toggle",
+    responses(
+        (status = 200, description = "HTTP monitor toggled successfully"),
+        (status = 403, description = "User is not authorized to toggle the HTTP monitor"),
+        (status = 404, description = "HTTP monitor not found"),
+        (status = 400, description = "HTTP monitor is archived and cannot be toggled"),
+        (status = 500, description = "Technical failure occured while toggling the HTTP monitor")
+    )
+)]
 async fn toggle_http_monitor_handler(
     auth_context: AuthContext,
     State(app_state): ExtractAppState,
@@ -123,6 +150,20 @@ async fn toggle_http_monitor_handler(
     }
 }
 
+/// Archive a HTTP monitor
+///
+/// Archives a HTTP monitor by its ID.
+#[utoipa::path(
+    post,
+    path = "/http-monitors/:monitor_id/archive",
+    responses(
+        (status = 200, description = "HTTP monitor archived successfully"),
+        (status = 403, description = "User is not authorized to archive the HTTP monitor"),
+        (status = 404, description = "HTTP monitor not found"),
+        (status = 400, description = "HTTP monitor is already archived"),
+        (status = 500, description = "Technical failure occured while archiving the HTTP monitor")
+    )
+)]
 async fn archive_http_monitor_handler(
     auth_context: AuthContext,
     State(app_state): ExtractAppState,
@@ -155,6 +196,21 @@ async fn archive_http_monitor_handler(
     }
 }
 
+/// List HTTP monitors
+///
+/// Returns a list of HTTP monitors matching the given filters.
+#[utoipa::path(
+    get,
+    path = "/http-monitors",
+    responses(
+        (status = 200, description = "HTTP monitors fetched successfully", body = ListHttpMonitorsResponse),
+        (status = 403, description = "User is not authorized to fetch HTTP monitors"),
+        (status = 500, description = "Technical failure occured while fetching HTTP monitors from the database")
+    ),
+    params(
+        ListHttpMonitorsParams
+    )
+)]
 async fn list_http_monitors_handler(
     auth_context: AuthContext,
     State(app_state): ExtractAppState,
@@ -176,6 +232,19 @@ async fn list_http_monitors_handler(
     }
 }
 
+/// Create a new HTTP monitor
+///
+/// Creates a new HTTP monitor.
+#[utoipa::path(
+    post,
+    path = "/http-monitors",
+    responses(
+        (status = 200, description = "HTTP monitor created successfully", body = HttpMonitor),
+        (status = 403, description = "User is not authorized to create a HTTP monitor"),
+        (status = 400, description = "Invalid request"),
+        (status = 500, description = "Technical failure occured while creating the HTTP monitor")
+    )
+)]
 async fn create_http_monitor_handler(
     auth_context: AuthContext,
     State(app_state): ExtractAppState,
@@ -198,6 +267,20 @@ async fn create_http_monitor_handler(
     }
 }
 
+/// Update a HTTP monitor
+///
+/// Updates a HTTP monitor by its ID.
+#[utoipa::path(
+    patch,
+    path = "/http-monitors/:monitor_id",
+    responses(
+        (status = 200, description = "HTTP monitor updated successfully", body = HttpMonitor),
+        (status = 403, description = "User is not authorized to update the HTTP monitor"),
+        (status = 404, description = "HTTP monitor not found"),
+        (status = 400, description = "Invalid request"),
+        (status = 500, description = "Technical failure occured while updating the HTTP monitor")
+    )
+)]
 async fn update_http_monitor_handler(
     auth_context: AuthContext,
     State(app_state): ExtractAppState,

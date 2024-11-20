@@ -3,6 +3,7 @@ use serde::Deserialize;
 use thiserror::Error;
 use ts_rs::TS;
 use url::Url;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::domain::{
@@ -12,7 +13,7 @@ use crate::domain::{
     ports::http_monitor_repository::{HttpMonitorRepository, NewHttpMonitor},
 };
 
-#[derive(Deserialize, TS, Debug)]
+#[derive(Deserialize, TS, Debug, ToSchema)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct UpdateHttpMonitorCommand {

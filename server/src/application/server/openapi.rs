@@ -3,8 +3,8 @@ use utoipa_redoc::{Redoc, Servable};
 
 use super::*;
 use crate::domain::{
-    entities::{http_monitor::*, incident::*, incident_event::*},
-    use_cases::{incidents::*, shared::OrderDirection},
+    entities::{entity_metadata::EntityMetadata, http_monitor::*, incident::*, incident_event::*, user::UserNameInfo},
+    use_cases::{http_monitors::*, incidents::*, shared::OrderDirection},
 };
 
 #[derive(OpenApi)]
@@ -12,7 +12,13 @@ use crate::domain::{
     paths(
         incidents_router::list_incidents_handler,
         incidents_router::get_incident_handler,
-        incidents_router::get_incident_timeline_handler
+        incidents_router::get_incident_timeline_handler,
+        http_monitors_router::get_http_monitor_handler,
+        http_monitors_router::list_http_monitors_handler,
+        http_monitors_router::create_http_monitor_handler,
+        http_monitors_router::update_http_monitor_handler,
+        http_monitors_router::archive_http_monitor_handler,
+        http_monitors_router::toggle_http_monitor_handler,
     ),
     components(schemas(
         ListIncidentsResponse,
@@ -26,6 +32,8 @@ use crate::domain::{
         HttpMonitor,
         HttpMonitorErrorKind,
         HttpMonitorStatus,
+        HttpMonitorIncidentCause,
+        HttpMonitorIncidentCausePing,
         OrderDirection,
         IncidentEvent,
         IncidentEventPayload,
@@ -36,7 +44,13 @@ use crate::domain::{
         GetIncidentResponse,
         GetIncidentTimelineResponse,
         TimelineItem,
-        TimelineItemUser
+        TimelineItemUser,
+        EntityMetadata,
+        UserNameInfo,
+        UpdateHttpMonitorCommand,
+        CreateHttpMonitorCommand,
+        ListHttpMonitorsResponse,
+        RequestHeaders,
     ))
 )]
 struct ApiDoc;
