@@ -35,6 +35,8 @@ pub enum UpdateHttpMonitorError {
     TechnicalFailure(#[from] anyhow::Error),
     #[error("Current user doesn't have the privilege the update HTTP monitors")]
     Forbidden,
+    #[error("Monitor is archived and cannot be updated")]
+    MonitorIsArchived,
     #[error("HTTP Monitor does not exist")]
     NotFound,
     #[error("Invalid URL: {0}")]
@@ -61,6 +63,20 @@ pub async fn update_http_monitor(
         return Err(UpdateHttpMonitorError::InvalidRequestTimeout);
     }
 
+    let mut tx = repository.begin_transaction().await?;
+
+    match repository
+        .get_http_monitor(&mut tx, auth_context.active_organization_id, id)
+        .await
+    {
+        Ok(Some(monitor)) if monitor.archived_at.is_some() => {
+            return Err(UpdateHttpMonitorError::MonitorIsArchived);
+        }
+        Ok(Some(monitor)) => Ok(monitor),
+        Ok(None) => Err(UpdateHttpMonitorError::NotFound),
+        Err(e) => Err(UpdateHttpMonitorError::TechnicalFailure(e)),
+    }?;
+
     let new_monitor = NewHttpMonitor {
         organization_id: auth_context.active_organization_id,
         url: url.to_string(),
@@ -84,10 +100,6 @@ pub async fn update_http_monitor(
         request_headers: command.request_headers,
         request_timeout_ms: command.request_timeout_ms as i32,
     };
-    let monitor_updated = repository.update_http_monitor(id, new_monitor).await?;
-    if monitor_updated {
-        Ok(())
-    } else {
-        Err(UpdateHttpMonitorError::NotFound)
-    }
+    repository.update_http_monitor(&mut tx, id, new_monitor).await?;
+    Ok(())
 }

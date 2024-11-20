@@ -89,6 +89,7 @@ where
             next_ping_at,
             error_kind,
             last_status_change_at,
+            archived_at: None,
         };
 
         // Update the monitor so these info will be used to create the incident

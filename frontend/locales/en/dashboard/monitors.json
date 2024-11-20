@@ -55,6 +55,14 @@
             "requestTimeoutDescription": "Determines how long we will wait for a response from the server before considering the attempt as failed.",
             "seconds": "seconds",
             "save": "Save"
+        },
+        "archive": {
+            "button": "Archive",
+            "modal": {
+                "title": "Archive Monitor",
+                "message": "Are you sure you want to archive this monitor? This action cannot be undone.",
+                "confirm": "Archive"
+            }
         }
     },
     "monitorStatus": {
@@ -63,6 +71,7 @@
         "suspicious": "Suspicious",
         "recovering": "Recovering",
         "up": "Healthy",
-        "unknown": "Pending"
+        "unknown": "Pending",
+        "archived": "Archived"
     }
 }

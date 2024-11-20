@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { refDebounced, useIntervalFn } from "@vueuse/core";
 import { useRouteQuery } from "@vueuse/router";
-import type { HttpMonitorStatus } from "bindings/HttpMonitorStatus";
 import { allStatuses } from "~/components/httpMonitor/StatusDropdown.vue";
 import { usePermissionGrant } from "~/composables/authComposables";
 
@@ -11,7 +10,7 @@ const localePath = useLocalePath();
 const query = useRouteQuery("query", "");
 const queryDebounced = refDebounced(query, 250);
 const pageNumber = useRouteQuery("pageNumber", 1, { transform: Number });
-const includeStatuses = useRouteQuery("statuses", allStatuses);
+const includeStatuses = useRouteQuery("statuses", ['up', 'down', 'suspicious', 'recovering']);
 const showFacetsOffcanvas = ref(false);
 const { data: metadataFilter, clear: clearMetadataFilter } = useMetadataFilterQuery();
 

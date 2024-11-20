@@ -15,9 +15,7 @@ use crate::{
         entities::authorization::AuthContext,
         use_cases::{
             http_monitors::{
-                self, CreateHttpMonitorCommand, CreateHttpMonitorError, ListHttpMonitorsError,
-                ListHttpMonitorsParams, ReadHttpMonitorError, ToggleMonitorError,
-                UpdateHttpMonitorCommand, UpdateHttpMonitorError,
+                self, ArchiveMonitorError, CreateHttpMonitorCommand, CreateHttpMonitorError, ListHttpMonitorsError, ListHttpMonitorsParams, ReadHttpMonitorError, ToggleMonitorError, UpdateHttpMonitorCommand, UpdateHttpMonitorError
             },
             incidents::{ListIncidentsError, ListIncidentsParams},
         },
@@ -43,6 +41,7 @@ pub fn http_monitors_router() -> Router<ApplicationState> {
             get(get_http_monitor_incidents_handler),
         )
         .route("/:monitor_id/toggle", post(toggle_http_monitor_handler))
+        .route("/:monitor_id/archive", post(archive_http_monitor_handler))
 }
 
 async fn get_http_monitor_handler(
@@ -108,10 +107,49 @@ async fn toggle_http_monitor_handler(
     .await
     {
         Ok(_) => Json("Done").into_response(),
-        Err(ToggleMonitorError::NotFound) => StatusCode::NOT_FOUND.into_response(),
+        Err(ToggleMonitorError::NotFound) => {
+            (StatusCode::NOT_FOUND, "Monitor not found").into_response()
+        }
+        Err(ToggleMonitorError::MonitorIsArchived) => (
+            StatusCode::BAD_REQUEST,
+            "Monitor is archived and cannot be toggled",
+        )
+            .into_response(),
         Err(ToggleMonitorError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
         Err(ToggleMonitorError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while toggling HTTP monitor");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
+}
+
+async fn archive_http_monitor_handler(
+    auth_context: AuthContext,
+    State(app_state): ExtractAppState,
+    Path(monitor_id): Path<Uuid>,
+) -> impl IntoResponse {
+    match http_monitors::archive_http_monitor(
+        &auth_context,
+        &app_state.adapters.http_monitors_repository,
+        &app_state.adapters.incident_repository,
+        &app_state.adapters.incident_event_repository,
+        &app_state.adapters.incident_notification_repository,
+        monitor_id,
+    )
+    .await
+    {
+        Ok(_) => Json("Done").into_response(),
+        Err(ArchiveMonitorError::NotFound) => {
+            (StatusCode::NOT_FOUND, "Monitor not found").into_response()
+        }
+        Err(ArchiveMonitorError::MonitorIsArchived) => (
+            StatusCode::BAD_REQUEST,
+            "Monitor is archived and cannot be archived",
+        )
+            .into_response(),
+        Err(ArchiveMonitorError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
+        Err(ArchiveMonitorError::TechnicalFailure(e)) => {
+            warn!(error = ?e, "Technical failure occured while archiving HTTP monitor");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
@@ -175,10 +213,23 @@ async fn update_http_monitor_handler(
     .await
     {
         Ok(res) => Json(res).into_response(),
-        Err(UpdateHttpMonitorError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
-        Err(UpdateHttpMonitorError::NotFound) => StatusCode::NOT_FOUND.into_response(),
-        Err(UpdateHttpMonitorError::InvalidUrl(_)) => StatusCode::BAD_REQUEST.into_response(),
-        Err(UpdateHttpMonitorError::InvalidRequestTimeout) => StatusCode::BAD_REQUEST.into_response(),
+        Err(UpdateHttpMonitorError::Forbidden) => {
+            (StatusCode::FORBIDDEN, "Forbidden to update this monitor").into_response()
+        }
+        Err(UpdateHttpMonitorError::NotFound) => {
+            (StatusCode::NOT_FOUND, "Monitor not found").into_response()
+        }
+        Err(UpdateHttpMonitorError::InvalidUrl(_)) => {
+            (StatusCode::BAD_REQUEST, "Invalid URL").into_response()
+        }
+        Err(UpdateHttpMonitorError::InvalidRequestTimeout) => {
+            (StatusCode::BAD_REQUEST, "Invalid request timeout").into_response()
+        }
+        Err(UpdateHttpMonitorError::MonitorIsArchived) => (
+            StatusCode::BAD_REQUEST,
+            "Monitor is archived and cannot be updated",
+        )
+            .into_response(),
         Err(UpdateHttpMonitorError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while getting creating a new monitor");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()

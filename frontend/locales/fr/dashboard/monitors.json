@@ -33,7 +33,7 @@
             "title": "Aucun incident",
             "text": "Aucun incident sur cette période. Vous pouvez modifier le filtre de temps pour voir les incidents passés."
         },
-            "metadata": "Métadonnées",
+        "metadata": "Métadonnées",
         "form": {
             "urlDescription": "Quelle URL voulez-vous surveiller ?",
             "refreshInterval": "Intervalle de surveillance",
@@ -55,6 +55,14 @@
             "requestTimeoutDescription": "Détermine combien de temps nous allons attendre une réponse du serveur avant de considérer la requête comme échouée.",
             "seconds": "secondes",
             "save": "Sauvegarder"
+        },
+        "archive": {
+            "button": "Archiver",
+            "modal": {
+                "title": "Archiver le moniteur",
+                "message": "Voulez-vous vraiment archiver ce moniteur ? Cette action est irréversible.",
+                "confirm": "Archiver"
+            }
         }
     },
     "monitorStatus": {
@@ -63,6 +71,7 @@
         "suspicious": "Suspect",
         "recovering": "En récupération",
         "up": "En bonne santé",
-        "unknown": "En attente"
+        "unknown": "En attente",
+        "archived": "Archivé"
     }
 }

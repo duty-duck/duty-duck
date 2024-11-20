@@ -31,7 +31,12 @@ pub trait HttpMonitorRepository: TransactionalRepository + Clone + Send + Sync +
 
     /// Update an HTTP monitor, returns true if the monitor existed, or false if the monitor did not exist
     /// Used by the public API to allow users to update HTTP monitors
-    async fn update_http_monitor(&self, id: Uuid, monitor: NewHttpMonitor) -> anyhow::Result<bool>;
+    async fn update_http_monitor(
+        &self,
+        transaction: &mut Self::Transaction,
+        id: Uuid,
+        monitor: NewHttpMonitor,
+    ) -> anyhow::Result<bool>;
 
     /// List all the monitors that are due for a refresh
     /// This must be executed inside a transaction. Concurrent transactions will not return the same monitors (monitors that are locked by a transaction will be skipped)
@@ -82,6 +87,7 @@ pub struct UpdateHttpMonitorStatusCommand {
     /// Used to update the last HTTP code received when the monitor is pinged
     /// If None, the last http code will be removed
     pub last_http_code: Option<i16>,
+    pub archived_at: Option<DateTime<Utc>>,
 }
 
 pub struct ListHttpMonitorsOutput {

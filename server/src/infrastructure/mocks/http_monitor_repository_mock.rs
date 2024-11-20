@@ -131,9 +131,14 @@ impl HttpMonitorRepository for HttpMonitorRepositoryMock {
         Ok(id)
     }
 
-    async fn update_http_monitor(&self, id: Uuid, monitor: NewHttpMonitor) -> anyhow::Result<bool> {
+    async fn update_http_monitor(
+        &self,
+        _transaction: &mut Self::Transaction,
+        id: Uuid,
+        monitor: NewHttpMonitor,
+    ) -> anyhow::Result<bool> {
         let mut state = self.state.lock().await;
-        
+
         if let Some(existing) = state.iter_mut().find(|m| m.id == id && m.organization_id == monitor.organization_id) {
             existing.url = monitor.url;
             existing.status = monitor.status;

@@ -95,11 +95,11 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
             )
             ORDER BY url LIMIT $4 OFFSET $5
             "#,
-            organization_id, // $1
-            &statuses, // $2
-            &query, // $3
-            limit as i64, // $4
-            offset as i64, // $5
+            organization_id,  // $1
+            &statuses,        // $2
+            &query,           // $3
+            limit as i64,     // $4
+            offset as i64,    // $5
             &metadata_filter, // $6
         )
         .fetch_all(&mut *tx)
@@ -233,14 +233,16 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
                 last_http_code = $5,
                 last_ping_at = now(),
                 first_ping_at = coalesce(first_ping_at, now()),
-                last_status_change_at = $6
-            WHERE organization_id = $7 and id = $8",
+                last_status_change_at = $6,
+                archived_at = $7
+            WHERE organization_id = $8 and id = $9",
             command.status as i16,
             command.next_ping_at,
             command.status_counter,
             command.error_kind as i16,
             command.last_http_code,
             command.last_status_change_at,
+            command.archived_at,
             command.organization_id,
             command.monitor_id,
         )
@@ -250,7 +252,12 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
         Ok(())
     }
 
-    async fn update_http_monitor(&self, id: Uuid, monitor: NewHttpMonitor) -> anyhow::Result<bool> {
+    async fn update_http_monitor(
+        &self,
+        transaction: &mut Self::Transaction,
+        id: Uuid,
+        monitor: NewHttpMonitor,
+    ) -> anyhow::Result<bool> {
         let metadata = serde_json::to_value(monitor.metadata)?;
         let request_headers = serde_json::to_value(monitor.request_headers)?;
 
@@ -270,22 +277,22 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
                 request_timeout_ms = $12,
                 organization_id = $13
             WHERE organization_id = $13 and id = $14",
-            monitor.url, // $1
-            monitor.status as i16, // $2
-            monitor.next_ping_at, // $3
-            &metadata, // $4
-            monitor.interval_seconds as i64, // $5
+            monitor.url,                                    // $1
+            monitor.status as i16,                          // $2
+            monitor.next_ping_at,                           // $3
+            &metadata,                                      // $4
+            monitor.interval_seconds as i64,                // $5
             monitor.recovery_confirmation_threshold as i64, // $6
             monitor.downtime_confirmation_threshold as i64, // $7
-            monitor.email_notification_enabled, // $8
-            monitor.push_notification_enabled, // $9
-            monitor.sms_notification_enabled, // $10
-            &request_headers, // $11
-            monitor.request_timeout_ms, // $12
-            monitor.organization_id, // $13
-            id, // $14
+            monitor.email_notification_enabled,             // $8
+            monitor.push_notification_enabled,              // $9
+            monitor.sms_notification_enabled,               // $10
+            &request_headers,                               // $11
+            monitor.request_timeout_ms,                     // $12
+            monitor.organization_id,                        // $13
+            id,                                             // $14
         )
-        .execute(&self.pool)
+        .execute(transaction.as_mut())
         .await?;
 
         Ok(result.rows_affected() > 0)

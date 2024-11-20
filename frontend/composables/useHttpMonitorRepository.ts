@@ -29,6 +29,10 @@ export const useHttpMonitorRepository = () => {
             const $fetch = await useServer$fetch();
             return await $fetch<void>(`/http-monitors/${monitorId}/toggle`, { method: "post" })
         },
+        async archiveHttpMonitor(monitorId: string) {
+            const $fetch = await useServer$fetch();
+            return await $fetch<void>(`/http-monitors/${monitorId}/archive`, { method: "post" })
+        },
         async useHttpMonitor(monitorId: string, options?: UseFetchOptions<ReadHttpMonitorResponse>) {
             return await useServerFetch<ReadHttpMonitorResponse>(`/http-monitors/${monitorId}`, { retry: 3, retryDelay: 5000, ...(options || {}) })
         },

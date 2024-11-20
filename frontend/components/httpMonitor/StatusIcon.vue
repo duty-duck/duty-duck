@@ -29,11 +29,15 @@ const icon = computed(() => {
         'text-warning': props.status == 'suspicious',
         'text-info': props.status == 'recovering',
         'text-secondary': props.status == 'unknown' || props.status == 'inactive',
-        'text-success': props.status == 'up'
+        'text-success': props.status == 'up',
+        'text-muted': props.status == 'archived'
     }">
-        <Icon name="ph:circle-fill" :size="big ?'6rem': '4rem'" class="secondary" v-show="animated" />
-        <Icon name="ph:circle-fill" :size="big ?'6rem': '4rem'" class="tertiary" v-show="animated" />
-        <Icon :name="icon" :size="big ? '3rem' : '2rem'" />
+        <template v-if="status != 'archived'">
+            <Icon name="ph:circle-fill" :size="big ? '6rem' : '4rem'" class="secondary" v-show="animated" />
+            <Icon name="ph:circle-fill" :size="big ? '6rem' : '4rem'" class="tertiary" v-show="animated" />
+            <Icon :name="icon" :size="big ? '3rem' : '2rem'" />
+        </template>
+        <Icon v-else name="ph:archive-fill" :size="big ? '3rem' : '2rem'" />
     </span>
 
 </template>
@@ -47,16 +51,19 @@ const icon = computed(() => {
             opacity: 0;
             font-size: 1.7rem;
         }
+
         100% {
             opacity: .2;
             opacity: 3.8rem;
         }
     }
+
     @keyframes growtertiary {
         0% {
             opacity: 0;
             font-size: 1.7rem
         }
+
         100% {
             opacity: .1;
             opacity: 2rem;

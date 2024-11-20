@@ -6,7 +6,8 @@ export const allStatuses: HttpMonitorStatus[] = [
     "suspicious",
     "recovering",
     "inactive",
-    "unknown"
+    "unknown",
+    "archived"
 ];
 </script>
 
