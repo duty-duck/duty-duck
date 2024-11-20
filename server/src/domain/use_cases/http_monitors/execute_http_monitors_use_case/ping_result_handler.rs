@@ -99,11 +99,18 @@ where
         self.http_monitor_repository
             .update_http_monitor_status(transaction, patch)
             .await
-            .with_context(|| "Failed to update HTTP monitor status")?;
+            .context("Failed to update HTTP monitor status")?;
 
         match (status, existing_incident) {
             // the monitor can never be unknown or inactive when we are handling a ping response
-            (HttpMonitorStatus::Unknown | HttpMonitorStatus::Inactive | HttpMonitorStatus::Archived, _) => unreachable!("tried to handle a ping response for an unknown, inactive or archived monitor"),
+            (
+                HttpMonitorStatus::Unknown
+                | HttpMonitorStatus::Inactive
+                | HttpMonitorStatus::Archived,
+                _,
+            ) => unreachable!(
+                "tried to handle a ping response for an unknown, inactive or archived monitor"
+            ),
             // a monitor is not supposed to transition to recovering without an incident
             // however, it may happen as a result of an incident being deleted from the database, and if it happens, we don't want to panic as it would block the entire system,
             // so we log a warning and do nothing more
@@ -295,7 +302,7 @@ where
                         ping_response,
                     )
                     .await?;
-                } 
+                }
                 // Else, create a ping event if the monitor is switching to a new status
                 else if status_counter == 1 {
                     let ping_event = self
@@ -357,7 +364,8 @@ where
         let incident = self
             .incident_repository
             .list_incidents(transaction, monitor.organization_id, options.clone())
-            .await?
+            .await
+            .context("Failed to list existing incidents for monitor")?
             .incidents
             .into_iter()
             .next();
@@ -414,7 +422,7 @@ where
             priority: IncidentPriority::Major,
             source: IncidentSource::HttpMonitor { id: monitor.id },
             cause: Some(incident_cause.clone()),
-            metadata: monitor.metadata.clone(),
+            metadata,
         };
 
         debug!(incident = ?new_incident, monitor_id = ?monitor.id, "Creating new incident for monitor");
@@ -442,7 +450,8 @@ where
             new_incident,
             notification,
         )
-        .await?;
+        .await
+        .context("Failed to create incident")?;
 
         let ping_event = self
             .create_ping_event(monitor, incident_id, &mut ping_response)
@@ -450,7 +459,8 @@ where
 
         self.incident_event_repository
             .create_incident_event(transaction, ping_event)
-            .await?;
+            .await
+            .context("Failed to persist ping event")?;
 
         Ok(())
     }

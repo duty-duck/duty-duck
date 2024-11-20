@@ -1,4 +1,8 @@
 {
+    "facets": {
+        "title": "Metadata",
+        "searchPlaceholder": "Search values ..."
+    },
     "intervalInput": {
         "seconds": "{count} second | {count} seconds",
         "secondsShort": "{count}s",

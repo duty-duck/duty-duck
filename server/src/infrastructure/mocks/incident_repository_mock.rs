@@ -4,6 +4,7 @@ use std::sync::{Arc};
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
+use crate::domain::entities::entity_metadata::FilterableMetadata;
 use crate::domain::entities::incident::{
     Incident, IncidentSource, IncidentSourceType, NewIncident,
 };
@@ -185,6 +186,13 @@ impl IncidentRepository for IncidentRepositoryMock {
         state.retain(|i| !(i.id == incident_id && i.organization_id == organization_id));
         Ok(())
     }
+
+    async fn get_filterable_metadata(
+        &self,
+        organization_id: Uuid,
+    ) -> anyhow::Result<FilterableMetadata> {
+        Ok(FilterableMetadata { items: vec![] })
+    }
 }
 
 #[cfg(test)]
@@ -192,7 +200,7 @@ mod tests {
     use super::*;
     use crate::domain::{
         entities::{
-            entity_metadata::EntityMetadata,
+            entity_metadata::{EntityMetadata, MetadataFilter},
             http_monitor::HttpMonitorErrorKind,
             incident::{HttpMonitorIncidentCause, HttpMonitorIncidentCausePing, IncidentCause, IncidentPriority, IncidentStatus},
         },
@@ -278,6 +286,7 @@ mod tests {
                     limit: 10,
                     order_by: OrderIncidentsBy::CreatedAt,
                     order_direction: OrderDirection::Desc,
+                    metadata_filter: MetadataFilter::default(),
                 },
             )
             .await?;
@@ -322,6 +331,7 @@ mod tests {
                     limit: 10,
                     order_by: OrderIncidentsBy::CreatedAt,
                     order_direction: OrderDirection::Desc,
+                    metadata_filter: MetadataFilter::default(),
                 },
             )
             .await?;
@@ -360,6 +370,7 @@ mod tests {
                     limit: 10,
                     order_by: OrderIncidentsBy::CreatedAt,
                     order_direction: OrderDirection::Desc,
+                    metadata_filter: MetadataFilter::default(),
                 },
             )
             .await?;

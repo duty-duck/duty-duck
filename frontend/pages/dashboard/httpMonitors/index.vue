@@ -12,33 +12,23 @@ const query = useRouteQuery("query", "");
 const queryDebounced = refDebounced(query, 250);
 const pageNumber = useRouteQuery("pageNumber", 1, { transform: Number });
 const includeStatuses = useRouteQuery("statuses", allStatuses);
+const showFacetsOffcanvas = ref(false);
+const { data: metadataFilter, clear: clearMetadataFilter } = useMetadataFilterQuery();
 
 const fetchParams = computed(() => ({
   pageNumber: pageNumber.value,
   include: includeStatuses.value,
   query: queryDebounced.value,
   itemsPerPage: 10,
+  metadataFilter: metadataFilter.value,
 }));
 
-const repository = await useHttpMonitorRepository();
+const repository = useHttpMonitorRepository();
 const { status, data, refresh } = await repository.useHttpMonitors(fetchParams);
+const { data: filterableMetadataFields } = await repository.useFilterableMetadataFields();
 
-
-const onQueryChange = (event: Event) => {
-  navigateTo({
-    query: {
-      page: pageNumber.value,
-      statuses: includeStatuses.value,
-      query: (event.target as HTMLInputElement).value,
-    },
-  });
-};
-const onIncludeStatusChange = (statuses: HttpMonitorStatus[]) => {
-  navigateTo({
-    query: { pageNumber: pageNumber.value, query: query.value, statuses },
-  });
-};
 const onClearFilters = () => {
+  clearMetadataFilter();
   navigateTo({
     query: { pageNumber: pageNumber.value, query: "", statuses: [] },
   });
@@ -91,7 +81,16 @@ useIntervalFn(() => {
       </span>
     </div>
     <HttpMonitorFilteringBar v-model:includeStatuses="includeStatuses" v-model:query="query"
-      @clear-filters="onClearFilters" />
+      v-model:metadataFilter="metadataFilter" :filterableMetadataFields="filterableMetadataFields!"
+      @clear-filters="onClearFilters">
+      <template #default>
+        <BButton variant="outline-secondary" class="d-flex align-items-center gap-1"
+          @click="showFacetsOffcanvas = true">
+          <Icon name="ph:funnel" aria-hidden size="1.3rem" />
+          {{ $t('dashboard.facets.title') }}
+        </BButton>
+      </template>
+    </HttpMonitorFilteringBar>
     <div v-if="data?.totalNumberOfResults == 0" class="text-secondary text-center my-5">
       <Icon name="ph:pulse-duotone" size="120px" />
       <h3>{{ $t("dashboard.monitors.emptyPage.title") }}</h3>
@@ -109,11 +108,20 @@ useIntervalFn(() => {
       <BButton variant="outline-secondary" @click="onClearFilters">{{ $t("dashboard.monitors.clearFilters") }}
       </BButton>
     </div>
-    <div v-else class="d-grid row-gap-3">
+    <div v-else class="d-grid row-gap-3 mt-3">
       <HttpMonitorCard v-for="monitor in data?.items" :key="monitor.id" :monitor="monitor" animated />
       <BPagination v-if="data?.totalNumberOfFilteredResults! > 10" v-model="pageNumber"
         :prev-text="$t('pagination.prev')" :next-text="$t('pagination.next')"
         :total-rows="data?.totalNumberOfFilteredResults" :per-page="10" />
     </div>
+    <BOffcanvas v-model="showFacetsOffcanvas" placement="end" body-class="p-0">
+      <template #header>
+        <h6 class="d-flex align-items-center gap-2 mb-0">
+          <Icon name="ph:funnel" aria-hidden />
+          {{ $t('dashboard.facets.title') }}
+        </h6>
+      </template>
+      <DashboardMetadataFacets v-model="metadataFilter" :metadata="filterableMetadataFields!" />
+    </BOffcanvas>
   </BContainer>
 </template>

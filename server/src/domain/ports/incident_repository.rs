@@ -2,10 +2,10 @@ use axum::async_trait;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-
-use crate::domain::{entities::incident::{
-    Incident, IncidentPriority, IncidentSource, IncidentStatus, NewIncident,
-}, use_cases::{incidents::OrderIncidentsBy, shared::OrderDirection}};
+use crate::domain::{
+    entities::{entity_metadata::{FilterableMetadata, MetadataFilter}, incident::{Incident, IncidentPriority, IncidentSource, IncidentStatus, NewIncident}},
+    use_cases::{incidents::OrderIncidentsBy, shared::OrderDirection},
+};
 
 use super::transactional_repository::TransactionalRepository;
 
@@ -94,6 +94,12 @@ pub trait IncidentRepository: TransactionalRepository + Clone + Send + Sync + 's
         organization_id: Uuid,
         incident_id: Uuid,
     ) -> anyhow::Result<()>;
+
+    /// Get the filterable metadata for all the incidents of an organization
+    async fn get_filterable_metadata(
+        &self,
+        organization_id: Uuid,
+    ) -> anyhow::Result<FilterableMetadata>;
 }
 
 pub struct ListIncidentsOutput {
@@ -107,6 +113,7 @@ pub struct ListIncidentsOpts<'a> {
     pub include_statuses: &'a [IncidentStatus],
     pub include_priorities: &'a [IncidentPriority],
     pub include_sources: &'a [IncidentSource],
+    pub metadata_filter: MetadataFilter,
     pub limit: u32,
     pub offset: u32,
     pub from_date: Option<DateTime<Utc>>,

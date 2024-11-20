@@ -11,7 +11,8 @@ use crate::domain::{
     },
     use_cases::{
         incidents::{
-            enrich_incidents_with_users, ListIncidentsError, ListIncidentsParams, ListIncidentsResponse, OrderIncidentsBy
+            enrich_incidents_with_users, ListIncidentsError, ListIncidentsParams,
+            ListIncidentsResponse, OrderIncidentsBy,
         },
         shared::OrderDirection,
     },
@@ -28,6 +29,7 @@ pub async fn list_http_monitor_incidents(
         return Err(ListIncidentsError::Forbidden);
     }
 
+    let metadata_filter = params.metadata_filter();
     let items_per_page = params.items_per_page.unwrap_or(10).min(50);
     let page_number = params.page_number.unwrap_or(1);
     let include_statuses = params.status.unwrap_or(IncidentStatus::ALL.to_vec());
@@ -52,6 +54,7 @@ pub async fn list_http_monitor_incidents(
                 to_date: params.to_date,
                 order_by: params.order_by.unwrap_or(OrderIncidentsBy::CreatedAt),
                 order_direction: params.order_direction.unwrap_or(OrderDirection::Desc),
+                metadata_filter,
             },
         )
         .await?;

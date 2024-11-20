@@ -7,9 +7,13 @@ import type { ListIncidentsResponse } from "bindings/ListIncidentsResponse";
 import type { ListIncidentsParams } from "bindings/ListIncidentsParams";
 import type { UpdateHttpMonitorCommand } from "bindings/UpdateHttpMonitorCommand";
 import type { UseFetchOptions } from "#app";
+import type { FilterableMetadata } from "bindings/FilterableMetadata";
 
 export const useHttpMonitorRepository = () => {
     return {
+        async useFilterableMetadataFields() {
+            return await useServerFetch<FilterableMetadata>("/http-monitors/filterable-metadata");
+        },
         async useHttpMonitors(params: Ref<ListHttpMonitorsParams> | ListHttpMonitorsParams) {
             return await useServerFetch<ListHttpMonitorsResponse>(`/http-monitors`, { retry: 3, retryDelay: 5000, query: params });
         },
@@ -38,7 +42,8 @@ export const useHttpMonitorRepository = () => {
                 ],
                 pageNumber: 1,
                 itemsPerPage: 0,
-                query: null
+                query: null,
+                metadataFilter: null
             });
             return { refresh: res.refresh, data: computed(() => res.data.value?.totalNumberOfFilteredResults) }
         }

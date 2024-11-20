@@ -5,7 +5,7 @@ use chrono::Utc;
 use uuid::Uuid;
 
 use crate::domain::{
-    entities::http_monitor::{HttpMonitor, HttpMonitorStatus},
+    entities::{entity_metadata::{FilterableMetadata, MetadataFilter}, http_monitor::{HttpMonitor, HttpMonitorStatus}},
     ports::{
         http_monitor_repository::{
             HttpMonitorRepository, ListHttpMonitorsOutput, NewHttpMonitor,
@@ -65,6 +65,7 @@ impl HttpMonitorRepository for HttpMonitorRepositoryMock {
         organization_id: Uuid,
         include_statuses: Vec<HttpMonitorStatus>,
         query: String,
+        _metadata_filter: MetadataFilter,
         limit: u32,
         offset: u32,
     ) -> anyhow::Result<ListHttpMonitorsOutput> {
@@ -193,6 +194,13 @@ impl HttpMonitorRepository for HttpMonitorRepositoryMock {
         
         Ok(())
     }
+
+    async fn get_filterable_metadata(
+        &self,
+        _organization_id: Uuid,
+    ) -> anyhow::Result<FilterableMetadata> {
+        Ok(FilterableMetadata { items: vec![] })
+    }
 }
 
 #[cfg(test)]
@@ -259,6 +267,7 @@ mod tests {
             org_id,
             vec![HttpMonitorStatus::Up],
             String::new(),
+            MetadataFilter::default(),
             10,
             0
         ).await?;
@@ -292,6 +301,7 @@ mod tests {
             org_id,
             vec![],
             "example".to_string(),
+            MetadataFilter::default(),
             10,
             0
         ).await?;
@@ -323,6 +333,7 @@ mod tests {
             org_id,
             vec![],
             String::new(),
+            MetadataFilter::default(),
             2,
             0
         ).await?;
@@ -331,6 +342,7 @@ mod tests {
             org_id,
             vec![],
             String::new(),
+            MetadataFilter::default(),
             2,
             2
         ).await?;

@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::domain::entities::{entity_metadata::EntityMetadata, http_monitor::{HttpMonitor, HttpMonitorErrorKind, HttpMonitorStatus, RequestHeaders}};
+use crate::domain::entities::{entity_metadata::{EntityMetadata, FilterableMetadata, MetadataFilter}, http_monitor::{HttpMonitor, HttpMonitorErrorKind, HttpMonitorStatus, RequestHeaders}};
 
 use super::transactional_repository::TransactionalRepository;
 
@@ -21,6 +21,7 @@ pub trait HttpMonitorRepository: TransactionalRepository + Clone + Send + Sync +
         organization_id: Uuid,
         include_statuses: Vec<HttpMonitorStatus>,
         query: String,
+        metadata_filter: MetadataFilter,
         limit: u32,
         offset: u32,
     ) -> anyhow::Result<ListHttpMonitorsOutput>;
@@ -47,6 +48,9 @@ pub trait HttpMonitorRepository: TransactionalRepository + Clone + Send + Sync +
         transaction: &mut Self::Transaction,
         command: UpdateHttpMonitorStatusCommand,
     ) -> anyhow::Result<()>;
+
+    /// Get the filterable metadata for all the monitors of an organization
+    async fn get_filterable_metadata(&self, organization_id: Uuid) -> anyhow::Result<FilterableMetadata>;
 }
 
 #[derive(Debug)]

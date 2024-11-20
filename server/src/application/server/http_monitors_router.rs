@@ -31,6 +31,10 @@ pub fn http_monitors_router() -> Router<ApplicationState> {
             get(list_http_monitors_handler).post(create_http_monitor_handler),
         )
         .route(
+            "/filterable-metadata",
+            get(get_filterable_http_monitor_metadata_handler),
+        )
+        .route(
             "/:monitor_id",
             get(get_http_monitor_handler).patch(update_http_monitor_handler),
         )
@@ -177,6 +181,24 @@ async fn update_http_monitor_handler(
         Err(UpdateHttpMonitorError::InvalidRequestTimeout) => StatusCode::BAD_REQUEST.into_response(),
         Err(UpdateHttpMonitorError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while getting creating a new monitor");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
+}
+
+async fn get_filterable_http_monitor_metadata_handler(
+    auth_context: AuthContext,
+    State(app_state): ExtractAppState,
+) -> impl IntoResponse {
+    match http_monitors::get_filterable_http_monitor_metadata(
+        &auth_context,
+        &app_state.adapters.http_monitors_repository,
+    )
+    .await
+    {
+        Ok(res) => Json(res).into_response(),
+        Err(e) => {
+            warn!(error = ?e, "Technical failure occured while getting filterable http monitor metadata");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }

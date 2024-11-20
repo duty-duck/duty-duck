@@ -10,7 +10,7 @@ const { incidents, showColumns = ["date", "acknowledgedBy", "status", "source", 
 </script>
 
 <template>
-  <div class="incidents-table mb-3">
+  <div class="incidents-table mb-3 mt-4">
     <div class="row head-row mb-2 d-none d-lg-flex text-muted">
       <div class="col" v-if="showColumns.includes('date')">
         <Icon name="ph:calendar-duotone" aria-hidden /> {{ $t('dashboard.incidents.date') }}

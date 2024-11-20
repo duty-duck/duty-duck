@@ -24,6 +24,7 @@ use crate::{
 pub fn incidents_router() -> Router<ApplicationState> {
     Router::new()
         .route("/", get(list_incidents_handler))
+        .route("/filterable-metadata", get(get_filterable_incident_metadata_handler))
         .route("/:incident_id", get(get_incident_handler))
         .route(
             "/:incident_id/acknowledge",
@@ -186,6 +187,24 @@ async fn acknowledge_incident_handler(
         Err(AcknowledgeIncidentError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
         Err(AcknowledgeIncidentError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while acknowledging incident");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
+}
+
+async fn get_filterable_incident_metadata_handler(
+    auth_context: AuthContext,
+    State(app_state): ExtractAppState,
+) -> impl IntoResponse {
+    match incidents::get_filterable_incident_metadata(
+        &auth_context,
+        &app_state.adapters.incident_repository,
+    )
+    .await
+    {
+        Ok(res) => Json(res).into_response(),
+        Err(e) => {
+            warn!(error = ?e, "Technical failure occured while getting filterable incident metadata");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }

@@ -67,7 +67,7 @@ watch(range, () => {
 }
 
 button {
-    min-width: 230px;
+    min-width: 180px;
     text-align: left;
 }
 

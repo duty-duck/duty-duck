@@ -1,3 +1,4 @@
+use anyhow::Context;
 use chrono::Utc;
 use uuid::Uuid;
 
@@ -43,7 +44,8 @@ where
 {
     let incident_id = incident_repo
         .create_incident(transaction, new_incident.clone())
-        .await?;
+        .await
+        .context("Failed to persist incident")?;
 
     let event = IncidentEvent {
         incident_id,

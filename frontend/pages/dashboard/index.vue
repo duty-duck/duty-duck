@@ -1,9 +1,11 @@
 <script setup lang="ts">
+const httpMonitorRepo = useHttpMonitorRepository();
+const incidentRepo = useIncidentRepository();
 const auth = await useAuth();
 const localePath = useLocalePath();
 const thisDevice = await useThisDevice();
-const { refresh: refreshIncidentCount, data: incidentCount } = await useOngoingIncidentsCount();
-const { refresh: refreshDownMonitorsCount, data: downMonitorsCount } = await useDownMonitorsCount();
+const { refresh: refreshIncidentCount, data: incidentCount } = await incidentRepo.useOngoingIncidentsCount();
+const { refresh: refreshDownMonitorsCount, data: downMonitorsCount } = await httpMonitorRepo.useDownMonitorsCount();
 </script>
 <template>
   <BContainer>

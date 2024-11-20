@@ -81,10 +81,37 @@ onBeforeMount(() => {
   height: 100vh;
   overflow-y: auto;
   overflow-x: hidden;
-  width: 260px;
+  width: 100px;
   z-index: 100;
   background-color: white;
   border-right: 1px solid rgb(234 236 241);
+
+  @include media-breakpoint-up(xxl) {
+    width: 260px;
+  }
+
+  .nav-item {
+    width: 100%;
+  }
+
+  .nav-link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.76rem;
+  }
+
+  @include media-breakpoint-up(xxl) {
+    .nav-link {
+      flex-direction: row;
+      justify-content: flex-start;
+    }
+
+    .nav-link {
+      font-size: 1rem;
+    }
+  }
 }
 
 #dashboard-container {
@@ -92,7 +119,7 @@ onBeforeMount(() => {
   @extend .pt-2;
   @extend .px-1;
   @extend .mt-4;
-  @extend .px-lg-4;
+  @extend .px-xxl-4;
   padding-bottom: 5rem;
 }
 
@@ -107,6 +134,7 @@ onBeforeMount(() => {
 #dashboard-navbar {
   height: $navbar-height;
   @include blurry-gray-background;
+  z-index: 1;
 
   #auth-menu {
     height: $navbar-height;

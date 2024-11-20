@@ -7,4 +7,4 @@ import type { OrderIncidentsBy } from "./OrderIncidentsBy";
 /**
  * Parameters for listing incidents
  */
-export type ListIncidentsParams = { pageNumber: number | null, itemsPerPage: number | null, status: Array<IncidentStatus> | null, priority: Array<IncidentPriority> | null, fromDate: string | null, toDate: string | null, orderBy: OrderIncidentsBy | null, orderDirection: OrderDirection | null, };
+export type ListIncidentsParams = { pageNumber: number | null, itemsPerPage: number | null, status: Array<IncidentStatus> | null, priority: Array<IncidentPriority> | null, fromDate: string | null, toDate: string | null, orderBy: OrderIncidentsBy | null, orderDirection: OrderDirection | null, metadataFilter: Option<MetadataFilter>, };

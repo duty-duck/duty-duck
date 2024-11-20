@@ -28,11 +28,11 @@ watch(() => route.fullPath, () => refreshIncidentCount());
           {{ $t("dashboard.mainSidebar.monitors") }}
         </NuxtLink>
       </li>
-      <li class="nav-item">
+      <li class="nav-item" id="incidents-nav-item">
         <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/incidents')" :disabled="!canReadIncidents" :class="{ 'active': route.path.startsWith(localePath('/dashboard/incidents')) }">
           <Icon name="ph:seal-warning-duotone" size="22px" />
           {{ $t("dashboard.mainSidebar.incidents") }}
-          <BBadge class="ms-2" variant="danger" v-if="incidentCount && incidentCount > 0">{{ incidentCount }}
+          <BBadge class="ms-2" variant="danger" id="incidents-badge" v-if="incidentCount && incidentCount > 0">{{ incidentCount }}
           </BBadge>
         </NuxtLink>
       </li>
@@ -53,3 +53,22 @@ watch(() => route.fullPath, () => refreshIncidentCount());
     </ul>
   </div>
 </template>
+
+<style scoped lang="scss">
+@import "~/assets/main.scss";
+
+#incidents-nav-item {
+  position: relative;
+}
+
+#incidents-badge {
+  position: absolute;
+  right: -5px;
+  top: -5px;
+
+  @include media-breakpoint-up(xxl) {
+    top: unset;
+    right: 15px;
+  }
+}
+</style>

@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use anyhow::Context;
 use futures::{stream, StreamExt};
 use tokio::task::JoinSet;
 use tracing::{debug, error};
@@ -88,7 +89,9 @@ where
         let due_monitors = self
             .http_monitor_repository
             .list_due_http_monitors(&mut transaction, limit)
-            .await?;
+            .await
+            .context("Failed to list due monitors")?;
+
         let monitors_len = due_monitors.len();
         if monitors_len > 0 {
             debug!(
@@ -118,10 +121,12 @@ where
 
             let existing_incident = self
                 .get_existing_incident_for_monitor(&mut transaction, &monitor)
-                .await?;
+                .await
+                .context("Failed to get existing incident for monitor")?;
 
             self.handle_ping_response(&mut transaction, monitor, ping_result, existing_incident)
-                .await?;
+                .await
+                .context("Failed to handle ping response")?;
         }
 
         if monitors_len > 0 {

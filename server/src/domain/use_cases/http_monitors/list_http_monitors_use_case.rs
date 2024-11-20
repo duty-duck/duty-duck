@@ -4,8 +4,7 @@ use ts_rs::TS;
 
 use crate::domain::{
     entities::{
-        authorization::{AuthContext, Permission},
-        http_monitor::{HttpMonitor, HttpMonitorStatus},
+        authorization::{AuthContext, Permission}, entity_metadata::MetadataFilter, http_monitor::{HttpMonitor, HttpMonitorStatus}
     },
     ports::http_monitor_repository::{HttpMonitorRepository, ListHttpMonitorsOutput},
 };
@@ -18,6 +17,17 @@ pub struct ListHttpMonitorsParams {
     pub items_per_page: Option<u32>,
     pub include: Option<Vec<HttpMonitorStatus>>,
     pub query: Option<String>,
+    #[ts(type = "Option<MetadataFilter>")]
+    pub metadata_filter: Option<String>,
+}
+
+impl ListHttpMonitorsParams {
+    pub fn metadata_filter(&self) -> MetadataFilter {
+        self.metadata_filter
+            .as_ref()
+            .and_then(|s| serde_json::from_str(&s).ok())
+            .unwrap_or_default()
+    }
 }
 
 #[derive(Serialize, TS, Clone, Debug)]
@@ -46,6 +56,7 @@ pub async fn list_http_monitors(
         return Err(ListHttpMonitorsError::Forbidden);
     }
 
+    let metadata_filter = params.metadata_filter();
     let items_per_page = params.items_per_page.unwrap_or(10).min(50);
     let page_number = params.page_number.unwrap_or(1);
     let include_statuses = params.include.unwrap_or(HttpMonitorStatus::ALL.to_vec());
@@ -59,6 +70,7 @@ pub async fn list_http_monitors(
             auth_context.active_organization_id,
             include_statuses,
             params.query.unwrap_or_default(),
+            metadata_filter,
             items_per_page,
             items_per_page * (page_number - 1),
         )

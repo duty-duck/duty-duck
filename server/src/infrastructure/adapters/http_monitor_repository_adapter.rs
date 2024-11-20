@@ -1,9 +1,15 @@
 use async_trait::async_trait;
+use itertools::Itertools;
 use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::domain::{
-    entities::http_monitor::{HttpMonitor, HttpMonitorErrorKind, HttpMonitorStatus},
+    entities::{
+        entity_metadata::{
+            FilterableMetadata, FilterableMetadataItem, FilterableMetadataValue, MetadataFilter,
+        },
+        http_monitor::{HttpMonitor, HttpMonitorErrorKind, HttpMonitorStatus},
+    },
     ports::{
         http_monitor_repository::{
             self, HttpMonitorRepository, ListHttpMonitorsOutput, NewHttpMonitor,
@@ -47,6 +53,7 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
         organization_id: uuid::Uuid,
         include_statuses: Vec<HttpMonitorStatus>,
         query: String,
+        metadata_filter: MetadataFilter,
         limit: u32,
         offset: u32,
     ) -> anyhow::Result<ListHttpMonitorsOutput> {
@@ -56,21 +63,47 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
             .into_iter()
             .map(|s| s as i32)
             .collect::<Vec<_>>();
+        let metadata_filter = serde_json::to_value(metadata_filter.items)?;
 
-        let http_monitors =
-            sqlx::query_as!(
-                HttpMonitor,
-                "SELECT * FROM http_monitors  
-                WHERE organization_id = $1 AND status IN (SELECT unnest($2::integer[])) AND ($3 = '' or url ilike $3) 
-                ORDER BY url LIMIT $4 OFFSET $5",
-                organization_id,
-                &statuses,
-                &query,
-                limit as i64,
-                offset as i64
+        let rows = sqlx::query!(
+            r#"
+            WITH filter_conditions AS (
+                SELECT 
+                    key,
+                    jsonb_array_elements_text(value) as filter_value
+                FROM jsonb_each($6::jsonb)
+            )   
+            SELECT *, COUNT(http_monitors.id) OVER () as "filtered_count!" FROM http_monitors  
+            WHERE 
+            -- filter by organization
+            organization_id = $1 
+            -- filter by status
+            AND status IN (SELECT unnest($2::integer[])) 
+            -- filter by url
+            AND ($3 = '' or url ilike $3) 
+            -- filter by metadata
+            AND (
+                $6::jsonb = '{}'::jsonb OR
+                NOT EXISTS (
+                    SELECT 1 FROM filter_conditions fc
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM jsonb_each(http_monitors.metadata->'records') m
+                        WHERE m.key = fc.key
+                        AND (m.value #>> '{}') = fc.filter_value
+                    )
+                )
             )
-            .fetch_all(&mut *tx)
-            .await?;
+            ORDER BY url LIMIT $4 OFFSET $5
+            "#,
+            organization_id, // $1
+            &statuses, // $2
+            &query, // $3
+            limit as i64, // $4
+            offset as i64, // $5
+            &metadata_filter, // $6
+        )
+        .fetch_all(&mut *tx)
+        .await?;
 
         let total_count = sqlx::query!(
             "SELECT count(*) FROM http_monitors WHERE organization_id = $1",
@@ -81,16 +114,38 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
         .count
         .unwrap_or_default();
 
-        let total_filtered_count = sqlx::query!(
-            "SELECT count(*) FROM http_monitors WHERE organization_id = $1 AND status IN ( SELECT unnest($2::integer[])) AND ($3 = '' or url ilike $3 )",
-            organization_id,
-            &statuses,
-            &query
-        )
-        .fetch_one(&mut *tx)
-        .await?
-        .count
-        .unwrap_or_default();
+        let total_filtered_count = rows
+            .first()
+            .map(|row| row.filtered_count)
+            .unwrap_or_default();
+
+        let http_monitors = rows
+            .into_iter()
+            .map(|row| HttpMonitor {
+                organization_id: row.organization_id,
+                id: row.id,
+                created_at: row.created_at,
+                url: row.url,
+                first_ping_at: row.first_ping_at,
+                next_ping_at: row.next_ping_at,
+                last_ping_at: row.last_ping_at,
+                last_status_change_at: row.last_status_change_at,
+                recovery_confirmation_threshold: row.recovery_confirmation_threshold,
+                downtime_confirmation_threshold: row.downtime_confirmation_threshold,
+                interval_seconds: row.interval_seconds as i64,
+                last_http_code: row.last_http_code,
+                status: row.status.into(),
+                status_counter: row.status_counter,
+                error_kind: row.error_kind.into(),
+                metadata: row.metadata.into(),
+                email_notification_enabled: row.email_notification_enabled,
+                push_notification_enabled: row.push_notification_enabled,
+                sms_notification_enabled: row.sms_notification_enabled,
+                archived_at: row.archived_at,
+                request_headers: row.request_headers.into(),
+                request_timeout_ms: row.request_timeout_ms,
+            })
+            .collect::<Vec<_>>();
 
         Ok(ListHttpMonitorsOutput {
             monitors: http_monitors,
@@ -215,24 +270,75 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
                 request_timeout_ms = $12,
                 organization_id = $13
             WHERE organization_id = $13 and id = $14",
-            monitor.url,
-            monitor.status as i16,
-            monitor.next_ping_at,
-            &metadata,
-            monitor.interval_seconds as i64,
-            monitor.recovery_confirmation_threshold as i64,
-            monitor.downtime_confirmation_threshold as i64,
-            monitor.email_notification_enabled,
-            monitor.push_notification_enabled,
-            monitor.sms_notification_enabled,
-            &request_headers,
-            monitor.request_timeout_ms,
-            monitor.organization_id,
-            id,
+            monitor.url, // $1
+            monitor.status as i16, // $2
+            monitor.next_ping_at, // $3
+            &metadata, // $4
+            monitor.interval_seconds as i64, // $5
+            monitor.recovery_confirmation_threshold as i64, // $6
+            monitor.downtime_confirmation_threshold as i64, // $7
+            monitor.email_notification_enabled, // $8
+            monitor.push_notification_enabled, // $9
+            monitor.sms_notification_enabled, // $10
+            &request_headers, // $11
+            monitor.request_timeout_ms, // $12
+            monitor.organization_id, // $13
+            id, // $14
         )
         .execute(&self.pool)
         .await?;
 
         Ok(result.rows_affected() > 0)
+    }
+
+    /// Get the filterable metadata for all the monitors of an organization
+    async fn get_filterable_metadata(
+        &self,
+        organization_id: Uuid,
+    ) -> anyhow::Result<FilterableMetadata> {
+        let records = sqlx::query!(
+            r#"
+            WITH RECURSIVE 
+            json_keys AS (
+                SELECT DISTINCT
+                    key,
+                    value #>> '{}' as value_str
+                FROM http_monitors,
+                jsonb_each(metadata -> 'records') as fields(key, value)
+                WHERE http_monitors.organization_id = $1 AND http_monitors.status != $2
+            )
+            SELECT 
+            key as "key!",
+            value_str as "value!",
+            COUNT(*) OVER (PARTITION BY key, value_str) as "value_occurrence_count!"
+            FROM json_keys
+            ORDER BY key, value_str;
+            "#,
+            organization_id,
+            HttpMonitorStatus::Archived as i16,
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        let items = records
+            .into_iter()
+            .chunk_by(|r| r.key.clone())
+            .into_iter()
+            .map(|(key, chunk)| {
+                let distinct_values: Vec<FilterableMetadataValue> = chunk
+                    .map(|r| FilterableMetadataValue {
+                        value: r.value,
+                        value_count: r.value_occurrence_count as u64,
+                    })
+                    .collect();
+                FilterableMetadataItem {
+                    key,
+                    key_cardinality: distinct_values.len() as u64,
+                    distinct_values,
+                }
+            })
+            .collect();
+
+        Ok(FilterableMetadata { items })
     }
 }

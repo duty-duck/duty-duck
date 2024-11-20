@@ -1,6 +1,7 @@
 use anyhow::Context;
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use serde_with::serde_as;
 use thiserror::Error;
 use ts_rs::TS;
 use utoipa::{IntoParams, ToSchema};
@@ -8,6 +9,7 @@ use utoipa::{IntoParams, ToSchema};
 use crate::domain::{
     entities::{
         authorization::{AuthContext, Permission},
+        entity_metadata::MetadataFilter,
         incident::{Incident, IncidentPriority, IncidentStatus, IncidentWithUsers},
     },
     ports::{
@@ -18,6 +20,7 @@ use crate::domain::{
 };
 
 /// Parameters for listing incidents
+#[serde_as]
 #[derive(Serialize, Deserialize, TS, Clone, Debug, IntoParams)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
@@ -30,6 +33,17 @@ pub struct ListIncidentsParams {
     pub to_date: Option<DateTime<Utc>>,
     pub order_by: Option<OrderIncidentsBy>,
     pub order_direction: Option<OrderDirection>,
+    #[ts(type = "Option<MetadataFilter>")]
+    pub metadata_filter: Option<String>,
+}
+
+impl ListIncidentsParams {
+    pub fn metadata_filter(&self) -> MetadataFilter {
+        self.metadata_filter
+            .as_ref()
+            .and_then(|s| serde_json::from_str(&s).ok())
+            .unwrap_or_default()
+    }
 }
 
 #[derive(Serialize, Deserialize, TS, Clone, Copy, Debug, Default, ToSchema)]
@@ -68,6 +82,7 @@ pub async fn list_incidents(
         return Err(ListIncidentsError::Forbidden);
     }
 
+    let metadata_filter = params.metadata_filter();
     let items_per_page = params.items_per_page.unwrap_or(10).min(50);
     let page_number = params.page_number.unwrap_or(1);
     let include_statuses = params.status.unwrap_or(IncidentStatus::ALL.to_vec());
@@ -92,6 +107,7 @@ pub async fn list_incidents(
                 to_date: params.to_date,
                 order_by: params.order_by.unwrap_or(OrderIncidentsBy::CreatedAt),
                 order_direction: params.order_direction.unwrap_or(OrderDirection::Desc),
+                metadata_filter,
             },
         )
         .await?;
@@ -143,5 +159,6 @@ pub async fn enrich_incidents_with_users(
         incidents
             .into_iter()
             .map(|incident| enrich_incident_with_users(incident, user_repository)),
-    ).await
+    )
+    .await
 }

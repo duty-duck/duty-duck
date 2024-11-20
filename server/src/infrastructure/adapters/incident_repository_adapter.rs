@@ -1,5 +1,5 @@
 use crate::domain::{
-    entities::incident::*,
+    entities::{entity_metadata::{FilterableMetadata, FilterableMetadataItem, FilterableMetadataValue}, incident::*},
     ports::incident_repository::{IncidentRepository, ListIncidentsOpts, ListIncidentsOutput},
     use_cases::{incidents::OrderIncidentsBy, shared::OrderDirection},
 };
@@ -92,7 +92,7 @@ impl IncidentRepository for IncidentRepositoryAdapter {
             .iter()
             .map(|s| *s as i32)
             .collect::<Vec<_>>();
-
+        let metadata_filter = serde_json::to_value(opts.metadata_filter.items)?;
         // Used to retrieve incidents by speciifc sources
         let http_monitor_sources_ids = opts
             .include_sources
@@ -115,27 +115,46 @@ impl IncidentRepository for IncidentRepositoryAdapter {
         // we need to order results by a dynamic column name
         let rows = sqlx::query(&format!(
             "
-                SELECT i.*, COUNT(i.id) OVER () as filtered_count from incidents i
-                WHERE organization_id = $1 
-                -- Filter by status
-                AND status IN (SELECT unnest($2::integer[]))
+            WITH filter_conditions AS (
+                SELECT 
+                    key,
+                    jsonb_array_elements_text(value) as filter_value
+                FROM jsonb_each($10::jsonb) -- Replace with your filter object
+            )
+            SELECT i.*, COUNT(i.id) OVER () as filtered_count from incidents i
+            WHERE organization_id = $1 
+            -- Filter by status
+            AND status IN (SELECT unnest($2::integer[]))
 
-                -- Filter by priority
-                AND priority IN (SELECT unnest($3::integer[]))
+            -- Filter by priority
+            AND priority IN (SELECT unnest($3::integer[]))
 
-                -- Filter by http monitor ids
-                AND (
-                   $7::uuid[] = '{{}}' OR
-                   (i.incident_source_type = $6 AND i.incident_source_id = ANY($7::uuid[]))
+            -- Filter by http monitor ids
+            AND (
+                $7::uuid[] = '{{}}' OR
+                (i.incident_source_type = $6 AND i.incident_source_id = ANY($7::uuid[]))
+            )
+
+            -- Filter by date (ongoing incidents are always returned)
+            AND (
+                i.status = 1 OR
+                ($8::timestamptz IS NULL OR i.created_at >= $8::timestamptz) AND ($9::timestamptz IS NULL OR i.created_at <= $9::timestamptz)
+            )
+            -- filter by metadata
+            AND (
+                $10::jsonb = '{{}}'::jsonb OR
+                NOT EXISTS (
+                    SELECT 1 FROM filter_conditions fc
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM jsonb_each(i.metadata->'records') m
+                        WHERE m.key = fc.key
+                        -- the braces are escaped here because we are in a format! macro
+                        AND (m.value #>> '{{}}') = fc.filter_value
+                    )
                 )
-
-                -- Filter by date (ongoing incidents are always returned)
-                AND (
-                    i.status = 1 OR
-                    ($8::timestamptz IS NULL OR i.created_at >= $8::timestamptz) AND ($9::timestamptz IS NULL OR i.created_at <= $9::timestamptz)
-                )
-                ORDER BY {} {}
-                LIMIT $4 OFFSET $5
+            )
+            ORDER BY {} {}
+            LIMIT $4 OFFSET $5
             ",
             match opts.order_by {
                 OrderIncidentsBy::CreatedAt => "created_at",
@@ -162,8 +181,10 @@ impl IncidentRepository for IncidentRepositoryAdapter {
         .bind(&http_monitor_sources_ids)
         // $8: from date
         .bind(opts.from_date)
-        // $8: to date
+        // $9: to date
         .bind(opts.to_date)
+        // $10: metadata filter
+        .bind(&metadata_filter)
         .fetch_all(transaction.as_mut())
         .await?;
 
@@ -301,9 +322,63 @@ impl IncidentRepository for IncidentRepositoryAdapter {
         organization_id: Uuid,
         incident_id: Uuid,
     ) -> anyhow::Result<()> {
-        sqlx::query!("DELETE FROM incidents WHERE organization_id = $1 AND id = $2", organization_id, incident_id)
-            .execute(transaction.as_mut())
-            .await?;
+        sqlx::query!(
+            "DELETE FROM incidents WHERE organization_id = $1 AND id = $2",
+            organization_id,
+            incident_id
+        )
+        .execute(transaction.as_mut())
+        .await?;
         Ok(())
+    }
+
+    /// Get the filterable metadata for all the incidents of an organization
+    async fn get_filterable_metadata(
+        &self,
+        organization_id: Uuid,
+    ) -> anyhow::Result<FilterableMetadata> {
+        let records = sqlx::query!(
+            r#"
+                WITH RECURSIVE 
+                json_keys AS (
+                    SELECT DISTINCT
+                        key,
+                        value #>> '{}' as value_str
+                    FROM incidents,
+                    jsonb_each(metadata -> 'records') as fields(key, value)
+                    WHERE incidents.organization_id = $1
+                )
+                SELECT 
+                key as "key!",
+                value_str as "value!",
+                COUNT(*) OVER (PARTITION BY key, value_str) as "value_occurrence_count!"
+                FROM json_keys
+                ORDER BY key, value_str;
+                "#,
+            organization_id,
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        let items = records
+            .into_iter()
+            .chunk_by(|r| r.key.clone())
+            .into_iter()
+            .map(|(key, chunk)| {
+                let distinct_values: Vec<FilterableMetadataValue> = chunk
+                    .map(|r| FilterableMetadataValue {
+                        value: r.value,
+                        value_count: r.value_occurrence_count as u64,
+                    })
+                    .collect();
+                FilterableMetadataItem {
+                    key,
+                    key_cardinality: distinct_values.len() as u64,
+                    distinct_values,
+                }
+            })
+            .collect();
+
+        Ok(FilterableMetadata { items })
     }
 }

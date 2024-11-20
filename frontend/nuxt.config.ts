@@ -70,7 +70,7 @@ export default defineNuxtConfig({
   ],
 
   alias: {
-    "bindings": resolve(__dirname, "../server/bindings")
+    "bindings": resolve(__dirname, "../server/bindings"),
   },
 
   content: {},

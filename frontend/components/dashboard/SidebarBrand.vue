@@ -1,7 +1,7 @@
 <template>
     <NuxtLink id="sidebar-brand" :to="localePath('dashboard')">
       <img src="@/assets/navbar-duck.png" alt="Duty Duck logo" />
-      <span>Duty Duck</span>
+      <span class="d-none d-xxl-block">Duty Duck</span>
     </NuxtLink>
   </template>
   

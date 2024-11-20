@@ -10,16 +10,18 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <nav class="filtering-bar d-flex gap-2 py-3">
+  <nav class="filtering-bar gap-2">
     <BButton variant="outline-secondary" @click="emit('clearFilters')" class="d-flex align-items-center"
       :v-b-tooltip.hover.top="`${$t('dashboard.monitors.clearFilters')}`">
       <Icon size="1.3rem" name="ph:funnel-simple-x-bold" />
     </BButton>
     <HttpMonitorStatusDropdown v-model="includeStatuses" />
+    <slot />
     <BInput
       class="border border-secondary bg-transparent"
       v-model="query"
       :placeholder="$t('dashboard.monitors.search')"
+      style="width: 300px;"
     />
   </nav>
 </template>
@@ -28,10 +30,20 @@ const emit = defineEmits<{
 @import "~/assets/main.scss";
 
 .filtering-bar {
-  @include blurry-gray-background;
   display: flex;
+  align-items: center;
   position: sticky;
   top: 50px;
-  z-index: 1;
+  z-index: 10;
+  flex-wrap: wrap;
+  height: $navbar-height;
+
+  @include media-breakpoint-down(lg) {
+    @include blurry-gray-background;
+  }
+
+  @include media-breakpoint-up(lg) {
+    top: 0px;
+  }
 }
 </style>
