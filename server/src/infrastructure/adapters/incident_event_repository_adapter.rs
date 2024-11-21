@@ -1,11 +1,47 @@
+use std::sync::Arc;
+
 use sqlx::postgres::PgPool;
+use tokio::task::JoinHandle;
 use uuid::Uuid;
 
-use crate::domain::{entities::incident_event::IncidentEvent, ports::incident_event_repository::IncidentEventRepository};
+use crate::domain::{
+    entities::incident_event::IncidentEvent,
+    ports::incident_event_repository::IncidentEventRepository,
+};
 
 #[derive(Clone)]
 pub struct IncidentEventRepositoryAdapter {
-    pub pool: PgPool,
+    pool: PgPool,
+    _partition_creation_background_task: Arc<JoinHandle<()>>,
+}
+
+impl IncidentEventRepositoryAdapter {
+    pub fn new(pool: PgPool) -> Self {
+        let partition_creation_background_task = tokio::spawn({
+            let pool = pool.clone();
+            async move {
+                let mut interval =
+                    tokio::time::interval(std::time::Duration::from_secs(60 * 60 * 24));
+                loop {
+                    interval.tick().await;
+                    match sqlx::query!("SELECT create_incident_timeline_partition_for_month()")
+                        .execute(&pool)
+                        .await
+                    {
+                        Ok(_) => tracing::debug!("Incident timeline partition created"),
+                        Err(e) => {
+                            tracing::error!("Error creating incident timeline partition: {:?}", e)
+                        }
+                    }
+                }
+            }
+        });
+
+        Self {
+            pool,
+            _partition_creation_background_task: Arc::new(partition_creation_background_task),
+        }
+    }
 }
 
 crate::postgres_transactional_repo!(IncidentEventRepositoryAdapter);

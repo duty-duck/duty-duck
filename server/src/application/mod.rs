@@ -101,7 +101,7 @@ async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationSt
         api_token_repository: ApiAccessTokenRepositoryAdapter { pool: pool.clone()},
         http_monitors_repository: HttpMonitorRepositoryAdapter { pool: pool.clone() },
         incident_repository: IncidentRepositoryAdapter { pool: pool.clone() },
-        incident_event_repository: IncidentEventRepositoryAdapter { pool: pool.clone() },
+        incident_event_repository: IncidentEventRepositoryAdapter::new(pool.clone()),
         incident_notification_repository: IncidentNotificationRepositoryAdapter {
             pool: pool.clone(),
         },

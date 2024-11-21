@@ -2,7 +2,7 @@
     "sqltools.connections": [
         {
             "previewLimit": 50,
-            "server": "database",
+            "server": "main-database",
             "port": 5432,
             "driver": "PostgreSQL",
             "name": "DutyDuck",
