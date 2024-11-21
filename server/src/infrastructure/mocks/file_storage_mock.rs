@@ -13,12 +13,12 @@ impl FileStorage for FileStorageMock {
         Ok(())
     }
 
-    async fn get_file(&self, key: FileStorageKey) -> anyhow::Result<Vec<u8>> {
+    async fn get_file(&self, _key: FileStorageKey) -> anyhow::Result<Vec<u8>> {
         anyhow::bail!("Not implemented")
     }
 
     /// Returns a presigned URL for the file
-    async fn get_file_url(&self, key: FileStorageKey) -> anyhow::Result<Url> {
+    async fn get_file_url(&self, _key: FileStorageKey) -> anyhow::Result<Url> {
         anyhow::bail!("Not implemented")
     }
 }

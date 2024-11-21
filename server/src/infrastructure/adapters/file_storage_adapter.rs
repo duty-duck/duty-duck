@@ -4,7 +4,6 @@ use async_trait::async_trait;
 use aws_config::{AppName, BehaviorVersion};
 use aws_sdk_s3::{presigning::PresigningConfig, primitives::ByteStream, Client};
 use url::Url;
-use uuid::Uuid;
 
 use crate::domain::ports::file_storage::{FileStorage, FileStorageKey};
 

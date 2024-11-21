@@ -10,5 +10,7 @@
             "body": "You do not have permission to perform this action."
         }
     },
-    "cancel": "Cancel"
+    "cancel": "Cancel",
+    "create": "Create",
+    "close": "Close"
 }

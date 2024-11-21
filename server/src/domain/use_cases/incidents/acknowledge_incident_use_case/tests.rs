@@ -1,13 +1,20 @@
 use chrono::Utc;
 use uuid::Uuid;
 
-use crate::domain::{entities::{
-    authorization::{AuthContext, Permission},
-    entity_metadata::EntityMetadata,
-    http_monitor::HttpMonitorErrorKind,
-    incident::{HttpMonitorIncidentCause, HttpMonitorIncidentCausePing, Incident, IncidentCause, IncidentPriority, IncidentSourceType, IncidentStatus},
-    incident_event::IncidentEventType, organization::{OrganizationRoleSet, OrganizationUserRole},
-}, ports::{incident_repository::IncidentRepository, transactional_repository::TransactionalRepository}};
+use crate::domain::{
+    entities::{
+        authorization::AuthContext,
+        entity_metadata::EntityMetadata,
+        http_monitor::HttpMonitorErrorKind,
+        incident::{
+            HttpMonitorIncidentCause, HttpMonitorIncidentCausePing, Incident, IncidentCause,
+            IncidentPriority, IncidentSourceType, IncidentStatus,
+        },
+        incident_event::IncidentEventType,
+        organization::OrganizationUserRole,
+    },
+    ports::transactional_repository::TransactionalRepository,
+};
 use crate::infrastructure::mocks::{
     incident_event_repository_mock::IncidentEventRepositoryMock,
     incident_notification_repository_mock::IncidentNotificationRepositoryMock,
@@ -23,13 +30,15 @@ fn create_test_incident(org_id: Uuid) -> Incident {
         created_at: Utc::now(),
         created_by: Some(Uuid::new_v4()),
         resolved_at: None,
-        cause: Some(IncidentCause::HttpMonitorIncidentCause(HttpMonitorIncidentCause {
-            last_ping: HttpMonitorIncidentCausePing {
-                error_kind: HttpMonitorErrorKind::Timeout,
-                http_code: None,
+        cause: Some(IncidentCause::HttpMonitorIncidentCause(
+            HttpMonitorIncidentCause {
+                last_ping: HttpMonitorIncidentCausePing {
+                    error_kind: HttpMonitorErrorKind::Timeout,
+                    http_code: None,
+                },
+                previous_pings: vec![],
             },
-            previous_pings: vec![],
-        })),
+        )),
         status: IncidentStatus::Ongoing,
         priority: IncidentPriority::Critical,
         incident_source_type: IncidentSourceType::HttpMonitor,
@@ -44,14 +53,15 @@ async fn test_acknowledge_incident_success() -> anyhow::Result<()> {
     let incident_repo = IncidentRepositoryMock::new();
     let incident_event_repo = IncidentEventRepositoryMock::new();
     let incident_notification_repo = IncidentNotificationRepositoryMock::new();
-    
+
     let org_id = Uuid::new_v4();
     let user_id = Uuid::new_v4();
-    let auth_context = AuthContext::test_context(org_id, user_id, &[OrganizationUserRole::Administrator], &[]);
+    let auth_context =
+        AuthContext::test_context(org_id, user_id, &[OrganizationUserRole::Administrator], &[]);
 
     // Create and store test incident
-    let mut incident = create_test_incident(org_id);
-    let mut tx = incident_repo.begin_transaction().await?;
+    let incident = create_test_incident(org_id);
+    let _tx = incident_repo.begin_transaction().await?;
     {
         let mut state = incident_repo.state.lock().await;
         state.push(incident.clone());
@@ -92,17 +102,18 @@ async fn test_acknowledge_incident_already_acknowledged() -> anyhow::Result<()> 
     let incident_repo = IncidentRepositoryMock::new();
     let incident_event_repo = IncidentEventRepositoryMock::new();
     let incident_notification_repo = IncidentNotificationRepositoryMock::new();
-    
+
     let org_id = Uuid::new_v4();
     let user_id = Uuid::new_v4();
-    let auth_context = AuthContext::test_context(org_id, user_id, &[OrganizationUserRole::Administrator], &[]);
+    let auth_context =
+        AuthContext::test_context(org_id, user_id, &[OrganizationUserRole::Administrator], &[]);
 
     // Create incident that's already acknowledged by the user
     let mut incident = create_test_incident(org_id);
     incident.acknowledged_by.push(user_id);
-    
+
     // Add incident to repository
-    let mut tx = incident_repo.begin_transaction().await?;
+    let _tx = incident_repo.begin_transaction().await?;
     {
         let mut state = incident_repo.state.lock().await;
         state.push(incident.clone());
@@ -130,13 +141,14 @@ async fn test_acknowledge_incident_forbidden() -> anyhow::Result<()> {
     let incident_repo = IncidentRepositoryMock::new();
     let incident_event_repo = IncidentEventRepositoryMock::new();
     let incident_notification_repo = IncidentNotificationRepositoryMock::new();
-    
+
     let org_id = Uuid::new_v4();
     let user_id = Uuid::new_v4();
-    let auth_context = AuthContext::test_context(org_id, user_id, &[OrganizationUserRole::Reporter], &[]);
+    let auth_context =
+        AuthContext::test_context(org_id, user_id, &[OrganizationUserRole::Reporter], &[]);
 
     let incident = create_test_incident(org_id);
-    let mut tx = incident_repo.begin_transaction().await?;
+    let _tx = incident_repo.begin_transaction().await?;
     {
         let mut state = incident_repo.state.lock().await;
         state.push(incident.clone());
@@ -170,10 +182,11 @@ async fn test_acknowledge_incident_not_found() -> anyhow::Result<()> {
     let incident_repo = IncidentRepositoryMock::new();
     let incident_event_repo = IncidentEventRepositoryMock::new();
     let incident_notification_repo = IncidentNotificationRepositoryMock::new();
-    
+
     let org_id = Uuid::new_v4();
     let user_id = Uuid::new_v4();
-    let auth_context = AuthContext::test_context(org_id, user_id, &[OrganizationUserRole::Administrator], &[]);
+    let auth_context =
+        AuthContext::test_context(org_id, user_id, &[OrganizationUserRole::Administrator], &[]);
 
     // Execute use case with non-existent incident ID
     let result = acknowledge_incident(
@@ -185,7 +198,10 @@ async fn test_acknowledge_incident_not_found() -> anyhow::Result<()> {
     )
     .await;
 
-    assert!(matches!(result, Err(AcknowledgeIncidentError::IncidentNotFound)));
+    assert!(matches!(
+        result,
+        Err(AcknowledgeIncidentError::IncidentNotFound)
+    ));
 
     // Verify no changes were made
     let event_state = incident_event_repo.state.lock().await;
@@ -199,15 +215,20 @@ async fn test_acknowledge_incident_wrong_organization() -> anyhow::Result<()> {
     let incident_repo = IncidentRepositoryMock::new();
     let incident_event_repo = IncidentEventRepositoryMock::new();
     let incident_notification_repo = IncidentNotificationRepositoryMock::new();
-    
+
     let org_id = Uuid::new_v4();
     let other_org_id = Uuid::new_v4();
     let user_id = Uuid::new_v4();
-    let auth_context = AuthContext::test_context(other_org_id, user_id, &[OrganizationUserRole::Administrator], &[]);
+    let auth_context = AuthContext::test_context(
+        other_org_id,
+        user_id,
+        &[OrganizationUserRole::Administrator],
+        &[],
+    );
 
     // Create incident in different organization
     let incident = create_test_incident(org_id);
-    let mut tx = incident_repo.begin_transaction().await?;
+    let _tx = incident_repo.begin_transaction().await?;
     {
         let mut state = incident_repo.state.lock().await;
         state.push(incident.clone());
@@ -223,7 +244,10 @@ async fn test_acknowledge_incident_wrong_organization() -> anyhow::Result<()> {
     )
     .await;
 
-    assert!(matches!(result, Err(AcknowledgeIncidentError::IncidentNotFound)));
+    assert!(matches!(
+        result,
+        Err(AcknowledgeIncidentError::IncidentNotFound)
+    ));
 
     // Verify no changes were made
     let event_state = incident_event_repo.state.lock().await;

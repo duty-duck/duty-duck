@@ -10,5 +10,7 @@
             "body": "Vous n'avez pas les permissions pour effectuer cette action."
         }
     },
-    "cancel": "Annuler"
+    "cancel": "Annuler",
+    "create": "Créer",
+    "close": "Fermer"
 }

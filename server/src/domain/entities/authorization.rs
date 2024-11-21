@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use custom_derive::custom_derive;
 use enum_derive::*;
 use rand::Rng;
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 use uuid::Uuid;
 use veil::Redact;
@@ -82,7 +82,7 @@ impl AuthContext {
 
 custom_derive! {
     #[derive(Clone, Copy, Debug, EnumDisplay, IterVariants(GetVariants))]
-    #[derive(Serialize, TS, PartialEq, Eq)]
+    #[derive(Serialize, TS, PartialEq, Eq, Deserialize)]
     #[derive(sqlx::Type)]
     #[serde(rename_all = "camelCase")]
     #[ts(export)]
@@ -135,7 +135,9 @@ impl From<i16> for Permission {
     }
 }
 
-#[derive(sqlx::FromRow, Clone, Redact)]
+#[derive(sqlx::FromRow, Clone, Redact, Serialize, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
 pub struct ApiAccessToken {
     pub id: Uuid,
     pub organization_id: Uuid,
@@ -143,6 +145,7 @@ pub struct ApiAccessToken {
     pub label: String,
     // A hashed 256-bit key
     #[redact]
+    #[serde(skip_serializing)]
     pub secret_key: Vec<u8>,
     pub scopes: Vec<Permission>,
     pub expires_at: DateTime<Utc>,

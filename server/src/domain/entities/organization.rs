@@ -136,6 +136,11 @@ pub struct OrganizationRoleSet {
 }
 
 impl OrganizationRoleSet {
+    #[inline]
+    pub fn from_roles(roles: Vec<OrganizationUserRole>) -> Self {
+        Self { roles }
+    }
+
     /// Returns whether this [OrganizationRoleSet] contains the specified role.
     /// This function implements a hierarchy of roles: for all roles A and B where A includes all the privileges of B, then contains(A) implies contains(B).
     ///

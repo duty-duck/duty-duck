@@ -10,6 +10,8 @@ pub trait TransactionalRepository {
     type Transaction: Send;
 
     async fn begin_transaction(&self) -> anyhow::Result<Self::Transaction>;
+
+    #[allow(unused)]
     async fn rollback_transaction(&self, tx: Self::Transaction) -> anyhow::Result<()>;
     async fn commit_transaction(&self, tx: Self::Transaction) -> anyhow::Result<()>;
 }

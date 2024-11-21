@@ -4,7 +4,7 @@ use axum::extract::State;
 
 use crate::infrastructure::{
     adapters::{
-        file_storage_adapter::FileStorageAdapter, http_client_adapter::HttpClientAdapter, http_monitor_repository_adapter::HttpMonitorRepositoryAdapter, incident_event_repository_adapter::IncidentEventRepositoryAdapter, incident_notification_repository_adapter::IncidentNotificationRepositoryAdapter, incident_repository_adapter::IncidentRepositoryAdapter, mailer_adapter::MailerAdapter, organization_repository_adapter::OrganizationRepositoryAdapter, push_notification_server_adapter::PushNotificationServerAdapter, sms_notification_server_adapter::SmsNotificationServerAdapter, user_devices_repository_adapter::UserDevicesRepositoryAdapter, user_repository_adapter::UserRepositoryAdapter
+        api_access_token_repository_adapter::ApiAccessTokenRepositoryAdapter, file_storage_adapter::FileStorageAdapter, http_client_adapter::HttpClientAdapter, http_monitor_repository_adapter::HttpMonitorRepositoryAdapter, incident_event_repository_adapter::IncidentEventRepositoryAdapter, incident_notification_repository_adapter::IncidentNotificationRepositoryAdapter, incident_repository_adapter::IncidentRepositoryAdapter, mailer_adapter::MailerAdapter, organization_repository_adapter::OrganizationRepositoryAdapter, push_notification_server_adapter::PushNotificationServerAdapter, sms_notification_server_adapter::SmsNotificationServerAdapter, user_devices_repository_adapter::UserDevicesRepositoryAdapter, user_repository_adapter::UserRepositoryAdapter
     },
     keycloak_client::KeycloakClient,
 };
@@ -35,4 +35,5 @@ pub struct Adapters {
     pub sms_notification_server: SmsNotificationServerAdapter,
     pub mailer: MailerAdapter,
     pub file_storage: FileStorageAdapter,
+    pub api_token_repository: ApiAccessTokenRepositoryAdapter
 }

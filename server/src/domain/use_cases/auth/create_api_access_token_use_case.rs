@@ -1,12 +1,15 @@
 use chrono::{DateTime, Days, Months, Utc};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use ts_rs::TS;
 use uuid::Uuid;
 
-use crate::domain::entities::authorization::{ApiAccessToken, AuthContext, Permission};
+use crate::domain::{
+    entities::authorization::{ApiAccessToken, AuthContext, Permission},
+    ports::api_access_token_repository::{ApiAccessTokenRepository, NewApiAccessToken},
+};
 
-#[derive(Debug, Serialize, Clone, TS)]
+#[derive(Debug, Deserialize, Clone, TS)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateApiTokenRequest {
@@ -29,10 +32,13 @@ pub enum CreateApiAccessTokenError {
     InsufficientPermissions,
     #[error("Token expiration date is in the past or too far in the future")]
     InvalidExpirationDate,
+    #[error("Failed to persist API token: {0}")]
+    TechnicalFailure(#[from] anyhow::Error),
 }
 
 pub async fn create_api_access_token(
     auth_context: &AuthContext,
+    repository: &impl ApiAccessTokenRepository,
     request: CreateApiTokenRequest,
 ) -> Result<CreateApiTokenResponse, CreateApiAccessTokenError> {
     // Check if the user has the necessary permissions
@@ -53,10 +59,18 @@ pub async fn create_api_access_token(
     }
 
     let secret_key = ApiAccessToken::generate_secret_key();
-
-    // TODO: use a repository to store the token
-    let id = todo!();
     let encoded_secret_key = ApiAccessToken::encode_secret_key(&secret_key);
+
+    let id = repository
+        .create_api_token(NewApiAccessToken {
+            organization_id: auth_context.active_organization_id,
+            user_id: auth_context.active_user_id,
+            label: request.label,
+            scopes: request.scopes,
+            secret_key,
+            expires_at: request.expires_at,
+        })
+        .await?;
 
     Ok(CreateApiTokenResponse {
         id,

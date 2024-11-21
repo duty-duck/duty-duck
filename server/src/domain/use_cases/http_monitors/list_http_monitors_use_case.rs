@@ -26,7 +26,7 @@ impl ListHttpMonitorsParams {
     pub fn metadata_filter(&self) -> MetadataFilter {
         self.metadata_filter
             .as_ref()
-            .and_then(|s| serde_json::from_str(&s).ok())
+            .and_then(|s| serde_json::from_str(s).ok())
             .unwrap_or_default()
     }
 }

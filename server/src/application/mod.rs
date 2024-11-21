@@ -13,7 +13,7 @@ use crate::{
     },
     infrastructure::{
         adapters::{
-            file_storage_adapter::FileStorageAdapter, http_client_adapter::HttpClientAdapter, http_monitor_repository_adapter::HttpMonitorRepositoryAdapter, incident_event_repository_adapter::IncidentEventRepositoryAdapter, incident_notification_repository_adapter::IncidentNotificationRepositoryAdapter, incident_repository_adapter::IncidentRepositoryAdapter, mailer_adapter::{MailerAdapter, MailerAdapterConfig}, organization_repository_adapter::OrganizationRepositoryAdapter, push_notification_server_adapter::PushNotificationServerAdapter, sms_notification_server_adapter::SmsNotificationServerAdapter, user_devices_repository_adapter::UserDevicesRepositoryAdapter, user_repository_adapter::UserRepositoryAdapter
+            api_access_token_repository_adapter::ApiAccessTokenRepositoryAdapter, file_storage_adapter::FileStorageAdapter, http_client_adapter::HttpClientAdapter, http_monitor_repository_adapter::HttpMonitorRepositoryAdapter, incident_event_repository_adapter::IncidentEventRepositoryAdapter, incident_notification_repository_adapter::IncidentNotificationRepositoryAdapter, incident_repository_adapter::IncidentRepositoryAdapter, mailer_adapter::{MailerAdapter, MailerAdapterConfig}, organization_repository_adapter::OrganizationRepositoryAdapter, push_notification_server_adapter::PushNotificationServerAdapter, sms_notification_server_adapter::SmsNotificationServerAdapter, user_devices_repository_adapter::UserDevicesRepositoryAdapter, user_repository_adapter::UserRepositoryAdapter
         },
         keycloak_client::KeycloakClient,
     },
@@ -98,6 +98,7 @@ async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationSt
             keycloak_client: keycloak_client.clone(),
         },
         user_repository: UserRepositoryAdapter::new(keycloak_client.clone()),
+        api_token_repository: ApiAccessTokenRepositoryAdapter { pool: pool.clone()},
         http_monitors_repository: HttpMonitorRepositoryAdapter { pool: pool.clone() },
         incident_repository: IncidentRepositoryAdapter { pool: pool.clone() },
         incident_event_repository: IncidentEventRepositoryAdapter { pool: pool.clone() },

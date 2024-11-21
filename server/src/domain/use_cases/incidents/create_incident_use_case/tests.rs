@@ -120,7 +120,7 @@ async fn test_create_incident_without_notifications() -> anyhow::Result<()> {
     let new_incident = create_test_new_incident(org_id);
     let mut tx = incident_repo.begin_transaction().await?;
 
-    let incident_id = create_incident(
+   create_incident(
         &mut tx,
         &incident_repo,
         &incident_event_repo,

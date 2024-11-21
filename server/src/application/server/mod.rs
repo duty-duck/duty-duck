@@ -1,14 +1,16 @@
+mod api_tokens_router;
 mod auth_context_extractor;
+mod file_router;
 mod http_monitors_router;
 mod incidents_router;
-mod users_router;
-mod user_devices_router;
-mod organizations_router;
-mod file_router;
 mod openapi;
+mod organizations_router;
+mod user_devices_router;
+mod users_router;
 
 use std::time::Duration;
 
+use api_tokens_router::api_tokens_router;
 use axum::{routing::get, Json, Router};
 use file_router::file_router;
 use http_monitors_router::http_monitors_router;
@@ -30,6 +32,7 @@ pub async fn start_server(application_state: ApplicationState, port: u16) -> any
         .nest("/organizations", organizations_router())
         .nest("/files", file_router())
         .nest("/redoc", redoc_router())
+        .nest("/api-tokens", api_tokens_router())
         .route("/", get(|| async { Json(build_info_json()) }))
         .layer(CorsLayer::permissive())
         .with_state(application_state)

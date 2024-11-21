@@ -1,6 +1,6 @@
 use axum::async_trait;
 use chrono::Utc;
-use std::sync::{Arc};
+use std::sync::Arc;
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
@@ -95,12 +95,14 @@ impl IncidentRepository for IncidentRepositoryMock {
     ) -> anyhow::Result<ListIncidentsOutput> {
         let state = self.state.lock().await;
 
+
+        // right now the filter map is unnecessary, but it will change when we have more incident sources
+        #[allow(clippy::unnecessary_filter_map)]
         let include_http_monitors_ids = opts
             .include_sources
             .iter()
             .filter_map(|s| match s {
                 IncidentSource::HttpMonitor { id } => Some(*id),
-                _ => None,
             })
             .collect::<Vec<_>>();
 
@@ -189,7 +191,7 @@ impl IncidentRepository for IncidentRepositoryMock {
 
     async fn get_filterable_metadata(
         &self,
-        organization_id: Uuid,
+        _organization_id: Uuid,
     ) -> anyhow::Result<FilterableMetadata> {
         Ok(FilterableMetadata { items: vec![] })
     }

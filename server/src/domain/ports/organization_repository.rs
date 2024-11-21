@@ -14,6 +14,7 @@ pub trait OrganizationRepository: Clone + Send + Sync + 'static {
     async fn get_organization(&self, id: Uuid) -> Result<Organization, ReadOrganizationError>;
 
     /// Updates an existing organization
+    #[allow(unused)]
     async fn update_organization(
         &self,
         id: Uuid,
@@ -52,6 +53,7 @@ pub trait OrganizationRepository: Clone + Send + Sync + 'static {
     ) -> Result<UserInvitation, WriteOrganizationError>;
 
     /// Deletes an organization
+    #[allow(unused)]
     async fn delete_organization(&self, id: Uuid) -> Result<(), WriteOrganizationError>;
 
     /// Creates a new role within an organization

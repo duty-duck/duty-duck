@@ -28,7 +28,9 @@ pub struct Organization {
     pub id: Uuid,
     pub name: String,
     pub display_name: String,
+    #[allow(unused)]
     pub domains: Vec<String>,
+    #[allow(unused)]
     pub url: Option<String>,
     pub attributes: AttributeMap,
 }

@@ -16,6 +16,7 @@ pub struct PingResponse {
     pub response_time: Duration,
     pub response_ip_address: Option<String>,
     pub resolved_ip_addresses: Vec<String>,
+    #[allow(unused)]
     pub response_body_size_bytes: u64,
     pub response_body_content: Option<Vec<u8>>,
     pub screenshot: Option<Screenshot>

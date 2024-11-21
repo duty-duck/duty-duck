@@ -17,6 +17,7 @@ impl HttpClientMock {
         }
     }
 
+    #[allow(unused)]
     pub async fn set_next_response(&self, response: PingResponse) {
         *self.next_response.lock().await = Some(response);
     }

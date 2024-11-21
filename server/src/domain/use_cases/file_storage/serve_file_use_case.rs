@@ -7,7 +7,7 @@ use crate::domain::{entities::authorization::AuthContext, ports::file_storage::{
 
 #[derive(Debug, Error)]
 pub enum ServeFileUseCaseError {
-    #[error("Failed to list user devices: {0}")]
+    #[error("Failed to serve file: {0}")]
     TechnicalFailure(#[from] anyhow::Error),
 }
 
