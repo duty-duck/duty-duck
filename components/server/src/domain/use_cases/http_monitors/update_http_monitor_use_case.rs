@@ -102,5 +102,6 @@ pub async fn update_http_monitor(
         request_timeout_ms: command.request_timeout_ms as i32,
     };
     repository.update_http_monitor(&mut tx, id, new_monitor).await?;
+    repository.commit_transaction(tx).await?;
     Ok(())
 }
