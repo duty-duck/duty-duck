@@ -8,9 +8,12 @@ members = [
 ]
 
 [workspace.dependencies]
+api-client-rs = { path = "components/api-client-rs" }
+
 url = "2.5.3"
 croner = "2.1.0"
 chrono = { version = "0.4.38", features = ["serde"] }
+uuid = { version = "1.9", features = ["serde", "v4"] }
 futures = "0.3.30"
 futures-util = "0.3.30"
 anyhow = "1.0.86"
