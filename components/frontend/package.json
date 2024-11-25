@@ -1,8 +1,8 @@
 {
-  "name": "nuxt-app",
+  "name": "frontend",
   "private": true,
   "type": "module",
-  "version": "2024.06-1",
+  "version": "0.0.0",
   "scripts": {
     "build": "nuxt build --dotenv ../.env",
     "start": "node .output/server/index.mjs",

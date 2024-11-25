@@ -18,6 +18,7 @@
 		"isolatedModules": true,
 		"rootDir": ".",
 		// Add outDir to specify output directory
-		"outDir": "dist"
+		"outDir": "dist",
+		"types": ["jest"]
 	},
 }

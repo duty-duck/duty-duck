@@ -10,6 +10,7 @@ type BrowserOptions = {
 
 type Browser = {
     fetchPage: (request: HttpRequest) => Promise<HttpResponse>;
+    close: () => Promise<void>;
 }
 
 const logger = createLogger("browser");
@@ -156,7 +157,7 @@ const createBrowser = async (options: BrowserOptions): Promise<Browser> => {
         return response;
     }
 
-    return { fetchPage };
+    return { fetchPage, close: () => browser.close() };
 }
 
 export type BrowserPool = Awaited<ReturnType<typeof createBrowserPool>>;
@@ -173,6 +174,9 @@ export const createBrowserPool = async (numBrowsers: number, options: BrowserOpt
     const browsers = await Promise.all(Array.from({ length: numBrowsers }, () => createBrowser(options)));
     let nextBrowserIndex = 0;
     return {
+        close: async () => {
+            await Promise.all(browsers.map(browser => browser.close()));
+        },
         /**
          * Get a browser from the pool.
          * Browsers are returned in a round-robin fashion.
