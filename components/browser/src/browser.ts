@@ -140,7 +140,7 @@ const createBrowser = async (options: BrowserOptions): Promise<Browser> => {
                 if (!response.error) {
                     response.error = HttpErrorKind.UNKNOWN;
                     response.errorMessage = "An unknown error occurred";
-                    logger.error({ error }, "An unknown error occurred while fetching a page");
+                    logger.error({ error: typeof error === "object" ? { ...error } : { message: error } }, "An unknown error occurred while fetching a page");
                 }
             }
         }
