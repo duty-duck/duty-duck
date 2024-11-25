@@ -1,0 +1,159 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            WITH filter_conditions AS (\n                SELECT \n                    key,\n                    jsonb_array_elements_text(value) as filter_value\n                FROM jsonb_each($6::jsonb)\n            )   \n            SELECT *, COUNT(http_monitors.id) OVER () as \"filtered_count!\" FROM http_monitors  \n            WHERE \n            -- filter by organization\n            organization_id = $1 \n            -- filter by status\n            AND status IN (SELECT unnest($2::integer[])) \n            -- filter by url\n            AND ($3 = '' or url ilike $3) \n            -- filter by metadata\n            AND (\n                $6::jsonb = '{}'::jsonb OR\n                NOT EXISTS (\n                    SELECT 1 FROM filter_conditions fc\n                    WHERE NOT EXISTS (\n                        SELECT 1 FROM jsonb_each(http_monitors.metadata->'records') m\n                        WHERE m.key = fc.key\n                        AND (m.value #>> '{}') = fc.filter_value\n                    )\n                )\n            )\n            ORDER BY url LIMIT $4 OFFSET $5\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "organization_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 3,
+        "name": "url",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "status",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 5,
+        "name": "status_counter",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 6,
+        "name": "first_ping_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 7,
+        "name": "next_ping_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "last_ping_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "last_status_change_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 10,
+        "name": "recovery_confirmation_threshold",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 11,
+        "name": "downtime_confirmation_threshold",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 12,
+        "name": "interval_seconds",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 13,
+        "name": "last_http_code",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 14,
+        "name": "error_kind",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 15,
+        "name": "email_notification_enabled",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 16,
+        "name": "push_notification_enabled",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 17,
+        "name": "sms_notification_enabled",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 18,
+        "name": "metadata",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 19,
+        "name": "request_timeout_ms",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 20,
+        "name": "request_headers",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 21,
+        "name": "archived_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 22,
+        "name": "filtered_count!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int4Array",
+        "Text",
+        "Int8",
+        "Int8",
+        "Jsonb"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      true,
+      null
+    ]
+  },
+  "hash": "7e72f0239be52bd0b3214ff9cd4a1faa6c5053dad1b2710fcbc245a7455e867c"
+}

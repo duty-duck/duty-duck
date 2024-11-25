@@ -1,9 +1,9 @@
 {
   "name": "uptime-monitoring",
   "workspaces": [
-    "fake-internet",
-    "frontend",
-    "http_monitor_executor"
+    "components/fake-internet",
+    "components/frontend",
+    "components/browser"
   ],
   "scripts": {
     "dev": "concurrently npm:dev:server npm:dev:frontend",

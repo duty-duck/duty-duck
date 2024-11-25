@@ -1,0 +1,27 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE http_monitors SET \n                url = $1,\n                status = $2,\n                next_ping_at = $3, \n                metadata = $4,\n                interval_seconds = $5,\n                recovery_confirmation_threshold = $6,\n                downtime_confirmation_threshold = $7,\n                email_notification_enabled = $8,\n                push_notification_enabled = $9,\n                sms_notification_enabled = $10,\n                request_headers = $11,\n                request_timeout_ms = $12,\n                organization_id = $13\n            WHERE organization_id = $13 and id = $14",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Text",
+        "Int2",
+        "Timestamptz",
+        "Jsonb",
+        "Int4",
+        "Int2",
+        "Int2",
+        "Bool",
+        "Bool",
+        "Bool",
+        "Jsonb",
+        "Int4",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "f38cf5449c4dc4fd3c82a04411ea9ae3f9e9a360cc7992b27d5599cc8f699e39"
+}

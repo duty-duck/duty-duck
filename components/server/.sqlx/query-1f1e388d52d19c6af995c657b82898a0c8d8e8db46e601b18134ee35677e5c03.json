@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT create_incident_timeline_partition_for_month()",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "create_incident_timeline_partition_for_month",
+        "type_info": "Void"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "1f1e388d52d19c6af995c657b82898a0c8d8e8db46e601b18134ee35677e5c03"
+}

@@ -10,7 +10,7 @@ on:
       - "fake-internet/**"
 jobs:
   build:
-    runs-on: arm64
+    runs-on: ubicloud-standard-4-arm
     permissions:
       contents: read
       packages: write
@@ -47,7 +47,7 @@ jobs:
       with:
         platforms: linux/arm64
         context: .
-        file: "fake-internet/Dockerfile"
+        file: "components/fake-internet/Dockerfile"
         push: ${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}

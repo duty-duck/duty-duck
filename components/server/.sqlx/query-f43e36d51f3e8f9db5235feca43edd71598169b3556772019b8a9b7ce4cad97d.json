@@ -1,0 +1,27 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO api_access_tokens (\n                organization_id, user_id, label, secret_key, expires_at, scopes\n            )\n            VALUES ($1, $2, $3, $4, $5, $6)\n            RETURNING id\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Bytea",
+        "Timestamptz",
+        "Int2Array"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "f43e36d51f3e8f9db5235feca43edd71598169b3556772019b8a9b7ce4cad97d"
+}

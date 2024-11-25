@@ -27,7 +27,7 @@ Docker files in this project are meant to be built from the context of the works
 ### Building the frontend:
 
 ```shell
-docker build -t ghcr.io/duty-duck/frontend:latest -f frontend/Dockerfile .
+docker build -t ghcr.io/duty-duck/frontend:latest -f components/frontend/Dockerfile .
 ```
 
 ### Building the server:
@@ -35,20 +35,20 @@ docker build -t ghcr.io/duty-duck/frontend:latest -f frontend/Dockerfile .
 In order to build the server image, you will need to save SQL query metadata so the `server` binary can be built without contacting a database.
 
 ```shell
-$(cd server && cargo sqlx prepare)
-docker build -t ghcr.io/duty-duck/server:latest -f server/Dockerfile .
+$(cd components/server && cargo sqlx prepare)
+docker build -t ghcr.io/duty-duck/server:latest -f components/server/Dockerfile .
 ```
 
 ### Building the browser:
 
 ```shell
-docker build -t ghcr.io/duty-duck/browser:latest -f browser/Dockerfile .
+docker build -t ghcr.io/duty-duck/browser:latest -f components/browser/Dockerfile .
 ```
 
 ### Building the "fake internet" service:
 
 ```shell
-docker build -t ghcr.io/duty-duck/browser:latest -f browser/Dockerfile .
+docker build -t ghcr.io/duty-duck/fake-internet:latest -f components/fake-internet/Dockerfile .
 ```
 
 ## Keycloak checklist

@@ -9,7 +9,7 @@ on:
       - "browser/**"
 jobs:
   build:
-    runs-on: arm64
+    runs-on: ubicloud-standard-4-arm
     permissions:
       contents: read
       packages: write
@@ -46,7 +46,7 @@ jobs:
       with:
         platforms: linux/arm64
         context: .
-        file: "browser/Dockerfile"
+        file: "components/browser/Dockerfile"
         push: ${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}

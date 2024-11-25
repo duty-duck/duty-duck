@@ -36,7 +36,7 @@ services:
           - www.fake-internet.com
 
   main-database:
-    build: ./database
+    image: postgres:16-alpine
     environment:
       - POSTGRES_DB=dutyduck
       - POSTGRES_USER=admin

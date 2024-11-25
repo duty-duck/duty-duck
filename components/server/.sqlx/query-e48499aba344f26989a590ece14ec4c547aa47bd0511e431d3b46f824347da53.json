@@ -1,0 +1,35 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            WITH RECURSIVE \n            json_keys AS (\n                SELECT DISTINCT\n                    key,\n                    value #>> '{}' as value_str\n                FROM http_monitors,\n                jsonb_each(metadata -> 'records') as fields(key, value)\n                WHERE http_monitors.organization_id = $1 AND http_monitors.status != $2\n            )\n            SELECT \n            key as \"key!\",\n            value_str as \"value!\",\n            COUNT(*) OVER (PARTITION BY key, value_str) as \"value_occurrence_count!\"\n            FROM json_keys\n            ORDER BY key, value_str;\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "key!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "value!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 2,
+        "name": "value_occurrence_count!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int2"
+      ]
+    },
+    "nullable": [
+      null,
+      null,
+      null
+    ]
+  },
+  "hash": "e48499aba344f26989a590ece14ec4c547aa47bd0511e431d3b46f824347da53"
+}

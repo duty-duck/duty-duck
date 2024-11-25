@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE http_monitors SET \n                status = $1,\n                next_ping_at = $2, \n                status_counter = $3,\n                error_kind = $4,\n                last_http_code = $5,\n                last_ping_at = now(),\n                first_ping_at = coalesce(first_ping_at, now()),\n                last_status_change_at = $6,\n                archived_at = $7\n            WHERE organization_id = $8 and id = $9",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Int2",
+        "Timestamptz",
+        "Int2",
+        "Int2",
+        "Int2",
+        "Timestamptz",
+        "Timestamptz",
+        "Uuid",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "83c2990209e453c4ad8addb6a6b74d0e19c1d6b0ccbfc5ebc8704a9adbf475f4"
+}
