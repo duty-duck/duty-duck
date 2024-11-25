@@ -6,7 +6,7 @@ on:
     branches:
       - "main"
     paths:
-      - "browser/**"
+      - "components/browser/**"
 jobs:
   build:
     runs-on: ubicloud-standard-4-arm

@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
-      - "frontend/**"
+      - "components/frontend/**"
   push:
     paths:
-      - "frontend/**"
+      - "components/frontend/**"
 jobs:
   build:
     runs-on: ubicloud-standard-4-arm

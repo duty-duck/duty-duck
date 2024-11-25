@@ -4,10 +4,10 @@ on:
   workflow_dispatch:
   pull_request:
     paths:
-      - "fake-internet/**"
+      - "components/fake-internet/**"
   push:
     paths:
-      - "fake-internet/**"
+      - "components/fake-internet/**"
 jobs:
   build:
     runs-on: ubicloud-standard-4-arm
