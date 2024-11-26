@@ -30,6 +30,7 @@ pub struct GetProfileResponse {
 }
 
 #[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
 pub struct User {
     pub id: Uuid,
     pub first_name: String,

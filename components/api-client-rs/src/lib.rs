@@ -3,6 +3,7 @@ mod tasks_subclient;
 
 use std::sync::{Arc, Mutex};
 
+use anyhow::Context;
 use async_trait::async_trait;
 use auth_subclient::AuthSubclient;
 use reqwest::IntoUrl;
@@ -161,7 +162,7 @@ impl ResponseExtention for reqwest::Response {
         if status.is_success() {
             self.json()
                 .await
-                .map_err(|_| anyhow::anyhow!("Failed to parse JSON response"))
+                .context("Failed to parse JSON response")
         } else {
             let body = self.text().await.unwrap_or_default();
             Err(anyhow::anyhow!(

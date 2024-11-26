@@ -15,7 +15,7 @@ pub async fn handle_user_command(command: UserCommands) -> anyhow::Result<()> {
             let config = Config::load().await?;
             let client = config.get_api_client()?;
             let user = client.auth().get_current_user().await?;
-            println!("{:?}", user);
+            println!("{:#?}", user);
             Ok(())
         }
     }
