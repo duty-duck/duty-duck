@@ -33,7 +33,16 @@ const createBrowser = async (options: BrowserOptions): Promise<Browser> => {
     const browser = await puppeteer.launch({
         headless: true,
         executablePath: "/usr/bin/chromium",
-        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+        args: [
+            '--disable-dev-shm-usage',
+            '--disable-setuid-sandbox',
+            '--no-sandbox',
+            '--no-zygote',
+            '--disable-gpu',
+            '--disable-audio-output',
+            '--headless',
+            '--single-process'
+        ],
     });
 
     const acquirePermit = async () => {
@@ -78,6 +87,7 @@ const createBrowser = async (options: BrowserOptions): Promise<Browser> => {
 
             // configure the page
             page.setDefaultTimeout(request.requestTimeoutMs);
+            await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36');
             await page.setCacheEnabled(false);
             await page.setViewport({ width: 1280, height: 800 });
             await page.setExtraHTTPHeaders(request.httpHeaders);
@@ -149,7 +159,14 @@ const createBrowser = async (options: BrowserOptions): Promise<Browser> => {
         // Always close the page and release the semaphore permit
         finally {
             if (page) {
-                await page.close();
+                try {
+                    await page.close();
+                } catch (error) {
+                    response.error = HttpErrorKind.UNKNOWN;
+                    response.errorMessage = "An unknown error occurred";
+                    const errorObject = error instanceof Error ? { errorMessage: error.message, errorCause: error.cause, errorStack: error.stack } : error;
+                    logger.error({ endpoint: request.endpoint, ...errorObject }, "An error occurred while closing a page");
+                }
             }
             releasePermit();
         }
@@ -173,6 +190,7 @@ export const createBrowserPool = async (numBrowsers: number, options: BrowserOpt
 
     const browsers = await Promise.all(Array.from({ length: numBrowsers }, () => createBrowser(options)));
     let nextBrowserIndex = 0;
+
     return {
         close: async () => {
             await Promise.all(browsers.map(browser => browser.close()));
@@ -186,6 +204,18 @@ export const createBrowserPool = async (numBrowsers: number, options: BrowserOpt
             const browser = browsers[nextBrowserIndex];
             nextBrowserIndex = (nextBrowserIndex + 1) % numBrowsers;
             return browser;
+        },
+        async test() {
+            logger.info("Testing all browsers in the browser pool");
+            for (const browser of browsers) {
+                const response = await browser.fetchPage({
+                    endpoint: "https://www.google.com",
+                    requestTimeoutMs: 10000,
+                    httpHeaders: {
+                    },
+                });
+                logger.info({ httpCode: response.httpCode, error: response.error, errorMessage: response.errorMessage }, "Tested browser successfully");
+            }
         }
     }
 }

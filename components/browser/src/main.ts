@@ -8,13 +8,15 @@ const log = createLogger("main");
 
 const config = {
     grpcPort: process.env.GRPC_PORT ? parseInt(process.env.GRPC_PORT) : 50051,
-    maxConcurrentBrowsers: process.env.MAX_CONCURRENT_BROWSERS ? parseInt(process.env.MAX_CONCURRENT_BROWSERS) : 10,
+    maxConcurrentBrowsers: process.env.MAX_CONCURRENT_BROWSERS ? parseInt(process.env.MAX_CONCURRENT_BROWSERS) : 2,
     maxConcurrentPagesPerBrowser: process.env.MAX_CONCURRENT_PAGES_PER_BROWSER ? parseInt(process.env.MAX_CONCURRENT_PAGES_PER_BROWSER) : 40,
 }
 log.info("Initializing browser pool");
 const browserPool = await createBrowserPool(config.maxConcurrentBrowsers, {
     maxOpenPages: config.maxConcurrentPagesPerBrowser,
 });
+
+await browserPool.test();
 
 log.info({ config }, "Starting gRPC Server");
 const server = createServer();
