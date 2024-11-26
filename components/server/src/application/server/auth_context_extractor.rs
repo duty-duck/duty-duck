@@ -148,10 +148,10 @@ async fn api_token_authentication(
                 "Failed to retrieve API token. Please retry later.",
             )
         })?
-        .ok_or((StatusCode::UNAUTHORIZED, "API Token is missing or expired"))?;
+        .ok_or((StatusCode::UNAUTHORIZED, "API Token is invalid"))?;
 
-    if access_token.expires_at >= Utc::now() {
-        return Err((StatusCode::UNAUTHORIZED, "API Token is missing or expired"));
+    if access_token.expires_at <= Utc::now() {
+        return Err((StatusCode::UNAUTHORIZED, "API Token is expired"));
     }
 
     if access_token.secret_key != api_token_secret_key {

@@ -14,7 +14,7 @@ pub struct Config {
 
 impl Config {
     pub fn get_api_client(&self) -> anyhow::Result<DutyDuckApiClient> {
-        let client = DutyDuckApiClient::new();
+        let client = DutyDuckApiClient::new(&self.api_url);
         if let Some(api_token_id) = self.api_token_id.as_ref() {
             client.set_api_token_id(api_token_id.clone())?;
         }
@@ -27,7 +27,7 @@ impl Config {
     pub async fn load() -> anyhow::Result<Config> {
         match get_config_from_file().await {
             Ok(config) => Ok(config),
-            Err(e) => {
+            Err(_) => {
                 eprintln!("Failed to get config from file. Creating a new config file.");
                 let config = Config::default();
                 config.save().await?;

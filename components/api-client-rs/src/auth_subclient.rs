@@ -1,9 +1,10 @@
+use anyhow::*;
+use chrono::{DateTime, Utc};
 use reqwest::Method;
 use serde::Deserialize;
-use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::DutyDuckApiClient;
+use crate::{DutyDuckApiClient, ResponseExtention};
 
 pub struct AuthSubclient {
     pub(crate) client: DutyDuckApiClient,
@@ -13,10 +14,10 @@ impl AuthSubclient {
     pub async fn get_current_user(&self) -> anyhow::Result<GetProfileResponse> {
         let res = self
             .client
-            .request(Method::GET, "/users/me")?
+            .request(Method::GET, self.client.base_url.join("/users/me")?)?
             .send()
             .await?
-            .json()
+            .json_or_err()
             .await?;
         Ok(res)
     }

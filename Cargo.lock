@@ -119,6 +119,7 @@ name = "api-client-rs"
 version = "0.1.0"
 dependencies = [
  "anyhow",
+ "async-trait",
  "chrono",
  "reqwest 0.12.9",
  "serde",
