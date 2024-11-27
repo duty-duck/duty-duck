@@ -1,0 +1,104 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT *, COUNT(*) OVER() as \"filtered_count!\" \n            FROM tasks\n            WHERE organization_id = $1\n            AND ($2::integer[] IS NULL OR status = ANY($2))\n            AND (name ILIKE $3 OR description ILIKE $3)\n            ORDER BY name\n            LIMIT $4 OFFSET $5\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "organization_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "status",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 5,
+        "name": "previous_status",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 6,
+        "name": "last_status_change_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 7,
+        "name": "next_due_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "cron_schedule",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
+        "name": "start_window_seconds",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 10,
+        "name": "lateness_window_seconds",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 11,
+        "name": "heartbeat_timeout_seconds",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 12,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 13,
+        "name": "filtered_count!",
+        "type_info": "Int8"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int4Array",
+        "Text",
+        "Int8",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      null
+    ]
+  },
+  "hash": "754a651475469f3e237e969216cfbde2e5cb7b2ef1daaf95593af1ed762388fa"
+}

@@ -2,13 +2,16 @@
 # e.g.: docker build -t duty-duck-frontend:latest -f frontend/Dockerfile . 
 FROM node:18-alpine AS base
 ENV NODE_ENV=production
-WORKDIR /src
+WORKDIR /app
 
 # Build
 FROM base AS build
 
 # Install dependencies in a seperate step for caching
-COPY --link components/frontend/package.json components/frontend/package-lock.json ./
+COPY --link components/frontend/package*.json  ./components/frontend/
+COPY --link package*.json ./
+
+WORKDIR /app/components/frontend
 RUN npm install --production=false
 
 COPY ./components/server/bindings ../server/bindings
@@ -19,8 +22,8 @@ RUN npm run build
 # Run
 FROM base
 ENV PORT=3000
-COPY --from=build /src/.output /src/.output
+COPY --from=build /app/components/frontend/.output /app/components/frontend/.output
 # Optional, only needed if you rely on unbundled dependencies
 # COPY --from=build /src/node_modules /src/node_modules
 
-CMD [ "node", ".output/server/index.mjs" ]
+CMD [ "node", "/app/components/frontend/.output/server/index.mjs" ]
