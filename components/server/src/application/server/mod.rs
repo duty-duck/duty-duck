@@ -7,6 +7,7 @@ mod openapi;
 mod organizations_router;
 mod user_devices_router;
 mod users_router;
+mod tasks_router;
 
 use std::time::Duration;
 
@@ -17,6 +18,7 @@ use http_monitors_router::http_monitors_router;
 use incidents_router::incidents_router;
 use openapi::redoc_router;
 use organizations_router::organizations_router;
+use tasks_router::tasks_router;
 use tokio::signal;
 use tower_http::{cors::CorsLayer, timeout::TimeoutLayer, trace::TraceLayer};
 use tracing::info;
@@ -31,6 +33,7 @@ pub async fn start_server(application_state: ApplicationState, port: u16) -> any
         .nest("/incidents", incidents_router())
         .nest("/organizations", organizations_router())
         .nest("/files", file_router())
+        .nest("/tasks", tasks_router())
         .nest("/redoc", redoc_router())
         .nest("/api-tokens", api_tokens_router())
         .route("/", get(|| async { Json(build_info_json()) }))

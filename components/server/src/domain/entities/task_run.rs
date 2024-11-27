@@ -4,12 +4,21 @@ use ts_rs::TS;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
+use super::task::TaskId;
+
 #[derive(Debug, Serialize, Deserialize, TS, ToSchema)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct TaskRun {
     pub organization_id: Uuid,
-    pub task_id: Uuid,
+    #[ts(type = "string")]
+    pub task_id: TaskId,
+    pub status: TaskRunStatus,
+    pub started_at: DateTime<Utc>,
+    pub completed_at: Option<DateTime<Utc>>,
+    pub exit_code: Option<i32>,
+    pub error_message: Option<String>,
+    pub last_heartbeat_at: Option<DateTime<Utc>>,
 }
 
 /// An enum that represents the status of a task run

@@ -1,25 +1,25 @@
 -- Add up migration script here
 
 CREATE TABLE tasks (
-    id UUID NOT NULL DEFAULT gen_random_uuid (),
+    id TEXT NOT NULL CHECK (id <> '' AND id !~ '\s'),
     organization_id UUID NOT NULL,
     name VARCHAR(255) NOT NULL,
     description TEXT,
     status smallint not null,
     previous_status smallint,
     last_status_change_at TIMESTAMPTZ,
-    due_at TIMESTAMPTZ, -- the time at which the task is next expected to run. Null for non-cron and disabled tasks
+    next_due_at TIMESTAMPTZ, -- the time at which the task is next expected to run. Null for non-cron and disabled tasks
     cron_schedule text, -- NULL for non-cron tasks
     start_window_seconds INTEGER NOT NULL, -- Time before task is considered late
     lateness_window_seconds INTEGER NOT NULL, -- Time after task is considered late and before it is considered absent
     heartbeat_timeout_seconds INTEGER NOT NULL, -- Time after which task is considered dead without heartbeat
-    created_at TIMESTAMPTZ DEFAULT NOW(),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (organization_id, id)
 );
 
 CREATE TABLE task_runs (
     organization_id UUID NOT NULL,
-    task_id UUID NOT NULL,
+    task_id TEXT NOT NULL,
     status smallint NOT NULL,
     started_at TIMESTAMPTZ NOT NULL,
     completed_at TIMESTAMPTZ,
@@ -40,7 +40,7 @@ PARTITION BY
 -- used to store events related to a single task run
 CREATE TABLE task_run_events (
     organization_id UUID NOT NULL,
-    task_id UUID NOT NULL,
+    task_id TEXT NOT NULL,
     task_run_started_at TIMESTAMPTZ NOT NULL,
     created_at TIMESTAMPTZ NOT NULL,
     event_type smallint NOT NULL,

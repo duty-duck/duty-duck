@@ -13,7 +13,7 @@ use crate::{
     },
     infrastructure::{
         adapters::{
-            api_access_token_repository_adapter::ApiAccessTokenRepositoryAdapter, file_storage_adapter::FileStorageAdapter, http_client_adapter::HttpClientAdapter, http_monitor_repository_adapter::HttpMonitorRepositoryAdapter, incident_event_repository_adapter::IncidentEventRepositoryAdapter, incident_notification_repository_adapter::IncidentNotificationRepositoryAdapter, incident_repository_adapter::IncidentRepositoryAdapter, mailer_adapter::{MailerAdapter, MailerAdapterConfig}, organization_repository_adapter::OrganizationRepositoryAdapter, push_notification_server_adapter::PushNotificationServerAdapter, sms_notification_server_adapter::SmsNotificationServerAdapter, user_devices_repository_adapter::UserDevicesRepositoryAdapter, user_repository_adapter::UserRepositoryAdapter
+            api_access_token_repository_adapter::ApiAccessTokenRepositoryAdapter, file_storage_adapter::FileStorageAdapter, http_client_adapter::HttpClientAdapter, http_monitor_repository_adapter::HttpMonitorRepositoryAdapter, incident_event_repository_adapter::IncidentEventRepositoryAdapter, incident_notification_repository_adapter::IncidentNotificationRepositoryAdapter, incident_repository_adapter::IncidentRepositoryAdapter, mailer_adapter::{MailerAdapter, MailerAdapterConfig}, organization_repository_adapter::OrganizationRepositoryAdapter, push_notification_server_adapter::PushNotificationServerAdapter, sms_notification_server_adapter::SmsNotificationServerAdapter, task_repository_adapter::TaskRepositoryAdapter, user_devices_repository_adapter::UserDevicesRepositoryAdapter, user_repository_adapter::UserRepositoryAdapter
         },
         keycloak_client::KeycloakClient,
     },
@@ -124,6 +124,7 @@ async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationSt
         file_storage: FileStorageAdapter::new(config.file_storage.bucket_name.clone())
             .await
             .context("Failed to create file storage adapter")?,
+        task_repository: TaskRepositoryAdapter { pool: pool.clone() },
     };
     Ok(ApplicationState {
         config: config.clone(),

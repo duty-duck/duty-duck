@@ -59,6 +59,18 @@ impl AuthContext {
             Permission::EditIncidents => self
                 .active_organization_roles
                 .contains(OrganizationUserRole::Editor),
+            Permission::WriteTasks => self
+                .active_organization_roles
+                .contains(OrganizationUserRole::Editor),
+            Permission::ReadTasks => self
+                .active_organization_roles
+                .contains(OrganizationUserRole::Reporter),
+            Permission::WriteTaskRuns => self
+                .active_organization_roles
+                .contains(OrganizationUserRole::Editor),
+            Permission::ReadTaskRuns => self
+                .active_organization_roles
+                .contains(OrganizationUserRole::Reporter),
         }
     }
 
@@ -112,6 +124,14 @@ custom_derive! {
         CommentIncidents = 11,
         /// Edit incidents (acknowledge, resolve, etc.)
         EditIncidents = 12,
+        /// Write tasks
+        WriteTasks = 13,
+        /// Read tasks
+        ReadTasks = 14,
+        /// Write task runs
+        WriteTaskRuns = 15,
+        /// Read task runs
+        ReadTaskRuns = 16,
     }
 }
 
@@ -130,6 +150,10 @@ impl From<i16> for Permission {
             10 => Self::ListOrganizationInvitations,
             11 => Self::CommentIncidents,
             12 => Self::EditIncidents,
+            13 => Self::WriteTasks,
+            14 => Self::ReadTasks,
+            15 => Self::WriteTaskRuns,
+            16 => Self::ReadTaskRuns,
             _ => panic!("invalid Permission discriminant: {value}"),
         }
     }

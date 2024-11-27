@@ -11,3 +11,4 @@ pub mod incident_event_repository_adapter;
 pub mod sms_notification_server_adapter;
 pub mod file_storage_adapter;
 pub mod api_access_token_repository_adapter;
+pub mod task_repository_adapter;

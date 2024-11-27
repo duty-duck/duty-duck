@@ -1,14 +1,58 @@
+use std::fmt::{self, Display};
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Debug, Serialize, Deserialize, TS, ToSchema)]
+#[derive(Debug, Serialize, ToSchema, Clone, PartialEq, Eq)]
+#[serde(transparent)]
+#[schema(as = String)]
+pub struct TaskId(String);
+
+impl TaskId {
+    pub fn new(id: String) -> Option<Self> {
+        if id.is_empty() || id.contains(' ') {
+            return None;
+        }
+        Some(Self(id))
+    }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
+}
+
+/// A conversion from string to task id, only used by sqlx
+impl From<String> for TaskId {
+    fn from(value: String) -> Self {
+        Self::new(value).expect("invalid task id")
+    }
+}
+
+impl<'de> Deserialize<'de> for TaskId {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let string = String::deserialize(deserializer)?;
+        Self::new(string).ok_or_else(|| serde::de::Error::custom("invalid task id"))
+    }
+}
+
+impl Display for TaskId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+#[derive(Debug, Serialize, Deserialize, TS, ToSchema, Clone)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct Task {
-    pub id: Uuid,
+    #[ts(type = "string")]
+    pub id: TaskId,
     pub organization_id: Uuid,
     pub name: String,
     pub description: Option<String>,
@@ -17,7 +61,7 @@ pub struct Task {
     /// The status of the task before the most recent status change
     pub previous_status: TaskStatus,
     /// The time at which the most recent status change occurred
-    pub last_status_change_at: DateTime<Utc>,
+    pub last_status_change_at: Option<DateTime<Utc>>,
     /// The cron schedule of the task (empty for non-cron tasks)
     pub cron_schedule: Option<String>,
     /// The time at which the task is next expected to run
@@ -37,14 +81,6 @@ impl Task {
     pub fn cron_schedule(&self) -> Option<croner::Cron> {
         croner::Cron::new(self.cron_schedule.as_ref()?).parse().ok()
     }
-}
-
-#[derive(Debug, Serialize, Deserialize, TS, ToSchema)]
-#[ts(export)]
-#[serde(rename_all = "camelCase")]
-pub struct TaskRun {
-    pub organization_id: Uuid,
-    pub task_id: Uuid,
 }
 
 /// An enum that represents the status of a task run
@@ -85,5 +121,11 @@ impl From<i16> for TaskStatus {
             7 => Self::Aborted,
             _ => panic!("invalid TaskStatus discriminant: {value}"),
         }
+    }
+}
+
+impl From<Option<i16>> for TaskStatus {
+    fn from(value: Option<i16>) -> Self {
+        value.map(|v| v.into()).unwrap_or(Self::Inactive)
     }
 }
