@@ -8,7 +8,6 @@ use uuid::Uuid;
 
 #[derive(Debug, Serialize, ToSchema, Clone, PartialEq, Eq)]
 #[serde(transparent)]
-#[schema(as = String)]
 pub struct TaskId(String);
 
 impl TaskId {

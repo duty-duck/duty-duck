@@ -47,5 +47,9 @@
     "blog": {
         "title": "Blog",
         "readMore": "Read more"
+    },
+    "documentation": {
+        "developersDocumentation": "Developers documentation",
+        "apiReference": "API reference"
     }
 }

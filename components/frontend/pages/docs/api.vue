@@ -1,22 +1,7 @@
 <template>
-    <ShowcaseLayout>
-        <div class="bg-gray-100 px-4 pt-2">
-            <BBreadcrumb>
-                <BBreadcrumbItem>
-                    <NuxtLink to="/">
-                        Home
-                    </NuxtLink>
-                </BBreadcrumbItem>
-                <BBreadcrumbItem>
-                    <NuxtLink to="/docs">Documentation</NuxtLink>
-                </BBreadcrumbItem>
-                <BBreadcrumbItem>
-                    API Docs
-                </BBreadcrumbItem>
-            </BBreadcrumb>
-        </div>
-        <iframe :src="`${serverUrl}/redoc`" />
-    </ShowcaseLayout>
+    <ShowcaseDocumentationLayout>
+        <iframe class="mt-2" :src="`${serverUrl}/redoc`" />
+    </ShowcaseDocumentationLayout>
 </template>
 
 <script setup lang="ts">

@@ -47,5 +47,9 @@
     "blog": {
         "title": "Blog",
         "readMore": "Lire la suite"
+    },
+    "documentation": {
+        "developersDocumentation": "Documentation pour les développeurs",
+        "apiReference": "Référence API"
     }
 }

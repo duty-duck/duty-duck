@@ -2,6 +2,7 @@
 const localePath = useLocalePath();
 const { locale, locales } = useI18n()
 const switchLocalePath = useSwitchLocalePath()
+const documentationFirstPage = await useDocumentationFirstPage();
 </script>
 
 <template>
@@ -33,7 +34,7 @@ const switchLocalePath = useSwitchLocalePath()
                     <NuxtLink class="nav-link" :to="localePath('/pricing')">
                         Pricing
                     </NuxtLink>
-                    <NuxtLink class="nav-link" :to="localePath('/docs')">
+                    <NuxtLink class="nav-link" :to="documentationFirstPage">
                         Documentation
                     </NuxtLink>
                     <NuxtLink class="nav-link" :to="localePath('/blog')">

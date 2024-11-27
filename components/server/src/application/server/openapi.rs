@@ -3,8 +3,8 @@ use utoipa_redoc::{Redoc, Servable};
 
 use super::*;
 use crate::domain::{
-    entities::{entity_metadata::EntityMetadata, http_monitor::*, incident::*, incident_event::*, user::UserNameInfo},
-    use_cases::{http_monitors::*, incidents::*, shared::OrderDirection},
+    entities::{entity_metadata::EntityMetadata, http_monitor::*, incident::*, incident_event::*, task::{Task, TaskId, TaskStatus}, task_run::{TaskRun, TaskRunStatus}, user::UserNameInfo},
+    use_cases::{http_monitors::*, incidents::*, shared::OrderDirection, tasks::{CreateTaskCommand, GetTaskResponse, ListTasksResponse}},
 };
 
 #[derive(OpenApi)]
@@ -19,6 +19,9 @@ use crate::domain::{
         http_monitors_router::update_http_monitor_handler,
         http_monitors_router::archive_http_monitor_handler,
         http_monitors_router::toggle_http_monitor_handler,
+        tasks_router::list_tasks_handler,
+        tasks_router::create_task_handler,
+        tasks_router::get_task_handler,
     ),
     components(schemas(
         ListIncidentsResponse,
@@ -51,6 +54,14 @@ use crate::domain::{
         CreateHttpMonitorCommand,
         ListHttpMonitorsResponse,
         RequestHeaders,
+        TaskId,
+        TaskStatus,
+        TaskRunStatus,
+        Task,
+        TaskRun,
+        ListTasksResponse,
+        CreateTaskCommand,
+        GetTaskResponse,
     ))
 )]
 struct ApiDoc;
