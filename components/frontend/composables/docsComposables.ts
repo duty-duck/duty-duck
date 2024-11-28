@@ -21,3 +21,31 @@ export const useCurrentPath = () => {
         return ["", "docs", locale.value, ...slug].join('/')
     })
 }
+
+export type NavigationLink = {
+    _path: string;
+    title: string;
+}
+
+export const useNextAndPrevious = async () => {
+    const currentPath = useCurrentPath();
+    const { locale } = useI18n();
+
+    return await useAsyncData('navigation', async () => {
+        const docs = await queryContent('docs', locale.value).only(['_path', 'title']).find();
+        const currentIndex = docs.findIndex(doc => doc._path === currentPath.value);
+        return {
+            prev: currentIndex > 0 ? docs[currentIndex - 1] as NavigationLink : null,
+            next: currentIndex < docs.length - 1 ? docs[currentIndex + 1] as NavigationLink : null
+        }
+    })
+}
+
+export const useComputeDocumentationLinkDest = () => {
+    const { locale } = useI18n();
+    const localePath = useLocalePath();
+
+    return (item: { _path: string }) => {
+        return localePath(item._path.replace(`/${locale.value}/`, '/'))
+    }
+}

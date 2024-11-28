@@ -1,6 +1,8 @@
 <script setup lang="ts">
 const docPath = useCurrentPath();
 
+const { data: nextAndPrevious } = await useNextAndPrevious();
+const computeLinkDest = useComputeDocumentationLinkDest();
 definePageMeta({
     middleware: (to, from) => {
         if (from.fullPath.startsWith("/docs") && to.fullPath.startsWith("/en/docs")) {
@@ -21,17 +23,45 @@ definePageMeta({
                 <Icon name="ph:list-bold" />
                 Menu
             </BButton>
-            <ContentDoc :path="docPath">
+            <LazyContentDoc :path="docPath">
                 <template v-slot:empty="{ doc }">
                     <h1>{{ doc.title }}</h1>
                 </template>
                 <template v-slot="{ doc }">
-                    <article>
+                    <article id="doc-content">
                         <h1>{{ doc.title }}</h1>
                         <ContentRenderer :value="doc" />
                     </article>
                 </template>
-            </ContentDoc>
+            </LazyContentDoc>
+
+            <div class="d-flex justify-content-between mt-5 mb-4">
+                <ShowcaseDocumentationPaginationLink v-if="nextAndPrevious?.prev" :link="nextAndPrevious.prev"
+                    direction="prev" />
+                <div v-else></div>
+                <ShowcaseDocumentationPaginationLink v-if="nextAndPrevious?.next" :link="nextAndPrevious.next"
+                    direction="next" />
+            </div>
         </BContainer>
     </ShowcaseDocumentationLayout>
 </template>
+
+<style lang="scss">
+@import "~/assets/main.scss";
+
+#doc-content {
+    h1>a,
+    h2>a,
+    h3>a,
+    h4>a,
+    h5>a,
+    h6>a {
+        color: $gray-800;
+        text-decoration: none;
+    }
+
+    h2,h3,h4,h5,h6 {
+        @extend .mt-4;
+    }
+}
+</style>

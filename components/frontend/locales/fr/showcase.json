@@ -50,6 +50,8 @@
     },
     "documentation": {
         "developersDocumentation": "Documentation pour les développeurs",
-        "apiReference": "Référence API"
+        "apiReference": "Référence API",
+        "prev": "Précédent",
+        "next": "Suivant"
     }
 }

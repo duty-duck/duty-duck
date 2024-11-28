@@ -13,10 +13,7 @@ const { data: navigation } = await useAsyncData('docs-navigation', async () => {
 })
 
 const currentPath = useCurrentPath();
-
-const computeLinkDest = (item: NavItem) => {
-    return localePath(item._path.replace(`/${locale.value}/`, '/'))
-}
+const computeLinkDest = useComputeDocumentationLinkDest();
 </script>
 
 <template>
