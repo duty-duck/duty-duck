@@ -32,14 +32,8 @@ export default defineNuxtConfig({
     '/en/dashboard/**': { ssr: false },
     '/invitationCallback/**': { ssr: false },
     '/en/invitationCallback/**': { ssr: false },
-
-    // Pre-render the docs pages
-    '/docs/**': { prerender: true },
-    '/en/docs/**': { prerender: true },
-
-    // Pre-render the home page
-    '/': { prerender: true },
-    '/en': { prerender: true },
+    // do not pre-render anything, because we rely on nuxt's runtime config everywhere,
+    // which breaks if we pre-render
   },
 
   runtimeConfig: {
