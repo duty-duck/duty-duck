@@ -3,8 +3,8 @@ use utoipa_redoc::{Redoc, Servable};
 
 use super::*;
 use crate::domain::{
-    entities::{entity_metadata::EntityMetadata, http_monitor::*, incident::*, incident_event::*, task::{Task, TaskId, TaskStatus}, task_run::{TaskRun, TaskRunStatus}, user::UserNameInfo},
-    use_cases::{http_monitors::*, incidents::*, shared::OrderDirection, tasks::{CreateTaskCommand, GetTaskResponse, ListTasksResponse}},
+    entities::{entity_metadata::EntityMetadata, http_monitor::*, incident::*, incident_event::*, task::{BoundaryTask, TaskId, TaskStatus}, task_run::{BoundaryTaskRun, TaskRunStatus}, user::UserNameInfo},
+    use_cases::{http_monitors::*, incidents::*, shared::OrderDirection, tasks::{GetTaskResponse, ListTasksResponse}},
 };
 
 #[derive(OpenApi)]
@@ -57,10 +57,9 @@ use crate::domain::{
         TaskId,
         TaskStatus,
         TaskRunStatus,
-        Task,
-        TaskRun,
+        BoundaryTask,
+        BoundaryTaskRun,
         ListTasksResponse,
-        CreateTaskCommand,
         GetTaskResponse,
     ))
 )]

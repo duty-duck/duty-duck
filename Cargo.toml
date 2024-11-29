@@ -7,6 +7,12 @@ members = [
     "components/api-client-rs",
 ]
 
+[profile.dev]
+opt-level = 1
+
+[profile.dev.package."*"]
+opt-level = 3
+
 [workspace.dependencies]
 api-client-rs = { path = "components/api-client-rs" }
 

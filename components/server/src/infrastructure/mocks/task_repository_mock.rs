@@ -5,16 +5,16 @@ use chrono::Utc;
 use uuid::Uuid;
 
 use crate::domain::{
-    entities::task::{Task, TaskId, TaskStatus},
+    entities::task::{BoundaryTask, TaskId, TaskStatus},
     ports::{
-        task_repository::{TaskRepository, ListTasksOutput, NewTask, UpdateTaskStatusCommand},
+        task_repository::{TaskRepository, ListTasksOutput, UpdateTaskStatusCommand},
         transactional_repository::{TransactionMock, TransactionalRepository},
     },
 };
 
 #[derive(Clone)]
 pub struct TaskRepositoryMock {
-    pub state: Arc<Mutex<Vec<Task>>>,
+    pub state: Arc<Mutex<Vec<BoundaryTask>>>,
 }
 
 impl TaskRepositoryMock {
@@ -49,7 +49,7 @@ impl TaskRepository for TaskRepositoryMock {
         _transaction: &mut Self::Transaction,
         organization_id: Uuid,
         task_id: TaskId,
-    ) -> anyhow::Result<Option<Task>> {
+    ) -> anyhow::Result<Option<BoundaryTask>> {
         let state = self.state.lock().await;
         Ok(state
             .iter()
@@ -72,7 +72,7 @@ impl TaskRepository for TaskRepositoryMock {
             .filter(|t| t.organization_id == organization_id)
             .count() as u32;
 
-        let filtered_tasks: Vec<Task> = state
+        let filtered_tasks: Vec<BoundaryTask> = state
             .iter()
             .filter(|t| t.organization_id == organization_id)
             .filter(|t| include_statuses.is_empty() || include_statuses.contains(&t.status))
@@ -97,25 +97,8 @@ impl TaskRepository for TaskRepositoryMock {
         })
     }
 
-    async fn create_task(&self, task: NewTask) -> anyhow::Result<TaskId> {
+    async fn create_task(&self, task: BoundaryTask) -> anyhow::Result<TaskId> {
         let mut state = self.state.lock().await;
-        
-        let task = Task {
-            organization_id: task.organization_id,
-            id: task.id.clone(),
-            name: task.name,
-            description: task.description,
-            status: task.status,
-            previous_status: task.status,
-            last_status_change_at: None,
-            cron_schedule: task.cron_schedule,
-            next_due_at: task.next_due_at,
-            start_window_seconds: task.start_window_seconds,
-            lateness_window_seconds: task.lateness_window_seconds,
-            heartbeat_timeout_seconds: task.heartbeat_timeout_seconds,
-            created_at: Utc::now(),
-        };
-
         let id = task.id.clone();
         state.push(task);
         Ok(id)
@@ -124,12 +107,11 @@ impl TaskRepository for TaskRepositoryMock {
     async fn update_task(
         &self,
         _transaction: &mut Self::Transaction,
-        id: TaskId,
-        task: NewTask,
+        task: BoundaryTask,
     ) -> anyhow::Result<bool> {
         let mut state = self.state.lock().await;
 
-        if let Some(existing) = state.iter_mut().find(|t| t.id == id && t.organization_id == task.organization_id) {
+        if let Some(existing) = state.iter_mut().find(|t| t.id == task.id && t.organization_id == task.organization_id) {
             existing.name = task.name;
             existing.description = task.description;
             existing.status = task.status;
@@ -154,7 +136,7 @@ impl TaskRepository for TaskRepositoryMock {
         if let Some(task) = state.iter_mut().find(|t| {
             t.id == command.task_id && t.organization_id == command.organization_id
         }) {
-            task.previous_status = command.previous_status;
+            task.previous_status = Some(command.previous_status);
             task.status = command.status;
             task.last_status_change_at = command.last_status_change_at;
             task.next_due_at = command.next_due_at;
@@ -168,18 +150,21 @@ impl TaskRepository for TaskRepositoryMock {
 mod tests {
     use super::*;
 
-    fn create_test_task(org_id: Uuid, name: &str, status: TaskStatus) -> NewTask {
-        NewTask {
+    fn create_test_task(org_id: Uuid, name: &str, status: TaskStatus) -> BoundaryTask {
+        BoundaryTask {
             organization_id: org_id,
             id: TaskId::new(name.to_string()).expect("Invalid task ID"),
             name: name.to_string(),
             description: None,
             status,
+            previous_status: None,
+            last_status_change_at: None,
             cron_schedule: None,
             next_due_at: Some(Utc::now()),
             start_window_seconds: 300,
             lateness_window_seconds: 600,
             heartbeat_timeout_seconds: 60,
+            created_at: Utc::now(),
         }
     }
 

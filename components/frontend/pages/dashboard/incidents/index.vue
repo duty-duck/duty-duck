@@ -77,10 +77,10 @@ useIntervalFn(() => {
     <BBreadcrumb>
       <BBreadcrumbItem :to="localePath('/dashboard')">{{
         $t("dashboard.mainSidebar.home")
-      }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
       <BBreadcrumbItem active>{{
         $t("dashboard.mainSidebar.incidents")
-      }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
     </BBreadcrumb>
     <h2>{{ $t("dashboard.incidents.pageTitle") }}</h2>
     <div class="small text-secondary mb-2">
@@ -105,7 +105,8 @@ useIntervalFn(() => {
       v-model:orderBy="orderBy" v-model:orderDirection="orderDirection" v-model:metadataFilter="metadataFilter"
       :filterableMetadataFields="filterableMetadataFields!" @clearFilters="onClearFilters">
       <template #default>
-        <BButton variant="outline-secondary" class="d-flex align-items-center gap-1" @click="showFacetsOffcanvas = true">
+        <BButton variant="outline-secondary" class="d-flex align-items-center gap-1"
+          @click="showFacetsOffcanvas = true">
           <Icon name="ph:funnel" aria-hidden size="1.3rem" />
           {{ $t('dashboard.facets.title') }}
         </BButton>
@@ -130,9 +131,9 @@ useIntervalFn(() => {
         </BButton>
       </div>
       <IncidentTableView v-else-if="data" :incidents="data!.items" />
-      <BPagination v-model="pageNumber" v-if="data?.totalNumberOfFilteredResults! > 10"
+      <BPagination v-model="pageNumber" v-if="data?.totalNumberOfFilteredResults! > 15"
         :prev-text="$t('pagination.prev')" pills :next-text="$t('pagination.next')"
-        :total-rows="data?.totalNumberOfFilteredResults" :per-page="10" />
+        :total-rows="data?.totalNumberOfFilteredResults" :per-page="15" />
     </div>
 
     <BOffcanvas v-model="showFacetsOffcanvas" placement="end" body-class="p-0">

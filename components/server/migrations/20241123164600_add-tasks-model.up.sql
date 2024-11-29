@@ -26,7 +26,7 @@ CREATE TABLE task_runs (
     exit_code INTEGER, -- NULL if still running or dead or aborted
     error_message TEXT,
     last_heartbeat_at TIMESTAMPTZ,
-    updated_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     PRIMARY KEY (
         organization_id,
         task_id,

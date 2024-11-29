@@ -6,7 +6,7 @@ use utoipa::{IntoParams, ToSchema};
 use crate::domain::{
     entities::{
         authorization::{AuthContext, Permission},
-        task::{Task, TaskStatus},
+        task::{BoundaryTask, TaskStatus},
     },
     ports::task_repository::{TaskRepository, ListTasksOutput},
 };
@@ -27,7 +27,7 @@ pub struct ListTasksParams {
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct ListTasksResponse {
-    pub items: Vec<Task>,
+    pub items: Vec<BoundaryTask>,
     pub total_number_of_results: u32,
     pub total_number_of_filtered_results: u32,
 }

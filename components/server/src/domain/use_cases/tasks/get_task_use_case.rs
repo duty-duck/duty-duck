@@ -6,7 +6,7 @@ use utoipa::ToSchema;
 use crate::domain::{
     entities::{
         authorization::{AuthContext, Permission},
-        task::{Task, TaskId},
+        task::{BoundaryTask, TaskId},
     },
     ports::task_repository::TaskRepository,
 };
@@ -15,7 +15,7 @@ use crate::domain::{
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct GetTaskResponse {
-    pub task: Task,
+    pub task: BoundaryTask,
 }
 
 #[derive(Error, Debug)]
@@ -26,21 +26,16 @@ pub enum GetTaskError {
     Forbidden,
     #[error("Task not found")]
     NotFound,
-    #[error("Invalid task ID format")]
-    InvalidTaskId,
 }
 
 pub async fn get_task(
     auth_context: &AuthContext,
     repository: &impl TaskRepository,
-    task_id_str: String,
+    task_id: TaskId,
 ) -> Result<GetTaskResponse, GetTaskError> {
     if !auth_context.can(Permission::ReadTasks) {
         return Err(GetTaskError::Forbidden);
     }
-
-    let task_id = TaskId::new(task_id_str)
-        .ok_or(GetTaskError::InvalidTaskId)?;
 
     let mut tx = repository
         .begin_transaction()

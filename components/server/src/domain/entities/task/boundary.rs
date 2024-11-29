@@ -1,85 +1,31 @@
-use std::fmt::{self, Display};
-
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-#[derive(Debug, Serialize, ToSchema, Clone, PartialEq, Eq)]
-#[serde(transparent)]
-pub struct TaskId(String);
-
-impl TaskId {
-    pub fn new(id: String) -> Option<Self> {
-        if id.is_empty() || id.contains(' ') {
-            return None;
-        }
-        Some(Self(id))
-    }
-
-    pub fn as_str(&self) -> &str {
-        &self.0
-    }
-}
-
-/// A conversion from string to task id, only used by sqlx
-impl From<String> for TaskId {
-    fn from(value: String) -> Self {
-        Self::new(value).expect("invalid task id")
-    }
-}
-
-impl<'de> Deserialize<'de> for TaskId {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: serde::Deserializer<'de>,
-    {
-        let string = String::deserialize(deserializer)?;
-        Self::new(string).ok_or_else(|| serde::de::Error::custom("invalid task id"))
-    }
-}
-
-impl Display for TaskId {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "{}", self.0)
-    }
-}
+use super::id::TaskId;
 
 #[derive(Debug, Serialize, Deserialize, TS, ToSchema, Clone)]
 #[ts(export)]
+#[ts(rename = "Task")]
 #[serde(rename_all = "camelCase")]
-pub struct Task {
+#[schema(as = Task)]
+pub struct BoundaryTask {
     #[ts(type = "string")]
     pub id: TaskId,
     pub organization_id: Uuid,
     pub name: String,
     pub description: Option<String>,
-    /// The current status of the task
     pub status: TaskStatus,
-    /// The status of the task before the most recent status change
-    pub previous_status: TaskStatus,
-    /// The time at which the most recent status change occurred
+    pub previous_status: Option<TaskStatus>,
     pub last_status_change_at: Option<DateTime<Utc>>,
-    /// The cron schedule of the task (empty for non-cron tasks)
     pub cron_schedule: Option<String>,
-    /// The time at which the task is next expected to run
-    /// `None` for non-cron and disabled tasks
     pub next_due_at: Option<DateTime<Utc>>,
-    /// Time before task is considered late
     pub start_window_seconds: i32,
-    /// Time after task is considered late and before it is considered absent
     pub lateness_window_seconds: i32,
-    /// Time after which task is considered dead without heartbeat
     pub heartbeat_timeout_seconds: i32,
-    /// The time at which the task was created
     pub created_at: DateTime<Utc>,
-}
-
-impl Task {
-    pub fn cron_schedule(&self) -> Option<croner::Cron> {
-        croner::Cron::new(self.cron_schedule.as_ref()?).parse().ok()
-    }
 }
 
 /// An enum that represents the status of a task run
@@ -100,11 +46,15 @@ pub enum TaskStatus {
     Late = 4,
     /// The task is expected to start but has not started and the lateness window has passed
     Absent = 5,
-    /// The task was running but is now presumed dead (no heartbeat within the heartbeat timeout)
+    /// The latest task run was running but is now presumed dead (no heartbeat within the heartbeat timeout)
     Dead = 6,
-    /// The task was running but was aborted (e.g. by a user or system)
+    /// The latest task run was running but was aborted (e.g. by a user or system)
     /// Similar to Dead, but the transition was explicit, not due to heartbeat timeout
     Aborted = 7,
+    /// The latest task run has finished running successfully
+    Finished = 8,
+    /// The latest task run has finished running unsuccessfully
+    Failed = 9,
 }
 
 impl From<i16> for TaskStatus {

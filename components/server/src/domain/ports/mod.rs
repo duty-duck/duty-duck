@@ -13,3 +13,4 @@ pub mod sms_notification_server;
 pub mod file_storage;
 pub mod api_access_token_repository;
 pub mod task_repository;
+pub mod task_run_repository;
