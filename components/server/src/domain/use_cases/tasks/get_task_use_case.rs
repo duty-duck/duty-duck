@@ -46,7 +46,7 @@ pub async fn get_task(
         .get_task(
             &mut tx,
             auth_context.active_organization_id,
-            task_id,
+            &task_id,
         )
         .await
         .map_err(GetTaskError::TechnicalFailure)?

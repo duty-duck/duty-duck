@@ -6,7 +6,7 @@ use crate::domain::{
     entities::task::{BoundaryTask, TaskId, TaskStatus},
     ports::{
         task_repository::{
-            ListTasksOutput, TaskRepository, UpdateTaskStatusCommand,
+            ListTasksOutput, TaskRepository,
         },
         transactional_repository::TransactionalRepository,
     },
@@ -26,7 +26,7 @@ impl TaskRepository for TaskRepositoryAdapter {
         &self,
         transaction: &mut Self::Transaction,
         organization_id: Uuid,
-        task_id: TaskId,
+        task_id: &TaskId,
     ) -> anyhow::Result<Option<BoundaryTask>> {
         let record = sqlx::query!(
             "SELECT *
@@ -194,32 +194,5 @@ impl TaskRepository for TaskRepositoryAdapter {
         .await?;
 
         Ok(result.rows_affected() > 0)
-    }
-
-    async fn update_task_status(
-        &self,
-        transaction: &mut Self::Transaction,
-        command: UpdateTaskStatusCommand,
-    ) -> anyhow::Result<()> {
-        sqlx::query!(
-            r#"
-            UPDATE tasks SET
-                status = $1,
-                previous_status = $2,
-                last_status_change_at = $3,
-                next_due_at = $4
-            WHERE organization_id = $5 AND id = $6
-            "#,
-            command.status as i16,
-            command.previous_status as i16,
-            command.last_status_change_at,
-            command.next_due_at,
-            command.organization_id,
-            command.task_id.as_str(),
-        )
-        .execute(transaction.as_mut())
-        .await?;
-
-        Ok(())
     }
 } 

@@ -10,7 +10,7 @@ use crate::domain::entities::{
 use super::transactional_repository::TransactionalRepository;
 
 #[async_trait]
-pub trait TaskRunRepository: TransactionalRepository {
+pub trait TaskRunRepository: TransactionalRepository + Clone + Send + Sync + 'static {
     /// List the task runs for an organization
     async fn list_task_runs<'a>(
         &self,
@@ -18,6 +18,29 @@ pub trait TaskRunRepository: TransactionalRepository {
         organization_id: Uuid,
         opts: ListTaskRunsOpts<'a>,
     ) -> anyhow::Result<Vec<BoundaryTaskRun>>;
+
+    async fn get_latest_task_run(
+        &self,
+        transaction: &mut Self::Transaction,
+        organization_id: Uuid,
+        task_id: &TaskId,
+        statuses: &[TaskRunStatus],
+    ) -> anyhow::Result<Option<BoundaryTaskRun>> {
+        Ok(self
+            .list_task_runs(
+                transaction,
+                organization_id,
+                ListTaskRunsOpts {
+                    task_id,
+                    include_statuses: statuses,
+                    limit: 1,
+                    offset: 0,
+                },
+            )
+            .await?
+            .into_iter()
+            .next())
+    }
 
     /// Get a single task run
     async fn get_task_run(

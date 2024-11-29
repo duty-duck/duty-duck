@@ -157,7 +157,7 @@ mod tests {
         // Create task runs with different statuses
         let task_runs = vec![
             create_test_task_run(org_id, "test-task", TaskRunStatus::Running),
-            create_test_task_run(org_id, "test-task", TaskRunStatus::Completed),
+            create_test_task_run(org_id, "test-task", TaskRunStatus::Finished),
             create_test_task_run(org_id, "test-task", TaskRunStatus::Failed),
         ];
 
@@ -191,14 +191,14 @@ mod tests {
         let mut task_run = create_test_task_run(org_id, "test-task", TaskRunStatus::Running);
         repo.create_task_run(&mut tx, task_run.clone()).await?;
 
-        task_run.status = TaskRunStatus::Completed;
+        task_run.status = TaskRunStatus::Finished;
         task_run.completed_at = Some(Utc::now());
         task_run.exit_code = Some(0);
 
         repo.update_task_run(&mut tx, task_run.clone()).await?;
 
         let state = repo.state.lock().await;
-        assert_eq!(state[0].status, TaskRunStatus::Completed);
+        assert_eq!(state[0].status, TaskRunStatus::Finished);
         assert!(state[0].completed_at.is_some());
         assert_eq!(state[0].exit_code, Some(0));
 

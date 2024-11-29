@@ -7,7 +7,7 @@ use uuid::Uuid;
 use crate::domain::{
     entities::task::{BoundaryTask, TaskId, TaskStatus},
     ports::{
-        task_repository::{TaskRepository, ListTasksOutput, UpdateTaskStatusCommand},
+        task_repository::{TaskRepository, ListTasksOutput},
         transactional_repository::{TransactionMock, TransactionalRepository},
     },
 };
@@ -48,12 +48,12 @@ impl TaskRepository for TaskRepositoryMock {
         &self,
         _transaction: &mut Self::Transaction,
         organization_id: Uuid,
-        task_id: TaskId,
+        task_id: &TaskId,
     ) -> anyhow::Result<Option<BoundaryTask>> {
         let state = self.state.lock().await;
         Ok(state
             .iter()
-            .find(|t| t.id == task_id && t.organization_id == organization_id)
+            .find(|t| t.id == *task_id && t.organization_id == organization_id)
             .cloned())
     }
 
@@ -126,24 +126,6 @@ impl TaskRepository for TaskRepositoryMock {
         }
     }
 
-    async fn update_task_status(
-        &self,
-        _transaction: &mut Self::Transaction,
-        command: UpdateTaskStatusCommand,
-    ) -> anyhow::Result<()> {
-        let mut state = self.state.lock().await;
-        
-        if let Some(task) = state.iter_mut().find(|t| {
-            t.id == command.task_id && t.organization_id == command.organization_id
-        }) {
-            task.previous_status = Some(command.previous_status);
-            task.status = command.status;
-            task.last_status_change_at = command.last_status_change_at;
-            task.next_due_at = command.next_due_at;
-        }
-        
-        Ok(())
-    }
 }
 
 #[cfg(test)]

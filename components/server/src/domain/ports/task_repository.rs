@@ -12,7 +12,7 @@ pub trait TaskRepository: TransactionalRepository + Clone + Send + Sync + 'stati
         &self,
         transaction: &mut Self::Transaction,
         organization_id: Uuid,
-        task_id: TaskId,
+        task_id: &TaskId,
     ) -> anyhow::Result<Option<BoundaryTask>>;
 
     /// List tasks with pagination and filtering
@@ -34,23 +34,6 @@ pub trait TaskRepository: TransactionalRepository + Clone + Send + Sync + 'stati
         transaction: &mut Self::Transaction,
         task: BoundaryTask
     ) -> anyhow::Result<bool>;
-
-    /// Update task status and related fields
-    async fn update_task_status(
-        &self,
-        transaction: &mut Self::Transaction,
-        command: UpdateTaskStatusCommand,
-    ) -> anyhow::Result<()>;
-}
-
-#[derive(Debug)]
-pub struct UpdateTaskStatusCommand {
-    pub organization_id: Uuid,
-    pub task_id: TaskId,
-    pub status: TaskStatus,
-    pub previous_status: TaskStatus,
-    pub last_status_change_at: Option<DateTime<Utc>>,
-    pub next_due_at: Option<DateTime<Utc>>,
 }
 
 pub struct ListTasksOutput {
