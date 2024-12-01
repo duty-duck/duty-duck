@@ -17,7 +17,7 @@ pub trait TaskRunRepository: TransactionalRepository + Clone + Send + Sync + 'st
         transaction: &mut Self::Transaction,
         organization_id: Uuid,
         opts: ListTaskRunsOpts<'a>,
-    ) -> anyhow::Result<Vec<BoundaryTaskRun>>;
+    ) -> anyhow::Result<ListTaskRunsOutput>;
 
     async fn get_latest_task_run(
         &self,
@@ -38,6 +38,7 @@ pub trait TaskRunRepository: TransactionalRepository + Clone + Send + Sync + 'st
                 },
             )
             .await?
+            .runs
             .into_iter()
             .next())
     }
@@ -72,4 +73,10 @@ pub struct ListTaskRunsOpts<'a> {
     pub include_statuses: &'a [TaskRunStatus],
     pub limit: u32,
     pub offset: u32,
+}
+
+pub struct ListTaskRunsOutput {
+    pub runs: Vec<BoundaryTaskRun>,
+    pub total_filtered_runs: u32,
+    pub total_runs: u32,
 }

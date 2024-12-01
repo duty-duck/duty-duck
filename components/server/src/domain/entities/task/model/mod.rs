@@ -80,7 +80,7 @@ fn calculate_next_due_at(
 ) -> Result<Option<DateTime<Utc>>, TaskError> {
     if let Some(schedule) = cron_schedule {
         let next_due_at = schedule
-            .find_next_occurrence(&now, true)
+            .find_next_occurrence(&now, false)
             .map_err(|_| TaskError::InvalidCronSchedule)?;
         Ok(Some(next_due_at))
     } else {

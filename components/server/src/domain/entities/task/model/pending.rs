@@ -35,6 +35,8 @@ impl PendingTask {
 
     pub fn start(self, now: DateTime<Utc>) -> Result<RunningTask, TaskError> {
         Ok(RunningTask {
+            // When a task starts, its next_due_at field is updated to the next time the task is due to run
+            next_due_at: calculate_next_due_at(&self.base.cron_schedule, now)?,
             base: TaskBase {
                 previous_status: Some(TaskStatus::Pending),
                 last_status_change_at: Some(now),

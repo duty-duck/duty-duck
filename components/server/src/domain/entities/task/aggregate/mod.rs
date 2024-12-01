@@ -173,3 +173,34 @@ where
         None => Ok(None),
     }
 }
+
+pub async fn save_task_aggregate<TR, TRR>(
+    task_repository: &TR,
+    task_run_repository: &TRR,
+    tx: &mut TR::Transaction,
+    aggregate: TaskAggregate,
+) -> anyhow::Result<()>
+where
+    TR: TaskRepository,
+    TRR: TaskRunRepository<Transaction = TR::Transaction>,
+{
+    let (boundary_task, boundary_task_run) = to_boundary(aggregate)?;
+    task_repository.update_task(tx, boundary_task).await?;
+    if let Some(boundary_task_run) = boundary_task_run {
+        task_run_repository.create_task_run(tx, boundary_task_run).await?;
+    }
+
+    Ok(())
+}
+
+pub fn to_boundary(aggregate: TaskAggregate) -> anyhow::Result<(BoundaryTask, Option<BoundaryTaskRun>)> {
+    Ok(match aggregate {
+        TaskAggregate::Pending(p) => (p.task.try_into()?, None),
+        TaskAggregate::Due(d) => (d.task.try_into()?, None),
+        TaskAggregate::Late(l) => (l.task.try_into()?, None),
+        TaskAggregate::Running(r) => (r.task.try_into()?, Some(r.task_run.try_into()?)),
+        TaskAggregate::Failing(f) => (f.task.try_into()?, Some(f.task_run.try_into()?)),
+        TaskAggregate::Healthy(h) => (h.task.try_into()?, h.last_task_run.map(|lr| lr.try_into()).transpose()?),
+        TaskAggregate::Absent(a) => (a.task.try_into()?, None),
+    })
+}

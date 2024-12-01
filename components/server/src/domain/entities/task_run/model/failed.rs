@@ -11,7 +11,7 @@ pub struct FailedTaskRun {
     pub(super) started_at: DateTime<Utc>,
     pub(super) completed_at: DateTime<Utc>,
     pub(super) updated_at: DateTime<Utc>,
-    pub(super) exit_code: Option<i32>,
+    pub(super) exit_code: Option<u32>,
     pub(super) error_message: Option<String>,
 }
 
@@ -37,7 +37,7 @@ impl TryFrom<BoundaryTaskRun> for FailedTaskRun {
             started_at: boundary.started_at,
             completed_at,
             updated_at: boundary.updated_at,
-            exit_code: boundary.exit_code,
+            exit_code: boundary.exit_code.map(|code| code as u32),
             error_message: boundary.error_message,
         })
     }
@@ -52,7 +52,7 @@ impl From<FailedTaskRun> for BoundaryTaskRun {
             started_at: failed.started_at,
             updated_at: failed.updated_at,
             completed_at: Some(failed.completed_at),
-            exit_code: failed.exit_code,
+            exit_code: failed.exit_code.map(|code| code as i32),
             error_message: failed.error_message,
             last_heartbeat_at: None,
         }

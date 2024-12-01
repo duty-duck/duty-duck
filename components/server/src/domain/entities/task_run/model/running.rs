@@ -46,7 +46,11 @@ impl RunningTaskRun {
     }
 
     /// Transition : Running -> Finished
-    pub fn mark_finished(self, exit_code: Option<i32>) -> Result<FinishedTaskRun, TaskRunError> {
+    pub fn mark_finished(
+        self,
+        now: DateTime<Utc>,
+        exit_code: Option<u32>,
+    ) -> Result<FinishedTaskRun, TaskRunError> {
         if exit_code.is_some_and(|e| e > 0) {
             return Err(TaskRunError::InvalidStateTransition {
                 from: TaskRunStatus::Running,
@@ -54,7 +58,6 @@ impl RunningTaskRun {
                 details: "exit code for a successful task run cannot be > 0".to_string(),
             });
         }
-        let now = Utc::now();
         Ok(FinishedTaskRun {
             organization_id: self.organization_id,
             task_id: self.task_id,
@@ -68,17 +71,17 @@ impl RunningTaskRun {
     /// Transition : Running -> Failed
     pub fn mark_failed(
         self,
-        exit_code: Option<i32>,
+        now: DateTime<Utc>,
+        exit_code: Option<u32>,
         error_message: Option<String>,
     ) -> Result<FailedTaskRun, TaskRunError> {
-        if exit_code.is_some_and(|e| e <= 0) {
+        if exit_code.is_some_and(|e| e == 0) {
             return Err(TaskRunError::InvalidStateTransition {
                 from: TaskRunStatus::Running,
                 to: TaskRunStatus::Failed,
                 details: "exit code for a failed task run cannot be <= 0".to_string(),
             });
         }
-        let now = Utc::now();
         Ok(FailedTaskRun {
             organization_id: self.organization_id,
             task_id: self.task_id,

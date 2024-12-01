@@ -1,10 +1,19 @@
 use super::*;
-use chrono::*;
 
 /// A task that was scheduled to run, ran late, and eventually did not run at all
 pub struct AbsentTask {
     pub(super) base: TaskBase,
     pub(super) next_due_at: DateTime<Utc>,
+}
+
+impl AbsentTask {
+    /// State transition: Absent -> Running
+    pub fn start(self, now: DateTime<Utc>) -> Result<RunningTask, TaskError> {
+        Ok(RunningTask {
+            next_due_at: calculate_next_due_at(&self.base.cron_schedule, now)?,
+            base: self.base,
+        })
+    }
 }
 
 impl TryFrom<AbsentTask> for BoundaryTask {

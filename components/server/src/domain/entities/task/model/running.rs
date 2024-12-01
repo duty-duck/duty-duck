@@ -7,11 +7,16 @@ use std::time::Duration;
 pub struct RunningTask {
     #[getset(get = "pub")]
     pub(super) base: TaskBase,
+    /// The next time the task is due to run
+    /// If the task is not scheduled to run, this will be `None`
+    pub(super) next_due_at: Option<DateTime<Utc>>,
 }
 
 impl RunningTask {
     pub fn finish(self, now: DateTime<Utc>) -> Result<HealthyTask, TaskError> {
         Ok(HealthyTask {
+            // when a task run finishes, the next due at is recalculated
+            next_due_at: calculate_next_due_at(&self.base.cron_schedule, now)?,
             base: TaskBase {
                 previous_status: Some(TaskStatus::Running),
                 last_status_change_at: Some(now),
@@ -22,6 +27,8 @@ impl RunningTask {
 
     pub fn fail(self, now: DateTime<Utc>) -> Result<FailingTask, TaskError> {
         Ok(FailingTask {
+            // when a task run fails, the next due at is recalculated
+            next_due_at: calculate_next_due_at(&self.base.cron_schedule, now)?,
             base: TaskBase {
                 previous_status: Some(TaskStatus::Running),
                 last_status_change_at: Some(now),
@@ -57,6 +64,7 @@ impl TryFrom<BoundaryTask> for RunningTask {
             });
         }
         Ok(RunningTask {
+            next_due_at: boundary.next_due_at.clone(),
             base: boundary.try_into()?,
         })
     }

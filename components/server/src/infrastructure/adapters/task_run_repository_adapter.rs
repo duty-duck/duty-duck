@@ -4,14 +4,8 @@ use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::domain::{
-    entities::{
-        task::TaskId,
-        task_run::{BoundaryTaskRun, TaskRunStatus},
-    },
-    ports::{
-        task_run_repository::{ListTaskRunsOpts, TaskRunRepository},
-        transactional_repository::TransactionalRepository,
-    },
+    entities::{task::TaskId, task_run::BoundaryTaskRun},
+    ports::task_run_repository::{ListTaskRunsOpts, ListTaskRunsOutput, TaskRunRepository},
 };
 use anyhow::Context;
 
@@ -29,17 +23,16 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
         transaction: &mut Self::Transaction,
         organization_id: Uuid,
         opts: ListTaskRunsOpts<'a>,
-    ) -> anyhow::Result<Vec<BoundaryTaskRun>> {
+    ) -> anyhow::Result<ListTaskRunsOutput> {
         let statuses = opts
             .include_statuses
             .iter()
             .map(|s| *s as i16)
             .collect::<Vec<_>>();
 
-        let rows = sqlx::query_as!(
-            BoundaryTaskRun,
+        let rows = sqlx::query!(
             r#"
-            SELECT *
+            SELECT *, COUNT(*) OVER () as "filtered_count!"
             FROM task_runs
             WHERE organization_id = $1
             AND task_id = $2
@@ -57,7 +50,41 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
         .await
         .context("Failed to list task runs")?;
 
-        Ok(rows)
+        let total_count = sqlx::query!(
+            "SELECT count(*) FROM task_runs WHERE organization_id = $1 AND task_id = $2",
+            organization_id,
+            opts.task_id.as_str(),
+        )
+        .fetch_one(transaction.as_mut())
+        .await?
+        .count
+        .unwrap_or_default();
+
+        let total_filtered_count = rows
+            .first()
+            .map(|row| row.filtered_count)
+            .unwrap_or_default();
+
+        let task_runs = rows
+            .into_iter()
+            .map(|r| BoundaryTaskRun {
+                organization_id: r.organization_id,
+                task_id: r.task_id.into(),
+                status: r.status.into(),
+                started_at: r.started_at,
+                updated_at: r.updated_at,
+                completed_at: r.completed_at,
+                exit_code: r.exit_code,
+                error_message: r.error_message,
+                last_heartbeat_at: r.last_heartbeat_at,
+            })
+            .collect::<Vec<_>>();
+
+        Ok(ListTaskRunsOutput {
+            runs: task_runs,
+            total_runs: total_count as u32,
+            total_filtered_runs: total_filtered_count as u32,
+        })
     }
 
     async fn get_task_run(
@@ -152,4 +179,4 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
 
         Ok(())
     }
-} 
+}

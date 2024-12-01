@@ -10,7 +10,7 @@ use crate::domain::{
         task_run::{BoundaryTaskRun, TaskRunStatus},
     },
     ports::{
-        task_run_repository::{TaskRunRepository, ListTaskRunsOpts},
+        task_run_repository::{ListTaskRunsOpts, ListTaskRunsOutput, TaskRunRepository},
         transactional_repository::{TransactionMock, TransactionalRepository},
     },
 };
@@ -52,7 +52,7 @@ impl TaskRunRepository for TaskRunRepositoryMock {
         _transaction: &mut Self::Transaction,
         organization_id: Uuid,
         opts: ListTaskRunsOpts<'a>,
-    ) -> anyhow::Result<Vec<BoundaryTaskRun>> {
+    ) -> anyhow::Result<ListTaskRunsOutput> {
         let state = self.state.lock().await;
         
         let filtered_runs: Vec<BoundaryTaskRun> = state
@@ -64,7 +64,11 @@ impl TaskRunRepository for TaskRunRepositoryMock {
 
         let start = opts.offset as usize;
         let end = (opts.offset + opts.limit) as usize;
-        Ok(filtered_runs[start.min(filtered_runs.len())..end.min(filtered_runs.len())].to_vec())
+        Ok(ListTaskRunsOutput {
+            total_filtered_runs: filtered_runs.len() as u32,
+            runs: filtered_runs[start.min(filtered_runs.len())..end.min(filtered_runs.len())].to_vec(),
+            total_runs: filtered_runs.len() as u32,
+        })
     }
 
     async fn get_task_run(
@@ -176,8 +180,8 @@ mod tests {
             },
         ).await?;
 
-        assert_eq!(result.len(), 1);
-        assert_eq!(result[0].status, TaskRunStatus::Running);
+        assert_eq!(result.runs.len(), 1);
+        assert_eq!(result.runs[0].status, TaskRunStatus::Running);
 
         Ok(())
     }
