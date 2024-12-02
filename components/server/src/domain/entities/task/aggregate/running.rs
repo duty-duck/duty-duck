@@ -6,6 +6,7 @@ use chrono::{DateTime, Utc};
 
 /// A task that is currently running
 /// This task has an associated running task run
+#[derive(Debug, Clone)]
 pub struct RunningTaskAggregate {
     pub(super) task: RunningTask,
     pub(super) task_run: RunningTaskRun,
@@ -30,7 +31,7 @@ impl RunningTaskAggregate {
     pub fn mark_finished(
         self,
         now: DateTime<Utc>,
-        exit_code: Option<u32>,
+        exit_code: Option<i32>,
     ) -> Result<HealthyTaskAggregate, TaskAggregateError> {
         Ok(HealthyTaskAggregate {
             task: self.task.finish(now)?,
@@ -44,7 +45,7 @@ impl RunningTaskAggregate {
     pub fn mark_failed(
         self,
         now: DateTime<Utc>,
-        exit_code: Option<u32>,
+        exit_code: Option<i32>,
         error_message: Option<String>,
     ) -> Result<FailingTaskAggregate, TaskAggregateError> {
         Ok(FailingTaskAggregate {

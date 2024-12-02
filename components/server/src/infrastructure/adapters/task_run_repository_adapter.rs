@@ -112,7 +112,7 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
         .context("Failed to get task run")
     }
 
-    async fn create_task_run(
+    async fn upsert_task_run(
         &self,
         transaction: &mut Self::Transaction,
         task_run: BoundaryTaskRun,
@@ -130,6 +130,12 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
                 last_heartbeat_at
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            ON CONFLICT (organization_id, task_id, started_at) DO UPDATE SET
+                status = $3,
+                completed_at = $5,
+                exit_code = $6,
+                error_message = $7,
+                last_heartbeat_at = $8
             "#,
             task_run.organization_id,
             task_run.task_id.as_str(),
@@ -146,37 +152,5 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
 
         Ok(())
     }
-
-    async fn update_task_run(
-        &self,
-        transaction: &mut Self::Transaction,
-        task_run: BoundaryTaskRun,
-    ) -> anyhow::Result<()> {
-        sqlx::query!(
-            r#"
-            UPDATE task_runs SET
-                status = $1,
-                completed_at = $2,
-                exit_code = $3,
-                error_message = $4,
-                last_heartbeat_at = $5
-            WHERE organization_id = $6
-            AND task_id = $7
-            AND started_at = $8
-            "#,
-            task_run.status as i16,
-            task_run.completed_at,
-            task_run.exit_code,
-            task_run.error_message,
-            task_run.last_heartbeat_at,
-            task_run.organization_id,
-            task_run.task_id.as_str(),
-            task_run.started_at,
-        )
-        .execute(transaction.as_mut())
-        .await
-        .context("Failed to update task run")?;
-
-        Ok(())
-    }
+    
 }

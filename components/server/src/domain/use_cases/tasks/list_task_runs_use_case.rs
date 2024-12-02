@@ -50,7 +50,7 @@ pub async fn list_task_runs_use_case(
     }
 
     let mut transaction = task_run_repository.begin_transaction().await?;
-    let items_per_page = params.items_per_page.unwrap_or(15);
+    let items_per_page = params.items_per_page.unwrap_or(15).min(50);
     let page_number = params.page_number.unwrap_or(1);
     let ListTaskRunsOutput { runs, total_runs, total_filtered_runs } = task_run_repository
         .list_task_runs(

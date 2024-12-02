@@ -6,6 +6,7 @@ use uuid::Uuid;
 
 use crate::{DutyDuckApiClient, ResponseExtention};
 
+#[derive(Clone)]
 pub struct AuthSubclient {
     pub(crate) client: DutyDuckApiClient,
 }

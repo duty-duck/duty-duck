@@ -3,12 +3,13 @@ mod tasks_subclient;
 
 use std::sync::{Arc, Mutex};
 
-use anyhow::Context;
 use async_trait::async_trait;
-use auth_subclient::AuthSubclient;
 use reqwest::IntoUrl;
 use serde::de::DeserializeOwned;
-use tasks_subclient::TasksSubclient;
+use thiserror::Error;
+
+pub use auth_subclient::*;
+pub use tasks_subclient::*;
 
 /// A client for interacting with the DutyDuck API
 #[derive(Clone)]
@@ -121,7 +122,7 @@ impl DutyDuckApiClient {
         &self,
         method: reqwest::Method,
         url: impl IntoUrl,
-    ) -> anyhow::Result<reqwest::RequestBuilder> {
+    ) -> ClientResult<reqwest::RequestBuilder> {
         let auth_token = {
             let lock = self
                 .auth_token
@@ -135,15 +136,13 @@ impl DutyDuckApiClient {
             .request(method, url)
             .header(
                 "X-Api-Token-Id",
-                auth_token
-                    .id
-                    .ok_or(anyhow::anyhow!("API token ID is not set"))?,
+                auth_token.id.ok_or(ClientError::MissingApiTokenId)?,
             )
             .header(
                 "X-Api-Token-Secret-Key",
                 auth_token
                     .secret_key
-                    .ok_or(anyhow::anyhow!("API token secret key is not set"))?,
+                    .ok_or(ClientError::MissingApiTokenSecretKey)?,
             );
 
         Ok(builder)
@@ -152,24 +151,46 @@ impl DutyDuckApiClient {
 
 #[async_trait]
 pub trait ResponseExtention {
-    async fn json_or_err<T: DeserializeOwned>(self) -> anyhow::Result<T>;
+    async fn json_or_err<T: DeserializeOwned>(self) -> ClientResult<T>;
+    async fn ok_or_err(self) -> ClientResult<()>;
 }
 
 #[async_trait]
 impl ResponseExtention for reqwest::Response {
-    async fn json_or_err<T: DeserializeOwned>(self) -> anyhow::Result<T> {
+    async fn ok_or_err(self) -> ClientResult<()> {
         let status = self.status();
         if status.is_success() {
-            self.json()
-                .await
-                .context("Failed to parse JSON response")
+            Ok(())
         } else {
-            let body = self.text().await.unwrap_or_default();
-            Err(anyhow::anyhow!(
-                "API responded with an invalid status code: {}\nBody: {}",
-                status,
-                body
-            ))
+            let body = self.text().await.unwrap_or_else(|_| "<no body>".to_string());
+            Err(ClientError::InvalidStatusCode(status, body))
         }
     }
+
+    async fn json_or_err<T: DeserializeOwned>(self) -> ClientResult<T> {
+        let status = self.status();
+        if status.is_success() {
+            Ok(self.json().await?)
+        } else {
+            let body = self.text().await.unwrap_or_default();
+            Err(ClientError::InvalidStatusCode(status, body))
+        }
+    }
+}
+
+pub type ClientResult<T> = Result<T, ClientError>;
+
+#[derive(Debug, Error)]
+
+pub enum ClientError {
+    #[error("API token ID is not set")]
+    MissingApiTokenId,
+    #[error("API token secret key is not set")]
+    MissingApiTokenSecretKey,
+    #[error(transparent)]
+    AnyhowError(#[from] anyhow::Error),
+    #[error(transparent)]
+    ReqwestError(#[from] reqwest::Error),
+    #[error("API responded with an invalid status code: {0} and body: {1}")]
+    InvalidStatusCode(reqwest::StatusCode, String),
 }

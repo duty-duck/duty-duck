@@ -1,5 +1,5 @@
 use super::{
-    AbsentTaskAggregate, FailingTaskAggregate, FailingTaskRun, LateTask, RunningTaskAggregate,
+    AbsentTaskAggregate, LateTask, RunningTaskAggregate,
     RunningTaskRun, TaskAggregateError, TaskStatus,
 };
 use chrono::{DateTime, Utc};

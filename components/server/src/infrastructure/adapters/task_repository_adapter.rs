@@ -132,7 +132,7 @@ impl TaskRepository for TaskRepositoryAdapter {
         })
     }
 
-    async fn create_task(&self, task: BoundaryTask) -> anyhow::Result<TaskId> {
+    async fn upsert_task(&self, transaction: &mut Self::Transaction, task: BoundaryTask) -> anyhow::Result<TaskId> {
         sqlx::query!(
             r#"
             INSERT INTO tasks (
@@ -142,6 +142,15 @@ impl TaskRepository for TaskRepositoryAdapter {
                 heartbeat_timeout_seconds
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            ON CONFLICT (organization_id, id) DO UPDATE SET
+                name = $3,
+                description = $4,
+                status = $5,
+                cron_schedule = $7,
+                next_due_at = $8,
+                start_window_seconds = $9,
+                lateness_window_seconds = $10,
+                heartbeat_timeout_seconds = $11
             "#,
             task.organization_id,
             task.id.as_str(),
@@ -155,44 +164,10 @@ impl TaskRepository for TaskRepositoryAdapter {
             task.lateness_window_seconds,
             task.heartbeat_timeout_seconds,
         )
-        .execute(&self.pool)
+        .execute(transaction.as_mut())
         .await?;
 
         Ok(task.id)
     }
 
-    async fn update_task(
-        &self,
-        transaction: &mut Self::Transaction,
-        task: BoundaryTask,
-    ) -> anyhow::Result<bool> {
-        let result = sqlx::query!(
-            r#"
-            UPDATE tasks SET
-                name = $1,
-                description = $2,
-                status = $3,
-                cron_schedule = $4,
-                next_due_at = $5,
-                start_window_seconds = $6,
-                lateness_window_seconds = $7,
-                heartbeat_timeout_seconds = $8
-            WHERE organization_id = $9 AND id = $10
-            "#,
-            task.name,
-            task.description,
-            task.status as i16,
-            task.cron_schedule,
-            task.next_due_at,
-            task.start_window_seconds,
-            task.lateness_window_seconds,
-            task.heartbeat_timeout_seconds,
-            task.organization_id,
-            task.id.as_str(),
-        )
-        .execute(transaction.as_mut())
-        .await?;
-
-        Ok(result.rows_affected() > 0)
-    }
 } 

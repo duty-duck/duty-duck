@@ -6,7 +6,6 @@ use uuid::Uuid;
 
 use crate::domain::entities::task::TaskId;
 
-use super::model::*;
 
 /// A unspecialized representation of a task run, used at API and database boundaries
 /// We have a set of conversions to/from this type to the specific task run types.

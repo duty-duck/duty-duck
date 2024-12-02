@@ -5,7 +5,6 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 
 use super::id::TaskId;
-use super::model::*;
 
 #[derive(Debug, Serialize, Deserialize, TS, ToSchema, Clone)]
 #[ts(export)]

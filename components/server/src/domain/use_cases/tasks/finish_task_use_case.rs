@@ -39,7 +39,7 @@ pub enum FinishedTaskStatus {
 pub struct FinishTaskCommand {
     pub status: FinishedTaskStatus,
     #[serde(default)]
-    pub exit_code: Option<u32>,
+    pub exit_code: Option<i32>,
     #[serde(default)]
     pub error_message: Option<String>,
 }

@@ -1,4 +1,6 @@
 use chrono::{DateTime, Utc};
+use crate::domain::use_cases::tasks::CreateTaskCommand;
+
 use super::*;
 
 /// These are the only states a task run can be in for the related task to be healthy
@@ -22,6 +24,11 @@ pub struct HealthyTaskAggregate {
 }
 
 impl HealthyTaskAggregate {
+    pub fn new(organization_id: Uuid, command: CreateTaskCommand) -> Result<Self, TaskAggregateError> {
+        let task = HealthyTask::new(organization_id, command)?;
+        Ok(Self { task, last_task_run: None })
+    }
+
     /// State transition: Healthy -> Running
     /// Returns the new running task aggregate and the task run that was in the healthy state
     pub fn start(self, now: DateTime<Utc>) -> Result<(RunningTaskAggregate, Option<HealthyTaskRun>), TaskAggregateError> {

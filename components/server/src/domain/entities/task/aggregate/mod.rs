@@ -7,6 +7,7 @@ mod pending;
 mod running;
 
 pub use absent::*;
+use anyhow::Context;
 pub use due::*;
 pub use failing::*;
 pub use healthy::*;
@@ -18,10 +19,9 @@ use crate::domain::{
     entities::{task::*, task_run::*},
     ports::{
         task_repository::TaskRepository,
-        task_run_repository::{ListTaskRunsOpts, TaskRunRepository},
+        task_run_repository::TaskRunRepository,
     },
 };
-use chrono::Utc;
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -184,23 +184,35 @@ where
     TR: TaskRepository,
     TRR: TaskRunRepository<Transaction = TR::Transaction>,
 {
-    let (boundary_task, boundary_task_run) = to_boundary(aggregate)?;
-    task_repository.update_task(tx, boundary_task).await?;
+    let (boundary_task, boundary_task_run) =
+        to_boundary(aggregate).context("failed to convert task aggregate to boundary")?;
+    task_repository
+        .upsert_task(tx, boundary_task)
+        .await
+        .context("failed to upsert task to the database")?;
     if let Some(boundary_task_run) = boundary_task_run {
-        task_run_repository.create_task_run(tx, boundary_task_run).await?;
+        task_run_repository
+            .upsert_task_run(tx, boundary_task_run)
+            .await
+            .context("failed to upsert task run to the database")?;
     }
 
     Ok(())
 }
 
-pub fn to_boundary(aggregate: TaskAggregate) -> anyhow::Result<(BoundaryTask, Option<BoundaryTaskRun>)> {
+pub fn to_boundary(
+    aggregate: TaskAggregate,
+) -> anyhow::Result<(BoundaryTask, Option<BoundaryTaskRun>)> {
     Ok(match aggregate {
         TaskAggregate::Pending(p) => (p.task.try_into()?, None),
         TaskAggregate::Due(d) => (d.task.try_into()?, None),
         TaskAggregate::Late(l) => (l.task.try_into()?, None),
         TaskAggregate::Running(r) => (r.task.try_into()?, Some(r.task_run.try_into()?)),
         TaskAggregate::Failing(f) => (f.task.try_into()?, Some(f.task_run.try_into()?)),
-        TaskAggregate::Healthy(h) => (h.task.try_into()?, h.last_task_run.map(|lr| lr.try_into()).transpose()?),
+        TaskAggregate::Healthy(h) => (
+            h.task.try_into()?,
+            h.last_task_run.map(|lr| lr.try_into()).transpose()?,
+        ),
         TaskAggregate::Absent(a) => (a.task.try_into()?, None),
     })
 }

@@ -11,7 +11,7 @@ pub struct FinishedTaskRun {
     pub(super) started_at: DateTime<Utc>,
     pub(super) completed_at: DateTime<Utc>,
     pub(super) updated_at: DateTime<Utc>,
-    pub(super) exit_code: Option<u32>,
+    pub(super) exit_code: Option<i32>,
 }
 
 impl TryFrom<BoundaryTaskRun> for FinishedTaskRun {
@@ -35,7 +35,7 @@ impl TryFrom<BoundaryTaskRun> for FinishedTaskRun {
             started_at: boundary.started_at,
             completed_at,
             updated_at: boundary.updated_at,
-            exit_code: boundary.exit_code.map(|code| code as u32),
+            exit_code: boundary.exit_code,
         })
     }
 }
@@ -49,7 +49,7 @@ impl From<FinishedTaskRun> for BoundaryTaskRun {
             started_at: finished.started_at,
             updated_at: finished.updated_at,
             completed_at: Some(finished.completed_at),
-            exit_code: finished.exit_code.map(|code| code as i32),
+            exit_code: finished.exit_code,
             error_message: None,
             last_heartbeat_at: None,
         }

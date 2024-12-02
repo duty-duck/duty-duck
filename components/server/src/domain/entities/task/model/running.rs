@@ -3,7 +3,7 @@ use chrono::Utc;
 use std::time::Duration;
 
 /// A task that is currently running
-#[derive(getset::Getters)]
+#[derive(getset::Getters, Debug, Clone)]
 pub struct RunningTask {
     #[getset(get = "pub")]
     pub(super) base: TaskBase,
@@ -64,7 +64,7 @@ impl TryFrom<BoundaryTask> for RunningTask {
             });
         }
         Ok(RunningTask {
-            next_due_at: boundary.next_due_at.clone(),
+            next_due_at: boundary.next_due_at,
             base: boundary.try_into()?,
         })
     }

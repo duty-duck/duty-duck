@@ -7,7 +7,7 @@ use crate::domain::entities::task::TaskId;
 use super::{DeadTaskRun, FailedTaskRun, FinishedTaskRun, TaskRunError};
 use super::super::boundary::{BoundaryTaskRun, TaskRunStatus};
 
-#[derive(Getters)]
+#[derive(Getters, Debug, Clone)]
 #[getset(get = "pub")]
 pub struct RunningTaskRun {
     organization_id: Uuid,
@@ -49,7 +49,7 @@ impl RunningTaskRun {
     pub fn mark_finished(
         self,
         now: DateTime<Utc>,
-        exit_code: Option<u32>,
+        exit_code: Option<i32>,
     ) -> Result<FinishedTaskRun, TaskRunError> {
         if exit_code.is_some_and(|e| e > 0) {
             return Err(TaskRunError::InvalidStateTransition {
@@ -72,7 +72,7 @@ impl RunningTaskRun {
     pub fn mark_failed(
         self,
         now: DateTime<Utc>,
-        exit_code: Option<u32>,
+        exit_code: Option<i32>,
         error_message: Option<String>,
     ) -> Result<FailedTaskRun, TaskRunError> {
         if exit_code.is_some_and(|e| e == 0) {

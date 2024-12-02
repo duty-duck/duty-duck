@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::domain::entities::task::{BoundaryTask, TaskId, TaskStatus};
@@ -25,15 +24,12 @@ pub trait TaskRepository: TransactionalRepository + Clone + Send + Sync + 'stati
         offset: u32,
     ) -> anyhow::Result<ListTasksOutput>;
 
-    /// Create a new task
-    async fn create_task(&self, task: BoundaryTask) -> anyhow::Result<TaskId>;
-
-    /// Update an existing task
-    async fn update_task(
+    /// Create or update an existing task
+    async fn upsert_task(
         &self,
         transaction: &mut Self::Transaction,
         task: BoundaryTask
-    ) -> anyhow::Result<bool>;
+    ) -> anyhow::Result<TaskId>;
 }
 
 pub struct ListTasksOutput {

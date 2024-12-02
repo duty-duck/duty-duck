@@ -44,7 +44,7 @@ pub use pending::*;
 pub use running::*;
 
 /// Base struct with common fields shared by all task states
-#[derive(getset::Getters)]
+#[derive(getset::Getters, Debug, Clone)]
 #[getset(get = "pub")]
 pub struct TaskBase {
     pub(super) id: TaskId,

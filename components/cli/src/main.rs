@@ -2,6 +2,7 @@ use clap::{Parser, Subcommand};
 
 mod config;
 mod config_subcommands;
+mod tasks_subcommands;
 mod user_subcommands;
 
 #[derive(Parser)]
@@ -23,6 +24,11 @@ enum Commands {
         #[command(subcommand)]
         command: user_subcommands::UserCommands,
     },
+    /// Tasks related commands
+    Tasks {
+        #[command(subcommand)]
+        command: tasks_subcommands::TasksCommands,
+    },
 }
 
 #[tokio::main]
@@ -30,11 +36,8 @@ async fn main() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match cli.command {
-        Commands::Config { command } => {
-            config_subcommands::handle_config_command(command).await
-        }
-        Commands::User { command } => {
-            user_subcommands::handle_user_command(command).await
-        }
+        Commands::Config { command } => config_subcommands::handle_config_command(command).await,
+        Commands::User { command } => user_subcommands::handle_user_command(command).await,
+        Commands::Tasks { command } => tasks_subcommands::handle_tasks_command(command).await,
     }
 }

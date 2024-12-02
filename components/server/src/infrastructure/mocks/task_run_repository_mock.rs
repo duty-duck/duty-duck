@@ -89,31 +89,30 @@ impl TaskRunRepository for TaskRunRepositoryMock {
             .cloned())
     }
 
-    async fn create_task_run(
+    async fn upsert_task_run(
         &self,
         _transaction: &mut Self::Transaction,
         task_run: BoundaryTaskRun,
     ) -> anyhow::Result<()> {
         let mut state = self.state.lock().await;
-        state.push(task_run);
-        Ok(())
-    }
-
-    async fn update_task_run(
-        &self,
-        _transaction: &mut Self::Transaction,
-        task_run: BoundaryTaskRun,
-    ) -> anyhow::Result<()> {
-        let mut state = self.state.lock().await;
-        if let Some(idx) = state.iter().position(|r| {
+        
+        if let Some(existing) = state.iter_mut().find(|r| {
             r.organization_id == task_run.organization_id 
-            && r.task_id == task_run.task_id 
+            && r.task_id == task_run.task_id
             && r.started_at == task_run.started_at
         }) {
-            state[idx] = task_run;
+            existing.status = task_run.status;
+            existing.completed_at = task_run.completed_at;
+            existing.exit_code = task_run.exit_code;
+            existing.error_message = task_run.error_message;
+            existing.last_heartbeat_at = task_run.last_heartbeat_at;
+        } else {
+            state.push(task_run);
         }
         Ok(())
     }
+
+    
 }
 
 #[cfg(test)]
@@ -141,7 +140,7 @@ mod tests {
         let mut tx = repo.begin_transaction().await?;
 
         let task_run = create_test_task_run(org_id, "test-task", TaskRunStatus::Running);
-        repo.create_task_run(&mut tx, task_run.clone()).await?;
+        repo.upsert_task_run(&mut tx, task_run.clone()).await?;
 
         let state = repo.state.lock().await;
         assert_eq!(state.len(), 1);
@@ -166,7 +165,7 @@ mod tests {
         ];
 
         for task_run in task_runs {
-            repo.create_task_run(&mut tx, task_run).await?;
+            repo.upsert_task_run(&mut tx, task_run).await?;
         }
 
         let result = repo.list_task_runs(
@@ -193,13 +192,13 @@ mod tests {
         let mut tx = repo.begin_transaction().await?;
 
         let mut task_run = create_test_task_run(org_id, "test-task", TaskRunStatus::Running);
-        repo.create_task_run(&mut tx, task_run.clone()).await?;
+        repo.upsert_task_run(&mut tx, task_run.clone()).await?;
 
         task_run.status = TaskRunStatus::Finished;
         task_run.completed_at = Some(Utc::now());
         task_run.exit_code = Some(0);
 
-        repo.update_task_run(&mut tx, task_run.clone()).await?;
+        repo.upsert_task_run(&mut tx, task_run.clone()).await?;
 
         let state = repo.state.lock().await;
         assert_eq!(state[0].status, TaskRunStatus::Finished);

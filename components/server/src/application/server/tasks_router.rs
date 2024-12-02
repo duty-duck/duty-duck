@@ -76,7 +76,7 @@ async fn create_task_handler(
     match create_task_use_case(&auth_context, &app_state.adapters.task_repository, command).await {
         Ok(_) => StatusCode::CREATED.into_response(),
         Err(e) => {
-            warn!("Technical failure occured while creating a task: {e}");
+            warn!(error = ?e, "Technical failure occured while creating a task");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
@@ -104,7 +104,7 @@ async fn get_task_handler(
         Err(GetTaskError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
         Err(GetTaskError::NotFound) => StatusCode::NOT_FOUND.into_response(),
         Err(GetTaskError::TechnicalFailure(e)) => {
-            warn!("Technical failure occured while getting a task: {e}");
+            warn!(error = ?e, "Technical failure occured while getting a task");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
@@ -143,6 +143,11 @@ async fn list_task_runs_handler(
 #[utoipa::path(
     post,
     path = "/tasks/:task_id/start",
+    request_body(
+        content = Option<StartTaskCommand>,
+        description = "An optional command to start a task run",
+        content_type = "application/json"
+    ),
     responses(
         (status = 201, description = "Task run started successfully"),
         (status = 403, description = "User is not authorized to start a task"),
@@ -155,14 +160,15 @@ async fn start_task_handler(
     State(app_state): ExtractAppState,
     auth_context: AuthContext,
     Path(task_id): Path<TaskId>,
+    Json(command): Json<Option<StartTaskCommand>>,
 ) -> impl IntoResponse {
-    match start_task_use_case(&auth_context, &app_state.adapters.task_repository, &app_state.adapters.task_run_repository, task_id).await {
+    match start_task_use_case(&auth_context, &app_state.adapters.task_repository, &app_state.adapters.task_run_repository, task_id, command).await {
         Ok(_) => StatusCode::CREATED.into_response(),
         Err(StartTaskError::Forbidden) => (StatusCode::FORBIDDEN, "User is not allowed to start this task").into_response(),
         Err(StartTaskError::TaskNotFound) => (StatusCode::NOT_FOUND, "Task not found").into_response(),
         Err(StartTaskError::TaskAlreadyStarted) => (StatusCode::CONFLICT, "Task already started").into_response(),
         Err(StartTaskError::TechnicalError(e)) => {
-            warn!("Technical failure occured while starting a task: {e}");
+            warn!(error = ?e, "Technical failure occured while starting a task");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
@@ -192,7 +198,7 @@ async fn send_task_heartbeat_handler(
         Err(SendTaskHeartbeatError::TaskNotFound) => (StatusCode::NOT_FOUND, "Task not found").into_response(),
         Err(SendTaskHeartbeatError::TaskIsNotRunning) => (StatusCode::BAD_REQUEST, "Task is not running").into_response(),
         Err(SendTaskHeartbeatError::TechnicalError(e)) => {
-            warn!("Technical failure occured while sending a heartbeat: {e}");
+            warn!(error = ?e, "Technical failure occured while sending a heartbeat");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
@@ -222,7 +228,7 @@ async fn finish_task_handler(
         Err(FinishTaskError::NotFound) => (StatusCode::NOT_FOUND, "Task not found").into_response(),
         Err(FinishTaskError::TaskIsNotRunning) => (StatusCode::BAD_REQUEST, "Task is not running").into_response(),
         Err(FinishTaskError::TechnicalError(e)) => {
-            warn!("Technical failure occured while finishing a task: {e}");
+            warn!(error = ?e, "Technical failure occured while finishing a task");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }

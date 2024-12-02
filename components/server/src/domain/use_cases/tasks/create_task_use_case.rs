@@ -25,15 +25,16 @@ pub enum CreateTaskError {
 
 #[derive(Debug, Deserialize, TS, ToSchema, Clone)]
 #[ts(export)]
+#[serde(rename_all = "camelCase")]
 pub struct CreateTaskCommand {
     #[ts(type = "string")]
     pub id: TaskId,
-    pub name: String,
+    pub name: Option<String>,
     pub description: Option<String>,
     pub cron_schedule: Option<String>,
-    pub start_window_seconds: u32,
-    pub lateness_window_seconds: u32,
-    pub heartbeat_timeout_seconds: u32,
+    pub start_window_seconds: Option<u32>,
+    pub lateness_window_seconds: Option<u32>,
+    pub heartbeat_timeout_seconds: Option<u32>,
 }
 
 pub async fn create_task_use_case(
@@ -46,16 +47,18 @@ pub async fn create_task_use_case(
     }
 
     let mut tx = task_repository.begin_transaction().await?;
+
     let existing_task = task_repository
         .get_task(&mut tx, auth_context.active_organization_id, &command.id)
         .await?;
+
     if existing_task.is_some() {
         return Err(CreateTaskError::TaskAlreadyExists(command.id));
     }
 
     let new_task = HealthyTask::new(auth_context.active_organization_id, command)?;
     let new_task: BoundaryTask = new_task.try_into()?;
-    task_repository.create_task(new_task).await?;
+    task_repository.upsert_task(&mut tx, new_task).await?;
     task_repository.commit_transaction(tx).await?;
 
     Ok(())

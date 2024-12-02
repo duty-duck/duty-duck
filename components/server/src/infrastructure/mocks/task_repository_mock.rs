@@ -97,18 +97,11 @@ impl TaskRepository for TaskRepositoryMock {
         })
     }
 
-    async fn create_task(&self, task: BoundaryTask) -> anyhow::Result<TaskId> {
-        let mut state = self.state.lock().await;
-        let id = task.id.clone();
-        state.push(task);
-        Ok(id)
-    }
-
-    async fn update_task(
+    async fn upsert_task(
         &self,
         _transaction: &mut Self::Transaction,
         task: BoundaryTask,
-    ) -> anyhow::Result<bool> {
+    ) -> anyhow::Result<TaskId> {
         let mut state = self.state.lock().await;
 
         if let Some(existing) = state.iter_mut().find(|t| t.id == task.id && t.organization_id == task.organization_id) {
@@ -120,9 +113,9 @@ impl TaskRepository for TaskRepositoryMock {
             existing.start_window_seconds = task.start_window_seconds;
             existing.lateness_window_seconds = task.lateness_window_seconds;
             existing.heartbeat_timeout_seconds = task.heartbeat_timeout_seconds;
-            Ok(true)
+            Ok(task.id)
         } else {
-            Ok(false)
+            Ok(task.id)
         }
     }
 
@@ -156,7 +149,7 @@ mod tests {
         let org_id = Uuid::new_v4();
         
         let task = create_test_task(org_id, "test-task", TaskStatus::Pending);
-        let id = repo.create_task(task).await?;
+        let id = repo.upsert_task(&mut TransactionMock, task).await?;
         
         let state = repo.state.lock().await;
         assert_eq!(state.len(), 1);

@@ -52,15 +52,8 @@ pub trait TaskRunRepository: TransactionalRepository + Clone + Send + Sync + 'st
         started_at: DateTime<Utc>,
     ) -> anyhow::Result<Option<BoundaryTaskRun>>;
 
-    /// Creates a new task run
-    async fn create_task_run(
-        &self,
-        transaction: &mut Self::Transaction,
-        task_run: BoundaryTaskRun,
-    ) -> anyhow::Result<()>;
-
-    /// Updates an existing task run
-    async fn update_task_run(
+    /// Creates or updates an existing task run
+    async fn upsert_task_run(
         &self,
         transaction: &mut Self::Transaction,
         task_run: BoundaryTaskRun,
