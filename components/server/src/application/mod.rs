@@ -125,7 +125,7 @@ async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationSt
             .await
             .context("Failed to create file storage adapter")?,
         task_repository: TaskRepositoryAdapter { pool: pool.clone() },
-        task_run_repository: TaskRunRepositoryAdapter { pool: pool.clone() },
+        task_run_repository: TaskRunRepositoryAdapter::new(pool.clone()),
     };
     Ok(ApplicationState {
         config: config.clone(),

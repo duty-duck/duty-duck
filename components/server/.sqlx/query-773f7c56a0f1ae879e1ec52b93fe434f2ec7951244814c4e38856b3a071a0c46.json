@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "SELECT create_task_runs_partition_for_month()",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "create_task_runs_partition_for_month",
+        "type_info": "Void"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      null
+    ]
+  },
+  "hash": "773f7c56a0f1ae879e1ec52b93fe434f2ec7951244814c4e38856b3a071a0c46"
+}

@@ -1,6 +1,9 @@
+use std::sync::Arc;
+
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use sqlx::PgPool;
+use tokio::task::JoinHandle;
 use uuid::Uuid;
 
 use crate::domain::{
@@ -11,7 +14,48 @@ use anyhow::Context;
 
 #[derive(Clone)]
 pub struct TaskRunRepositoryAdapter {
-    pub pool: PgPool,
+    pool: PgPool,
+    _partition_creation_background_task: Arc<JoinHandle<()>>,
+}
+
+impl TaskRunRepositoryAdapter {
+    pub fn new(pool: PgPool) -> Self {
+        let partition_creation_background_task = tokio::spawn({
+            let pool = pool.clone();
+            async move {
+                let mut interval =
+                    tokio::time::interval(std::time::Duration::from_secs(60 * 60 * 24));
+
+                loop {
+                    interval.tick().await;
+                    match sqlx::query!("SELECT create_task_runs_partition_for_month()")
+                        .execute(&pool)
+                        .await
+                    {
+                        Ok(_) => tracing::debug!("Task run partition created"),
+                        Err(e) => {
+                            tracing::error!("Error creating task run partition: {:?}", e)
+                        }
+                    }
+
+                    match sqlx::query!("SELECT create_task_run_events_partition_for_month()")
+                        .execute(&pool)
+                        .await
+                    {
+                        Ok(_) => tracing::debug!("Task run events partition created"),
+                        Err(e) => {
+                            tracing::error!("Error creating task run events partition: {:?}", e)
+                        }
+                    }
+                }
+            }
+        });
+
+        Self {
+            pool,
+            _partition_creation_background_task: Arc::new(partition_creation_background_task),
+        }
+    }
 }
 
 crate::postgres_transactional_repo!(TaskRunRepositoryAdapter);
@@ -152,5 +196,4 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
 
         Ok(())
     }
-    
 }
