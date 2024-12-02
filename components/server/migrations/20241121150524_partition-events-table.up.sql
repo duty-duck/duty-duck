@@ -87,28 +87,52 @@ where (
 CREATE OR REPLACE FUNCTION create_incident_timeline_partition_for_month()
 RETURNS void AS $$
 DECLARE
+    current_month_start date;
+    current_month_end date;
     next_month_start date;
     next_month_end date;
-    partition_name text;
+    current_partition_name text;
+    next_partition_name text;
 BEGIN
-    next_month_start := date_trunc('month', now()) + interval '1 month';
+    current_month_start := date_trunc('month', now());
+    current_month_end := current_month_start + interval '1 month';
+    next_month_start := current_month_end;
     next_month_end := next_month_start + interval '1 month';
-    partition_name := 'incident_timeline_events_y' || 
+
+    current_partition_name := 'incident_timeline_events_y' || 
+                     to_char(current_month_start, 'YYYY') ||
+                     'm' || to_char(current_month_start, 'MM');
+    
+    next_partition_name := 'incident_timeline_events_y' || 
                      to_char(next_month_start, 'YYYY') ||
                      'm' || to_char(next_month_start, 'MM');
     
     EXECUTE format(
         'CREATE TABLE IF NOT EXISTS %I PARTITION OF incident_timeline_events
          FOR VALUES FROM (%L) TO (%L)',
-        partition_name,
+        current_partition_name,
+        current_month_start,
+        current_month_end
+    );
+
+    EXECUTE format(
+        'CREATE TABLE IF NOT EXISTS %I PARTITION OF incident_timeline_events
+         FOR VALUES FROM (%L) TO (%L)',
+        next_partition_name,
         next_month_start,
         next_month_end
     );
     
     EXECUTE format(
         'CREATE UNIQUE INDEX IF NOT EXISTS %I ON %I (organization_id, incident_id, event_type) where (event_type = 0 or event_type = 2 or event_type = 5)',
-        'idx_' || partition_name || '_unique_event',
-        partition_name
+        'idx_' || current_partition_name || '_unique_event',
+        current_partition_name
+    );
+
+    EXECUTE format(
+        'CREATE UNIQUE INDEX IF NOT EXISTS %I ON %I (organization_id, incident_id, event_type) where (event_type = 0 or event_type = 2 or event_type = 5)',
+        'idx_' || next_partition_name || '_unique_event',
+        next_partition_name
     );
 END;
 $$ LANGUAGE plpgsql;
