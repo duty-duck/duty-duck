@@ -8,12 +8,26 @@ use sqlx::postgres::PgPoolOptions;
 
 use crate::{
     domain::use_cases::{
-        http_monitors::ExecuteHttpMonitorsUseCase,
-        incidents::ExecuteIncidentNotificationsUseCase,
+        http_monitors::ExecuteHttpMonitorsUseCase, incidents::ExecuteIncidentNotificationsUseCase,
+        tasks::ClearDeadTaskRunsUseCase,
     },
     infrastructure::{
         adapters::{
-            api_access_token_repository_adapter::ApiAccessTokenRepositoryAdapter, file_storage_adapter::FileStorageAdapter, http_client_adapter::HttpClientAdapter, http_monitor_repository_adapter::HttpMonitorRepositoryAdapter, incident_event_repository_adapter::IncidentEventRepositoryAdapter, incident_notification_repository_adapter::IncidentNotificationRepositoryAdapter, incident_repository_adapter::IncidentRepositoryAdapter, mailer_adapter::{MailerAdapter, MailerAdapterConfig}, organization_repository_adapter::OrganizationRepositoryAdapter, push_notification_server_adapter::PushNotificationServerAdapter, sms_notification_server_adapter::SmsNotificationServerAdapter, task_repository_adapter::TaskRepositoryAdapter, task_run_repository_adapter::TaskRunRepositoryAdapter, user_devices_repository_adapter::UserDevicesRepositoryAdapter, user_repository_adapter::UserRepositoryAdapter
+            api_access_token_repository_adapter::ApiAccessTokenRepositoryAdapter,
+            file_storage_adapter::FileStorageAdapter,
+            http_client_adapter::HttpClientAdapter,
+            http_monitor_repository_adapter::HttpMonitorRepositoryAdapter,
+            incident_event_repository_adapter::IncidentEventRepositoryAdapter,
+            incident_notification_repository_adapter::IncidentNotificationRepositoryAdapter,
+            incident_repository_adapter::IncidentRepositoryAdapter,
+            mailer_adapter::{MailerAdapter, MailerAdapterConfig},
+            organization_repository_adapter::OrganizationRepositoryAdapter,
+            push_notification_server_adapter::PushNotificationServerAdapter,
+            sms_notification_server_adapter::SmsNotificationServerAdapter,
+            task_repository_adapter::TaskRepositoryAdapter,
+            task_run_repository_adapter::TaskRunRepositoryAdapter,
+            user_devices_repository_adapter::UserDevicesRepositoryAdapter,
+            user_repository_adapter::UserRepositoryAdapter,
         },
         keycloak_client::KeycloakClient,
     },
@@ -28,19 +42,27 @@ pub async fn start_application() -> anyhow::Result<()> {
     let config = Arc::new(AppConfig::load()?);
     let application_state = build_app_state(Arc::clone(&config)).await?;
 
-    // TODO: implement graceful shutdown here
     let http_monitors_use_case = ExecuteHttpMonitorsUseCase {
         http_monitor_repository: application_state.adapters.http_monitors_repository.clone(),
         incident_repository: application_state.adapters.incident_repository.clone(),
         incident_event_repository: application_state.adapters.incident_event_repository.clone(),
-        incident_notification_repository: application_state.adapters.incident_notification_repository.clone(),
+        incident_notification_repository: application_state
+            .adapters
+            .incident_notification_repository
+            .clone(),
         http_client: application_state.adapters.http_client.clone(),
         file_storage: application_state.adapters.file_storage.clone(),
     };
-    let _http_monitors_tasks = http_monitors_use_case.spawn_http_monitors_execution_tasks(
+    // TODO: implement graceful shutdown for these tasks
+    let http_monitors_tasks = http_monitors_use_case.spawn_http_monitors_execution_tasks(
         config.http_monitors_executor.http_monitors_concurrent_tasks,
-        config.http_monitors_executor.http_monitors_select_size,
+        config.http_monitors_executor.http_monitors_select_limit,
         config.http_monitors_executor.http_monitors_ping_concurrency,
+        Duration::from_secs(
+            config
+                .http_monitors_executor
+                .http_monitors_executor_interval_seconds,
+        ),
     );
 
     let execute_incident_notifications = ExecuteIncidentNotificationsUseCase {
@@ -54,20 +76,38 @@ pub async fn start_application() -> anyhow::Result<()> {
         sms_notificaton_server: application_state.adapters.sms_notification_server.clone(),
         mailer: application_state.adapters.mailer.clone(),
         user_devices_repository: application_state.adapters.user_devices_repository.clone(),
-        select_limit: config.notifications_executor.notifications_tasks_select_size,
+        select_limit: config
+            .notifications_executor
+            .notifications_tasks_select_limit,
     };
-    let _new_incident_notification_task = execute_incident_notifications.spawn_tasks(
+    let incident_notifications_tasks = execute_incident_notifications.spawn_tasks(
         config.notifications_executor.notifications_concurrent_tasks,
         Duration::from_secs(
-            config.notifications_executor.notifications_tasks_interval_seconds,
+            config
+                .notifications_executor
+                .notifications_tasks_interval_seconds,
         ),
     );
 
-    tokio::select! {
-        _ = _http_monitors_tasks.join_all() => (),
-        _ = _new_incident_notification_task.join_all() => (),
-        _ = server::start_server(application_state, config.server_port) => (),
-    }
+    let dead_task_runs_collector = ClearDeadTaskRunsUseCase {
+        task_repository: application_state.adapters.task_repository.clone(),
+        task_run_repository: application_state.adapters.task_run_repository.clone(),
+        select_limit: config.dead_task_runs_collector.select_limit,
+    };
+    let dead_task_runs_collector_tasks = dead_task_runs_collector.spawn_tasks(
+        config.dead_task_runs_collector.concurrent_tasks,
+        Duration::from_secs(config.dead_task_runs_collector.interval_seconds),
+    );
+
+    let server_task = tokio::spawn(server::start_server(application_state, config.server_port));
+
+    // Wait for all tasks to finish
+    let _ = tokio::join!(
+        http_monitors_tasks.join_all(),
+        incident_notifications_tasks.join_all(),
+        dead_task_runs_collector_tasks.join_all(),
+        server_task
+    );
 
     Ok(())
 }
@@ -98,7 +138,7 @@ async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationSt
             keycloak_client: keycloak_client.clone(),
         },
         user_repository: UserRepositoryAdapter::new(keycloak_client.clone()),
-        api_token_repository: ApiAccessTokenRepositoryAdapter { pool: pool.clone()},
+        api_token_repository: ApiAccessTokenRepositoryAdapter { pool: pool.clone() },
         http_monitors_repository: HttpMonitorRepositoryAdapter { pool: pool.clone() },
         incident_repository: IncidentRepositoryAdapter { pool: pool.clone() },
         incident_event_repository: IncidentEventRepositoryAdapter::new(pool.clone()),
@@ -106,7 +146,9 @@ async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationSt
             pool: pool.clone(),
         },
         user_devices_repository: UserDevicesRepositoryAdapter { pool: pool.clone() },
-        http_client: HttpClientAdapter::new(&config).await.context("Failed to create http client adapter")?,
+        http_client: HttpClientAdapter::new(&config)
+            .await
+            .context("Failed to create http client adapter")?,
         push_notification_server: PushNotificationServerAdapter::new()
             .await
             .context("Failed to create push notification server adapter")?,

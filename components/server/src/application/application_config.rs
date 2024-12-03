@@ -44,8 +44,8 @@ pub struct NotificationsExecutorConfig {
     pub notifications_concurrent_tasks: usize,
     #[envconfig(from = "NOTIFICATIONS_TASKS_INTERVAL", default = "1")]
     pub notifications_tasks_interval_seconds: u64,
-    #[envconfig(from = "NOTIFICATIONS_TASKS_SELECT_SIZE", default = "500")]
-    pub notifications_tasks_select_size: u32,
+    #[envconfig(from = "NOTIFICATIONS_TASKS_SELECT_LIMIT", default = "500")]
+    pub notifications_tasks_select_limit: u32,
 }
 
 #[derive(Envconfig)]
@@ -54,10 +54,22 @@ pub struct HttpMonitorsExecutorConfig {
     pub http_monitors_concurrent_tasks: usize,
     #[envconfig(from = "HTTP_MONITORS_PING_CONCURRENCY", default = "100")]
     pub http_monitors_ping_concurrency: usize,
-    #[envconfig(from = "HTTP_MONITORS_SELECT_SIZE", default = "500")]
-    pub http_monitors_select_size: u32,
+    #[envconfig(from = "HTTP_MONITORS_SELECT_LIMIT", default = "500")]
+    pub http_monitors_select_limit: u32,
+    #[envconfig(from = "HTTP_MONITORS_EXECUTOR_INTERVAL_SECONDS", default = "2")]
+    pub http_monitors_executor_interval_seconds: u64,
     #[envconfig(from = "BROWSER_SERVICE_GRPC_ADDRESS")]
     pub browser_service_grpc_address: String,
+}
+
+#[derive(Envconfig)]
+pub struct DeadTaskRunsCollectorConfig {
+    #[envconfig(from = "DEAD_TASK_RUNS_COLLECTOR_INTERVAL", default = "10")]
+    pub interval_seconds: u64,
+    #[envconfig(from = "DEAD_TASK_RUNS_COLLECTOR_SELECT_LIMIT", default = "500")]
+    pub select_limit: u32,
+    #[envconfig(from = "DEAD_TASK_RUNS_COLLECTOR_CONCURRENT_TASKS", default = "1")]
+    pub concurrent_tasks: usize,
 }
 
 #[derive(Envconfig)]
@@ -88,6 +100,9 @@ pub struct AppConfig {
 
     #[envconfig(nested = true)]
     pub http_monitors_executor: HttpMonitorsExecutorConfig,
+
+    #[envconfig(nested = true)]
+    pub dead_task_runs_collector: DeadTaskRunsCollectorConfig,
 
     #[envconfig(nested = true)]
     pub smtp: SmtpConfig

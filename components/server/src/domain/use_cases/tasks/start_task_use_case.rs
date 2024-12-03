@@ -26,6 +26,9 @@ pub struct StartTaskCommand {
     /// The properties of the new task to create if the task does not exist yet
     #[serde(default)]
     pub new_task: Option<NewTask>,
+    /// Whether to abort the previous running task
+    #[serde(default)]
+    pub abort_previous_running_task: bool,
 }
 
 #[derive(Debug, Clone, Deserialize, TS, ToSchema)]
@@ -97,7 +100,23 @@ where
                 .context("failed to create a new task")?;
             new_task.start(now).context("failed to start new task")?.0
         }
-        Some(TaskAggregate::Running(_)) => return Err(StartTaskError::TaskAlreadyStarted),
+        Some(TaskAggregate::Running(t)) => {
+            if command.is_some_and(|c| c.abort_previous_running_task) {
+                let aborted_task = t.mark_aborted(now).context("failed to abort running task")?;
+                save_task_aggregate(
+                    task_repository,
+                    task_run_repository,
+                    &mut tx,
+                    TaskAggregate::Healthy(aborted_task.clone()),
+                )
+                .await
+                .context("failed to save aborted task to the database")?;
+
+                aborted_task.start(now).context("failed to start aborted task")?.0
+            } else {
+                return Err(StartTaskError::TaskAlreadyStarted);
+            }
+        }
         Some(TaskAggregate::Pending(t)) => t.start(now).context("failed to start pending task")?,
         Some(TaskAggregate::Due(t)) => t.start(now).context("failed to start due task")?,
         Some(TaskAggregate::Late(t)) => t.start(now).context("failed to start late task")?,

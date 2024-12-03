@@ -5,12 +5,13 @@ use crate::domain::entities::task::TaskId;
 use super::TaskRunError;
 use super::super::boundary::{BoundaryTaskRun, TaskRunStatus};
 
+#[derive(Debug, Clone)]
 pub struct AbortedTaskRun {
-    organization_id: Uuid,
-    task_id: TaskId,
-    started_at: DateTime<Utc>,
-    completed_at: DateTime<Utc>,
-    updated_at: DateTime<Utc>,
+    pub(super) organization_id: Uuid,
+    pub(super) task_id: TaskId,
+    pub(super) started_at: DateTime<Utc>,
+    pub(super) completed_at: DateTime<Utc>,
+    pub(super) updated_at: DateTime<Utc>,
 }
 
 impl TryFrom<BoundaryTaskRun> for AbortedTaskRun {
@@ -49,7 +50,8 @@ impl From<AbortedTaskRun> for BoundaryTaskRun {
             completed_at: Some(aborted.completed_at),
             exit_code: None,
             error_message: None,
-            last_heartbeat_at: None
+            last_heartbeat_at: None,
+            heartbeat_timeout_seconds: 0,
         }
     }
 }

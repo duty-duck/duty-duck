@@ -77,7 +77,7 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
         let rows = sqlx::query!(
             r#"
             SELECT *, COUNT(*) OVER () as "filtered_count!"
-            FROM task_runs
+            FROM task_runs 
             WHERE organization_id = $1
             AND task_id = $2
             AND ($3::smallint[] IS NULL OR status = ANY($3))
@@ -121,6 +121,7 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
                 exit_code: r.exit_code,
                 error_message: r.error_message,
                 last_heartbeat_at: r.last_heartbeat_at,
+                heartbeat_timeout_seconds: r.heartbeat_timeout_seconds,
             })
             .collect::<Vec<_>>();
 

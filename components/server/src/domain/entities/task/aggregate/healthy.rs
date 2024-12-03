@@ -4,6 +4,7 @@ use crate::domain::use_cases::tasks::CreateTaskCommand;
 use super::*;
 
 /// These are the only states a task run can be in for the related task to be healthy
+#[derive(Debug, Clone)]
 pub enum HealthyTaskRun {
     Aborted(AbortedTaskRun),
     Finished(FinishedTaskRun),
@@ -18,6 +19,7 @@ impl From<HealthyTaskRun> for BoundaryTaskRun {
     }
 }
 
+#[derive(Debug, Clone)]
 pub struct HealthyTaskAggregate {
     pub(super) task: HealthyTask,
     pub(super) last_task_run: Option<HealthyTaskRun>,
@@ -37,6 +39,7 @@ impl HealthyTaskAggregate {
             *task.base().organization_id(),
             task.base().id().clone(),
             now,
+            *task.base().heartbeat_timeout(),
         );
         Ok((RunningTaskAggregate { task, task_run }, self.last_task_run))
     }

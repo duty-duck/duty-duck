@@ -25,6 +25,7 @@ pub struct BoundaryTaskRun {
     pub exit_code: Option<i32>,
     pub error_message: Option<String>,
     pub last_heartbeat_at: Option<DateTime<Utc>>,
+    pub heartbeat_timeout_seconds: i32,
 }
 
 /// An enum that represents the status of a task run

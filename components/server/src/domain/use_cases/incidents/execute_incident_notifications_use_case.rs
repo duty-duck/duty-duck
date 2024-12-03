@@ -54,25 +54,30 @@ where
         let mut join_set = JoinSet::new();
 
         for _ in 0..n_tasks {
-            let mut interval = tokio::time::interval(delay_between_two_executions);
             let executor = self.clone();
 
             join_set.spawn(async move {
+                let mut interval = tokio::time::interval(delay_between_two_executions);
                 loop {
-                    let _ = interval.tick().await;
-                    match executor.fetch_and_execute_due_notifications()
-                    .await
-                    {
-                        Ok(notifications) if notifications > 0 => {
-                            info!(
-                                notifications,
-                                "Send {} incident notifications", notifications
-                            );
+                    tokio::select! {
+                        _ = interval.tick() => {
+                            match executor.fetch_and_execute_due_notifications().await {
+                                Ok(notifications) if notifications > 0 => {
+                                    info!(
+                                        notifications,
+                                        "Send {} incident notifications", notifications
+                                    );
+                                }
+                                Err(e) => {
+                                    error!(error = ?e, "Failed to notify users of new incidents")
+                                }
+                                Ok(_) => {}
+                            }
                         }
-                        Err(e) => {
-                            error!(error = ?e, "Failed to notify users of new incidents")
+                        _ = tokio::signal::ctrl_c() => {
+                            info!("Shutting down incident notifications task");
+                            break;
                         }
-                        Ok(_) => {}
                     }
                 }
             });

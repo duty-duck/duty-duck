@@ -37,6 +37,18 @@ impl RunningTask {
         })
     }
 
+    pub fn abort(self, now: DateTime<Utc>) -> Result<HealthyTask, TaskError> {
+        Ok(HealthyTask {
+            // when a task is aborted, the next due at is recalculated
+            next_due_at: calculate_next_due_at(&self.base.cron_schedule, now)?,
+            base: TaskBase {
+                previous_status: Some(TaskStatus::Running),
+                last_status_change_at: Some(now),
+                ..self.base
+            },
+        })
+    }
+
     pub fn heartbeat_timeout(&self) -> Duration {
         self.base.heartbeat_timeout
     }

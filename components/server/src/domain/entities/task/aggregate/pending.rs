@@ -27,6 +27,7 @@ impl PendingTaskAggregate {
             *task.base().organization_id(),
             task.base().id().clone(),
             now,
+            *task.base().heartbeat_timeout(),
         );
         Ok(RunningTaskAggregate { task, task_run })
     }

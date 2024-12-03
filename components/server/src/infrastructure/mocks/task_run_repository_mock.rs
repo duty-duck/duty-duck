@@ -1,7 +1,7 @@
-use std::sync::Arc;
-use tokio::sync::Mutex;
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
+use std::{sync::Arc, time::Duration};
+use tokio::sync::Mutex;
 use uuid::Uuid;
 
 use crate::domain::{
@@ -54,11 +54,13 @@ impl TaskRunRepository for TaskRunRepositoryMock {
         opts: ListTaskRunsOpts<'a>,
     ) -> anyhow::Result<ListTaskRunsOutput> {
         let state = self.state.lock().await;
-        
+
         let filtered_runs: Vec<BoundaryTaskRun> = state
             .iter()
             .filter(|r| r.organization_id == organization_id && r.task_id == *opts.task_id)
-            .filter(|r| opts.include_statuses.is_empty() || opts.include_statuses.contains(&r.status))
+            .filter(|r| {
+                opts.include_statuses.is_empty() || opts.include_statuses.contains(&r.status)
+            })
             .cloned()
             .collect();
 
@@ -66,7 +68,8 @@ impl TaskRunRepository for TaskRunRepositoryMock {
         let end = (opts.offset + opts.limit) as usize;
         Ok(ListTaskRunsOutput {
             total_filtered_runs: filtered_runs.len() as u32,
-            runs: filtered_runs[start.min(filtered_runs.len())..end.min(filtered_runs.len())].to_vec(),
+            runs: filtered_runs[start.min(filtered_runs.len())..end.min(filtered_runs.len())]
+                .to_vec(),
             total_runs: filtered_runs.len() as u32,
         })
     }
@@ -82,9 +85,9 @@ impl TaskRunRepository for TaskRunRepositoryMock {
         Ok(state
             .iter()
             .find(|r| {
-                r.organization_id == organization_id 
-                && r.task_id == task_id 
-                && r.started_at == started_at
+                r.organization_id == organization_id
+                    && r.task_id == task_id
+                    && r.started_at == started_at
             })
             .cloned())
     }
@@ -95,11 +98,11 @@ impl TaskRunRepository for TaskRunRepositoryMock {
         task_run: BoundaryTaskRun,
     ) -> anyhow::Result<()> {
         let mut state = self.state.lock().await;
-        
+
         if let Some(existing) = state.iter_mut().find(|r| {
-            r.organization_id == task_run.organization_id 
-            && r.task_id == task_run.task_id
-            && r.started_at == task_run.started_at
+            r.organization_id == task_run.organization_id
+                && r.task_id == task_run.task_id
+                && r.started_at == task_run.started_at
         }) {
             existing.status = task_run.status;
             existing.completed_at = task_run.completed_at;
@@ -111,8 +114,6 @@ impl TaskRunRepository for TaskRunRepositoryMock {
         }
         Ok(())
     }
-
-    
 }
 
 #[cfg(test)]
@@ -130,6 +131,7 @@ mod tests {
             exit_code: None,
             error_message: None,
             last_heartbeat_at: None,
+            heartbeat_timeout_seconds: 0,
         }
     }
 
@@ -168,16 +170,18 @@ mod tests {
             repo.upsert_task_run(&mut tx, task_run).await?;
         }
 
-        let result = repo.list_task_runs(
-            &mut tx,
-            org_id,
-            ListTaskRunsOpts {
-                task_id: &TaskId::new("test-task".to_string()).unwrap(),
-                include_statuses: &[TaskRunStatus::Running],
-                limit: 10,
-                offset: 0,
-            },
-        ).await?;
+        let result = repo
+            .list_task_runs(
+                &mut tx,
+                org_id,
+                ListTaskRunsOpts {
+                    task_id: &TaskId::new("test-task".to_string()).unwrap(),
+                    include_statuses: &[TaskRunStatus::Running],
+                    limit: 10,
+                    offset: 0,
+                },
+            )
+            .await?;
 
         assert_eq!(result.runs.len(), 1);
         assert_eq!(result.runs[0].status, TaskRunStatus::Running);
@@ -207,4 +211,4 @@ mod tests {
 
         Ok(())
     }
-} 
+}

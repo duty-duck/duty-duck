@@ -55,6 +55,7 @@ impl From<FailedTaskRun> for BoundaryTaskRun {
             exit_code: failed.exit_code,
             error_message: failed.error_message,
             last_heartbeat_at: None,
+            heartbeat_timeout_seconds: 0,
         }
     }
 }

@@ -1,10 +1,12 @@
 
+use std::time::Duration;
+
 use uuid::Uuid;
 use chrono::{DateTime, Utc};
 use getset::Getters;
 
 use crate::domain::entities::task::TaskId;
-use super::{DeadTaskRun, FailedTaskRun, FinishedTaskRun, TaskRunError};
+use super::{AbortedTaskRun, DeadTaskRun, FailedTaskRun, FinishedTaskRun, TaskRunError};
 use super::super::boundary::{BoundaryTaskRun, TaskRunStatus};
 
 #[derive(Getters, Debug, Clone)]
@@ -14,15 +16,17 @@ pub struct RunningTaskRun {
     task_id: TaskId,
     started_at: DateTime<Utc>,
     last_heartbeat_at: DateTime<Utc>,
+    heartbeat_timeout: Duration,
 }
 
 impl RunningTaskRun {
-    pub fn new(organization_id: Uuid, task_id: TaskId, started_at: DateTime<Utc>) -> Self {
+    pub fn new(organization_id: Uuid, task_id: TaskId, started_at: DateTime<Utc>, heartbeat_timeout: Duration) -> Self {
         Self {
             organization_id,
             task_id,
             started_at,
             last_heartbeat_at: started_at,
+            heartbeat_timeout,
         }
     }
 
@@ -42,6 +46,18 @@ impl RunningTaskRun {
             completed_at: now,
             updated_at: now,
             last_heartbeat_at: self.last_heartbeat_at,
+            heartbeat_timeout: self.heartbeat_timeout,
+        })
+    }
+
+    /// Transition : Running -> Aborted
+    pub fn mark_aborted(self, now: DateTime<Utc>) -> Result<AbortedTaskRun, TaskRunError> {
+        Ok(AbortedTaskRun {
+            organization_id: self.organization_id,
+            task_id: self.task_id,
+            started_at: self.started_at,
+            completed_at: now,
+            updated_at: now,
         })
     }
 
@@ -114,6 +130,7 @@ impl TryFrom<BoundaryTaskRun> for RunningTaskRun {
             task_id: boundary.task_id,
             started_at: boundary.started_at,
             last_heartbeat_at,
+            heartbeat_timeout: Duration::from_secs(boundary.heartbeat_timeout_seconds as u64),
         })
     }
 }
@@ -130,6 +147,7 @@ impl From<RunningTaskRun> for BoundaryTaskRun {
             exit_code: None,
             error_message: None,
             last_heartbeat_at: Some(running.last_heartbeat_at),
+            heartbeat_timeout_seconds: running.heartbeat_timeout.as_secs() as i32,
         }
     }
 }

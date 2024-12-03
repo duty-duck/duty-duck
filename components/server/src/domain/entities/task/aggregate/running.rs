@@ -50,7 +50,22 @@ impl RunningTaskAggregate {
     ) -> Result<FailingTaskAggregate, TaskAggregateError> {
         Ok(FailingTaskAggregate {
             task: self.task.fail(now)?,
-            task_run: FailingTaskRun::Failed(self.task_run.mark_failed(now, exit_code, error_message)?),
+            task_run: FailingTaskRun::Failed(self.task_run.mark_failed(
+                now,
+                exit_code,
+                error_message,
+            )?),
+        })
+    }
+
+    /// State transition: Running -> Aborted
+    pub fn mark_aborted(
+        self,
+        now: DateTime<Utc>,
+    ) -> Result<HealthyTaskAggregate, TaskAggregateError> {
+        Ok(HealthyTaskAggregate {
+            task: self.task.abort(now)?,
+            last_task_run: Some(HealthyTaskRun::Aborted(self.task_run.mark_aborted(now)?)),
         })
     }
 

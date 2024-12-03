@@ -5,6 +5,7 @@ use crate::domain::entities::task::TaskId;
 use super::TaskRunError;
 use super::super::boundary::{BoundaryTaskRun, TaskRunStatus};
 
+#[derive(Debug, Clone)]
 pub struct FinishedTaskRun {
     pub(super) organization_id: Uuid,
     pub(super) task_id: TaskId,
@@ -52,6 +53,7 @@ impl From<FinishedTaskRun> for BoundaryTaskRun {
             exit_code: finished.exit_code,
             error_message: None,
             last_heartbeat_at: None,
+            heartbeat_timeout_seconds: 0,
         }
     }
 }

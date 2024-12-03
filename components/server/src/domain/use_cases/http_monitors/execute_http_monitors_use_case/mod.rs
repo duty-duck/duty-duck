@@ -3,7 +3,7 @@ use std::time::Duration;
 use anyhow::Context;
 use futures::{stream, StreamExt};
 use tokio::task::JoinSet;
-use tracing::{debug, error};
+use tracing::{debug, error, info};
 
 mod ping_result_handler;
 mod status_machine;
@@ -18,8 +18,6 @@ use crate::domain::ports::{
     incident_notification_repository::IncidentNotificationRepository,
     incident_repository::IncidentRepository,
 };
-
-const DELAY_BETWEEN_TWO_REQUESTS: Duration = Duration::from_secs(2);
 
 #[derive(Clone)]
 pub struct ExecuteHttpMonitorsUseCase<HMR, IR, IER, INR, HC, FS> {
@@ -48,29 +46,38 @@ where
         n_tasks: usize,
         select_limit: u32,
         ping_concurrency_limit: usize,
+        delay_between_two_executions: Duration,
     ) -> JoinSet<()> {
         let mut join_set = JoinSet::new();
         for task_index in 0..n_tasks {
             let this = self.clone();
             join_set.spawn(async move {
+                let mut interval = tokio::time::interval(delay_between_two_executions);
                 loop {
-                    match this
-                        .fetch_and_execute_due_http_monitors(
-                            task_index,
-                            select_limit,
-                            ping_concurrency_limit,
-                        )
-                        .await
-                    {
-                        Ok(monitors) if monitors > 0 => {
-                            debug!(monitors, "Executed {} monitors", monitors);
+                    tokio::select! {
+                        _ = interval.tick() => {
+                            match this
+                                .fetch_and_execute_due_http_monitors(
+                                    task_index,
+                                    select_limit,
+                                    ping_concurrency_limit,
+                                )
+                                .await
+                            {
+                                Ok(monitors) if monitors > 0 => {
+                                    debug!(monitors, "Executed {} monitors", monitors);
+                                }
+                                Err(e) => {
+                                    error!(error = ?e, "Failed to execute one or more monitors")
+                                }
+                                Ok(_) => {}
+                            }
                         }
-                        Err(e) => {
-                            error!(error = ?e, "Failed to execute one or more monitors")
+                        _ = tokio::signal::ctrl_c() => {
+                            info!("Shutting down http monitors task");
+                            break;
                         }
-                        Ok(_) => {}
                     }
-                    tokio::time::sleep(DELAY_BETWEEN_TWO_REQUESTS).await;
                 }
             });
         }

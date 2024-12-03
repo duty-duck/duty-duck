@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use uuid::Uuid;
 use chrono::{DateTime, Utc};
 
@@ -12,6 +14,7 @@ pub struct DeadTaskRun {
     pub(super) completed_at: DateTime<Utc>,
     pub(super) updated_at: DateTime<Utc>,
     pub(super) last_heartbeat_at: DateTime<Utc>,
+    pub(super) heartbeat_timeout: Duration,
 }
 
 impl TryFrom<BoundaryTaskRun> for DeadTaskRun {
@@ -41,6 +44,7 @@ impl TryFrom<BoundaryTaskRun> for DeadTaskRun {
             completed_at,
             updated_at: boundary.updated_at,
             last_heartbeat_at,
+            heartbeat_timeout: Duration::from_secs(boundary.heartbeat_timeout_seconds as u64),
         })
     }
 }
@@ -58,6 +62,7 @@ impl From<DeadTaskRun> for BoundaryTaskRun {
             exit_code: None,
             error_message: None,
             last_heartbeat_at: None,
+            heartbeat_timeout_seconds: dead.heartbeat_timeout.as_secs() as i32,
         }
     }
 }

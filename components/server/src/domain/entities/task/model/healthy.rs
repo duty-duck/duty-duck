@@ -9,6 +9,7 @@ pub const DEFAULT_LATENESS_WINDOW: Duration = Duration::from_secs(240);
 pub const DEFAULT_HEARTBEAT_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// A task that is in a healthy state (not failed, not late, not failing)
+#[derive(Debug, Clone)]
 pub struct HealthyTask {
     pub(super) base: TaskBase,
     pub(super) next_due_at: Option<DateTime<Utc>>,
