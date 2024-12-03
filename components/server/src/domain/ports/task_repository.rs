@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::domain::entities::task::{BoundaryTask, TaskId, TaskStatus};
@@ -30,6 +31,14 @@ pub trait TaskRepository: TransactionalRepository + Clone + Send + Sync + 'stati
         transaction: &mut Self::Transaction,
         task: BoundaryTask
     ) -> anyhow::Result<TaskId>;
+
+    /// List scheduled tasks that should transition to Due
+    async fn list_due_tasks(
+        &self,
+        transaction: &mut Self::Transaction,
+        now: DateTime<Utc>,
+        limit: u32,
+    ) -> anyhow::Result<Vec<BoundaryTask>>;
 }
 
 pub struct ListTasksOutput {

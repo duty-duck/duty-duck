@@ -36,4 +36,10 @@ impl FailingTaskAggregate {
         );
         Ok((RunningTaskAggregate { task, task_run }, self.task_run))
     }
+
+    /// State transition: Failing -> Due
+    pub fn mark_due(self, now: DateTime<Utc>) -> Result<DueTaskAggregate, TaskAggregateError> {
+        let task = self.task.mark_due(now)?;
+        Ok(DueTaskAggregate { task })
+    }
 }

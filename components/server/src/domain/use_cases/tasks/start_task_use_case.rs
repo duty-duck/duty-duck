@@ -117,7 +117,6 @@ where
                 return Err(StartTaskError::TaskAlreadyStarted);
             }
         }
-        Some(TaskAggregate::Pending(t)) => t.start(now).context("failed to start pending task")?,
         Some(TaskAggregate::Due(t)) => t.start(now).context("failed to start due task")?,
         Some(TaskAggregate::Late(t)) => t.start(now).context("failed to start late task")?,
         Some(TaskAggregate::Failing(t)) => t.start(now).context("failed to start failing task")?.0,

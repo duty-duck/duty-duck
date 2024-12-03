@@ -35,12 +35,12 @@ impl HealthyTask {
                 start_window: command
                     .start_window_seconds
                     .map_or(DEFAULT_START_WINDOW, |secs| {
-                        Duration::from_secs(secs.clamp(0, 3600) as u64)
+                        Duration::from_secs(secs.clamp(5, 3600) as u64)
                     }),
                 lateness_window: command
                     .lateness_window_seconds
                     .map_or(DEFAULT_LATENESS_WINDOW, |secs| {
-                        Duration::from_secs(secs.clamp(0, 3600) as u64)
+                        Duration::from_secs(secs.clamp(5, 3600) as u64)
                     }),
                 heartbeat_timeout: command
                     .heartbeat_timeout_seconds
@@ -64,6 +64,38 @@ impl HealthyTask {
                 last_status_change_at: Some(now),
                 ..self.base
             },
+        })
+    }
+
+    pub fn is_due(&self, now: DateTime<Utc>) -> bool {
+        self.next_due_at.is_some_and(|due_at| now >= due_at)
+    }
+
+    /// State transition: Healthy -> Due
+    pub fn mark_due(self, now: DateTime<Utc>) -> Result<DueTask, TaskError> {
+        if self.base.cron_schedule.is_none() {
+            return Err(TaskError::InvalidStateTransition {
+                from: TaskStatus::Healthy,
+                to: TaskStatus::Due,
+                details: "this task is not scheduled to run, it has no cron schedule".to_string(),
+            });
+        }
+        if !self.is_due(now) {
+            return Err(TaskError::InvalidStateTransition {
+                from: TaskStatus::Healthy,
+                to: TaskStatus::Due,
+                details: "this task has a cron schedule but is not due to run yet".to_string(),
+            });
+        }
+        Ok(DueTask {
+            base: TaskBase {
+                previous_status: Some(TaskStatus::Healthy),
+                last_status_change_at: Some(now),
+                ..self.base
+            },
+            // unwrap is safe because we already checked that the task is due to run,
+            // so it must have a next_due_at
+            next_due_at: self.next_due_at.unwrap(),
         })
     }
 }

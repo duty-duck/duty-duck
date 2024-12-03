@@ -32,7 +32,6 @@ mod due;
 mod failing;
 mod healthy;
 mod late;
-mod pending;
 mod running;
 
 pub use absent::*;
@@ -40,7 +39,6 @@ pub use due::*;
 pub use failing::*;
 pub use healthy::*;
 pub use late::*;
-pub use pending::*;
 pub use running::*;
 
 /// Base struct with common fields shared by all task states
@@ -86,6 +84,7 @@ fn calculate_next_due_at(
     } else {
         Ok(None)
     }
+
 }
 
 impl TryFrom<BoundaryTask> for TaskBase {

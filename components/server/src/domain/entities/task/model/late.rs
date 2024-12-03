@@ -13,7 +13,7 @@ impl LateTask {
     /// Checks whether the task should transition to the absent state
     /// (outside the lateness window)
     pub fn is_absent(&self, now: DateTime<Utc>) -> bool {
-        now >= self.next_due_at + self.base.lateness_window
+        now >= self.next_due_at + self.base.start_window + self.base.lateness_window
     }
 
     /// State transition: Late -> Absent

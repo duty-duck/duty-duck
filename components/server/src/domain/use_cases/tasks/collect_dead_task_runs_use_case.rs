@@ -4,19 +4,19 @@ use crate::domain::{
 };
 
 use anyhow::Context;
-use std::time::Duration;
 use chrono::Utc;
+use std::time::Duration;
 use tokio::task::JoinSet;
 use tracing::{error, info};
 
 #[derive(Clone)]
-pub struct ClearDeadTaskRunsUseCase<TR, TRR> {
+pub struct CollectDeadTaskRunsUseCase<TR, TRR> {
     pub task_repository: TR,
     pub task_run_repository: TRR,
     pub select_limit: u32,
 }
 
-impl<TR, TRR> ClearDeadTaskRunsUseCase<TR, TRR>
+impl<TR, TRR> CollectDeadTaskRunsUseCase<TR, TRR>
 where
     TR: TaskRepository,
     TRR: TaskRunRepository<Transaction = TR::Transaction>,
@@ -36,9 +36,9 @@ where
                 loop {
                     tokio::select! {
                         _ = interval.tick() => {
-                            match executor.clear_dead_task_runs().await {
+                            match executor.collect_dead_task_runs().await {
                                 Ok(dead_task_runs) if dead_task_runs > 0 => {
-                                    info!(dead_task_runs, "Cleared {} dead task runs", dead_task_runs);
+                                    info!(dead_task_runs, "Collected {} dead task runs", dead_task_runs);
                                 }
                                 Err(e) => {
                                     error!(error = ?e, "Failed to clear dead task runs")
@@ -58,7 +58,7 @@ where
         join_set
     }
 
-    async fn clear_dead_task_runs(&self) -> anyhow::Result<usize> {
+    async fn collect_dead_task_runs(&self) -> anyhow::Result<usize> {
         let mut transaction = self.task_repository.begin_transaction().await?;
 
         let task_aggregates: Vec<TaskAggregate> = self
@@ -105,6 +105,11 @@ where
                 }
             }
         }
+
+        self.task_repository
+            .commit_transaction(transaction)
+            .await
+            .context("Failed to commit transaction")?;
 
         Ok(running_task_aggregates_len)
     }

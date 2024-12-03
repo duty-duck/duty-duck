@@ -1,13 +1,12 @@
 use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 use uuid::Uuid;
 
 use crate::domain::{
     entities::task::{BoundaryTask, TaskId, TaskStatus},
     ports::{
-        task_repository::{
-            ListTasksOutput, TaskRepository,
-        },
+        task_repository::{ListTasksOutput, TaskRepository},
         transactional_repository::TransactionalRepository,
     },
 };
@@ -132,7 +131,11 @@ impl TaskRepository for TaskRepositoryAdapter {
         })
     }
 
-    async fn upsert_task(&self, transaction: &mut Self::Transaction, task: BoundaryTask) -> anyhow::Result<TaskId> {
+    async fn upsert_task(
+        &self,
+        transaction: &mut Self::Transaction,
+        task: BoundaryTask,
+    ) -> anyhow::Result<TaskId> {
         sqlx::query!(
             r#"
             INSERT INTO tasks (
@@ -157,7 +160,7 @@ impl TaskRepository for TaskRepositoryAdapter {
             task.name,
             task.description,
             task.status as i16,
-            task.status as i16,  // Initial previous_status is same as status
+            task.status as i16, // Initial previous_status is same as status
             task.cron_schedule,
             task.next_due_at,
             task.start_window_seconds,
@@ -170,4 +173,48 @@ impl TaskRepository for TaskRepositoryAdapter {
         Ok(task.id)
     }
 
-} 
+    /// List scheduled tasks that should transition to Due
+    async fn list_due_tasks(
+        &self,
+        transaction: &mut Self::Transaction,
+        now: DateTime<Utc>,
+        limit: u32,
+    ) -> anyhow::Result<Vec<BoundaryTask>> {
+        let rows = sqlx::query!(
+            "
+            SELECT * FROM tasks
+            WHERE cron_schedule IS NOT NULL
+            AND next_due_at <= $1
+            AND status != $2 -- status is not due 
+            AND status != $3 -- status is not running
+            LIMIT $4",
+            now,
+            TaskStatus::Due as i16,
+            TaskStatus::Running as i16,
+            limit as i64
+        )
+        .fetch_all(transaction.as_mut())
+        .await?;
+
+        let tasks = rows
+            .into_iter()
+            .map(|row| BoundaryTask {
+                organization_id: row.organization_id,
+                id: TaskId::new(row.id).expect("Invalid task ID in database"),
+                name: row.name,
+                description: row.description,
+                status: TaskStatus::from(row.status),
+                previous_status: row.previous_status.map(TaskStatus::from),
+                last_status_change_at: row.last_status_change_at,
+                cron_schedule: row.cron_schedule,
+                next_due_at: row.next_due_at,
+                start_window_seconds: row.start_window_seconds,
+                lateness_window_seconds: row.lateness_window_seconds,
+                heartbeat_timeout_seconds: row.heartbeat_timeout_seconds,
+                created_at: row.created_at,
+            })
+            .collect();
+
+        Ok(tasks)
+    }
+}

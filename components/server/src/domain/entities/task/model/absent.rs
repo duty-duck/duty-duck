@@ -14,6 +14,29 @@ impl AbsentTask {
             base: self.base,
         })
     }
+
+    pub fn is_due(&self, now: DateTime<Utc>) -> bool {
+        now >= self.next_due_at
+    }
+
+    /// State transition: Absent -> Due
+    pub fn mark_due(self, now: DateTime<Utc>) -> Result<DueTask, TaskError> {
+        if !self.is_due(now) {
+            return Err(TaskError::InvalidStateTransition {
+                from: TaskStatus::Absent,
+                to: TaskStatus::Due,
+                details: "this task has a cron schedule but is not due to run yet".to_string(),
+            });
+        }
+        Ok(DueTask {
+            base: TaskBase {
+                previous_status: Some(TaskStatus::Absent),
+                last_status_change_at: Some(now),
+                ..self.base
+            },
+            next_due_at: self.next_due_at,
+        })
+    }
 }
 
 impl TryFrom<AbsentTask> for BoundaryTask {

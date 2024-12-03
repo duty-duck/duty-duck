@@ -3,7 +3,6 @@ mod due;
 mod failing;
 mod healthy;
 mod late;
-mod pending;
 mod running;
 
 pub use absent::*;
@@ -12,7 +11,6 @@ pub use due::*;
 pub use failing::*;
 pub use healthy::*;
 pub use late::*;
-pub use pending::*;
 pub use running::*;
 
 use crate::domain::{
@@ -47,8 +45,6 @@ pub enum TaskAggregateError {
 
 /// An enum encompassing all possible states of a task aggregate
 pub enum TaskAggregate {
-    /// A task that is pending, i.e. not yet due to run
-    Pending(PendingTaskAggregate),
     /// A task that is due to run
     Due(DueTaskAggregate),
     /// A task that is late, i.e. outside the start window
@@ -105,7 +101,6 @@ where
 
                     from_boundary(task, task_run)?
                 }
-                TaskStatus::Pending => from_boundary(task, None)?,
                 TaskStatus::Due => from_boundary(task, None)?,
                 TaskStatus::Late => from_boundary(task, None)?,
                 TaskStatus::Absent => from_boundary(task, None)?,
@@ -160,9 +155,6 @@ pub fn from_boundary(
     boundary_task_run: Option<BoundaryTaskRun>,
 ) -> anyhow::Result<TaskAggregate> {
     Ok(match boundary_task.status {
-        TaskStatus::Pending => TaskAggregate::Pending(PendingTaskAggregate {
-            task: boundary_task.try_into()?,
-        }),
         TaskStatus::Healthy => TaskAggregate::Healthy(HealthyTaskAggregate {
             last_task_run: match boundary_task_run {
                 Some(r) if r.status == TaskRunStatus::Finished => Some(HealthyTaskRun::Finished(r.try_into()?)),
@@ -209,7 +201,6 @@ pub fn to_boundary(
     aggregate: TaskAggregate,
 ) -> anyhow::Result<(BoundaryTask, Option<BoundaryTaskRun>)> {
     Ok(match aggregate {
-        TaskAggregate::Pending(p) => (p.task.try_into()?, None),
         TaskAggregate::Due(d) => (d.task.try_into()?, None),
         TaskAggregate::Late(l) => (l.task.try_into()?, None),
         TaskAggregate::Running(r) => (r.task.try_into()?, Some(r.task_run.into())),

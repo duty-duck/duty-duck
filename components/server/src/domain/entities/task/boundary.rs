@@ -34,20 +34,18 @@ pub struct BoundaryTask {
 #[serde(rename_all = "lowercase")]
 #[ts(export)]
 pub enum TaskStatus {
-    /// The last task run was successful and the task is not late or absent
+    /// The last task run (if any) was successful and the task is not late or absent
     Healthy = 0,
     /// The last task run failed
     Failing = 1,
     /// The task is currently running
     Running = 2,
-    /// The task is not yet expected to run
-    Pending = 3,
     /// The task is expected to start soon (within the start window)
-    Due = 4,
+    Due = 3,
     /// The task is expected to start and is late (within the lateness window)
-    Late = 5,
+    Late = 4,
     /// The task was expected to start but has not started and the lateness window has passed
-    Absent = 6,
+    Absent = 5,
 }
 
 impl From<i16> for TaskStatus {
@@ -56,10 +54,9 @@ impl From<i16> for TaskStatus {
             0 => Self::Healthy,
             1 => Self::Failing,
             2 => Self::Running,
-            3 => Self::Pending,
-            4 => Self::Due,
-            5 => Self::Late,
-            6 => Self::Absent,
+            3 => Self::Due,
+            4 => Self::Late,
+            5 => Self::Absent,
             _ => panic!("invalid TaskStatus discriminant: {value}"),
         }
     }

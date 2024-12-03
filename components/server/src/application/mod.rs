@@ -9,7 +9,7 @@ use sqlx::postgres::PgPoolOptions;
 use crate::{
     domain::use_cases::{
         http_monitors::ExecuteHttpMonitorsUseCase, incidents::ExecuteIncidentNotificationsUseCase,
-        tasks::ClearDeadTaskRunsUseCase,
+        tasks::{CollectDeadTaskRunsUseCase, CollectDueTasksUseCase},
     },
     infrastructure::{
         adapters::{
@@ -89,7 +89,7 @@ pub async fn start_application() -> anyhow::Result<()> {
         ),
     );
 
-    let dead_task_runs_collector = ClearDeadTaskRunsUseCase {
+    let dead_task_runs_collector = CollectDeadTaskRunsUseCase {
         task_repository: application_state.adapters.task_repository.clone(),
         task_run_repository: application_state.adapters.task_run_repository.clone(),
         select_limit: config.dead_task_runs_collector.select_limit,
@@ -99,6 +99,16 @@ pub async fn start_application() -> anyhow::Result<()> {
         Duration::from_secs(config.dead_task_runs_collector.interval_seconds),
     );
 
+    let due_tasks_collector = CollectDueTasksUseCase {
+        task_repository: application_state.adapters.task_repository.clone(),
+        task_run_repository: application_state.adapters.task_run_repository.clone(),
+        select_limit: config.due_tasks_collector.select_limit,
+    };
+    let due_tasks_collector_tasks = due_tasks_collector.spawn_tasks(
+        config.due_tasks_collector.concurrent_tasks,
+        Duration::from_secs(config.due_tasks_collector.interval_seconds),
+    );
+
     let server_task = tokio::spawn(server::start_server(application_state, config.server_port));
 
     // Wait for all tasks to finish
@@ -106,6 +116,7 @@ pub async fn start_application() -> anyhow::Result<()> {
         http_monitors_tasks.join_all(),
         incident_notifications_tasks.join_all(),
         dead_task_runs_collector_tasks.join_all(),
+        due_tasks_collector_tasks.join_all(),
         server_task
     );
 

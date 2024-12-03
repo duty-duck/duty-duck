@@ -1,4 +1,4 @@
-///! This module defines the different states a task run can be in using separate structs
+/// This module defines the different states a task run can be in using separate structs
 /// Together, these structs form a finite state machine that encompasses all possible states and all legal transitions between them.
 ///
 /// To persist this state machine or serve it over the network, we use the `BoundaryTaskRun` type.

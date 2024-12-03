@@ -17,4 +17,10 @@ impl AbsentTaskAggregate {
         );
         Ok(RunningTaskAggregate { task, task_run })
     }
+
+    /// State transition: Absent -> Due
+    pub fn mark_due(self, now: DateTime<Utc>) -> Result<DueTaskAggregate, TaskAggregateError> {
+        let task = self.task.mark_due(now)?;
+        Ok(DueTaskAggregate { task })
+    }
 }

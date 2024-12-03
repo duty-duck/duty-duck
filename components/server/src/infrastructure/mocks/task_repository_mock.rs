@@ -1,13 +1,13 @@
+use async_trait::async_trait;
+use chrono::{DateTime, Utc};
 use std::sync::Arc;
 use tokio::sync::Mutex;
-use async_trait::async_trait;
-use chrono::Utc;
 use uuid::Uuid;
 
 use crate::domain::{
     entities::task::{BoundaryTask, TaskId, TaskStatus},
     ports::{
-        task_repository::{TaskRepository, ListTasksOutput},
+        task_repository::{ListTasksOutput, TaskRepository},
         transactional_repository::{TransactionMock, TransactionalRepository},
     },
 };
@@ -66,7 +66,7 @@ impl TaskRepository for TaskRepositoryMock {
         offset: u32,
     ) -> anyhow::Result<ListTasksOutput> {
         let state = self.state.lock().await;
-        
+
         let total_tasks = state
             .iter()
             .filter(|t| t.organization_id == organization_id)
@@ -77,18 +77,22 @@ impl TaskRepository for TaskRepositoryMock {
             .filter(|t| t.organization_id == organization_id)
             .filter(|t| include_statuses.is_empty() || include_statuses.contains(&t.status))
             .filter(|t| {
-                query.is_empty() || 
-                t.name.to_lowercase().contains(&query.to_lowercase()) ||
-                t.description.as_ref().map(|d| d.to_lowercase().contains(&query.to_lowercase())).unwrap_or(false)
+                query.is_empty()
+                    || t.name.to_lowercase().contains(&query.to_lowercase())
+                    || t.description
+                        .as_ref()
+                        .map(|d| d.to_lowercase().contains(&query.to_lowercase()))
+                        .unwrap_or(false)
             })
             .cloned()
             .collect();
 
         let total_filtered_tasks = filtered_tasks.len() as u32;
-        
+
         let start = offset as usize;
         let end = (offset + limit) as usize;
-        let tasks = filtered_tasks[start.min(filtered_tasks.len())..end.min(filtered_tasks.len())].to_vec();
+        let tasks =
+            filtered_tasks[start.min(filtered_tasks.len())..end.min(filtered_tasks.len())].to_vec();
 
         Ok(ListTasksOutput {
             tasks,
@@ -104,7 +108,10 @@ impl TaskRepository for TaskRepositoryMock {
     ) -> anyhow::Result<TaskId> {
         let mut state = self.state.lock().await;
 
-        if let Some(existing) = state.iter_mut().find(|t| t.id == task.id && t.organization_id == task.organization_id) {
+        if let Some(existing) = state
+            .iter_mut()
+            .find(|t| t.id == task.id && t.organization_id == task.organization_id)
+        {
             existing.name = task.name;
             existing.description = task.description;
             existing.status = task.status;
@@ -119,6 +126,24 @@ impl TaskRepository for TaskRepositoryMock {
         }
     }
 
+    async fn list_due_tasks(
+        &self,
+        _transaction: &mut Self::Transaction,
+        now: DateTime<Utc>,
+        limit: u32,
+    ) -> anyhow::Result<Vec<BoundaryTask>> {
+        let state = self.state.lock().await;
+        Ok(state
+            .iter()
+            .filter(|t| {
+                t.status == TaskStatus::Due
+                    && t.status != TaskStatus::Running
+                    && t.next_due_at.is_some_and(|due_at| due_at <= now)
+            })
+            .take(limit as usize)
+            .cloned()
+            .collect())
+    }
 }
 
 #[cfg(test)]
@@ -147,21 +172,21 @@ mod tests {
     async fn test_create_task_updates_state() -> anyhow::Result<()> {
         let repo = TaskRepositoryMock::new();
         let org_id = Uuid::new_v4();
-        
-        let task = create_test_task(org_id, "test-task", TaskStatus::Pending);
+
+        let task = create_test_task(org_id, "test-task", TaskStatus::Healthy);
         let id = repo.upsert_task(&mut TransactionMock, task).await?;
-        
+
         let state = repo.state.lock().await;
         assert_eq!(state.len(), 1);
-        
+
         let created_task = &state[0];
         assert_eq!(created_task.id, id);
         assert_eq!(created_task.organization_id, org_id);
         assert_eq!(created_task.name, "test-task");
-        assert_eq!(created_task.status, TaskStatus::Pending);
-        
+        assert_eq!(created_task.status, TaskStatus::Healthy);
+
         Ok(())
     }
 
     // Add more tests similar to http_monitor_repository_mock tests...
-} 
+}

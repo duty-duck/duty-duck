@@ -1,4 +1,3 @@
-
 use super::*;
 
 /// A task that was running, and finished unsuccessfully
@@ -9,7 +8,6 @@ pub struct FailingTask {
 }
 
 impl FailingTask {
-
     /// State transition: Failing -> Running
     pub fn start(self, now: DateTime<Utc>) -> Result<RunningTask, TaskError> {
         Ok(RunningTask {
@@ -20,6 +18,38 @@ impl FailingTask {
                 last_status_change_at: Some(now),
                 ..self.base
             },
+        })
+    }
+
+    pub fn is_due(&self, now: DateTime<Utc>) -> bool {
+        self.next_due_at.is_some_and(|due_at| now >= due_at)
+    }
+
+    /// State transition: Failing -> Due
+    pub fn mark_due(self, now: DateTime<Utc>) -> Result<DueTask, TaskError> {
+        if self.base.cron_schedule.is_none() {
+            return Err(TaskError::InvalidStateTransition {
+                from: TaskStatus::Failing,
+                to: TaskStatus::Due,
+                details: "this task is not scheduled to run, it has no cron schedule".to_string(),
+            });
+        }
+        if !self.is_due(now) {
+            return Err(TaskError::InvalidStateTransition {
+                from: TaskStatus::Failing,
+                to: TaskStatus::Due,
+                details: "this task has a cron schedule but is not due to run yet".to_string(),
+            });
+        }
+        Ok(DueTask {
+            base: TaskBase {
+                previous_status: Some(TaskStatus::Failing),
+                last_status_change_at: Some(now),
+                ..self.base
+            },
+            // unwrap is safe because we already checked that the task is due to run,
+            // so it must have a next_due_at
+            next_due_at: self.next_due_at.unwrap(),
         })
     }
 }
