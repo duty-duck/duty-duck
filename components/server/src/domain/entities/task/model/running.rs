@@ -60,7 +60,7 @@ impl TryFrom<RunningTask> for BoundaryTask {
     fn try_from(task: RunningTask) -> Result<Self, Self::Error> {
         Ok(BoundaryTask {
             status: TaskStatus::Running,
-            next_due_at: calculate_next_due_at(&task.base.cron_schedule, Utc::now())?,
+            next_due_at: task.next_due_at,
             ..BoundaryTask::from(task.base)
         })
     }

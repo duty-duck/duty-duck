@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
@@ -126,7 +126,7 @@ impl TaskRepository for TaskRepositoryMock {
         }
     }
 
-    async fn list_due_tasks(
+    async fn list_next_due_tasks(
         &self,
         _transaction: &mut Self::Transaction,
         now: DateTime<Utc>,
@@ -138,7 +138,50 @@ impl TaskRepository for TaskRepositoryMock {
             .filter(|t| {
                 t.status == TaskStatus::Due
                     && t.status != TaskStatus::Running
-                    && t.next_due_at.is_some_and(|due_at| due_at <= now)
+                    && t.next_due_at.is_some_and(|due_at| now >= due_at)
+            })
+            .take(limit as usize)
+            .cloned()
+            .collect())
+    }
+
+    async fn list_due_tasks_running_late(
+        &self,
+        _transaction: &mut Self::Transaction,
+        now: DateTime<Utc>,
+        limit: u32,
+    ) -> anyhow::Result<Vec<BoundaryTask>> {
+        let state = self.state.lock().await;
+        Ok(state
+            .iter()
+            .filter(|t| {
+                t.status == TaskStatus::Due
+                    && t.next_due_at.is_some_and(|due_at| {
+                        now >= due_at + Duration::from_secs(t.start_window_seconds as u64)
+                    })
+            })
+            .take(limit as usize)
+            .cloned()
+            .collect())
+    }
+
+    async fn list_next_absent_tasks(
+        &self,
+        _transaction: &mut Self::Transaction,
+        now: DateTime<Utc>,
+        limit: u32,
+    ) -> anyhow::Result<Vec<BoundaryTask>> {
+        let state = self.state.lock().await;
+        Ok(state
+            .iter()
+            .filter(|t| {
+                t.status == TaskStatus::Late
+                    && t.next_due_at.is_some_and(|due_at| {
+                        now >= due_at
+                            + Duration::from_secs(
+                                t.start_window_seconds as u64 + t.lateness_window_seconds as u64,
+                            )
+                    })
             })
             .take(limit as usize)
             .cloned()

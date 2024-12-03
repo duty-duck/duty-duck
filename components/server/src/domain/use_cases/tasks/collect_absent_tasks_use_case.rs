@@ -10,13 +10,13 @@ use tokio::task::JoinSet;
 use tracing::{error, info};
 
 #[derive(Clone)]
-pub struct CollectDueTasksUseCase<TR, TRR> {
+pub struct CollectAbsentTasksUseCase<TR, TRR> {
     pub task_repository: TR,
     pub task_run_repository: TRR,
     pub select_limit: u32,
 }
 
-impl<TR, TRR> CollectDueTasksUseCase<TR, TRR>
+impl<TR, TRR> CollectAbsentTasksUseCase<TR, TRR>
 where
     TR: TaskRepository,
     TRR: TaskRunRepository<Transaction = TR::Transaction>,
@@ -36,18 +36,18 @@ where
                 loop {
                     tokio::select! {
                         _ = interval.tick() => {
-                            match executor.collect_due_tasks().await {
-                                Ok(due_tasks) if due_tasks > 0 => {
-                                    info!(due_tasks, "Collected {} due tasks", due_tasks);
+                            match executor.collect_absent_tasks().await {
+                                Ok(absent_tasks) if absent_tasks > 0 => {
+                                    info!(absent_tasks, "Collected {} absent tasks", absent_tasks);
                                 }
                                 Err(e) => {
-                                    error!(error = ?e, "Failed to collect due tasks")
+                                    error!(error = ?e, "Failed to collect absent tasks")
                                 }
                                 Ok(_) => {}
                             }
                         }
                         _ = tokio::signal::ctrl_c() => {
-                            info!("Shutting down due tasks collector task");
+                            info!("Shutting down absent tasks collector task");
                             break;
                         }
                     }
@@ -58,36 +58,34 @@ where
         join_set
     }
 
-    async fn collect_due_tasks(&self) -> anyhow::Result<usize> {
+    async fn collect_absent_tasks(&self) -> anyhow::Result<usize> {
         let mut transaction = self.task_repository.begin_transaction().await?;
 
         let now = Utc::now();
 
         let task_aggregates: Vec<TaskAggregate> = self
             .task_repository
-            .list_next_due_tasks(&mut transaction, now, self.select_limit)
+            .list_next_absent_tasks(&mut transaction, now, self.select_limit)
             .await
-            .context("Failed to get due tasks from the database")?
+            .context("Failed to get absent tasks from the database")?
             .into_iter()
             .map(|task| from_boundary(task, None))
             .collect::<anyhow::Result<Vec<_>>>()
-            .context("Failed to convert due tasks from boundaries to task aggregates")?;
+            .context("Failed to convert absent tasks from boundaries to task aggregates")?;
         let task_aggregates_len = task_aggregates.len();
 
         // turn every task aggregate into a failing one and save it
         for aggregate in task_aggregates {
-            let due_aggregate = match aggregate {
-                TaskAggregate::Healthy(agg) => agg.mark_due(now),
-                TaskAggregate::Failing(agg) => agg.mark_due(now),
-                TaskAggregate::Absent(agg) => agg.mark_due(now),
-                _ => continue,
-            }.context("Failed to mark task aggregate as due. This is likely a bug in the SQL query used to retrieve aggregates")?;
+            let absent_aggregate = match aggregate {
+                TaskAggregate::Late(agg) => agg.mark_absent(now).context("Failed to mark task aggregate as absent. This is likely a bug in the SQL query used to retrieve aggregates")?,
+                _ => anyhow::bail!("unexpected task aggregate type. This is likely a bug in the SQL query used to retrieve aggregates"),
+            };
 
             save_task_aggregate(
                 &self.task_repository,
                 &self.task_run_repository,
                 &mut transaction,
-                TaskAggregate::Due(due_aggregate),
+                TaskAggregate::Absent(absent_aggregate),
             )
             .await
             .context("Failed to save task aggregate")?;

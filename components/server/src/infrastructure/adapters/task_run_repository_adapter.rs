@@ -205,6 +205,7 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
     async fn list_dead_task_runs(
         &self,
         transaction: &mut Self::Transaction,
+        now: DateTime<Utc>,
         limit: u32,
     ) -> anyhow::Result<Vec<(BoundaryTask, BoundaryTaskRun)>> {
         let rows = sqlx::query!(
@@ -224,10 +225,11 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
                 task_runs.*
             FROM task_runs
             INNER JOIN tasks ON task_runs.organization_id = tasks.organization_id AND task_runs.task_id = tasks.id
-            WHERE (task_runs.last_heartbeat_at < NOW() - INTERVAL '1 second' * task_runs.heartbeat_timeout_seconds) AND task_runs.status = $1
+            WHERE (task_runs.last_heartbeat_at < ($1::timestamptz - INTERVAL '1 second' * task_runs.heartbeat_timeout_seconds)) AND task_runs.status = $2
             ORDER BY task_runs.last_heartbeat_at ASC
-            LIMIT $2
+            LIMIT $3
             "#,
+            now,
             TaskRunStatus::Running as i16,
             limit as i64,
         )

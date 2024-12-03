@@ -6,15 +6,10 @@ pub struct DueTaskAggregate {
 }
 
 impl DueTaskAggregate {
-    /// Checks whether the task should transition to the absent state
-    pub fn is_late(&self) -> bool {
-        self.task.is_late()
-    }
-
     /// State transition: Due -> Late
-    pub fn mark_late(self) -> Result<LateTaskAggregate, TaskAggregateError> {
+    pub fn mark_late(self, now: DateTime<Utc>) -> Result<LateTaskAggregate, TaskAggregateError> {
         Ok(LateTaskAggregate {
-            task: self.task.mark_late()?,
+            task: self.task.mark_late(now)?,
         })
     }
 

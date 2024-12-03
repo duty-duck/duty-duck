@@ -118,6 +118,7 @@ impl TaskRunRepository for TaskRunRepositoryMock {
     async fn list_dead_task_runs(
         &self,
         _transaction: &mut Self::Transaction,
+        _now: DateTime<Utc>,
         _limit: u32,
     ) -> anyhow::Result<Vec<(BoundaryTask, BoundaryTaskRun)>> {
         unimplemented!("list_dead_task_runs is not implemented for this mock")

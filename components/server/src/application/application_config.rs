@@ -83,6 +83,26 @@ pub struct DueTasksCollectorConfig {
 }
 
 #[derive(Envconfig)]
+pub struct LateTasksCollectorConfig {
+    #[envconfig(from = "LATE_TASKS_COLLECTOR_INTERVAL", default = "10")]
+    pub interval_seconds: u64,
+    #[envconfig(from = "LATE_TASKS_COLLECTOR_SELECT_LIMIT", default = "500")]
+    pub select_limit: u32,
+    #[envconfig(from = "LATE_TASKS_COLLECTOR_CONCURRENT_TASKS", default = "1")]
+    pub concurrent_tasks: usize,
+}
+
+#[derive(Envconfig)]
+pub struct AbsentTasksCollectorConfig {
+    #[envconfig(from = "ABSENT_TASKS_COLLECTOR_INTERVAL", default = "10")]
+    pub interval_seconds: u64,
+    #[envconfig(from = "ABSENT_TASKS_COLLECTOR_SELECT_LIMIT", default = "500")]
+    pub select_limit: u32,
+    #[envconfig(from = "ABSENT_TASKS_COLLECTOR_CONCURRENT_TASKS", default = "1")]
+    pub concurrent_tasks: usize,
+}
+
+#[derive(Envconfig)]
 pub struct FileStorageConfig {
     #[envconfig(from = "FILE_STORAGE_BUCKET_NAME")]
     pub bucket_name: String,
@@ -117,6 +137,11 @@ pub struct AppConfig {
     #[envconfig(nested = true)]
     pub due_tasks_collector: DueTasksCollectorConfig,
 
+    #[envconfig(nested = true)]
+    pub late_tasks_collector: LateTasksCollectorConfig,
+
+    #[envconfig(nested = true)]
+    pub absent_tasks_collector: AbsentTasksCollectorConfig,
     #[envconfig(nested = true)]
     pub smtp: SmtpConfig
 }

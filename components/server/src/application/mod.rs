@@ -9,7 +9,7 @@ use sqlx::postgres::PgPoolOptions;
 use crate::{
     domain::use_cases::{
         http_monitors::ExecuteHttpMonitorsUseCase, incidents::ExecuteIncidentNotificationsUseCase,
-        tasks::{CollectDeadTaskRunsUseCase, CollectDueTasksUseCase},
+        tasks::{CollectAbsentTasksUseCase, CollectDeadTaskRunsUseCase, CollectDueTasksUseCase, CollectLateTasksUseCase},
     },
     infrastructure::{
         adapters::{
@@ -109,6 +109,26 @@ pub async fn start_application() -> anyhow::Result<()> {
         Duration::from_secs(config.due_tasks_collector.interval_seconds),
     );
 
+    let late_tasks_collector = CollectLateTasksUseCase {
+        task_repository: application_state.adapters.task_repository.clone(),
+        task_run_repository: application_state.adapters.task_run_repository.clone(),
+        select_limit: config.late_tasks_collector.select_limit,
+    };
+    let late_tasks_collector_tasks = late_tasks_collector.spawn_tasks(
+        config.late_tasks_collector.concurrent_tasks,
+        Duration::from_secs(config.late_tasks_collector.interval_seconds),
+    );
+
+    let absent_tasks_collector = CollectAbsentTasksUseCase {
+        task_repository: application_state.adapters.task_repository.clone(),
+        task_run_repository: application_state.adapters.task_run_repository.clone(),
+        select_limit: config.absent_tasks_collector.select_limit,
+    };
+    let absent_tasks_collector_tasks = absent_tasks_collector.spawn_tasks(
+        config.absent_tasks_collector.concurrent_tasks,
+        Duration::from_secs(config.absent_tasks_collector.interval_seconds),
+    );
+
     let server_task = tokio::spawn(server::start_server(application_state, config.server_port));
 
     // Wait for all tasks to finish
@@ -117,6 +137,8 @@ pub async fn start_application() -> anyhow::Result<()> {
         incident_notifications_tasks.join_all(),
         dead_task_runs_collector_tasks.join_all(),
         due_tasks_collector_tasks.join_all(),
+        late_tasks_collector_tasks.join_all(),
+        absent_tasks_collector_tasks.join_all(),
         server_task
     );
 

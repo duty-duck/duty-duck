@@ -33,12 +33,29 @@ pub trait TaskRepository: TransactionalRepository + Clone + Send + Sync + 'stati
     ) -> anyhow::Result<TaskId>;
 
     /// List scheduled tasks that should transition to Due
-    async fn list_due_tasks(
+    async fn list_next_due_tasks(
         &self,
         transaction: &mut Self::Transaction,
         now: DateTime<Utc>,
         limit: u32,
     ) -> anyhow::Result<Vec<BoundaryTask>>;
+    
+    /// List due tasks that should transition to Late
+    async fn list_due_tasks_running_late(
+        &self,
+        transaction: &mut Self::Transaction,
+        now: DateTime<Utc>,
+        limit: u32,
+    ) -> anyhow::Result<Vec<BoundaryTask>>;
+
+    /// List late tasks that should transition to Absent
+    async fn list_next_absent_tasks(
+        &self,
+        transaction: &mut Self::Transaction,
+        now: DateTime<Utc>,
+        limit: u32,
+    ) -> anyhow::Result<Vec<BoundaryTask>>;
+
 }
 
 pub struct ListTasksOutput {

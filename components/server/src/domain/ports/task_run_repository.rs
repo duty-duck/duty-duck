@@ -63,6 +63,7 @@ pub trait TaskRunRepository: TransactionalRepository + Clone + Send + Sync + 'st
     async fn list_dead_task_runs(
         &self,
         transaction: &mut Self::Transaction,
+        now: DateTime<Utc>,
         limit: u32,
     ) -> anyhow::Result<Vec<(BoundaryTask, BoundaryTaskRun)>>;
 }

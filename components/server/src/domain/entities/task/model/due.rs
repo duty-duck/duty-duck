@@ -20,12 +20,12 @@ impl DueTask {
         })
     }
 
-    pub fn is_late(&self) -> bool {
-        Utc::now() >= self.next_due_at + self.base.start_window
+    pub fn is_late(&self, now: DateTime<Utc>) -> bool {
+        now >= self.next_due_at + self.base.start_window
     }
 
-    pub fn mark_late(self) -> Result<LateTask, TaskError> {
-        if !self.is_late() {
+    pub fn mark_late(self, now: DateTime<Utc>) -> Result<LateTask, TaskError> {
+        if !self.is_late(now) {
             return Err(TaskError::InvalidStateTransition {
                 from: TaskStatus::Due,
                 to: TaskStatus::Late,
@@ -35,7 +35,7 @@ impl DueTask {
         Ok(LateTask {
             base: TaskBase {
                 previous_status: Some(TaskStatus::Due),
-                last_status_change_at: Some(Utc::now()),
+                last_status_change_at: Some(now),
                 ..self.base
             },
             next_due_at: self.next_due_at,

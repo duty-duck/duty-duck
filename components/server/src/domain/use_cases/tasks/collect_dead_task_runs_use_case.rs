@@ -60,10 +60,11 @@ where
 
     async fn collect_dead_task_runs(&self) -> anyhow::Result<usize> {
         let mut transaction = self.task_repository.begin_transaction().await?;
+        let now = Utc::now();
 
         let task_aggregates: Vec<TaskAggregate> = self
             .task_run_repository
-            .list_dead_task_runs(&mut transaction, self.select_limit)
+            .list_dead_task_runs(&mut transaction, now, self.select_limit)
             .await
             .context("Failed to get dead task runs from the database")?
             .into_iter()
@@ -82,28 +83,19 @@ where
             .collect::<anyhow::Result<Vec<_>>>()?;
 
         let running_task_aggregates_len = running_task_aggregates.len();
-        let now = Utc::now();
 
         // turn every running task aggregate into a failing one and save it
         for running_task_aggregate in running_task_aggregates {
-            match running_task_aggregate.mark_dead(now) {
-                Ok(failing_aggregate) => {
-                    save_task_aggregate(
-                        &self.task_repository,
-                        &self.task_run_repository,
-                        &mut transaction,
-                        TaskAggregate::Failing(failing_aggregate),
-                    )
-                    .await
-                    .context("Failed to save task aggregate")?;
-                }
-                Err(e) => {
-                    error!(
-                        error = ?e,
-                        "Failed to mark running task aggregate as dead. This is likely a bug in the SQL query used to retrieve aggregates"
-                    );
-                }
-            }
+            let failing_aggregate = running_task_aggregate.mark_dead(now).context("Failed to mark running task aggregate as dead. This is likely a bug in the SQL query used to retrieve aggregates")?;
+
+            save_task_aggregate(
+                &self.task_repository,
+                &self.task_run_repository,
+                &mut transaction,
+                TaskAggregate::Failing(failing_aggregate),
+            )
+            .await
+            .context("Failed to save task aggregate")?;
         }
 
         self.task_repository

@@ -174,7 +174,7 @@ impl TaskRepository for TaskRepositoryAdapter {
     }
 
     /// List scheduled tasks that should transition to Due
-    async fn list_due_tasks(
+    async fn list_next_due_tasks(
         &self,
         transaction: &mut Self::Transaction,
         now: DateTime<Utc>,
@@ -184,13 +184,99 @@ impl TaskRepository for TaskRepositoryAdapter {
             "
             SELECT * FROM tasks
             WHERE cron_schedule IS NOT NULL
-            AND next_due_at <= $1
+            AND $1::timestamptz >= next_due_at
             AND status != $2 -- status is not due 
             AND status != $3 -- status is not running
             LIMIT $4",
             now,
             TaskStatus::Due as i16,
             TaskStatus::Running as i16,
+            limit as i64
+        )
+        .fetch_all(transaction.as_mut())
+        .await?;
+
+        let tasks = rows
+            .into_iter()
+            .map(|row| BoundaryTask {
+                organization_id: row.organization_id,
+                id: TaskId::new(row.id).expect("Invalid task ID in database"),
+                name: row.name,
+                description: row.description,
+                status: TaskStatus::from(row.status),
+                previous_status: row.previous_status.map(TaskStatus::from),
+                last_status_change_at: row.last_status_change_at,
+                cron_schedule: row.cron_schedule,
+                next_due_at: row.next_due_at,
+                start_window_seconds: row.start_window_seconds,
+                lateness_window_seconds: row.lateness_window_seconds,
+                heartbeat_timeout_seconds: row.heartbeat_timeout_seconds,
+                created_at: row.created_at,
+            })
+            .collect();
+
+        Ok(tasks)
+    }
+
+        /// List due tasks that should transition to Late
+        async fn list_due_tasks_running_late(
+            &self,
+            transaction: &mut Self::Transaction,
+            now: DateTime<Utc>,
+            limit: u32,
+        ) -> anyhow::Result<Vec<BoundaryTask>> {
+            let rows = sqlx::query!(
+                "
+                SELECT * FROM tasks
+                WHERE cron_schedule IS NOT NULL
+                AND $1::timestamptz >= next_due_at + (start_window_seconds || ' seconds')::interval
+                AND status = $2 -- status is due
+                LIMIT $3",
+                now,
+                TaskStatus::Due as i16,
+                limit as i64
+            )
+            .fetch_all(transaction.as_mut())
+            .await?;
+    
+            let tasks = rows
+                .into_iter()
+                .map(|row| BoundaryTask {
+                    organization_id: row.organization_id,
+                    id: TaskId::new(row.id).expect("Invalid task ID in database"),
+                    name: row.name,
+                    description: row.description,
+                    status: TaskStatus::from(row.status),
+                    previous_status: row.previous_status.map(TaskStatus::from),
+                    last_status_change_at: row.last_status_change_at,
+                    cron_schedule: row.cron_schedule,
+                    next_due_at: row.next_due_at,
+                    start_window_seconds: row.start_window_seconds,
+                    lateness_window_seconds: row.lateness_window_seconds,
+                    heartbeat_timeout_seconds: row.heartbeat_timeout_seconds,
+                    created_at: row.created_at,
+                })
+                .collect();
+    
+            Ok(tasks)
+        }
+    
+        /// List late tasks that should transition to Absent
+        async fn list_next_absent_tasks(
+            &self,
+            transaction: &mut Self::Transaction,
+            now: DateTime<Utc>,
+        limit: u32,
+    ) -> anyhow::Result<Vec<BoundaryTask>> {
+        let rows = sqlx::query!(
+            "
+            SELECT * FROM tasks
+            WHERE cron_schedule IS NOT NULL
+            AND $1::timestamptz >= next_due_at + (start_window_seconds || ' seconds')::interval + (lateness_window_seconds || ' seconds')::interval
+            AND status = $2 -- status is late
+            LIMIT $3",
+            now,
+            TaskStatus::Late as i16,
             limit as i64
         )
         .fetch_all(transaction.as_mut())
