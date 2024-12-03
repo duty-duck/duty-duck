@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::domain::entities::{
-    task::TaskId,
+    task::{BoundaryTask, TaskId},
     task_run::{BoundaryTaskRun, TaskRunStatus},
 };
 
@@ -58,6 +58,13 @@ pub trait TaskRunRepository: TransactionalRepository + Clone + Send + Sync + 'st
         transaction: &mut Self::Transaction,
         task_run: BoundaryTaskRun,
     ) -> anyhow::Result<()>;
+
+    /// List task runs that should transition to dead, along with their respective tasks
+    async fn list_dead_task_runs(
+        &self,
+        transaction: &mut Self::Transaction,
+        limit: u32,
+    ) -> anyhow::Result<Vec<(BoundaryTask, BoundaryTaskRun)>>;
 }
 
 #[derive(Clone, Debug)]

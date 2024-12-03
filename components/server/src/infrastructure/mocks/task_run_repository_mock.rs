@@ -1,12 +1,12 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use std::{sync::Arc, time::Duration};
+use std::{sync::Arc};
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
 use crate::domain::{
     entities::{
-        task::TaskId,
+        task::{BoundaryTask, TaskId},
         task_run::{BoundaryTaskRun, TaskRunStatus},
     },
     ports::{
@@ -113,6 +113,14 @@ impl TaskRunRepository for TaskRunRepositoryMock {
             state.push(task_run);
         }
         Ok(())
+    }
+
+    async fn list_dead_task_runs(
+        &self,
+        _transaction: &mut Self::Transaction,
+        _limit: u32,
+    ) -> anyhow::Result<Vec<(BoundaryTask, BoundaryTaskRun)>> {
+        unimplemented!("list_dead_task_runs is not implemented for this mock")
     }
 }
 

@@ -7,7 +7,10 @@ use tokio::task::JoinHandle;
 use uuid::Uuid;
 
 use crate::domain::{
-    entities::{task::TaskId, task_run::BoundaryTaskRun},
+    entities::{
+        task::{BoundaryTask, TaskId},
+        task_run::{BoundaryTaskRun, TaskRunStatus},
+    },
     ports::task_run_repository::{ListTaskRunsOpts, ListTaskRunsOutput, TaskRunRepository},
 };
 use anyhow::Context;
@@ -196,5 +199,77 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
         .context("Failed to create task run")?;
 
         Ok(())
+    }
+
+    /// List task runs that should transition to dead, along with their respective tasks
+    async fn list_dead_task_runs(
+        &self,
+        transaction: &mut Self::Transaction,
+        limit: u32,
+    ) -> anyhow::Result<Vec<(BoundaryTask, BoundaryTaskRun)>> {
+        let rows = sqlx::query!(
+            r#"
+            SELECT 
+                tasks.status as "task_status!",
+                tasks.name as "task_name!",
+                tasks.description as "task_description",
+                tasks.previous_status as "task_previous_status",
+                tasks.last_status_change_at as "task_last_status_change_at",
+                tasks.cron_schedule as "task_cron_schedule",
+                tasks.next_due_at as "task_next_due_at",
+                tasks.start_window_seconds as "task_start_window_seconds",
+                tasks.lateness_window_seconds as "task_lateness_window_seconds",
+                tasks.heartbeat_timeout_seconds as "task_heartbeat_timeout_seconds",
+                tasks.created_at as "task_created_at",
+                task_runs.*
+            FROM task_runs
+            INNER JOIN tasks ON task_runs.organization_id = tasks.organization_id AND task_runs.task_id = tasks.id
+            WHERE (task_runs.last_heartbeat_at < NOW() - INTERVAL '1 second' * task_runs.heartbeat_timeout_seconds) AND task_runs.status = $1
+            ORDER BY task_runs.last_heartbeat_at ASC
+            LIMIT $2
+            "#,
+            TaskRunStatus::Running as i16,
+            limit as i64,
+        )
+        .fetch_all(transaction.as_mut())
+        .await
+        .context("Failed to list dead task runs")?;
+
+        let rows = rows
+            .into_iter()
+            .map(|r| {
+                let task = BoundaryTask {
+                    id: r.task_id.clone().into(),
+                    status: r.task_status.into(),
+                    organization_id: r.organization_id,
+                    name: r.task_name,
+                    description: r.task_description,
+                    previous_status: r.task_previous_status.map(|s| s.into()),
+                    last_status_change_at: r.task_last_status_change_at,
+                    cron_schedule: r.task_cron_schedule,
+                    next_due_at: r.task_next_due_at,
+                    start_window_seconds: r.task_start_window_seconds,
+                    lateness_window_seconds: r.task_lateness_window_seconds,
+                    heartbeat_timeout_seconds: r.task_heartbeat_timeout_seconds,
+                    created_at: r.task_created_at,
+                };
+
+                let task_run = BoundaryTaskRun {
+                    organization_id: r.organization_id,
+                    task_id: r.task_id.into(),
+                    status: r.status.into(),
+                    started_at: r.started_at,
+                    updated_at: r.updated_at,
+                    completed_at: r.completed_at,
+                    exit_code: r.exit_code,
+                    error_message: r.error_message,
+                    last_heartbeat_at: r.last_heartbeat_at,
+                    heartbeat_timeout_seconds: r.heartbeat_timeout_seconds,
+                };
+                (task, task_run)
+            })
+            .collect::<Vec<_>>();
+
+        Ok(rows)
     }
 }

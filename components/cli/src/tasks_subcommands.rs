@@ -21,6 +21,9 @@ pub struct RunCommand {
     /// Create the task if it does not exist
     #[arg(long)]
     pub create: bool,
+    /// Whether to abort the previous running task if there is a running task with the same id
+    #[arg(long)]
+    pub abort_previous_running_task: bool,
     /// The name of the newly-created task
     #[arg(long)]
     pub name: Option<String>,
@@ -58,10 +61,16 @@ async fn run_task(client: &DutyDuckApiClient, command: RunCommand) -> anyhow::Re
     let client = client.tasks();
     let mut process: Child = tokio::process::Command::new(&command.command)
         .args(command.args)
+        // kill the process if the child handle is dropped, which allows the task to stop
+        // if the platform reports that the task has been aborted
+        .kill_on_drop(true)
         .spawn()
         .context("Failed to start child process")?;
 
     let mut request = client.start_task(&command.task_id);
+    if command.abort_previous_running_task {
+        request = request.abort_previous_running_task();
+    }
     if command.create {
         request = request.with_new_task(NewTask {
             name: command.name.or(Some(command.command)),
@@ -88,37 +97,72 @@ async fn run_task(client: &DutyDuckApiClient, command: RunCommand) -> anyhow::Re
                 interval.tick().await;
                 match client.send_heartbeat(&task_id).await {
                     Ok(_) => (),
-                    // The task is no longer running, so we can stop sending heartbeats
-                    Err(ClientError::InvalidStatusCode(StatusCode::BAD_REQUEST, _)) => break,
+                    // If the platform reports that the task is no longer running (i.e. it has been aborted),
+                    // we can stop sending heartbeats and we can kill the local process
+                    Err(ClientError::InvalidStatusCode(StatusCode::BAD_REQUEST, _)) => {
+                        eprintln!(
+                            "Tried to send a heartbeat but the task is no longer running. Maybe it was aborted?"
+                        );
+                        break;
+                    }
                     Err(e) => eprintln!("Failed to send heartbeat: {}", e),
                 }
             }
         }
     });
 
-    let (child_exit, _heartbeat_exit) = tokio::join!(process.wait(), send_heartbeat_task);
+    // Add ctrl+c signal handler
+    let ctrl_c = tokio::signal::ctrl_c();
 
-    let finish_request = match child_exit {
-        Ok(status) => {
-            let mut request = client.finish_task(&command.task_id);
-            if let Some(exit_code) = status.code() {
-                request = request.with_exit_code(exit_code);
-            }
-            if !status.success() {
-                request = request.failure();
-            }
-            request
+    tokio::select! {
+        child_exit = process.wait() => {
+            let finish_request = match child_exit {
+                Ok(status) => {
+                    let mut request = client.finish_task(&command.task_id);
+                    if let Some(exit_code) = status.code() {
+                        request = request.with_exit_code(exit_code);
+                    }
+                    if !status.success() {
+                        request = request.failure();
+                    }
+                    request
+                }
+                Err(e) => {
+                    eprintln!("Failed to wait for child process: {}", e);
+                    client.finish_task(&command.task_id).failure()
+                }
+            };
+        
+            finish_request
+                .send()
+                .await
+                .context("Failed to send finish task request")?;
         }
-        Err(e) => {
-            eprintln!("Failed to wait for child process: {}", e);
-            client.finish_task(&command.task_id).failure()
+        _ = send_heartbeat_task => {
+            // if the heartbeat task completes before the child process, it can only mean that
+            // the task was aborted, so we can kill the local process
+            eprintln!("Task was aborted, killing subprocess");
+            process.start_kill().context("Failed to kill subprocess")?;
+        }
+        _ = ctrl_c => {
+            eprintln!("Received interrupt signal, gracefully shutting down...");
+            
+            // Kill the subprocess
+            process.start_kill().context("Failed to kill subprocess")?;
+            
+            // Wait for the process to actually terminate
+            process.wait().await.context("Failed to wait for subprocess to terminate")?;
+            
+            // Send failure status to the API
+            client.finish_task(&command.task_id)
+                .failure()
+                .send()
+                .await
+                .context("Failed to send finish task request")?;
+            
+            eprintln!("Graceful shutdown complete");
         }
     };
-
-    finish_request
-        .send()
-        .await
-        .context("Failed to send finish task request")?;
 
     Ok(())
 }

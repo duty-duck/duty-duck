@@ -89,17 +89,9 @@ where
                             task_id,
                             &[TaskRunStatus::Running],
                         )
-                        .await?
-                        .ok_or(TaskAggregateError::InconsistentTaskRunState {
-                            task_id: task_id.clone(),
-                            task_run_status: TaskRunStatus::Running,
-                            details: "no running task run found".to_string(),
-                        })?;
+                        .await?;
 
-                    TaskAggregate::Running(RunningTaskAggregate {
-                        task: task.try_into()?,
-                        task_run: task_run.try_into()?,
-                    })
+                    from_boundary(task, task_run)?
                 }
                 TaskStatus::Failing => {
                     let task_run = task_run_repository
@@ -109,37 +101,14 @@ where
                             task_id,
                             &[TaskRunStatus::Failed, TaskRunStatus::Dead],
                         )
-                        .await?
-                        .ok_or(TaskAggregateError::InconsistentTaskRunState {
-                            task_id: task_id.clone(),
-                            task_run_status: TaskRunStatus::Failed,
-                            details: "no failed or dead task run found".to_string(),
-                        })?;
+                        .await?;
 
-                    match task_run.status {
-                        TaskRunStatus::Failed => TaskAggregate::Failing(FailingTaskAggregate {
-                            task: task.try_into()?,
-                            task_run: FailingTaskRun::Failed(task_run.try_into()?),
-                        }),
-                        TaskRunStatus::Dead => TaskAggregate::Failing(FailingTaskAggregate {
-                            task: task.try_into()?,
-                            task_run: FailingTaskRun::Dead(task_run.try_into()?),
-                        }),
-                        _ => unreachable!(),
-                    }
+                    from_boundary(task, task_run)?
                 }
-                TaskStatus::Pending => TaskAggregate::Pending(PendingTaskAggregate {
-                    task: task.try_into()?,
-                }),
-                TaskStatus::Due => TaskAggregate::Due(DueTaskAggregate {
-                    task: task.try_into()?,
-                }),
-                TaskStatus::Late => TaskAggregate::Late(LateTaskAggregate {
-                    task: task.try_into()?,
-                }),
-                TaskStatus::Absent => TaskAggregate::Absent(AbsentTaskAggregate {
-                    task: task.try_into()?,
-                }),
+                TaskStatus::Pending => from_boundary(task, None)?,
+                TaskStatus::Due => from_boundary(task, None)?,
+                TaskStatus::Late => from_boundary(task, None)?,
+                TaskStatus::Absent => from_boundary(task, None)?,
                 TaskStatus::Healthy => {
                     let last_task_run = task_run_repository
                         .get_latest_task_run(
@@ -150,21 +119,7 @@ where
                         )
                         .await?;
 
-                    let last_task_run = match last_task_run {
-                        Some(task_run) => Some(match task_run.status {
-                            TaskRunStatus::Aborted => HealthyTaskRun::Aborted(task_run.try_into()?),
-                            TaskRunStatus::Finished => {
-                                HealthyTaskRun::Finished(task_run.try_into()?)
-                            }
-                            _ => unreachable!(),
-                        }),
-                        None => None,
-                    };
-
-                    TaskAggregate::Healthy(HealthyTaskAggregate {
-                        task: task.try_into()?,
-                        last_task_run,
-                    })
+                    from_boundary(task, last_task_run)?
                 }
             };
 
@@ -200,6 +155,56 @@ where
     Ok(())
 }
 
+pub fn from_boundary(
+    boundary_task: BoundaryTask,
+    boundary_task_run: Option<BoundaryTaskRun>,
+) -> anyhow::Result<TaskAggregate> {
+    Ok(match boundary_task.status {
+        TaskStatus::Pending => TaskAggregate::Pending(PendingTaskAggregate {
+            task: boundary_task.try_into()?,
+        }),
+        TaskStatus::Healthy => TaskAggregate::Healthy(HealthyTaskAggregate {
+            last_task_run: match boundary_task_run {
+                Some(r) if r.status == TaskRunStatus::Finished => Some(HealthyTaskRun::Finished(r.try_into()?)),
+                Some(r) if r.status == TaskRunStatus::Aborted => Some(HealthyTaskRun::Aborted(r.try_into()?)),
+                Some(r) => anyhow::bail!(TaskAggregateError::InconsistentTaskRunState {
+                    task_id: boundary_task.id.clone(),
+                    task_run_status: r.status,
+                    details: "invalid task run status for healthy task".to_string(),
+                }),
+                None => None,
+            },
+            task: boundary_task.try_into()?,
+        }),
+        TaskStatus::Failing => TaskAggregate::Failing(FailingTaskAggregate {
+            task_run: match boundary_task_run {
+                Some(r) if r.status == TaskRunStatus::Failed => FailingTaskRun::Failed(r.try_into()?),
+                Some(r) if r.status == TaskRunStatus::Dead => FailingTaskRun::Dead(r.try_into()?),
+                Some(r) => anyhow::bail!(TaskAggregateError::InconsistentTaskRunState {
+                    task_id: boundary_task.id.clone(),
+                    task_run_status: r.status,
+                    details: "invalid task run status for failing task".to_string(),
+                }),
+                None => anyhow::bail!("Missing task run for failing task"),
+            },
+            task: boundary_task.try_into()?,
+        }),
+        TaskStatus::Running => TaskAggregate::Running(RunningTaskAggregate {
+            task: boundary_task.try_into()?,
+            task_run: boundary_task_run.ok_or_else(|| anyhow::anyhow!("Missing task run for running task"))?.try_into()?,
+        }),
+        TaskStatus::Due => TaskAggregate::Due(DueTaskAggregate {
+            task: boundary_task.try_into()?,
+        }),
+        TaskStatus::Late => TaskAggregate::Late(LateTaskAggregate {
+            task: boundary_task.try_into()?,
+        }),
+        TaskStatus::Absent => TaskAggregate::Absent(AbsentTaskAggregate {
+            task: boundary_task.try_into()?,
+        }),
+    })
+}
+
 pub fn to_boundary(
     aggregate: TaskAggregate,
 ) -> anyhow::Result<(BoundaryTask, Option<BoundaryTaskRun>)> {
@@ -207,11 +212,11 @@ pub fn to_boundary(
         TaskAggregate::Pending(p) => (p.task.try_into()?, None),
         TaskAggregate::Due(d) => (d.task.try_into()?, None),
         TaskAggregate::Late(l) => (l.task.try_into()?, None),
-        TaskAggregate::Running(r) => (r.task.try_into()?, Some(r.task_run.try_into()?)),
-        TaskAggregate::Failing(f) => (f.task.try_into()?, Some(f.task_run.try_into()?)),
+        TaskAggregate::Running(r) => (r.task.try_into()?, Some(r.task_run.into())),
+        TaskAggregate::Failing(f) => (f.task.try_into()?, Some(f.task_run.into())),
         TaskAggregate::Healthy(h) => (
             h.task.try_into()?,
-            h.last_task_run.map(|lr| lr.try_into()).transpose()?,
+            h.last_task_run.map(|lr| lr.into()),
         ),
         TaskAggregate::Absent(a) => (a.task.try_into()?, None),
     })

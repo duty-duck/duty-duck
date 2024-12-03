@@ -25,6 +25,7 @@ impl TasksSubclient {
             client: self.client.clone(),
             task_id: task_id.into(),
             new_task: None,
+            abort_previous_running_task: false,
         }
     }
 
@@ -57,11 +58,17 @@ pub struct StartTaskBuilder {
     new_task: Option<NewTask>,
     task_id: String,
     client: DutyDuckApiClient,
+    abort_previous_running_task: bool,
 }
 
 impl StartTaskBuilder {
     pub fn with_new_task(mut self, new_task: NewTask) -> Self {
         self.new_task = Some(new_task);
+        self
+    }
+
+    pub fn abort_previous_running_task(mut self) -> Self {
+        self.abort_previous_running_task = true;
         self
     }
 
@@ -73,6 +80,7 @@ impl StartTaskBuilder {
             .unwrap();
         let command = StartTaskCommand {
             new_task: self.new_task,
+            abort_previous_running_task: self.abort_previous_running_task,
         };
         self.client
             .request(Method::POST, url)?
@@ -151,6 +159,7 @@ pub struct CreateTaskCommand {
 #[serde(rename_all = "camelCase")]
 struct StartTaskCommand {
     new_task: Option<NewTask>,
+    abort_previous_running_task: bool,
 }
 
 #[derive(Debug, Serialize)]

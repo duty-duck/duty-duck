@@ -61,7 +61,7 @@ impl From<DeadTaskRun> for BoundaryTaskRun {
             completed_at: Some(dead.completed_at),
             exit_code: None,
             error_message: None,
-            last_heartbeat_at: None,
+            last_heartbeat_at: Some(dead.last_heartbeat_at),
             heartbeat_timeout_seconds: dead.heartbeat_timeout.as_secs() as i32,
         }
     }
