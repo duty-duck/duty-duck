@@ -1,6 +1,7 @@
+use std::sync::Arc;
+
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use std::{sync::Arc};
 use tokio::sync::Mutex;
 use uuid::Uuid;
 
@@ -78,7 +79,7 @@ impl TaskRunRepository for TaskRunRepositoryMock {
         &self,
         _transaction: &mut Self::Transaction,
         organization_id: Uuid,
-        task_id: TaskId,
+        task_id: &TaskId,
         started_at: DateTime<Utc>,
     ) -> anyhow::Result<Option<BoundaryTaskRun>> {
         let state = self.state.lock().await;
@@ -86,7 +87,7 @@ impl TaskRunRepository for TaskRunRepositoryMock {
             .iter()
             .find(|r| {
                 r.organization_id == organization_id
-                    && r.task_id == task_id
+                    && r.task_id == *task_id
                     && r.started_at == started_at
             })
             .cloned())

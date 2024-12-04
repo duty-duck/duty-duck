@@ -52,7 +52,7 @@ pub enum StartTaskError {
     #[error("User is not allowed to start this task")]
     Forbidden,
     #[error("Technical error")]
-    TechnicalError(#[from] anyhow::Error),
+    TechnicalFailure(#[from] anyhow::Error),
 }
 
 pub async fn start_task_use_case<TR, TRR>(

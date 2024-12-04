@@ -13,7 +13,7 @@ const { refresh: refreshDownMonitorsCount, data: downMonitorsCount } = await htt
 
     <!-- Phone number verification -->
     <BAlert variant="info" class="mb-3"
-      :model-value="!auth.userProfile.user.phoneNumber || !auth.userProfile.user.phoneNumberVerified">
+      :model-value="auth.userProfile && (!auth.userProfile.user.phoneNumber || !auth.userProfile.user.phoneNumberVerified)">
       <h5>{{ $t('dashboard.home.phoneNumberVerificationRequired') }}</h5>
       <p>
         {{ $t('dashboard.home.phoneNumberVerificationRequiredDescription') }}

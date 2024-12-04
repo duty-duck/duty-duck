@@ -12,6 +12,7 @@ use axum::{
     routing::{get, post},
     Json, Router,
 };
+use chrono::{DateTime, Utc};
 use tracing::warn;
 
 pub(crate) fn tasks_router() -> Router<ApplicationState> {
@@ -24,6 +25,7 @@ pub(crate) fn tasks_router() -> Router<ApplicationState> {
                 .route("/start", post(start_task_handler))
                 .route("/finish", post(finish_task_handler))
                 .route("/heartbeat", post(send_task_heartbeat_handler))
+                .route("/runs/:started_at", get(get_task_run_handler))
                 .route("/runs", get(list_task_runs_handler)),
         )
 }
@@ -132,7 +134,7 @@ async fn list_task_runs_handler(
     match list_task_runs_use_case(&auth_context, &app_state.adapters.task_run_repository, task_id, params).await {
         Ok(response) => Json(response).into_response(),
         Err(ListTaskRunsError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
-        Err(ListTaskRunsError::TechnicalError(e)) => {
+        Err(ListTaskRunsError::TechnicalFailure(e)) => {
             warn!("Technical failure occured while listing task runs: {e}");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
@@ -167,7 +169,7 @@ async fn start_task_handler(
         Err(StartTaskError::Forbidden) => (StatusCode::FORBIDDEN, "User is not allowed to start this task").into_response(),
         Err(StartTaskError::TaskNotFound) => (StatusCode::NOT_FOUND, "Task not found").into_response(),
         Err(StartTaskError::TaskAlreadyStarted) => (StatusCode::CONFLICT, "Task already started").into_response(),
-        Err(StartTaskError::TechnicalError(e)) => {
+        Err(StartTaskError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while starting a task");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
@@ -197,7 +199,7 @@ async fn send_task_heartbeat_handler(
         Err(SendTaskHeartbeatError::Forbidden) => (StatusCode::FORBIDDEN, "User is not allowed to send a heartbeat for this task").into_response(),
         Err(SendTaskHeartbeatError::TaskNotFound) => (StatusCode::NOT_FOUND, "Task not found").into_response(),
         Err(SendTaskHeartbeatError::TaskIsNotRunning) => (StatusCode::BAD_REQUEST, "Task is not running").into_response(),
-        Err(SendTaskHeartbeatError::TechnicalError(e)) => {
+        Err(SendTaskHeartbeatError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while sending a heartbeat");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
@@ -227,8 +229,34 @@ async fn finish_task_handler(
         Err(FinishTaskError::Forbidden) => (StatusCode::FORBIDDEN, "User is not allowed to finish this task").into_response(),
         Err(FinishTaskError::NotFound) => (StatusCode::NOT_FOUND, "Task not found").into_response(),
         Err(FinishTaskError::TaskIsNotRunning) => (StatusCode::BAD_REQUEST, "Task is not running").into_response(),
-        Err(FinishTaskError::TechnicalError(e)) => {
+        Err(FinishTaskError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while finishing a task");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
+}
+
+/// Get a single task run
+#[utoipa::path(
+    get,
+    path = "/tasks/:task_id/runs/:started_at",
+    responses(
+        (status = 200, body = GetTaskRunResponse),
+        (status = 403, description = "User is not authorized to get a task run"),
+        (status = 404, description = "Task run not found")
+    )
+)]
+async fn get_task_run_handler(
+    State(app_state): ExtractAppState,
+    auth_context: AuthContext,
+    Path((task_id, started_at)): Path<(TaskId, DateTime<Utc>)>,
+) -> impl IntoResponse {
+    match get_task_run(&auth_context, &app_state.adapters.task_run_repository, task_id, started_at).await {
+        Ok(response) => Json(response).into_response(),
+        Err(GetTaskRunError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
+        Err(GetTaskRunError::NotFound) => StatusCode::NOT_FOUND.into_response(),
+        Err(GetTaskRunError::TechnicalFailure(e)) => {
+            warn!(error = ?e, "Technical failure occured while getting a task run");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }
