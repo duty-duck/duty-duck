@@ -36,7 +36,7 @@ pub enum ListTaskRunsError {
     #[error("User is not allowed to list task runs")]
     Forbidden,
     #[error("Technical failure occured while listing task runs")]
-    TechnicalError(#[from] anyhow::Error),
+    TechnicalFailure(#[from] anyhow::Error),
 }
 
 pub async fn list_task_runs_use_case(

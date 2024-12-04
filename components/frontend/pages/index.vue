@@ -46,7 +46,7 @@ onUnmounted(() => {
 
         <div id="sections-nav" ref="sectionsNavRef">
             <a href="#uptime" class="item" :class="{ active: activeSection === 'uptime' || !activeSection }">
-                <Icon name="ph:pulse-duotone" />
+                <Icon name="ph:globe-duotone" />
                 Uptime
             </a>
             <a href="#tasks" class="item" :class="{ active: activeSection === 'tasks' }">

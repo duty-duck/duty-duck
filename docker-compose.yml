@@ -13,7 +13,7 @@ services:
   browser:
     build:
       context: .
-      dockerfile: browser/Dockerfile
+      dockerfile: components/browser/Dockerfile
     pull_policy: missing
     image: ghcr.io/duty-duck/browser:latest
     environment:
@@ -24,7 +24,7 @@ services:
   fake-internet:
     build:
       context: .
-      dockerfile: fake-internet/Dockerfile
+      dockerfile: components/fake-internet/Dockerfile
     pull_policy: missing
     image: ghcr.io/duty-duck/fake-internet:latest
     environment:

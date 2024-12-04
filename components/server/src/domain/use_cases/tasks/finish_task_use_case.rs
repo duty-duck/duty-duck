@@ -22,7 +22,7 @@ pub enum FinishTaskError {
     #[error("Task is not running")]
     TaskIsNotRunning,
     #[error("Technical failure occured while finishing a task")]
-    TechnicalError(#[from] anyhow::Error),
+    TechnicalFailure(#[from] anyhow::Error),
 }
 
 #[derive(Debug, Clone, Deserialize, TS, ToSchema)]

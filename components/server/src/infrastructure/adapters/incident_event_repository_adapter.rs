@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use anyhow::Context;
 use sqlx::postgres::PgPool;
 use tokio::task::JoinHandle;
 use uuid::Uuid;
@@ -16,8 +17,11 @@ pub struct IncidentEventRepositoryAdapter {
 }
 
 impl IncidentEventRepositoryAdapter {
-    pub fn new(pool: PgPool) -> Self {
+    pub async fn new(pool: PgPool) -> Self {
+        let partitions_created = Arc::new(tokio::sync::Notify::new());
+
         let partition_creation_background_task = tokio::spawn({
+            let partitions_created = partitions_created.clone();
             let pool = pool.clone();
             async move {
                 let mut interval =
@@ -33,9 +37,13 @@ impl IncidentEventRepositoryAdapter {
                             tracing::error!("Error creating incident timeline partition: {:?}", e)
                         }
                     }
+                    partitions_created.notify_waiters();
                 }
             }
         });
+
+        // wait for the first partition to be created before returning the adapter
+        partitions_created.notified().await;
 
         Self {
             pool,
@@ -53,6 +61,9 @@ impl IncidentEventRepository for IncidentEventRepositoryAdapter {
         tx: &mut Self::Transaction,
         event: IncidentEvent,
     ) -> anyhow::Result<()> {
+        let event_created_at = event.created_at;
+        let event_type = event.event_type;
+
         sqlx::query!(
             "INSERT INTO incident_timeline_events (organization_id, incident_id, user_id, created_at, event_type, event_payload)
             VALUES ($1, $2, $3, $4, $5, $6)",
@@ -64,7 +75,13 @@ impl IncidentEventRepository for IncidentEventRepositoryAdapter {
             serde_json::to_value(event.event_payload)?
         )
         .execute(&mut **tx)
-        .await?;
+        .await
+        .with_context(|| {
+            format!(
+                "Failed to persist incident event with type {:?} and timestamp: {}",
+                event.event_type, event_created_at
+            )
+        })?;
 
         Ok(())
     }
@@ -89,7 +106,8 @@ impl IncidentEventRepository for IncidentEventRepositoryAdapter {
             offset as i64
         )
         .fetch_all(&self.pool)
-        .await?
+        .await
+        .context("Failed to fetch incident timeline events")?
         .into_iter()
         .map(|record| IncidentEvent {
             organization_id: record.organization_id,

@@ -19,7 +19,7 @@ pub enum SendTaskHeartbeatError {
     #[error("User is not allowed to send a heartbeat for this task")]
     Forbidden,
     #[error("Technical error")]
-    TechnicalError(#[from] anyhow::Error),
+    TechnicalFailure(#[from] anyhow::Error),
 }
 
 pub async fn send_task_heartbeat_use_case<TR, TRR>(

@@ -12,7 +12,7 @@ const { data: monitorRes } = await repo.useHttpMonitor(httpMonitorId);
     <div class="details-container">
         <NuxtLink :to="localePath(`/dashboard/httpMonitors/${httpMonitorId}`)" class="icon-link" v-b-tooltip.hover.top
             :title="$t('dashboard.incidents.goToSource')">
-            <Icon name="ph:pulse-duotone" size="22px" />
+            <Icon name="ph:globe-duotone" size="22px" />
             {{ $t('dashboard.monitors.httpMonitor') }}
         </NuxtLink>
         <h2> {{ monitorRes?.monitor.url }} </h2>

@@ -6,6 +6,7 @@ const localePath = useLocalePath()
 const { userHasPermissionComputed } = await useAuth();
 const canReadHttpMonitors = userHasPermissionComputed('readHttpMonitors');
 const canReadIncidents = userHasPermissionComputed('readIncidents');
+const canReadTasks = userHasPermissionComputed('readTasks');
 
 let { refresh: refreshIncidentCount, data: incidentCount } = await incidentRepo.useOngoingIncidentsCount();
 useIntervalFn(() => refreshIncidentCount(), 20000);
@@ -24,7 +25,7 @@ watch(() => route.fullPath, () => refreshIncidentCount());
       <li class="nav-item">
         <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/httpMonitors')"
           :disabled="!canReadHttpMonitors" :class="{ 'active': route.path.startsWith(localePath('/dashboard/httpMonitors')) }">
-          <Icon name="ph:pulse-duotone" size="22px" />
+          <Icon name="ph:globe-duotone" size="22px" />
           {{ $t("dashboard.mainSidebar.monitors") }}
         </NuxtLink>
       </li>
@@ -34,6 +35,14 @@ watch(() => route.fullPath, () => refreshIncidentCount());
           {{ $t("dashboard.mainSidebar.incidents") }}
           <BBadge class="ms-2" variant="danger" id="incidents-badge" v-if="incidentCount && incidentCount > 0">{{ incidentCount }}
           </BBadge>
+        </NuxtLink>
+      </li>
+      <li class="nav-item">
+        <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/tasks')" :disabled="!canReadTasks"
+          :class="{ 'active': route.path.startsWith(localePath('/dashboard/tasks')) }">
+          <Icon name="ph:pulse-duotone" size="22px" />
+          {{ $t('dashboard.mainSidebar.tasks') }}
+          <BBadge>{{ $t('dashboard.mainSidebar.soon') }}</BBadge>
         </NuxtLink>
       </li>
       <li class="nav-item">

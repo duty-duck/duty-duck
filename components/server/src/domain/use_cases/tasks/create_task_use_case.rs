@@ -18,7 +18,7 @@ pub enum CreateTaskError {
     #[error("Task with id {0} already exists")]
     TaskAlreadyExists(TaskId),
     #[error("Technical failure occured while creating a task")]
-    TechnicalError(#[from] anyhow::Error),
+    TechnicalFailure(#[from] anyhow::Error),
     #[error("Technical failure occured while creating a task")]
     TaskError(#[from] TaskError),
 }

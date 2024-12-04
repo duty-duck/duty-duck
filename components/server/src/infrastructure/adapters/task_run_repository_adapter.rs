@@ -22,9 +22,13 @@ pub struct TaskRunRepositoryAdapter {
 }
 
 impl TaskRunRepositoryAdapter {
-    pub fn new(pool: PgPool) -> Self {
+    pub async fn new(pool: PgPool) -> Self {
+        let partitions_created = Arc::new(tokio::sync::Notify::new());
+
         let partition_creation_background_task = tokio::spawn({
             let pool = pool.clone();
+            let partitions_created = partitions_created.clone();
+
             async move {
                 let mut interval =
                     tokio::time::interval(std::time::Duration::from_secs(60 * 60 * 24));
@@ -50,9 +54,14 @@ impl TaskRunRepositoryAdapter {
                             tracing::error!("Error creating task run events partition: {:?}", e)
                         }
                     }
+
+                    partitions_created.notify_waiters();
                 }
             }
         });
+
+        // wait for the first partition to be created before returning the adapter
+        partitions_created.notified().await;
 
         Self {
             pool,
@@ -139,7 +148,7 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
         &self,
         transaction: &mut Self::Transaction,
         organization_id: Uuid,
-        task_id: TaskId,
+        task_id: &TaskId,
         started_at: DateTime<Utc>,
     ) -> anyhow::Result<Option<BoundaryTaskRun>> {
         sqlx::query_as!(
