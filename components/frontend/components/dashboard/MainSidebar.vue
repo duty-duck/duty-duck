@@ -29,20 +29,19 @@ watch(() => route.fullPath, () => refreshIncidentCount());
           {{ $t("dashboard.mainSidebar.monitors") }}
         </NuxtLink>
       </li>
+      <li class="nav-item">
+        <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/tasks')" :disabled="!canReadTasks"
+          :class="{ 'active': route.path.startsWith(localePath('/dashboard/tasks')) }">
+          <Icon name="ph:pulse-duotone" size="22px" />
+          {{ $t('dashboard.mainSidebar.tasks') }}
+        </NuxtLink>
+      </li>
       <li class="nav-item" id="incidents-nav-item">
         <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/incidents')" :disabled="!canReadIncidents" :class="{ 'active': route.path.startsWith(localePath('/dashboard/incidents')) }">
           <Icon name="ph:seal-warning-duotone" size="22px" />
           {{ $t("dashboard.mainSidebar.incidents") }}
           <BBadge class="ms-2" variant="danger" id="incidents-badge" v-if="incidentCount && incidentCount > 0">{{ incidentCount }}
           </BBadge>
-        </NuxtLink>
-      </li>
-      <li class="nav-item">
-        <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/tasks')" :disabled="!canReadTasks"
-          :class="{ 'active': route.path.startsWith(localePath('/dashboard/tasks')) }">
-          <Icon name="ph:pulse-duotone" size="22px" />
-          {{ $t('dashboard.mainSidebar.tasks') }}
-          <BBadge>{{ $t('dashboard.mainSidebar.soon') }}</BBadge>
         </NuxtLink>
       </li>
       <li class="nav-item">

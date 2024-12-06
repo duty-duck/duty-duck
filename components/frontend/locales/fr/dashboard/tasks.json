@@ -1,0 +1,27 @@
+{
+    "tasks": {
+        "pageTitle": "Tâches",
+        "totalTaskCount": "Aucune tâche | 1 tâche totale | {count} tâches totales",
+        "filteredTaskCount": "{count} tâches cachées par les filtres | {count} tâches cachées par les filtres",
+        "itemsPerPage": "{count} tâches par page",
+        "lastRuns": "Dernières exécutions",
+        "taskStatus": "Statut",
+        "search": "Recherche",
+        "lastRunAt": "Dernière exécution le {date}"
+    },
+    "taskStatus": {
+        "due": "À venir",
+        "failing": "KO",
+        "healthy": "En bonne santé",
+        "late": "En retard",
+        "running": "En cours d'exécution",
+        "absent": "Absente"
+    },
+    "taskRunStatus": {
+        "finished": "Terminée",
+        "failed": "Échouée",
+        "aborted": "Annulée",
+        "running": "En cours",
+        "dead": "Morte"
+    }
+}

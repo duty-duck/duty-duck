@@ -8,6 +8,7 @@
         "home": "Home",
         "monitors": "Monitors",
         "incidents": "Incidents",
+        "tasks": "Tasks",
         "soon": "Soon"
     },
     "settingsSidebar": {

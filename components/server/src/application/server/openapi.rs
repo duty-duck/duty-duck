@@ -4,7 +4,7 @@ use utoipa_redoc::{Redoc, Servable};
 use super::*;
 use crate::domain::{
     entities::{entity_metadata::EntityMetadata, http_monitor::*, incident::*, incident_event::*, task::{BoundaryTask, TaskId, TaskStatus}, task_run::{BoundaryTaskRun, TaskRunStatus}, user::UserNameInfo},
-    use_cases::{http_monitors::*, incidents::*, shared::OrderDirection, tasks::{FinishTaskCommand, GetTaskResponse, ListTasksResponse}},
+    use_cases::{http_monitors::*, incidents::*, shared::OrderDirection, tasks::{FinishTaskCommand, GetTaskResponse, ListTaskRunsResponse, ListTasksResponse, NewTask, StartTaskCommand}},
 };
 
 #[derive(OpenApi)]
@@ -65,7 +65,10 @@ use crate::domain::{
         BoundaryTaskRun,
         ListTasksResponse,
         GetTaskResponse,
-        FinishTaskCommand
+        FinishTaskCommand,
+        StartTaskCommand,
+        ListTaskRunsResponse,
+        NewTask
     ))
 )]
 struct ApiDoc;

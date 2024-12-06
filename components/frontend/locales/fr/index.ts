@@ -6,6 +6,7 @@ import dashboardInputs from './dashboard/inputs.json'
 import dashboardHome from './dashboard/home.json'
 import dashboardIncidents from './dashboard/incidents.json'
 import dashboardMonitors from './dashboard/monitors.json'
+import dashboardTasks from './dashboard/tasks.json'
 
 export default {
     ...common,
@@ -16,6 +17,7 @@ export default {
         ...dashboardInputs,
         ...dashboardHome,
         ...dashboardIncidents,
-        ...dashboardMonitors
+        ...dashboardMonitors,
+        ...dashboardTasks
     }
 }

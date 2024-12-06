@@ -6,12 +6,13 @@ use crate::{
     },
 };
 use axum::{
-    extract::{Path, Query, State},
+    extract::{Path, State},
     http::StatusCode,
     response::IntoResponse,
     routing::{get, post},
     Json, Router,
 };
+use axum_extra::extract::Query;
 use chrono::{DateTime, Utc};
 use tracing::warn;
 

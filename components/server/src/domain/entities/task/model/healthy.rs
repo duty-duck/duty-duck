@@ -88,14 +88,15 @@ impl HealthyTask {
             });
         }
         Ok(DueTask {
+            // unwrap is safe because we already checked that the task is due to run,
+            // so it must have a next_due_at
+            cron_schedule: self.base.cron_schedule.clone().unwrap(),
+            next_due_at: self.next_due_at.unwrap(),
             base: TaskBase {
                 previous_status: Some(TaskStatus::Healthy),
                 last_status_change_at: Some(now),
                 ..self.base
             },
-            // unwrap is safe because we already checked that the task is due to run,
-            // so it must have a next_due_at
-            next_due_at: self.next_due_at.unwrap(),
         })
     }
 }
@@ -105,7 +106,7 @@ impl TryFrom<HealthyTask> for BoundaryTask {
 
     fn try_from(task: HealthyTask) -> Result<Self, Self::Error> {
         Ok(BoundaryTask {
-            status: TaskStatus::Absent,
+            status: TaskStatus::Healthy,
             next_due_at: task.next_due_at,
             ..BoundaryTask::from(task.base)
         })

@@ -4,7 +4,7 @@ const { link, direction = 'prev' } = defineProps<{
     direction: 'prev' | 'next'
 }>();
 
-const computeLinkDest = useComputeDocumentationLinkDest();
+const computeLinkDest = useComputeContentLinkDest();
 </script>
 
 <template>
