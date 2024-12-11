@@ -155,7 +155,7 @@ async fn run_task(client: &DutyDuckApiClient, command: RunCommand) -> anyhow::Re
             
             // Send failure status to the API
             client.finish_task(&command.task_id)
-                .failure()
+                .aborted()
                 .send()
                 .await
                 .context("Failed to send finish task request")?;

@@ -1,8 +1,8 @@
 <script setup lang="ts">
-const docPath = useCurrentPath();
+const docPath = useCurrentContentPath();
 
 const { data: nextAndPrevious } = await useNextAndPrevious();
-const computeLinkDest = useComputeDocumentationLinkDest();
+
 definePageMeta({
     middleware: (to, from) => {
         if (from.fullPath.startsWith("/docs") && to.fullPath.startsWith("/en/docs")) {

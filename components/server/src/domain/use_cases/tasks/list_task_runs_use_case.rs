@@ -12,7 +12,9 @@ use crate::domain::{
     ports::task_run_repository::{ListTaskRunsOpts, ListTaskRunsOutput, TaskRunRepository},
 };
 
-#[derive(Deserialize)]
+#[derive(Deserialize, TS)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
 pub struct ListTaskRunsParams {
     #[serde(default)]
     pub include_statuses: Option<Vec<TaskRunStatus>>,

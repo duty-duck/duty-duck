@@ -4,6 +4,8 @@ use super::*;
 pub struct AbsentTask {
     pub(super) base: TaskBase,
     pub(super) next_due_at: DateTime<Utc>,
+    // absent tasks have a cron schedule
+    pub(super) cron_schedule: croner::Cron,
 }
 
 impl AbsentTask {
@@ -34,6 +36,7 @@ impl AbsentTask {
                 last_status_change_at: Some(now),
                 ..self.base
             },
+            cron_schedule: self.cron_schedule,
             next_due_at: self.next_due_at,
         })
     }
@@ -60,13 +63,24 @@ impl TryFrom<BoundaryTask> for AbsentTask {
                 details: "task status must be absent".to_string(),
             });
         }
+        let next_due_at = boundary
+            .next_due_at
+            .ok_or(TaskError::FailedToBuildFromBoundary {
+                details: "Next due at is required for absent task".to_string(),
+            })?;
+
+        let base: TaskBase = boundary.try_into()?;
+        let cron_schedule = base
+            .cron_schedule
+            .clone()
+            .ok_or(TaskError::FailedToBuildFromBoundary {
+                details: "Cron schedule is required for absent task".to_string(),
+            })?;
+
         Ok(AbsentTask {
-            next_due_at: boundary
-                .next_due_at
-                .ok_or(TaskError::FailedToBuildFromBoundary {
-                    details: "Next due at is required for absent task".to_string(),
-                })?,
-            base: boundary.try_into()?,
+            next_due_at,
+            cron_schedule,
+            base,
         })
     }
 }

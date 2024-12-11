@@ -12,8 +12,8 @@ const { data: navigation } = await useAsyncData('docs-navigation', async () => {
     return navigation.find(i => i._path == "/docs")?.children?.find(i => i._path == `/docs/${locale.value}`)?.children
 })
 
-const currentPath = useCurrentPath();
-const computeLinkDest = useComputeDocumentationLinkDest();
+const currentPath = useCurrentContentPath();
+const computeLinkDest = useComputeContentLinkDest();
 </script>
 
 <template>

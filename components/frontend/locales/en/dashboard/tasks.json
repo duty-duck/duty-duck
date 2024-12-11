@@ -1,0 +1,27 @@
+{
+    "tasks": {
+        "pageTitle": "Tasks",
+        "totalTaskCount": "No tasks | 1 total task | {count} total tasks",
+        "filteredTaskCount": "{count} tasks hidden by filters | {count} tasks hidden by filters",
+        "itemsPerPage": "{count} tasks per page",
+        "lastRuns": "Last runs",
+        "taskStatus": "Status",
+        "search": "Search",
+        "lastRunAt": "Last run at {date}"
+    },
+    "taskStatus": {
+        "due": "Due",
+        "failing": "Failing",
+        "healthy": "Healthy",
+        "late": "Late",
+        "running": "Running",
+        "absent": "Absent"
+    },
+    "taskRunStatus": {
+        "finished": "Finished",
+        "failed": "Failed",
+        "aborted": "Aborted",
+        "running": "Running",
+        "dead": "Dead"
+    }
+}

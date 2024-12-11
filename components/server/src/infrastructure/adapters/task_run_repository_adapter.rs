@@ -92,7 +92,7 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
             FROM task_runs 
             WHERE organization_id = $1
             AND task_id = $2
-            AND ($3::smallint[] IS NULL OR status = ANY($3))
+            AND ($3::smallint[] = '{}' OR status = ANY($3))
             ORDER BY started_at DESC
             LIMIT $4 OFFSET $5
             "#,
@@ -184,24 +184,27 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
                 completed_at,
                 exit_code,
                 error_message,
-                last_heartbeat_at
+                last_heartbeat_at,
+                heartbeat_timeout_seconds
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
             ON CONFLICT (organization_id, task_id, started_at) DO UPDATE SET
                 status = $3,
                 completed_at = $5,
                 exit_code = $6,
                 error_message = $7,
-                last_heartbeat_at = $8
+                last_heartbeat_at = $8,
+                heartbeat_timeout_seconds = $9
             "#,
-            task_run.organization_id,
-            task_run.task_id.as_str(),
-            task_run.status as i16,
-            task_run.started_at,
-            task_run.completed_at,
-            task_run.exit_code,
-            task_run.error_message,
-            task_run.last_heartbeat_at,
+            task_run.organization_id, // $1
+            task_run.task_id.as_str(), // $2
+            task_run.status as i16, // $3
+            task_run.started_at, // $4
+            task_run.completed_at, // $5
+            task_run.exit_code, // $6
+            task_run.error_message, // $7
+            task_run.last_heartbeat_at, // $8
+            task_run.heartbeat_timeout_seconds, // $9
         )
         .execute(transaction.as_mut())
         .await

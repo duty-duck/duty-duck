@@ -8,14 +8,14 @@ WORKDIR /app
 FROM base AS build
 
 # Install dependencies in a seperate step for caching
-COPY --link components/frontend/package*.json  ./components/frontend/
-COPY --link package*.json ./
+COPY components/frontend/package*.json  ./components/frontend/
+COPY package*.json ./
 
 WORKDIR /app/components/frontend
 RUN npm install --production=false
 
 COPY ./components/server/bindings ../server/bindings
-COPY --link components/frontend .
+COPY components/frontend .
 
 RUN npm run build
 

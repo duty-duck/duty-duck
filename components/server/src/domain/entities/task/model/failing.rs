@@ -42,14 +42,15 @@ impl FailingTask {
             });
         }
         Ok(DueTask {
+            // unwrap is safe because we already checked that the task is due to run,
+            // so it must have a next_due_at
+            next_due_at: self.next_due_at.unwrap(),
+            cron_schedule: self.base.cron_schedule.clone().unwrap(),
             base: TaskBase {
                 previous_status: Some(TaskStatus::Failing),
                 last_status_change_at: Some(now),
                 ..self.base
             },
-            // unwrap is safe because we already checked that the task is due to run,
-            // so it must have a next_due_at
-            next_due_at: self.next_due_at.unwrap(),
         })
     }
 }

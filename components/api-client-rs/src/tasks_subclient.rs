@@ -106,6 +106,11 @@ impl FinishTaskBuilder {
         self
     }
 
+    pub fn aborted(mut self) -> Self {
+        self.status = FinishedTaskStatus::Aborted;
+        self
+    }
+
     pub fn success(mut self) -> Self {
         self.status = FinishedTaskStatus::Success;
         self
@@ -178,6 +183,7 @@ pub struct NewTask {
 enum FinishedTaskStatus {
     Success,
     Failure,
+    Aborted,
 }
 
 #[derive(Debug, Serialize)]

@@ -33,7 +33,7 @@ CREATE TABLE task_runs (
         task_id,
         started_at
     ),
-    FOREIGN KEY (organization_id, task_id) REFERENCES tasks (organization_id, id) on delete cascade
+    FOREIGN KEY (organization_id, task_id) REFERENCES tasks (organization_id, id) on delete cascade on update cascade
 )
 PARTITION BY
     RANGE (started_at);
@@ -61,7 +61,7 @@ CREATE TABLE task_run_events (
         task_id,
         started_at
     ) on delete cascade,
-    FOREIGN KEY (organization_id, task_id) REFERENCES tasks (organization_id, id) on delete cascade
+    FOREIGN KEY (organization_id, task_id) REFERENCES tasks (organization_id, id) on delete cascade on update cascade
 )
 PARTITION BY
     RANGE (created_at);

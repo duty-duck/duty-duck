@@ -77,8 +77,8 @@ impl TaskRepository for TaskRepositoryAdapter {
             SELECT *, COUNT(*) OVER() as "filtered_count!" 
             FROM tasks
             WHERE organization_id = $1
-            AND ($2::integer[] IS NULL OR status = ANY($2))
-            AND (name ILIKE $3 OR description ILIKE $3)
+            AND ($2::integer[] = '{}' OR status = ANY($2))
+            AND ($3 = '' OR name ILIKE $3 OR description ILIKE $3)
             ORDER BY name
             LIMIT $4 OFFSET $5
             "#,
@@ -139,9 +139,16 @@ impl TaskRepository for TaskRepositoryAdapter {
         sqlx::query!(
             r#"
             INSERT INTO tasks (
-                organization_id, id, name, description, status,
-                previous_status, cron_schedule, next_due_at,
-                start_window_seconds, lateness_window_seconds,
+                organization_id, 
+                id, 
+                name, 
+                description, 
+                status,
+                previous_status, 
+                cron_schedule, 
+                next_due_at,
+                start_window_seconds, 
+                lateness_window_seconds,
                 heartbeat_timeout_seconds
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
@@ -155,17 +162,17 @@ impl TaskRepository for TaskRepositoryAdapter {
                 lateness_window_seconds = $10,
                 heartbeat_timeout_seconds = $11
             "#,
-            task.organization_id,
-            task.id.as_str(),
-            task.name,
-            task.description,
-            task.status as i16,
-            task.status as i16, // Initial previous_status is same as status
-            task.cron_schedule,
-            task.next_due_at,
-            task.start_window_seconds,
-            task.lateness_window_seconds,
-            task.heartbeat_timeout_seconds,
+            task.organization_id, // $1
+            task.id.as_str(), // $2
+            task.name, // $3
+            task.description, // $4
+            task.status as i16, // $5
+            task.status as i16, // $6 - Initial previous_status is same as status
+            task.cron_schedule, // $7
+            task.next_due_at, // $8
+            task.start_window_seconds, // $9
+            task.lateness_window_seconds, // $10
+            task.heartbeat_timeout_seconds, // $11
         )
         .execute(transaction.as_mut())
         .await?;

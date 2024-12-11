@@ -16,10 +16,12 @@ use crate::domain::{
 #[ts(export)]
 pub struct ListTasksParams {
     #[serde(default)]
-    pub status_filter: Vec<TaskStatus>,
+    pub include: Option<Vec<TaskStatus>>,
     #[serde(default)]
     pub search_query: String,
+    #[serde(default)]
     pub page_number: Option<u32>,
+    #[serde(default)]
     pub items_per_page: Option<u32>,
 }
 
@@ -59,7 +61,7 @@ pub async fn list_tasks(
     } = repository
         .list_tasks(
             auth_context.active_organization_id,
-            params.status_filter,
+            params.include.unwrap_or_default(),
             params.search_query,
             items_per_page,
             items_per_page * (page_number - 1),

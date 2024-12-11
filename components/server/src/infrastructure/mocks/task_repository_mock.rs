@@ -122,7 +122,9 @@ impl TaskRepository for TaskRepositoryMock {
             existing.heartbeat_timeout_seconds = task.heartbeat_timeout_seconds;
             Ok(task.id)
         } else {
-            Ok(task.id)
+            let id = task.id.clone();
+            state.push(task);
+            Ok(id)
         }
     }
 

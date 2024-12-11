@@ -7,6 +7,8 @@ use chrono::{DateTime, Utc};
 pub struct LateTask {
     pub(super) base: TaskBase,
     pub(super) next_due_at: DateTime<Utc>,
+    // late tasks have a cron schedule
+    pub(super) cron_schedule: croner::Cron
 }
 
 impl LateTask {
@@ -25,9 +27,11 @@ impl LateTask {
                 details: "this task is not absent".to_string(),
             });
         }
+        
         Ok(AbsentTask {
             next_due_at: calculate_next_due_at(&self.base.cron_schedule, now)?
                 .ok_or(TaskError::InvalidCronSchedule)?,
+            cron_schedule: self.cron_schedule,
             base: TaskBase {
                 previous_status: Some(TaskStatus::Late),
                 last_status_change_at: Some(Utc::now()),
@@ -72,13 +76,22 @@ impl TryFrom<BoundaryTask> for LateTask {
                 details: "task status must be late".to_string(),
             });
         }
-        Ok(LateTask {
-            next_due_at: boundary
+        let next_due_at = boundary
                 .next_due_at
                 .ok_or(TaskError::FailedToBuildFromBoundary {
-                    details: "Next due at is required for late task".to_string(),
-                })?,
-            base: boundary.try_into()?,
+                details: "Next due at is required for late task".to_string(),
+            })?;
+        let base: TaskBase = boundary.try_into()?;
+        let cron_schedule = base
+            .cron_schedule
+            .clone()
+            .ok_or(TaskError::FailedToBuildFromBoundary {
+                details: "Cron schedule is required for late task".to_string(),
+            })?;
+        Ok(LateTask {
+            next_due_at,
+            cron_schedule,
+            base,
         })
     }
 }

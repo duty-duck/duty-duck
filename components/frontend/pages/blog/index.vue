@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 const { locale } = useI18n()
+const computeLinkDest = useComputeContentLinkDest();
 </script>
 <template>
     <ShowcaseLayout>
@@ -19,7 +20,7 @@ const { locale } = useI18n()
                             <BCardImg v-if="article.image" :src="article.image" alt="Image" class="rounded-0" />
                             <BCardBody>
                                 <p>{{ article.description }}</p>
-                                <NuxtLink :to="article._path">{{ $t('blog.readMore') }}</NuxtLink>
+                                <NuxtLink :to="computeLinkDest({ _path: article._path! })">{{ $t('blog.readMore') }}</NuxtLink>
                             </BCardBody>
                         </BCard>
                     </ContentList>
@@ -34,6 +35,7 @@ const { locale } = useI18n()
 
 #blog-container {
     padding-top: 2rem;
+    margin-bottom: 8rem;
 
     @include media-breakpoint-up(md) {
         padding-top: 5rem;

@@ -5,6 +5,8 @@ use super::*;
 pub struct DueTask {
     pub(super) base: TaskBase,
     pub(super) next_due_at: DateTime<Utc>,
+    // due tasks have a cron schedule
+    pub(super) cron_schedule: croner::Cron
 }
 
 impl DueTask {
@@ -39,6 +41,7 @@ impl DueTask {
                 ..self.base
             },
             next_due_at: self.next_due_at,
+            cron_schedule: self.cron_schedule,
         })
     }
 }
@@ -64,13 +67,23 @@ impl TryFrom<BoundaryTask> for DueTask {
                 details: "task status must be due".to_string(),
             });
         }
+
+        let next_due_at = boundary  
+            .next_due_at
+            .ok_or(TaskError::FailedToBuildFromBoundary {
+                details: "Next due at is required for due task".to_string(),
+            })?;
+        let base: TaskBase = boundary.try_into()?;
+        let cron_schedule = base
+            .cron_schedule
+            .clone()
+            .ok_or(TaskError::FailedToBuildFromBoundary {
+                details: "Cron schedule is required for due task".to_string(),
+            })?;
         Ok(DueTask {
-            next_due_at: boundary
-                .next_due_at
-                .ok_or(TaskError::FailedToBuildFromBoundary {
-                    details: "Next due at is required for due task".to_string(),
-                })?,
-            base: boundary.try_into()?,
+            next_due_at,
+            cron_schedule,
+            base,
         })
     }
 }

@@ -10,15 +10,20 @@ export const useDocumentationFirstPage = async () => {
     });
 };
 
-export const useCurrentPath = () => {
+export const useCurrentContentPath = () => {
     const { locale } = useI18n()
     const route = useRoute()
+
     return computed(() => {
+        let section = 'docs';
+        if (route.path.includes('/blog/')) {
+            section = 'blog';
+        }
         const slug: string[] = route.params.slug as string[];
         if (!slug || slug.length == 0) {
             return ""
         }
-        return ["", "docs", locale.value, ...slug].join('/')
+        return ["", section, locale.value, ...slug].join('/')
     })
 }
 
@@ -28,7 +33,7 @@ export type NavigationLink = {
 }
 
 export const useNextAndPrevious = async () => {
-    const currentPath = useCurrentPath();
+    const currentPath = useCurrentContentPath();
     const { locale } = useI18n();
 
     return await useAsyncData('navigation', async () => {
@@ -41,7 +46,10 @@ export const useNextAndPrevious = async () => {
     })
 }
 
-export const useComputeDocumentationLinkDest = () => {
+/**
+ * Compute the href attribute a Nuxt content link should have (used for blog posts and docs)
+ */
+export const useComputeContentLinkDest = () => {
     const { locale } = useI18n();
     const localePath = useLocalePath();
 

@@ -31,6 +31,7 @@ pub enum FinishTaskError {
 pub enum FinishedTaskStatus {
     Success,
     Failure,
+    Aborted,
 }
 
 #[derive(Debug, Clone, Deserialize, TS, ToSchema)]
@@ -79,6 +80,10 @@ where
             ),
             FinishedTaskStatus::Failure => TaskAggregate::Failing(
                 t.mark_failed(now, command.exit_code, command.error_message)
+                    .context("failed to finish running task")?,
+            ),
+            FinishedTaskStatus::Aborted => TaskAggregate::Healthy(
+                t.mark_aborted(now)
                     .context("failed to finish running task")?,
             ),
         },
