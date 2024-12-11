@@ -62,7 +62,6 @@ impl IncidentEventRepository for IncidentEventRepositoryAdapter {
         event: IncidentEvent,
     ) -> anyhow::Result<()> {
         let event_created_at = event.created_at;
-        let event_type = event.event_type;
 
         sqlx::query!(
             "INSERT INTO incident_timeline_events (organization_id, incident_id, user_id, created_at, event_type, event_payload)

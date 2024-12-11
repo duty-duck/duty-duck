@@ -53,6 +53,11 @@ where
     ) -> JoinSet<()> {
         let mut join_set = JoinSet::new();
 
+        if n_tasks == 0 {
+            info!("No task will be spawned. You need to call the `run incident-notifications` command manually to execute incident notifications");
+            return join_set;
+        }
+
         for _ in 0..n_tasks {
             let executor = self.clone();
 
@@ -86,7 +91,7 @@ where
         join_set
     }
 
-    async fn fetch_and_execute_due_notifications(
+    pub async fn fetch_and_execute_due_notifications(
         &self
     ) -> anyhow::Result<usize>
   {

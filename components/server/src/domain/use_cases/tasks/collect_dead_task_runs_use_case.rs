@@ -27,6 +27,10 @@ where
         delay_between_two_executions: Duration,
     ) -> JoinSet<()> {
         let mut join_set = JoinSet::new();
+        if n_tasks == 0 {
+            info!("No task will be spawned. You need to call the `run collect-dead-task-runs` command manually to collect dead task runs");
+            return join_set;
+        }
 
         for _ in 0..n_tasks {
             let mut interval = tokio::time::interval(delay_between_two_executions);
@@ -58,7 +62,7 @@ where
         join_set
     }
 
-    async fn collect_dead_task_runs(&self) -> anyhow::Result<usize> {
+    pub async fn collect_dead_task_runs(&self) -> anyhow::Result<usize> {
         let mut transaction = self.task_repository.begin_transaction().await?;
         let now = Utc::now();
 

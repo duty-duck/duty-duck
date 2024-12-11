@@ -37,8 +37,9 @@ pub mod application_config;
 pub mod application_state;
 pub mod built_info;
 pub mod server;
+pub mod background_tasks;
 
-pub async fn start_application() -> anyhow::Result<()> {
+pub async fn start_server() -> anyhow::Result<()> {
     let config = Arc::new(AppConfig::load()?);
     let application_state = build_app_state(Arc::clone(&config)).await?;
 

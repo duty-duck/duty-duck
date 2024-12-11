@@ -4339,6 +4339,7 @@ dependencies = [
  "bigdecimal",
  "built",
  "chrono",
+ "clap",
  "croner",
  "custom_derive",
  "dotenv",

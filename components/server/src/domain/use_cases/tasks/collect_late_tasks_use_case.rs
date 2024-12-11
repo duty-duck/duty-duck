@@ -28,6 +28,11 @@ where
     ) -> JoinSet<()> {
         let mut join_set = JoinSet::new();
 
+        if n_tasks == 0 {
+            info!("No task will be spawned. You need to call the `run collect-late-tasks` command manually to collect late tasks");
+            return join_set;
+        }
+
         for _ in 0..n_tasks {
             let mut interval = tokio::time::interval(delay_between_two_executions);
             let executor = self.clone();
@@ -58,7 +63,7 @@ where
         join_set
     }
 
-    async fn collect_late_tasks(&self) -> anyhow::Result<usize> {
+    pub async fn collect_late_tasks(&self) -> anyhow::Result<usize> {
         let mut transaction = self.task_repository.begin_transaction().await?;
 
         let now = Utc::now();

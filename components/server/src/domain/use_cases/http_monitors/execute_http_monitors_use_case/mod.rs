@@ -84,7 +84,7 @@ where
         join_set
     }
 
-    async fn fetch_and_execute_due_http_monitors(
+    pub async fn fetch_and_execute_due_http_monitors(
         &self,
         task_index: usize,
         limit: u32,
