@@ -1,8 +1,5 @@
-use std::sync::Arc;
-
 use anyhow::Context;
 use sqlx::postgres::PgPool;
-use tokio::task::JoinHandle;
 use uuid::Uuid;
 
 use crate::domain::{
@@ -12,43 +9,16 @@ use crate::domain::{
 
 #[derive(Clone)]
 pub struct IncidentEventRepositoryAdapter {
-    pool: PgPool,
-    _partition_creation_background_task: Arc<JoinHandle<()>>,
+    pub pool: PgPool,
 }
 
 impl IncidentEventRepositoryAdapter {
-    pub async fn new(pool: PgPool) -> Self {
-        let partitions_created = Arc::new(tokio::sync::Notify::new());
-
-        let partition_creation_background_task = tokio::spawn({
-            let partitions_created = partitions_created.clone();
-            let pool = pool.clone();
-            async move {
-                let mut interval =
-                    tokio::time::interval(std::time::Duration::from_secs(60 * 60 * 24));
-                loop {
-                    interval.tick().await;
-                    match sqlx::query!("SELECT create_incident_timeline_partition_for_month()")
-                        .execute(&pool)
-                        .await
-                    {
-                        Ok(_) => tracing::debug!("Incident timeline partition created"),
-                        Err(e) => {
-                            tracing::error!("Error creating incident timeline partition: {:?}", e)
-                        }
-                    }
-                    partitions_created.notify_waiters();
-                }
-            }
-        });
-
-        // wait for the first partition to be created before returning the adapter
-        partitions_created.notified().await;
-
-        Self {
-            pool,
-            _partition_creation_background_task: Arc::new(partition_creation_background_task),
-        }
+    pub async fn create_incident_timeline_partition_for_month(&self) -> anyhow::Result<()> {
+        sqlx::query!("SELECT create_incident_timeline_partition_for_month()")
+            .execute(&self.pool)
+            .await
+            .context("Failed to create incident timeline partition for month")?;
+        Ok(())
     }
 }
 

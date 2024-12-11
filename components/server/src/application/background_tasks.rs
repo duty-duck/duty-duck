@@ -27,6 +27,8 @@ pub enum BackgroundTask {
     CollectLateTasks,
     /// Collect absent tasks
     CollectAbsentTasks,
+    /// Create monthly partitions for every partitioned table
+    CreateMonthlyPartitions,
 }
 
 pub async fn run_background_task(task: BackgroundTask) -> anyhow::Result<()> {
@@ -34,6 +36,10 @@ pub async fn run_background_task(task: BackgroundTask) -> anyhow::Result<()> {
     let application_state = super::build_app_state(Arc::clone(&config)).await?;
 
     match task {
+        BackgroundTask::CreateMonthlyPartitions => {
+            application_state.adapters.task_run_repository.create_task_run_partition_for_month().await?;
+            application_state.adapters.incident_event_repository.create_incident_timeline_partition_for_month().await?;
+        }
         BackgroundTask::HttpMonitors => {
             ExecuteHttpMonitorsUseCase {
                 http_monitor_repository: application_state

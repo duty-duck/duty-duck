@@ -175,7 +175,7 @@ async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationSt
         api_token_repository: ApiAccessTokenRepositoryAdapter { pool: pool.clone() },
         http_monitors_repository: HttpMonitorRepositoryAdapter { pool: pool.clone() },
         incident_repository: IncidentRepositoryAdapter { pool: pool.clone() },
-        incident_event_repository: IncidentEventRepositoryAdapter::new(pool.clone()).await,
+        incident_event_repository: IncidentEventRepositoryAdapter { pool: pool.clone() },
         incident_notification_repository: IncidentNotificationRepositoryAdapter {
             pool: pool.clone(),
         },
@@ -201,7 +201,7 @@ async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationSt
             .await
             .context("Failed to create file storage adapter")?,
         task_repository: TaskRepositoryAdapter { pool: pool.clone() },
-        task_run_repository: TaskRunRepositoryAdapter::new(pool.clone()).await,
+        task_run_repository: TaskRunRepositoryAdapter { pool: pool.clone() },
     };
     Ok(ApplicationState {
         config: config.clone(),
