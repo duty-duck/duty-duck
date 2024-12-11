@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT *, COUNT(*) OVER() as \"filtered_count!\" \n            FROM tasks\n            WHERE organization_id = $1\n            AND ($2::integer[] IS NULL OR status = ANY($2))\n            AND (name ILIKE $3 OR description ILIKE $3)\n            ORDER BY name\n            LIMIT $4 OFFSET $5\n            ",
+  "query": "\n            SELECT *, COUNT(*) OVER() as \"filtered_count!\" \n            FROM tasks\n            WHERE organization_id = $1\n            AND ($2::integer[] = '{}' OR status = ANY($2))\n            AND ($3 = '' OR name ILIKE $3 OR description ILIKE $3)\n            ORDER BY name\n            LIMIT $4 OFFSET $5\n            ",
   "describe": {
     "columns": [
       {
@@ -100,5 +100,5 @@
       null
     ]
   },
-  "hash": "754a651475469f3e237e969216cfbde2e5cb7b2ef1daaf95593af1ed762388fa"
+  "hash": "154879a82e62d8602aff015fdb7309bc584e6043c37ca7a9811a888d7f44efe3"
 }

@@ -1,0 +1,96 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT * FROM tasks\n                WHERE cron_schedule IS NOT NULL\n                AND $1::timestamptz >= next_due_at + (start_window_seconds || ' seconds')::interval\n                AND status = $2 -- status is due\n                LIMIT $3",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 1,
+        "name": "organization_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 2,
+        "name": "name",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 3,
+        "name": "description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "status",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 5,
+        "name": "previous_status",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 6,
+        "name": "last_status_change_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 7,
+        "name": "next_due_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 8,
+        "name": "cron_schedule",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 9,
+        "name": "start_window_seconds",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 10,
+        "name": "lateness_window_seconds",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 11,
+        "name": "heartbeat_timeout_seconds",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 12,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "Int2",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "f34498c9b24e72dd7497105c1f788287d9f5fa3ca6ab65d727fc0cd33aeab463"
+}

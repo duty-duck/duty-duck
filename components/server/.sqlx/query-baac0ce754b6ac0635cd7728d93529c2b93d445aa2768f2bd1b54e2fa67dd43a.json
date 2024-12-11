@@ -45,6 +45,11 @@
       },
       {
         "ordinal": 8,
+        "name": "heartbeat_timeout_seconds",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 9,
         "name": "updated_at",
         "type_info": "Timestamptz"
       }
@@ -65,6 +70,7 @@
       true,
       true,
       true,
+      false,
       false
     ]
   },
