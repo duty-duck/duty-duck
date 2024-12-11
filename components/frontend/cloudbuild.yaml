@@ -4,19 +4,20 @@ steps:
     args:
       - build
       - '-t'
-      - $_AR_HOSTNAME/$PROJECT_ID/duty-duck/keycloak:$COMMIT_SHA
-      - components/keycloak
+      - $_AR_HOSTNAME/$PROJECT_ID/duty-duck/frontend:$COMMIT_SHA
       - '-f'
-      - components/keycloak/Dockerfile
+      - components/frontend/Dockerfile
+      - .
 
   - id: Push
     name: gcr.io/cloud-builders/docker
     args:
       - push
-      - $_AR_HOSTNAME/$PROJECT_ID/duty-duck/keycloak:$COMMIT_SHA
+      - >-
+        $_AR_HOSTNAME/$PROJECT_ID/duty-duck/frontend:$COMMIT_SHA
 
 images:
-  - $_AR_HOSTNAME/$PROJECT_ID/duty-duck/keycloak:$COMMIT_SHA
+  - $_AR_HOSTNAME/$PROJECT_ID/duty-duck/frontend:$COMMIT_SHA
 
 options:
   substitutionOption: ALLOW_LOOSE
