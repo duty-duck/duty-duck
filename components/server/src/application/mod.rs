@@ -38,6 +38,7 @@ pub mod application_state;
 pub mod built_info;
 pub mod server;
 pub mod background_tasks;
+pub mod migrations;
 
 pub async fn start_server() -> anyhow::Result<()> {
     let config = Arc::new(AppConfig::load()?);
