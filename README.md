@@ -51,10 +51,20 @@ docker build -t ghcr.io/duty-duck/browser:latest -f components/browser/Dockerfil
 docker build -t ghcr.io/duty-duck/fake-internet:latest -f components/fake-internet/Dockerfile .
 ```
 
+### Building the Keycloak image:
+
+```shell
+docker build -t ghcr.io/duty-duck/keycloak:latest -f components/keycloak/Dockerfile .
+```
+
 ## Keycloak checklist
 
-- Create a client with `duty-duck-frontend` and `duty-duck-server` redirect URIs
-- Create a client with `duty-duck-server` redirect URIs
+- Create a `dutyduck-server` client with
+    - Correct Redirect URIs
+    - Client credentials grant type
+    - The `realm_admin` role
+- Create a `dutyduck-frontend` client with
+    - Correct Redirect URIs
 - Make sure there is a Active_Organization_Info client scope with these mappers:
     - active_organization
         - token claim name: active_organization
