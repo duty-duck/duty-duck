@@ -10,7 +10,7 @@ on:
       - "components/fake-internet/**"
 jobs:
   build:
-    runs-on: ubicloud-standard-4-arm
+    runs-on: ubicloud-standard-2
     permissions:
       contents: read
       packages: write
@@ -45,7 +45,7 @@ jobs:
     - name: Build and push
       uses: docker/build-push-action@v6
       with:
-        platforms: linux/arm64
+        platforms: linux/amd64
         context: .
         file: "components/fake-internet/Dockerfile"
         push: ${{ github.event_name != 'pull_request' }}

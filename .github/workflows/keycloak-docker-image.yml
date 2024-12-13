@@ -1,16 +1,16 @@
-name: Server Migrations Image CI
+name: keycloak Image CI
 
 on:
   workflow_dispatch:
   pull_request:
     paths:
-      - "components/server/migrations/**"
+      - "components/keycloak/**"
   push:
     paths:
-      - "components/server/migrations/**"
+      - "components/keycloak/**"
 jobs:
   build:
-    runs-on: ubicloud-standard-4-arm
+    runs-on: ubicloud-standard-2
     permissions:
       contents: read
       packages: write
@@ -36,7 +36,7 @@ jobs:
       with:
           # list of Docker images to use as base name for tags
           images: |
-            ghcr.io/duty-duck/server-migrations
+            ghcr.io/duty-duck/keycloak
           # generate Docker tags based on the following events/attributes
           tags: |
             type=ref,event=tag
@@ -45,9 +45,9 @@ jobs:
     - name: Build and push
       uses: docker/build-push-action@v6
       with:
-        platforms: linux/arm64
+        platforms: linux/amd64
         context: .
-        file: "migrations.Dockerfile"
+        file: "components/keycloak/Dockerfile"
         push: ${{ github.event_name != 'pull_request' }}
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
