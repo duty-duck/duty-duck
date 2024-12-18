@@ -52,7 +52,7 @@ const sortedRecords = computed(() => Object.fromEntries(Object.entries(metadata.
 
 <template>
     <div id="metadata-input">
-        <div v-if="readOnly && Object.keys(metadata.records).length === 0" class="text-muted">
+        <div v-if="readOnly && Object.keys(metadata.records).length === 0" class="text-secondary">
             {{ $t("dashboard.metadataInput.noMetadata") }}
         </div>
         <ul>
@@ -93,7 +93,7 @@ const sortedRecords = computed(() => Object.fromEntries(Object.entries(metadata.
             </li>
 
             <li class=" mt-3" v-if="!readOnly">
-                <label class="form-label text-muted">{{ $t('dashboard.metadataInput.newMetadata') }}</label>
+                <label class="form-label text-secondary">{{ $t('dashboard.metadataInput.newMetadata') }}</label>
                 <form class="d-flex gap-1" @submit.prevent="addMetadata">
                     <div class="col">
                         <BInput ref="newKeyFormRef" v-model="newKeyPair.key" :placeholder="t('dashboard.metadataInput.newKey')"

@@ -32,7 +32,7 @@
                         <ul class="mt-1 mb-0">
                             <li v-for="ip in event.resolvedIpAddresses" :key="ip">
                                 {{ ip }}
-                                <span v-if="ip === event.responseIpAddress" class="text-muted">({{
+                                <span v-if="ip === event.responseIpAddress" class="text-secondary">({{
                                     $t('dashboard.incidents.timeline.pingEvent.responseIp') }})</span>
                             </li>
                         </ul>

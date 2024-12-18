@@ -13,7 +13,7 @@ const computeLinkDest = useComputeContentLinkDest();
                                 <NuxtLink :to="article._path" class="title">
                                     <h2>{{ article.title }}</h2>
                                 </NuxtLink>
-                                <p class="text-muted">
+                                <p class="text-secondary">
                                     {{ $d(new Date(article.date), 'short') }}
                                 </p>
                             </BCardBody>

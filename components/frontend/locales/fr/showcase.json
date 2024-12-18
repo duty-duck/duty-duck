@@ -1,4 +1,20 @@
 {
+    "homepage": {
+        "hero": {
+            "headlines": [
+                "Est-ce que mon site répond ?",
+                "La sauvegarde a bien tourné cette nuit ?",
+                "Mon certificat TLS, il expire quand déjà ?",
+                "Le site est tombé, quelqu'un s'en occupe ?",
+                "Qui surveille le back-end pendant mes vacances ?",
+                "Il y a un job en cours en ce moment ?",
+                "On a pas déjà eu cette panne ?",
+                "Qui est d'astreinte ce week-end ?",
+                "Le front répond en combien de temps ?"
+            ],
+            "stopGuessing": "Inutile de deviner."
+        } 
+    },
     "signup": {
         "form": {
             "aboutYourself": "Parlez-nous de vous",

@@ -30,7 +30,7 @@ const icon = computed(() => {
         'text-info': props.status == 'recovering',
         'text-secondary': props.status == 'unknown' || props.status == 'inactive',
         'text-success': props.status == 'up',
-        'text-muted': props.status == 'archived'
+        'text-secondary': props.status == 'archived'
     }">
         <template v-if="status != 'archived'">
             <Icon name="ph:circle-fill" :size="big ? '6rem' : '4rem'" class="secondary" v-show="animated" />

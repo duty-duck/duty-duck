@@ -44,7 +44,7 @@ defineExpose({
             {{ $t('dashboard.tasks.nextDueAt', { date: $d(new Date(task.nextDueAt), 'long') }) }}
           </template>
         </div>
-        <div v-if="task.description" class="small text-muted mt-1">
+        <div v-if="task.description" class="small text-secondary mt-1">
           {{ task.description }}
         </div>
       </div>
@@ -53,7 +53,7 @@ defineExpose({
 
     <!-- Last runs grid -->
     <div class="bg-light py-2 px-3 d-flex align-items-center gap-3" v-if="reversedRuns && reversedRuns.length > 0">
-      <small class="text-muted">
+      <small class="text-secondary">
         {{ $t('dashboard.tasks.lastRuns') }}
       </small>
       <TaskRunsGridChart :task-runs="reversedRuns" />

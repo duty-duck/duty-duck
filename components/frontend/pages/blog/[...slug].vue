@@ -13,7 +13,7 @@ const docPath = useCurrentContentPath();
                     <template v-slot="{ doc }">
                         <article>
                             <h1>{{ doc.title }}</h1>
-                        <p class="text-muted">
+                        <p class="text-secondary">
                             {{ $d(new Date(doc.date), 'short') }}
                         </p>
                         <BImg rounded fluid-grow v-if="doc.image" :src="doc.image" alt="Image" class="my-4" />

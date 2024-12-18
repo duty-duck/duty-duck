@@ -12,7 +12,7 @@ const computeLinkDest = useComputeContentLinkDest();
         :class="{ 'flex-row-reverse': direction === 'next' }">
         <Icon :name="direction === 'prev' ? 'ph:arrow-left-bold' : 'ph:arrow-right-bold'" />
         <div class="d-flex flex-column">
-            <small class="text-muted">{{ $t(`documentation.${direction}`) }}</small>
+            <small class="text-secondary">{{ $t(`documentation.${direction}`) }}</small>
             {{ link.title }}
         </div>
     </NuxtLink>

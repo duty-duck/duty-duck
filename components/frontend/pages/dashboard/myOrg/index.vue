@@ -82,7 +82,7 @@ const revokeInvitation = async (invitationId: string) => {
                         </div>
                         </BTd>
                         <BTd>
-                            <div v-if="member.organizationRoles.includes('Owner')" class="text-muted">
+                            <div v-if="member.organizationRoles.includes('Owner')" class="text-secondary">
                                 {{ $t("dashboard.myOrg.members.cannotEditOwner") }}
                             </div>
                             <div class="d-flex gap-2" v-else>
@@ -125,7 +125,7 @@ const revokeInvitation = async (invitationId: string) => {
                     </BTr>
                 </BThead>
             </BTableSimple>
-            <div v-if="!invitations?.length" class="text-center text-muted my-5">
+            <div v-if="!invitations?.length" class="text-center text-secondary my-5">
                 {{ $t("dashboard.myOrg.invitations.noInvitations") }}
             </div>
         </BCard>

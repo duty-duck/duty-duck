@@ -1,4 +1,20 @@
 {
+    "homepage": {
+        "hero": {
+            "headlines": [
+                "Is my website responding?",
+                "Did the backup run successfully last night?",
+                "When does my TLS certificate expire again?",
+                "The site is down, is someone handling it?",
+                "Who's monitoring the backend during my vacation?",
+                "Is there a job running right now?",
+                "Haven't we had this issue before?",
+                "Who's on call this weekend?",
+                "How fast is the frontend responding?"
+            ],
+            "stopGuessing": "Stop guessing."
+        }
+    },
     "signup": {
         "form": {
             "aboutYourself": "Tell us about yourself",

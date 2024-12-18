@@ -8,7 +8,7 @@ const documentationFirstPage = await useDocumentationFirstPage();
 <template>
     <div>
         <BNavbar id="settings-bar">
-            <BNavbarNav class="ms-auto text-muted">
+            <BNavbarNav class="ms-auto text-secondary">
                 <BNavItemDropdown :text="`${$t('language')} (${locale})`" right>
                     <NuxtLink v-for="locale in locales" :key="locale.code" :to="switchLocalePath(locale.code)"
                         class="dropdown-item icon-link">

@@ -29,10 +29,10 @@ const removeToken = async (tokenId: string) => {
                 class="d-flex justify-content-between align-items-start">
                 <div class="d-flex flex-column gap-1">
                     {{ token.label }}
-                    <div class="text-muted" style="font-family: monospace;">
+                    <div class="text-secondary" style="font-family: monospace;">
                         {{  token.id }}
                     </div>
-                    <div class="text-muted">
+                    <div class="text-secondary">
                         {{ $t('dashboard.apiTokens.expiresAt', { date: $d(new Date(token.expiresAt!), 'long') }) }}
                     </div>
                 </div>

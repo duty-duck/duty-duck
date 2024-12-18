@@ -29,21 +29,67 @@ onUnmounted(() => {
         observer.disconnect();
     }
 });
+
+const uptimeFeatures = [
+    {
+        title: 'Real-time Monitoring',
+        description: 'Monitor your applications with precision and ease. Get instant alerts and detailed insights when issues arise.',
+        icon: 'ph:globe-duotone',
+        iconBgColor: 'bg-success bg-opacity-10',
+        size: 'large'
+    },
+    {
+        title: 'Real-time Monitoring',
+        description: 'Monitor your applications with precision and ease. Get instant alerts and detailed insights when issues arise.',
+        icon: 'ph:globe-duotone',
+        iconBgColor: 'bg-success bg-opacity-10',
+        size: 'large'
+    },
+    {
+        title: "Performance Metrics",
+        description: "Track response times, error rates, and system resources in real-time.",
+        icon: 'ph:activity-duotone',
+        size: "large",
+        iconBgColor: "bg-primary bg-opacity-10",
+        iconColor: "text-primary"
+  },
+  {
+        title: "24/7 Monitoring",
+        description: "Round-the-clock monitoring ensures you never miss a critical event.",
+        icon: 'ph:clock-duotone',
+        size: "small",
+        iconBgColor: "bg-info bg-opacity-10",
+        iconColor: "text-info"
+  },
+  {
+    title: "Customizable Alerts",
+    description: "Create tailored alerts for specific events or conditions.",
+    icon: 'ph:bell-duotone',
+    size: "small",
+    iconBgColor: "bg-warning bg-opacity-10",
+    iconColor: "text-warning"
+  }
+];
 </script>
 <template>
     <ShowcaseLayout>
         <section id="hero">
-            <h1>On garde un œil sur vos systèmes</h1>
-            <p class="lead">
-                Que vous soyez un dev solo ou une équipe qui cartonne,<br />notre plateforme d'observabilité garde
-                vos
-                systèmes au top, sans vider votre portefeuille.
-                <br />On vous simplifie la vie en quelques clics !
-            </p>
-            <p>14 jours d'essai gratuits, ça vous tente ?</p>
-            <BButton variant="primary" :to="localePath('/signup')">Commencer</BButton>
+            <ShowcaseHomepageAnimatedBackground />
+            <div class="inner">
+                <ShowcaseHomepageHeadline />
+                <p class="lead fw-bold">{{ $t('homepage.hero.stopGuessing') }}</p>
+                <p class="lead text-secondary gray-shadow">
+                    Que vous soyez un dev solo ou une équipe qui cartonne,<br />
+                    on surveille votre site et toutes vos tâches d'arrière plan,<br>
+                    on alerte la bonne personne, au bon moment,
+                    <span class="text-body-emphasis d-block mt-2">bref, on vous simplifie la vie</span>
+                </p>
+                <BButton variant="primary" :to="localePath('/signup')">Commencer gratuitement</BButton>
+            </div>
+
         </section>
 
+        <!-- Sections navigation -->
         <div id="sections-nav" ref="sectionsNavRef">
             <a href="#uptime" class="item" :class="{ active: activeSection === 'uptime' || !activeSection }">
                 <Icon name="ph:globe-duotone" />
@@ -66,19 +112,23 @@ onUnmounted(() => {
                 AI
             </a>
         </div>
+
+        <!-- Sections content -->
         <div id="sections" ref="sectionsRef">
-            <section id="uptime">
-                <h2>Uptime</h2>
-                <p>
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.
-                </p>
-            </section>
-            <section id="tasks">
-                <h2>Tâches</h2>
-                <p>
-                    Lorem ipsum dolor sit amet consectetur adipisicing elit. Quisquam, quos.
-                </p>
-            </section>
+            <ShowcaseFeatureSection
+                id="uptime"
+                title="Real-time Monitoring"
+                description="Monitor your applications with precision and ease. Get instant alerts and detailed insights when issues arise."
+                :features="uptimeFeatures"
+            />
+            <ShowcaseFeatureSection
+                id="tasks"
+                title="Task monitoring"
+                description="Monitor your applications with precision and ease. Get instant alerts and detailed insights when issues arise."
+                :features="uptimeFeatures"
+            />
+
+
             <section id="incidents">
                 <h2>Incidents</h2>
                 <p>
@@ -107,41 +157,37 @@ $sections-nav-height: 70px;
 
 #hero {
     @extend .px-2, .py-4;
+    position: relative;
     min-height: 65vh;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     text-align: left;
-    min-height: calc(100vh - $sections-nav-height - $navbar-height - $settings-bar-height);
+
+    .inner {
+        position: relative;
+        z-index: 10;
+    }
 
     @include media-breakpoint-up(md) {
         text-align: center;
-
-        h1 {
-            font-size: 3.5rem;
-            line-height: 5rem;
-        }
 
         p.lead {
             font-size: 1.5rem;
         }
     }
 
-    h1 {
-        @include homepage-heading;
-        font-size: 2.5rem;
-        background: linear-gradient(to right, $info, $primary);
-        background-clip: text;
-        color: transparent;
-    }
-
     p.lead {
-        @extend .my-4;
+        @extend .mt-3;
         font-size: 1.2rem;
     }
 
     background-color: #f0f0f0;
+}
+
+.gray-shadow {
+    text-shadow: 0 0 15px rgba(134, 134, 134, 0.25);
 }
 
 #sections-nav {
@@ -156,6 +202,7 @@ $sections-nav-height: 70px;
     border-bottom: 1px solid rgb(234 236 241);
     border-top: 1px solid rgb(234 236 241);
     overflow-x: auto;
+    z-index: 100;
 
     @include media-breakpoint-up(md) {
         gap: 2rem;
@@ -177,14 +224,6 @@ $sections-nav-height: 70px;
         &.active {
             color: $primary;
         }
-    }
-}
-
-#sections {
-    section {
-        padding-top: 4.5rem;
-        min-height: 80vh;
-        border-bottom: 1px solid $gray-200;
     }
 }
 </style>
