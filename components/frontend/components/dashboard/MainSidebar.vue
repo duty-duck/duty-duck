@@ -45,14 +45,6 @@ watch(() => route.fullPath, () => refreshIncidentCount());
         </NuxtLink>
       </li>
       <li class="nav-item">
-        <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/tasks')" :disabled="!canReadTasks"
-          :class="{ 'active': route.path.startsWith(localePath('/dashboard/tasks')) }">
-          <Icon name="ph:pulse-duotone" size="22px" />
-          {{ $t('dashboard.mainSidebar.tasks') }}
-          <BBadge>{{ $t('dashboard.mainSidebar.soon') }}</BBadge>
-        </NuxtLink>
-      </li>
-      <li class="nav-item">
         <a class="nav-link icon-link disabled" href="#">
           <Icon name="ph:speedometer-duotone" size="22px" />
           Web perf.

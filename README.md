@@ -63,7 +63,7 @@ docker build -t ghcr.io/duty-duck/keycloak:latest -f components/keycloak/Dockerf
     - Correct Redirect URIs
     - Client credentials grant type
     - The `realm_admin` role
-- Create a `dutyduck-frontend` client with
+- Create a `dutyduck-dashboard` client with
     - Correct Redirect URIs
 - Make sure there is a Active_Organization_Info client scope with these mappers:
     - active_organization
@@ -78,6 +78,8 @@ docker build -t ghcr.io/duty-duck/keycloak:latest -f components/keycloak/Dockerf
         - add to ID token: true
         - add to access token: true
         - add to userinfo: true
+- Make sure there is a `dutyduck-dashboard` client scope with an audience mapper to include the `dutyduck-dashboard` audience to the token,
+and make sure this client scope is enabled for the `dutyduck-dashboard` client
 - Make sure these user attributes exist in the Realm settings:
     - phoneNumber
     - phoneNumberVerified
@@ -92,7 +94,7 @@ docker build -t ghcr.io/duty-duck/keycloak:latest -f components/keycloak/Dockerf
     - a "phoneNumberOtp" mapper
         - token claim name: phoneNumberOtp
         - Claim JSON type: JSON
-- Make sure the "active_organization" and the "phone" client scopes are enabled for the "duty-duck-dashboard" client
+- Make sure the "active_organization" and the "phone" client scopes are enabled for the "dutyduck-dashboard" client
 - Check e-mail server configuration
 - Check the theme configuration for the realm. To see the organization swticher, the admin theme phasetwo.v2 must be enabled **on the master realm**
 - Make sure e-mail verification is enabled for the realm

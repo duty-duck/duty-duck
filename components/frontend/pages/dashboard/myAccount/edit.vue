@@ -9,19 +9,19 @@ const { show } = useToast();
 const auth = await useAuth();
 const localePath = useLocalePath();
 const repo = await useUserRepository();
-const { data: userProfile } = await repo.useUserProfile();
+const userProfile = auth.userProfile;
 
 const state = reactive({
-  firstName: userProfile.value?.user.firstName || "",
-  lastName: userProfile.value?.user.lastName || "",
-  email: userProfile.value?.user.email || "",
-  emailConfirmation: userProfile.value?.user.email,
+  firstName: userProfile.user.firstName || "",
+  lastName: userProfile.user.lastName || "",
+  email: userProfile.user.email || "",
+  emailConfirmation: userProfile.user.email,
   password: "",
   passwordConfirmation: "",
   phoneNumber: {
     isValid: null as boolean | null,
-    value: userProfile.value?.user.phoneNumber || "",
-    formattedNumber: userProfile.value?.user.phoneNumber || "" as string | null
+    value: userProfile.user.phoneNumber || "",
+    formattedNumber: userProfile.user.phoneNumber || "" as string | null
   },
 });
 
@@ -35,8 +35,8 @@ watch(
     // if the e-mail is equal to the original e-mail (i.e. the user did not edit their e-mail),
     // then the e-mail confirmation must also be equal to original e-mail
     // also, notice that the e-mail confirmation input is only displayed when the e-mail is edited
-    if (email == userProfile.value!.user.email) {
-      state.emailConfirmation = userProfile.value!.user.email;
+    if (email == userProfile.user.email) {
+      state.emailConfirmation = userProfile.user.email;
     }
   }
 );
@@ -85,7 +85,7 @@ const onSubmit = async () => {
     });
     return;
   }
-  const userInfo = userProfile.value!.user;
+  const userInfo = userProfile.user;
   const command: UpdateProfileCommand = {
     firstName: state.firstName != userInfo.firstName ? state.firstName : null,
     lastName: state.lastName != userInfo.lastName ? state.lastName : null,
@@ -99,6 +99,8 @@ const onSubmit = async () => {
   };
 
   const response = await repo.updateProfile(command);
+  await auth.refreshUserProfile();
+
   navigateTo(localePath("/dashboard/myAccount"));
 
   if (response.needsSessionInvalidation) {

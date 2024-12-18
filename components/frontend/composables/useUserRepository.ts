@@ -35,11 +35,18 @@ export const useUserRepository = async () => {
     const $fetch = await useServer$fetch();
 
     return {
-        async useUserProfile() {
-            console.log("[UserRepository::useUserProfile] fetching user profile");
+        /** 
+         * Fetches the user profile from the server and returns it.
+         * In most cases, you should not use this method directly, but instead use the `useAuth` composable, which fetches the user profile once and caches it
+         * for the entire lifetime of the application.
+         * 
+         * This composable itself will delegate the fetching to this method, so the HTTP request is defined in a single place.
+         */
+        async __useUserProfile() {
             return await useServerFetch<GetProfileResponse>("/users/me", { retry: 3, retryDelay: 2000 });
         },
         async updateProfile(command: UpdateProfileCommand) {
+            console.log("[UserRepository::updateProfile] updating profile", command);
             return await $fetch<UpdateProfileResponse>("/users/me", { method: "put", body: command, retry: 3, retryDelay: 1000 })
         },
         async sendPhoneNumberVerificationCode() {

@@ -1,3 +1,4 @@
+import { createSharedComposable } from "@vueuse/core";
 import type { Permission } from "bindings/Permission"
 
 export const useKeycloak = async () => {
@@ -20,13 +21,16 @@ export const useKeycloak = async () => {
  * Composable for handling authentication and user profile management.
  * @returns An object containing authentication state and methods.
  */
-export const useAuth = async () => {
+export const useAuth = createSharedComposable(async () => {
     const keycloak = await useKeycloak();
     if (!keycloak.keycloakInstance.authenticated) {
         await keycloak.login();
     }
     const userRepo = await useUserRepository();
-    const { data: userProfile, refresh: refreshUserProfile } = await userRepo.useUserProfile();
+
+    // Because we use a shared composable, the user profile will be shared between all components that use this composable,
+    // and not fetched every time.
+    const { data: userProfile, refresh: refreshUserProfile } = await userRepo.__useUserProfile();
 
     const userHasPermission = (permission: Permission | Permission[]): boolean => {
         const user = userProfile.value!;
@@ -59,7 +63,7 @@ export const useAuth = async () => {
         refreshUserProfile,
         ...keycloak,
     });
-}
+});
 
 /**
  * Ensures the user has the required permission(s) before mounting the component.
