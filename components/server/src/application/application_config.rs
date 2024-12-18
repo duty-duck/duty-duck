@@ -12,6 +12,7 @@ pub struct KeycloakConfig {
     pub client_id: String,
     #[envconfig(from = "KEYCLOAK_SECRET")]
     pub client_secret: String,
+    /// comma separated list of audiences to verify
     #[envconfig(from = "ACCESS_TOKEN_AUDIENCE", default = "dutyduck-dashboard")]
     pub access_token_audience: String,
 }

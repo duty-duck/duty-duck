@@ -83,7 +83,7 @@ async fn bearer_token_authentication(
         )
     })?;
     let mut validation = Validation::new(jsonwebtoken::Algorithm::RS256);
-    validation.set_audience(&[&state.access_token_audience]);
+    validation.set_audience(&state.access_token_audience);
     let token = jsonwebtoken::decode::<Claims>(token, &key, &validation).map_err(|e| {
         match e.kind() {
             ErrorKind::InvalidAudience =>  error!(error = ?e, "Failed to decode access token because of invalid audience. Verify the ACCESS_TOKEN_AUDIENCE configuration variable."),

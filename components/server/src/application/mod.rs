@@ -208,6 +208,6 @@ async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationSt
         config: config.clone(),
         adapters,
         keycloak_client: keycloak_client.clone(),
-        access_token_audience: config.keycloak.access_token_audience.clone(),
+        access_token_audience: config.keycloak.access_token_audience.split(',').map(|s| s.to_string()).collect(),
     })
 }

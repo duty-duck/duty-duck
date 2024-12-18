@@ -15,7 +15,7 @@ pub type ExtractAppState = State<ApplicationState>;
 
 #[derive(Clone)]
 pub struct ApplicationState {
-    pub access_token_audience: String,
+    pub access_token_audience: Vec<String>,
     pub adapters: Adapters,
     pub keycloak_client: Arc<KeycloakClient>,
     pub config: Arc<AppConfig>
