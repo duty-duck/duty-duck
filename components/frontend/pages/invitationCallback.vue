@@ -10,7 +10,7 @@ const repo = await usePublicInvitationRepository();
 
 const { organizationId, invitationId } = useRoute().query;
 const { data: invitation } = await repo.useInvitation(organizationId as string, invitationId as string);
-const isStrongPassword = await usePasswordValidator(
+const isStrongPassword = usePasswordValidator(
     computed(() => [formData.firstName, formData.lastName])
 );
 

@@ -4,8 +4,7 @@ import { useDebounceFn } from "@vueuse/core";
 /**
  * A reusable form validator for password strength
  */
-export const usePasswordValidator = async (firsNameAndLastName: Ref<[string, string]>) => {
-    const $fetch = await useServer$fetch();
+export const usePasswordValidator = (firsNameAndLastName: Ref<[string, string]>) => {
     const checkStrength = useDebounceFn(async (password, firstName, lastName) => {
         const res = await $fetch<{ score: number }>("/users/check-password", {
             method: "post",

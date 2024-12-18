@@ -24,7 +24,7 @@ const passwordFieldState = computed(() => {
   }
   return !v$.value.password.$invalid;
 });
-const isStrongPassword = await usePasswordValidator(
+const isStrongPassword = usePasswordValidator(
   computed(() => [state.firstName, state.lastName])
 );
 

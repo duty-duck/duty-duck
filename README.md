@@ -68,7 +68,6 @@ docker build -t ghcr.io/duty-duck/keycloak:latest -f components/keycloak/Dockerf
 - Make sure there is a Active_Organization_Info client scope with these mappers:
     - active_organization
         - token claim name: active_organization
-        - Active organization properties: id, name, role, attribute
         - claim JSON type: JSON
         - add to ID token: true
         - add to access token: true
@@ -95,7 +94,7 @@ docker build -t ghcr.io/duty-duck/keycloak:latest -f components/keycloak/Dockerf
         - Claim JSON type: JSON
 - Make sure the "active_organization" and the "phone" client scopes are enabled for the "duty-duck-dashboard" client
 - Check e-mail server configuration
-- Check the theme configuration for the realm. To see the organization switcher, the admin theme phasetwo.v2 must be enabled **on the master realm**
+- Check the theme configuration for the realm. To see the organization swticher, the admin theme phasetwo.v2 must be enabled **on the master realm**
 - Make sure e-mail verification is enabled for the realm
 - Make sure registration is disabled for the realm
 - Test the sign up feature and editing the user's profile (e.g. phone number)
