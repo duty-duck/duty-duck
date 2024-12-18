@@ -3,7 +3,7 @@ import type { SignUpCommand } from "bindings/SignUpCommand";
 
 const state = ref<"initial" | "success" | "error" | "conflict">("initial");
 const localePath = useLocalePath();
-const repo = useUserRepository();
+const repo = usePublicUserRepository();
 
 const onSubmit = async (command: SignUpCommand) => {
   state.value = await repo.signUp(command);

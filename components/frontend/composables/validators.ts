@@ -5,18 +5,10 @@ import { useDebounceFn } from "@vueuse/core";
  * A reusable form validator for password strength
  */
 export const usePasswordValidator = (firsNameAndLastName: Ref<[string, string]>) => {
+    const repo = usePublicUserRepository();
     const checkStrength = useDebounceFn(async (password, firstName, lastName) => {
-        const res = await $fetch<{ score: number }>("/users/check-password", {
-            method: "post",
-            body: {
-                password,
-                firstName,
-                lastName
-            },
-        });
-
-        return res.score >= 3;
-    }, 500, { rejectOnCancel: true })
+        return await repo.checkPasswordStrength(password, firstName, lastName);
+    }, 500, { rejectOnCancel: true });
 
     return helpers.withMessage(
         "Your password is too weak",
