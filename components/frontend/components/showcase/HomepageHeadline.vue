@@ -34,7 +34,7 @@ h1.question {
     font-family: 'Poppins', sans-serif;
     font-weight: 900;
     font-size: 2.5rem;
-    background: linear-gradient(to right, $info, $primary);
+    background: linear-gradient(to bottom, darken($primary, 5%), $primary);
     background-clip: text;
     color: transparent;
 

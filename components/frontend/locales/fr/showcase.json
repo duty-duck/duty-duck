@@ -12,8 +12,98 @@
                 "Qui est d'astreinte ce week-end ?",
                 "Le front répond en combien de temps ?"
             ],
-            "stopGuessing": "Inutile de deviner."
-        } 
+            "stopGuessing": "Inutile de deviner.",
+            "description": "Que vous soyez un dev solo ou une équipe qui cartonne,<br />on surveille votre site et toutes vos tâches d'arrière plan,<br />on alerte la bonne personne, au bon moment,<br />on met de l'ordre dans vos incidents,<br /><span class=\"text-body-emphasis d-block mt-2\">bref, on vous simplifie la vie</span>",
+            "cta": "Commencer gratuitement"
+        },
+        "completeFeatureList": {
+            "title": "Toutes les fonctionnalités",
+            "featureGroups": [
+                {
+                    "title": "Moniteurs de disponibilité",
+                    "features": [
+                        "Intervalle de vérification configurable, jusqu'à toutes les 15 secondes",
+                        "Navigateur basé sur Chrome",
+                        "Assertions sur le contenu de la page",
+                        "Captures d'écran en cas d'échec",
+                        "Détails complets des réponses HTTP",
+                        "Surveillance des certificats SSL",
+                        "Personnalisation des requêtes HTTP (méthode, en-têtes, timeout et plus)",
+                        "Seuils d'échec et de confirmation ajustables",
+                        "Mise en pause des moniteurs pour la maintenance"
+                    ]
+                },
+                {
+                    "title": "Surveillance des tâches",
+                    "features": [
+                        "Suivez l'état des tâches ponctuelles et planifiées",
+                        "Historique d'exécution des tâches",
+                        "Détails d'exécution : durées, logs, code de sortie et plus",
+                        "Notifications pour les tâches en retard, absentes ou échouées",
+                        "Délai de grâce personnalisable pour les tâches en retard",
+                        "Intervalle de heartbeat personnalisable pour les tâches en cours",
+                        "Notifications pour les tâches qui durent plus longtemps que prévu",
+                        "Outil en ligne de commande pour surveiller n'importe quelle commande"
+                    ]
+                },
+                {
+                    "title": "Gestion des incidents",
+                    "features": [
+                        "Chronologie détaillée des incidents",
+                        "Commentaires d'incident en texte enrichi",
+                        "Prise en charge des incidents par un ou plusieurs membres de l'équipe",
+                        "Regroupement des incidents",
+                        "Étiquettes personnalisées",
+                        "Pages de statut",
+                        "Création manuelle d'incidents",
+                        "Détection d'incidents similaires",
+                        "Suggestions de corrections basées sur les incidents similaires",
+                        "Résumés d'incidents"
+                    ]
+                },
+                {
+                    "title": "Alertes",
+                    "features": [
+                        "Notifications par e-mail",
+                        "Notifications push",
+                        "Alertes SMS",
+                        "Appels téléphoniques",
+                        "Politiques d'escalade",
+                        "Intégration webhook",
+                        "Rapports hebdomadaires",
+                        "Planification des astreintes",
+                        "Règles d'alerte personnalisées",
+                        "Regroupement des alertes"
+                    ]
+                },
+                {
+                    "title": "Gestion d'équipe",
+                    "features": [
+                        "Invitez des personnes à rejoindre votre équipe et collaborer sur les incidents",
+                        "Créez des groupes pour envoyer des notifications",
+                        "Accès basé sur les rôles",
+                        "Planification des congés",
+                        "Notifications d'équipe",
+                        "Authentification unique pour votre entreprise"
+                    ]
+                },
+                {
+                    "title": "Plateforme",
+                    "features": [
+                        "API REST pour créer et modifier les moniteurs, tâches, pages de statut, membres d'équipe, etc.",
+                        "Outil en ligne de commande pour Windows, macOS et Linux",
+                        "Applications Android et iOS",
+                        "Système de métadonnées pour organiser, filtrer et rechercher les moniteurs, tâches, incidents, etc.",
+                        "Personnalisation de la marque"
+                    ]
+                }
+            ]
+        },
+        "final": {
+            "title": "Prêt à commencer ?",
+            "description": "Commencez à surveiller votre uptime, vos tâches et vos incidents gratuitement.",
+            "cta": "Commencer gratuitement"
+        }
     },
     "signup": {
         "form": {

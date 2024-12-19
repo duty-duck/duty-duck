@@ -12,7 +12,97 @@
                 "Who's on call this weekend?",
                 "How fast is the frontend responding?"
             ],
-            "stopGuessing": "Stop guessing."
+            "stopGuessing": "Stop guessing.",
+            "description": "Whether you're a solo dev or a team that's crapping out,<br />we monitor your site and all your background tasks,<br />we alert the right person at the right time,<br />we put order in your incidents,<br /><span class=\"text-body-emphasis d-block mt-2\">in short, we make your life easier</span>",
+            "cta": "Start for free"
+        },
+        "completeFeatureList": {
+            "title": "All features",
+            "featureGroups": [
+                {
+                    "title": "Uptime Monitoring",
+                    "features": [
+                        "Configurable check interval, as often as every 15 seconds",
+                        "Checks performed using a real Chrome-based browser",
+                        "Assertions on the content of the page",
+                        "Failure screenshots",
+                        "Full HTTP response details",
+                        "SSL certificate monitoring",
+                        "HTTP Request customization (method, headers, timeout and more)",
+                        "Adjustable failure and confirmation thresholds",
+                        "Pause monitors for maintenance"
+                    ]
+                },
+                {
+                    "title": "Task Monitoring",
+                    "features": [
+                        "Track the status of ad-hoc tasks as well as scheduled tasks",
+                        "Task run history",
+                        "Task run details: timings, logs, exit code and more",
+                        "Notifications for late, absent or failed tasks",
+                        "Customizable grace period for late tasks",
+                        "Customizable heartbeat interval for running tasks",
+                        "Notifications for tasks running longer than expected",
+                        "CLI Tool to wrap any command and monitor its output"
+                    ]
+                },
+                {
+                    "title": "Incident Management",
+                    "features": [
+                        "Detailed incident timeline",
+                        "Rich-text incident comments",
+                        "Incident acknowledgement by one or more team members",
+                        "Incident grouping",
+                        "Custom labels",
+                        "Status pages",
+                        "Manual incident creation",
+                        "Similar incident detection",
+                        "Suggested fixes based on similar incidents",
+                        "Incident summaries"
+                    ]
+                },
+                {
+                    "title": "Alerting",
+                    "features": [
+                        "Email notifications",
+                        "Push notifications",
+                        "SMS alerts",
+                        "Phone calls",
+                        "Escalation policies",
+                        "Webhook integration",
+                        "Weekly reports",
+                        "On-call scheduling",
+                        "Custom alert rules",
+                        "Alert grouping"
+                    ]
+                },
+                {
+                    "title": "Team Management",
+                    "features": [
+                        "Invite people to join your team and collaborate on incidents",
+                        "Create groups to send notifications to",
+                        "Role-based access",
+                        "Vacation scheduling",
+                        "Team notifications",
+                        "Single sign-on for your business"
+                    ]
+                },
+                {
+                    "title": "Common platform features",
+                    "features": [
+                        "REST API to create and edit monitors, tasks, status pages, team members, etc.",
+                        "Command-line tool for Windows, macOS and Linux",
+                        "Android and iOS apps",
+                        "Metadata system to organize, filter and search monitors, tasks, incidents, etc.",
+                        "Customizable branding"
+                    ]
+                }
+            ]
+        },
+        "final": {
+            "title": "Ready to get started?",
+            "description": "Start monitoring your uptime, tasks, and incidents for free.",
+            "cta": "Get started"
         }
     },
     "signup": {

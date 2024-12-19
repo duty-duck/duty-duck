@@ -6,7 +6,7 @@ function flattenKeys(obj: any, prefix = ''): string[] {
     const value = obj[key]
     const newKey = prefix ? `${prefix}.${key}` : key
 
-    if (typeof value === 'object' && value !== null) {
+    if (typeof value === 'object' && !Array.isArray(value) && value !== null) {
       keys.push(...flattenKeys(value, newKey))
     } else {
       keys.push(newKey)

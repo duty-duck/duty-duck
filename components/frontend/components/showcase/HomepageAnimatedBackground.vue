@@ -81,7 +81,7 @@ onMounted(() => {
     if (!canvas || !ctx) return;
 
     // Clear canvas with slight fade effect
-    ctx.fillStyle = 'rgba(248, 249, 250, .15)';
+    ctx.fillStyle = 'rgba(248, 249, 250, .4)';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
     // Draw grid lines first (more subtle, gray color)
