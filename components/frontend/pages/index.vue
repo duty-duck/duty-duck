@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const localePath = useLocalePath();
-const { tm } = useI18n();
+const { tm, t } = useI18n();
 const completeFeatureListGroups = computed(() => tm('homepage.completeFeatureList.featureGroups') as { title: string, features: string[] }[]);
 const activeSection = ref<string | null>(null);
 const sectionsRef = ref<HTMLElement | null>(null);
@@ -71,96 +71,159 @@ onUnmounted(() => {
 
         <!-- Sections content -->
         <div id="sections" ref="sectionsRef">
-            <ShowcaseFeatureSection id="uptime" title="Uptime monitoring that just works"
-                description="Be the first to know when you website is down">
-                <ShowcaseFeatureBlock title="15 seconds check interval"
-                    description="Frequent checks mean we can detect issues in real-time and help you fix them quickly"
-                    icon="ph:clock-duotone" size="small" />
-                <ShowcaseFeatureBlock title="Real browser"
-                    description="We use a real browser to check your website, with Javascript rendering and all"
-                    icon="ph:google-chrome-logo-duotone" size="small" />
-                <ShowcaseFeatureBlock title="Flexible content assertions"
-                    description="You can define custom assertions to ensure your endpoints not only respond, but also serve the expected content"
-                    icon="ph:check-duotone" size="large" />
-                <ShowcaseFeatureBlock title="Screenshots"
-                    description="We take screenshots of your website on failure, so you can see exactly what your users experienced"
-                    icon="ph:camera-duotone" size="medium" />
-                <ShowcaseFeatureBlock title="Complete HTTP Response details"
-                    description="We capture the entire HTTP response, including headers, status code, and body"
-                    icon="ph:code-duotone" size="small" />
-            </ShowcaseFeatureSection>
-            <ShowcaseFeatureSection id="tasks" title="Task monitoring"
-                description="Monitor the status of any process, one-shot or recurring, and get notified when a task is failing, running late, or just not running at all. No more missed database backups.">
-                <ShowcaseFeatureBlock title="Keep track of any Cron job"
-                    description="Workflows, database backups, daily reports, etc." icon="ph:clock-duotone"
+            <ShowcaseFeatureSection 
+                id="uptime" 
+                :title="t('homepage.mainSections.uptime.title')"
+                :description="t('homepage.mainSections.uptime.description')">
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.uptime.features.checkInterval.title')"
+                    :description="t('homepage.mainSections.uptime.features.checkInterval.description')"
+                    icon="ph:clock-duotone" 
+                    size="small" />
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.uptime.features.realBrowser.title')"
+                    :description="t('homepage.mainSections.uptime.features.realBrowser.description')"
+                    icon="ph:google-chrome-logo-duotone" 
+                    size="small" />
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.uptime.features.assertions.title')"
+                    :description="t('homepage.mainSections.uptime.features.assertions.description')"
+                    icon="ph:check-duotone" 
                     size="large" />
-                <ShowcaseFeatureBlock title="Get notified when a task is running late"
-                    description="A job isn't starting on time? We'll let you know" icon="ph:person-simple-run-duotone"
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.uptime.features.screenshots.title')"
+                    :description="t('homepage.mainSections.uptime.features.screenshots.description')"
+                    icon="ph:camera-duotone" 
+                    size="medium" />
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.uptime.features.httpDetails.title')"
+                    :description="t('homepage.mainSections.uptime.features.httpDetails.description')"
+                    icon="ph:code-duotone" 
                     size="small" />
-                <ShowcaseFeatureBlock title="Easy integration"
-                    description="Our agent can monitor any process. Just give it the command to run, and we'll take care of the rest"
-                    icon="ph:download-duotone" size="medium" />
-                <ShowcaseFeatureBlock title="Simple API for developers"
-                    description="Need a custom integration? Our REST API can do anything you can do from the dashboard"
-                    icon="ph:code-duotone" size="small" />
-                <ShowcaseFeatureBlock title="Complete job history"
-                    description="You can see the previous runs of any job, and for each job, get the output, logs and timings and ease"
-                    icon="ph:clock-counter-clockwise-duotone" size="large" />
-            </ShowcaseFeatureSection>
-            <ShowcaseFeatureSection id="incidents" title="Incidents"
-                description="Collect insights on past and ongoing incidents, understand what went wrong and know who is taking care of it.">
-                <ShowcaseFeatureBlock title="Get the complete incident timeline"
-                    description="Know when an incident was detected, when it was confirmed, who worked on it, and when it was resolved"
-                    icon="ph:clock-duotone" size="medium" />
-                <ShowcaseFeatureBlock title="Collaborate on incidents"
-                    description="Work together on incidents, with comments, status updates, and assignees"
-                    icon="ph:users-duotone" size="small" />
-                <ShowcaseFeatureBlock title="Learn from past incidents"
-                    description="When an incident occurs, we can find similar incidents in the past and suggest fixes from what worked before"
-                    icon="ph:lightning-duotone" size="small" />
-                <ShowcaseFeatureBlock title="Organize the chaos"
-                    description="With incident grouping and labels, you can organize incidents by cause, application, region, team, or anything you see fit"
-                    icon="ph:tag-duotone" size="small" />
-                <ShowcaseFeatureBlock title="Visualize your uptime at a glance"
-                    description="With public and private status pages, get a quick overview of your incident history, grouped by any criteria you want"
-                    icon="ph:eye-duotone" size="medium" />
-                <ShowcaseFeatureBlock title="Integrate incidents from other systems"
-                    description="With manual incident creation from our dashboard, or with our easy-to-use API, put all your incident data in one place"
-                    icon="ph:code-duotone" size="medium" />
             </ShowcaseFeatureSection>
 
-
-            <ShowcaseFeatureSection id="alerts" title="Alerts"
-                description="When things go wrong, we make sure the right people are alerted at exactly the right time. Working in teams? Fine-tune your alerting to your team's workflow.">
-                <ShowcaseFeatureBlock title="Unlimited e-mails and push notifications"
-                    description="Alerts right in your pocket, no limit, no extra cost." icon="ph:bell-duotone"
+            <ShowcaseFeatureSection 
+                id="tasks" 
+                :title="t('homepage.mainSections.tasks.title')"
+                :description="t('homepage.mainSections.tasks.description')">
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.tasks.features.cronJobs.title')"
+                    :description="t('homepage.mainSections.tasks.features.cronJobs.description')"
+                    icon="ph:clock-duotone" 
+                    size="large" />
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.tasks.features.lateNotification.title')"
+                    :description="t('homepage.mainSections.tasks.features.lateNotification.description')"
+                    icon="ph:person-simple-run-duotone" 
                     size="small" />
-                <ShowcaseFeatureBlock title="SMS alerts and phone calls"
-                    description="Know what's going on, even when offline" icon="ph:phone-duotone" size="small" />
-                <ShowcaseFeatureBlock title="Flexible escalation policies"
-                    description="Make sure incidents are taken care of: define first responders, escalate stagnating incidents, mix alerting channels, and more."
-                    icon="ph:arrow-up-duotone" size="large" />
-                <ShowcaseFeatureBlock title="Push alerts to any system"
-                    description="With easy-to-setup webhooks, receive alerts right in a messaging app, a terminal, on a billboard, or anything else you can think of"
-                    icon="ph:code-duotone" size="medium" />
-                <ShowcaseFeatureBlock title="Receive weekly reports"
-                    description="Get a weekly report of all your incidents, with a summary of what happened, and what was fixed"
-                    icon="ph:calendar-duotone" size="small" />
-                <ShowcaseFeatureBlock title="Someone going on vacation?"
-                    description="Let your team members turn off their notifications, and escalate automatically to the next person in charge"
-                    icon="ph:island-duotone" size="medium" />
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.tasks.features.integration.title')"
+                    :description="t('homepage.mainSections.tasks.features.integration.description')"
+                    icon="ph:download-duotone" 
+                    size="medium" />
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.tasks.features.api.title')"
+                    :description="t('homepage.mainSections.tasks.features.api.description')"
+                    icon="ph:code-duotone" 
+                    size="small" />
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.tasks.features.history.title')"
+                    :description="t('homepage.mainSections.tasks.features.history.description')"
+                    icon="ph:clock-counter-clockwise-duotone" 
+                    size="large" />
             </ShowcaseFeatureSection>
-            <ShowcaseFeatureSection id="ai" title="AI"
-                description="We use AI to help you understand your incidents, and to help you fix them.">
-                <ShowcaseFeatureBlock title="Similar incidents detection"
-                    description="We can organize similar incidents together" icon="ph:eyeglasses-duotone"
+
+            <ShowcaseFeatureSection 
+                id="incidents" 
+                :title="t('homepage.mainSections.incidents.title')"
+                :description="t('homepage.mainSections.incidents.description')">
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.incidents.features.timeline.title')"
+                    :description="t('homepage.mainSections.incidents.features.timeline.description')"
+                    icon="ph:clock-duotone" 
+                    size="medium" />
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.incidents.features.collaboration.title')"
+                    :description="t('homepage.mainSections.incidents.features.collaboration.description')"
+                    icon="ph:users-duotone" 
                     size="small" />
-                <ShowcaseFeatureBlock title="Suggested fixes"
-                    description="We can suggest fixes for an incident, based on what worked before for similar incidents"
-                    icon="ph:lightning-duotone" size="small" />
-                <ShowcaseFeatureBlock title="Automatically-generated post-mortems"
-                    description="We can summarize an incident, and provide a quick overview of what happened, and what was fixed. We can send you that post-mortem by e-mail and let you use natural language to search in previous post-mortems."
-                    icon="ph:clipboard-text-duotone" size="large" />
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.incidents.features.learning.title')"
+                    :description="t('homepage.mainSections.incidents.features.learning.description')"
+                    icon="ph:lightning-duotone" 
+                    size="small" />
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.incidents.features.organization.title')"
+                    :description="t('homepage.mainSections.incidents.features.organization.description')"
+                    icon="ph:tag-duotone" 
+                    size="small" />
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.incidents.features.visualization.title')"
+                    :description="t('homepage.mainSections.incidents.features.visualization.description')"
+                    icon="ph:eye-duotone" 
+                    size="medium" />
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.incidents.features.integration.title')"
+                    :description="t('homepage.mainSections.incidents.features.integration.description')"
+                    icon="ph:code-duotone" 
+                    size="medium" />
+            </ShowcaseFeatureSection>
+
+            <ShowcaseFeatureSection 
+                id="alerts" 
+                :title="t('homepage.mainSections.alerts.title')"
+                :description="t('homepage.mainSections.alerts.description')">
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.alerts.features.unlimitedEmails.title')"
+                    :description="t('homepage.mainSections.alerts.features.unlimitedEmails.description')"
+                    icon="ph:bell-duotone" 
+                    size="small" />
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.alerts.features.sms.title')"
+                    :description="t('homepage.mainSections.alerts.features.sms.description')"
+                    icon="ph:phone-duotone" 
+                    size="small" />
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.alerts.features.escalation.title')"
+                    :description="t('homepage.mainSections.alerts.features.escalation.description')"
+                    icon="ph:arrow-up-duotone" 
+                    size="large" />
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.alerts.features.webhooks.title')"
+                    :description="t('homepage.mainSections.alerts.features.webhooks.description')"
+                    icon="ph:code-duotone" 
+                    size="medium" />
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.alerts.features.weeklyReports.title')"
+                    :description="t('homepage.mainSections.alerts.features.weeklyReports.description')"
+                    icon="ph:calendar-duotone" 
+                    size="small" />
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.alerts.features.vacation.title')"
+                    :description="t('homepage.mainSections.alerts.features.vacation.description')"
+                    icon="ph:island-duotone" 
+                    size="medium" />
+            </ShowcaseFeatureSection>
+
+            <ShowcaseFeatureSection 
+                id="ai" 
+                :title="t('homepage.mainSections.ai.title')"
+                :description="t('homepage.mainSections.ai.description')">
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.ai.features.detection.title')"
+                    :description="t('homepage.mainSections.ai.features.detection.description')"
+                    icon="ph:eyeglasses-duotone" 
+                    size="small" />
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.ai.features.fixes.title')"
+                    :description="t('homepage.mainSections.ai.features.fixes.description')"
+                    icon="ph:lightning-duotone" 
+                    size="small" />
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.ai.features.postMortems.title')"
+                    :description="t('homepage.mainSections.ai.features.postMortems.description')"
+                    icon="ph:clipboard-text-duotone" 
+                    size="large" />
             </ShowcaseFeatureSection>
 
             <!-- Final section (removes the primary color highlight on the sections navigation when intersecting)-->

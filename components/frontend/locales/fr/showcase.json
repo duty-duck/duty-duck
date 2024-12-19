@@ -103,6 +103,138 @@
             "title": "Prêt à commencer ?",
             "description": "Commencez à surveiller votre uptime, vos tâches et vos incidents gratuitement.",
             "cta": "Commencer gratuitement"
+        },
+        "mainSections": {
+            "uptime": {
+                "title": "La surveillance d'uptime qui fonctionne",
+                "description": "Soyez le premier à savoir quand votre site est hors service",
+                "features": {
+                    "checkInterval": {
+                        "title": "Vérifications toutes les 15 secondes",
+                        "description": "Des vérifications fréquentes permettent de détecter les problèmes en temps réel"
+                    },
+                    "realBrowser": {
+                        "title": "Véritable navigateur",
+                        "description": "Nous utilisons un vrai navigateur pour vérifier votre site, avec le rendu Javascript et tout le reste"
+                    },
+                    "assertions": {
+                        "title": "Assertions de contenu flexibles",
+                        "description": "Vous pouvez définir des assertions personnalisées pour vous assurer que vos endpoints non seulement répondent, mais servent aussi le contenu attendu"
+                    },
+                    "screenshots": {
+                        "title": "Captures d'écran",
+                        "description": "Nous prenons des captures d'écran de votre site en cas d'échec, pour que vous puissiez voir exactement ce que vos utilisateurs ont vécu"
+                    },
+                    "httpDetails": {
+                        "title": "Détails complets des réponses HTTP",
+                        "description": "Nous capturons la réponse HTTP complète, y compris les en-têtes, le code d'état et le corps"
+                    }
+                }
+            },
+            "tasks": {
+                "title": "Surveillance des tâches",
+                "description": "Surveillez l'état de n'importe quel processus, ponctuel ou récurrent, et soyez notifié quand une tâche échoue, est en retard, ou ne s'exécute tout simplement pas. Plus de sauvegardes de base de données manquées.",
+                "features": {
+                    "cronJobs": {
+                        "title": "Suivez n'importe quelle tâche Cron",
+                        "description": "Workflows, sauvegardes de base de données, rapports quotidiens, etc."
+                    },
+                    "lateNotification": {
+                        "title": "Soyez notifié quand une tâche est en retard",
+                        "description": "Une tâche ne démarre pas à temps ? Nous vous prévenons"
+                    },
+                    "integration": {
+                        "title": "Intégration facile",
+                        "description": "Notre agent peut surveiller n'importe quel processus. Donnez-lui simplement la commande à exécuter, et nous nous occupons du reste"
+                    },
+                    "api": {
+                        "title": "API simple pour les développeurs",
+                        "description": "Besoin d'une intégration personnalisée ? Notre API REST peut faire tout ce que vous pouvez faire depuis le tableau de bord"
+                    },
+                    "history": {
+                        "title": "Historique complet des tâches",
+                        "description": "Vous pouvez voir les exécutions précédentes de n'importe quelle tâche, et pour chaque tâche, obtenir la sortie, les logs et les temps facilement"
+                    }
+                }
+            },
+            "incidents": {
+                "title": "Incidents",
+                "description": "Collectez des informations sur les incidents passés et en cours, comprenez ce qui s'est mal passé et sachez qui s'en occupe.",
+                "features": {
+                    "timeline": {
+                        "title": "Obtenez la chronologie complète des incidents",
+                        "description": "Sachez quand un incident a été détecté, quand il a été confirmé, qui y a travaillé et quand il a été résolu"
+                    },
+                    "collaboration": {
+                        "title": "Collaborez sur les incidents",
+                        "description": "Travaillez ensemble sur les incidents, avec des commentaires, des mises à jour de statut et des assignations"
+                    },
+                    "learning": {
+                        "title": "Apprenez des incidents passés",
+                        "description": "Quand un incident survient, nous pouvons trouver des incidents similaires dans le passé et suggérer des corrections basées sur ce qui a fonctionné auparavant"
+                    },
+                    "organization": {
+                        "title": "Organisez le chaos",
+                        "description": "Avec le regroupement et l'étiquetage des incidents, vous pouvez organiser les incidents par cause, application, région, équipe ou tout autre critère"
+                    },
+                    "visualization": {
+                        "title": "Visualisez votre uptime en un coup d'œil",
+                        "description": "Avec des pages de statut publiques et privées, obtenez un aperçu rapide de votre historique d'incidents, groupé selon vos critères"
+                    },
+                    "integration": {
+                        "title": "Intégrez les incidents d'autres systèmes",
+                        "description": "Avec la création manuelle d'incidents depuis notre tableau de bord, ou avec notre API facile à utiliser, centralisez toutes vos données d'incidents"
+                    }
+                }
+            },
+            "alerts": {
+                "title": "Alertes",
+                "description": "Quand les choses ne fonctionnent pas, nous nous assurons que les bonnes personnes sont alertées. Vous travaillez en équipe? Nos alertes s'adaptent à votre manière de travailler.",
+                "features": {
+                    "unlimitedEmails": {
+                        "title": "E-mails et notifications push illimités",
+                        "description": "Alertes directement dans votre poche, sans limite, sans coût supplémentaire."
+                    },
+                    "sms": {
+                        "title": "Alertes SMS et appels téléphoniques",
+                        "description": "Sachez ce qui se passe, même quand vous êtes hors ligne"
+                    },
+                    "escalation": {
+                        "title": "Politiques d'escalade flexibles",
+                        "description": "Fini les incidents qui restent sans réponse: définissez les premiers répondants, créez des règles d'escalade, exploitez tous les canaux d'alerte, et plus encore."
+                    },
+                    "webhooks": {
+                        "title": "Alertes push vers n'importe quel système",
+                        "description": "Avec des webhooks faciles à configurer, recevez des alertes directement dans une application de messagerie, un terminal, une cafetière ou tout ce que vous voulez"
+                    },
+                    "weeklyReports": {
+                        "title": "Rapports hebdomadaires",
+                        "description": "Obtenez un rapport hebdomadaire de tous vos incidents, avec un résumé de ce qui s'est passé et ce qui a été corrigé"
+                    },
+                    "vacation": {
+                        "title": "Quelqu'un part en vacances ?",
+                        "description": "Permettez à vos membres d'équipe de désactiver leurs notifications, et nous alerterons automatiquement la prochaine personne de la chaine d'escalade"
+                    }
+                }
+            },
+            "ai": {
+                "title": "IA",
+                "description": "Nous utilisons l'IA pour vous aider à comprendre vos incidents et à les résoudre.",
+                "features": {
+                    "detection": {
+                        "title": "Détection d'incidents similaires",
+                        "description": "Nous pouvons organiser les incidents similaires ensemble"
+                    },
+                    "fixes": {
+                        "title": "Suggestions de corrections",
+                        "description": "Nous pouvons suggérer des corrections pour un incident, basées sur ce qui a fonctionné auparavant pour des incidents similaires"
+                    },
+                    "postMortems": {
+                        "title": "Post-mortems générés automatiquement",
+                        "description": "Nous pouvons résumer un incident et fournir un aperçu rapide de ce qui s'est passé et de ce qui a été corrigé. Nous pouvons vous envoyer ce post-mortem par e-mail et vous permettre d'utiliser le langage naturel pour rechercher dans les post-mortems précédents."
+                    }
+                }
+            }
         }
     },
     "signup": {

@@ -13,7 +13,7 @@
                 "How fast is the frontend responding?"
             ],
             "stopGuessing": "Stop guessing.",
-            "description": "Whether you're a solo dev or a team that's crapping out,<br />we monitor your site and all your background tasks,<br />we alert the right person at the right time,<br />we put order in your incidents,<br /><span class=\"text-body-emphasis d-block mt-2\">in short, we make your life easier</span>",
+            "description": "Whether you're a solo dev or a talented team,<br />we monitor your site and all your background tasks,<br />we alert the right person at the right time,<br />we put order in your incidents,<br /><span class=\"text-body-emphasis d-block mt-2\">in short, we make your life easier</span>",
             "cta": "Start for free"
         },
         "completeFeatureList": {
@@ -103,6 +103,140 @@
             "title": "Ready to get started?",
             "description": "Start monitoring your uptime, tasks, and incidents for free.",
             "cta": "Get started"
+        },
+        "mainSections": {
+            "uptime": {
+                "title": "Uptime monitoring that just works",
+                "description": "Be the first to know when you website is down",
+                "features": {
+                    "checkInterval": {
+                        "title": "15 seconds check interval",
+                        "description": "Frequent checks mean we can detect issues in real-time and help you fix them quickly"
+                    },
+                    "realBrowser": {
+                        "title": "Real browser",
+                        "description": "We use a real browser to check your website, with Javascript rendering and all"
+                    },
+                    "assertions": {
+                        "title": "Flexible content assertions",
+                        "description": "You can define custom assertions to ensure your endpoints not only respond, but also serve the expected content"
+                    },
+                    "screenshots": {
+                        "title": "Screenshots",
+                        "description": "We take screenshots of your website on failure, so you can see exactly what your users experienced"
+                    },
+                    "httpDetails": {
+                        "title": "Complete HTTP Response details",
+                        "description": "We capture the entire HTTP response, including headers, status code, and body"
+                    }
+                }
+            },
+            "tasks": {
+                "title": "Task monitoring",
+                "description": "Monitor the status of any process, one-shot or recurring, and get notified when a task is failing, running late, or just not running at all. No more missed database backups.",
+                "features": {
+                    "cronJobs": {
+                        "title": "Keep track of any Cron job",
+                        "description": "Workflows, database backups, daily reports, etc."
+                    },
+                    "lateNotification": {
+                        "title": "Get notified when a task is running late",
+                        "description": "A job isn't starting on time? We'll let you know"
+                    },
+                    "integration": {
+                        "title": "Easy integration",
+                        "description": "Our agent can monitor any process. Just give it the command to run, and we'll take care of the rest"
+                    },
+                    "api": {
+                        "title": "Simple API for developers",
+                        "description": "Need a custom integration? Our REST API can do anything you can do from the dashboard"
+                    },
+                    "history": {
+                        "title": "Complete job history",
+                        "description": "You can see the previous runs of any job, and for each job, get the output, logs and timings and ease"
+                    }
+                }
+            },
+            "incidents": {
+                "title": "Incidents",
+                "description": "Collect insights on past and ongoing incidents, understand what went wrong and know who is taking care of it.",
+                "features": {
+                    "timeline": {
+                        "title": "Get the complete incident timeline",
+                        "description": "Know when an incident was detected, when it was confirmed, who worked on it, and when it was resolved"
+                    },
+                    "collaboration": {
+                        "title": "Collaborate on incidents",
+                        "description": "Work together on incidents, with comments, status updates, and assignees"
+                    },
+                    "learning": {
+                        "title": "Learn from past incidents",
+                        "description": "When an incident occurs, we can find similar incidents in the past and suggest fixes from what worked before"
+                    },
+                    "organization": {
+                        "title": "Organize the chaos",
+                        "description": "With incident grouping and labels, you can organize incidents by cause, application, region, team, or anything you see fit"
+                    },
+                    "visualization": {
+                        "title": "Visualize your uptime at a glance",
+                        "description": "With public and private status pages, get a quick overview of your incident history, grouped by any criteria you want"
+                    },
+                    "integration": {
+                        "title": "Integrate incidents from other systems",
+                        "description": "With manual incident creation from our dashboard, or with our easy-to-use API, put all your incident data in one place"
+                    }
+                }
+            },
+
+            "alerts": {
+                "title": "Alerts",
+                "description": "When things go wrong, we make sure the right people are alerted at exactly the right time. Working in teams? Fine-tune your alerting to your team's workflow.",
+                "features": {
+                    "unlimitedEmails": {
+                        "title": "Unlimited e-mails and push notifications",
+                        "description": "Alerts right in your pocket, no limit, no extra cost."
+                    },
+                    "sms": {
+                        "title": "SMS alerts and phone calls",
+                        "description": "Know what's going on, even when offline"
+                    },
+                    "escalation": {
+                        "title": "Flexible escalation policies",
+                        "description": "Make sure incidents are taken care of: define first responders, escalate stagnating incidents, mix alerting channels, and more."
+                    },
+                    "webhooks": {
+                        "title": "Push alerts to any system",
+                        "description": "With easy-to-setup webhooks, receive alerts right in a messaging app, a terminal, on a billboard, or anything else you can think of"
+                    },
+                    "weeklyReports": {
+                        "title": "Receive weekly reports",
+                        "description": "Get a weekly report of all your incidents, with a summary of what happened, and what was fixed"
+                    },
+                    "vacation": {
+                        "title": "Someone going on vacation?",
+                        "description": "Let your team members turn off their notifications, and escalate automatically to the next person in charge"
+                    }
+                }
+            },
+
+            "ai": {
+                "title": "AI",
+                "description": "We use AI to help you understand your incidents, and to help you fix them.",
+                "features": {
+                    "detection": {
+                        "title": "Similar incidents detection",
+                        "description": "We can organize similar incidents together"
+                    },
+                    "fixes": {
+                        "title": "Suggested fixes",
+                        "description": "We can suggest fixes for an incident, based on what worked before for similar incidents"
+                    },
+                    "postMortems": {
+                        "title": "Automatically-generated post-mortems",
+                        "description": "We can summarize an incident, and provide a quick overview of what happened, and what was fixed. We can send you that post-mortem by e-mail and let you use natural language to search in previous post-mortems."
+                    }
+                }
+            }
         }
     },
     "signup": {

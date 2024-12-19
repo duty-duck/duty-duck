@@ -38,8 +38,4 @@ const docPath = useCurrentContentPath();
         padding-top: 2rem;
     }
 }
-
-h1 {
-    @include homepage-heading;
-}
 </style>
