@@ -11,6 +11,9 @@
         "phoneNumberVerificationRequiredDescription": "Ne manquez aucun incident grace aux notifications par SMS. Pour recevoir des notifications par SMS, vous devez vérifier votre numéro de téléphone mobile.",
         "pushNotificationsRequired": "Vous n'avez pas encore configuré les notifications Push",
         "pushNotificationsRequiredDescription": "Ne manquez aucun incident grace aux notifications push. Configurez les notifications push pour recevoir des notifications sur votre appareil.",
-        "configurePushNotifications": "Configurer les notifications Push"
+        "configurePushNotifications": "Configurer les notifications Push",
+        "greeting": "Bonjour, {name}!",
+        "greetingDescription": "Voici un aperçu rapide de comment ça se passe.",
+        "suggestedActions": "Actions suggérées"
     }
 }

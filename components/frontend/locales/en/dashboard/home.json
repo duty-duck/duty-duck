@@ -11,6 +11,9 @@
         "phoneNumberVerificationRequiredDescription": "Don't miss any incident with SMS notifications. To receive SMS notifications, you must verify your mobile number.",
         "pushNotificationsRequired": "You have not yet configured Push notifications",
         "pushNotificationsRequiredDescription": "Don't miss any incident with push notifications. Configure push notifications to receive notifications on your device.",
-        "configurePushNotifications": "Configure push notifications"
+        "configurePushNotifications": "Configure push notifications",
+        "greeting": "Good day, {name}!",
+        "greetingDescription": "Here's a quick overview of how things are running.",
+        "suggestedActions": "Suggested actions"
     }
 }
