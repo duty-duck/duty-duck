@@ -199,6 +199,8 @@ impl IncidentRepository for IncidentRepositoryMock {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
+
     use super::*;
     use crate::domain::{
         entities::{
@@ -218,7 +220,7 @@ mod tests {
                     error_kind: HttpMonitorErrorKind::HttpCode,
                     http_code: Some(500),
                 },
-                previous_pings: vec![],
+                previous_pings: HashSet::new(),
             })),
             status: IncidentStatus::Ongoing,
             priority: IncidentPriority::Critical,

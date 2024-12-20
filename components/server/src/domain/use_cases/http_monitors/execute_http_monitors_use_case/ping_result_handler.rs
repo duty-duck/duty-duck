@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use anyhow::Context;
 use chrono::Utc;
 use tracing::{debug, warn};
@@ -206,7 +208,7 @@ where
                             error_kind: monitor.error_kind,
                             http_code: monitor.last_http_code,
                         },
-                        previous_pings: vec![],
+                        previous_pings: HashSet::new(),
                     }),
                     ping_response,
                 )
@@ -230,7 +232,7 @@ where
                             error_kind: monitor.error_kind,
                             http_code: monitor.last_http_code,
                         },
-                        previous_pings: vec![],
+                        previous_pings: HashSet::new(),
                     }),
                     ping_response,
                 )
@@ -512,7 +514,7 @@ where
         mut ping_response: crate::domain::ports::http_client::PingResponse,
     ) -> anyhow::Result<()> {
         let mut previous_pings = cause.previous_pings.clone();
-        previous_pings.push(cause.last_ping.clone());
+        previous_pings.insert(cause.last_ping.clone());
 
         let cause = IncidentCause::HttpMonitorIncidentCause(HttpMonitorIncidentCause {
             last_ping: HttpMonitorIncidentCausePing {

@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
@@ -52,10 +54,10 @@ pub enum IncidentCause {
 #[serde(rename_all = "camelCase")]
 pub struct HttpMonitorIncidentCause {
     pub last_ping: HttpMonitorIncidentCausePing,
-    pub previous_pings: Vec<HttpMonitorIncidentCausePing>,
+    pub previous_pings: HashSet<HttpMonitorIncidentCausePing>,
 }
 
-#[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema, PartialEq, Eq)]
+#[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema, PartialEq, Eq, Hash)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct HttpMonitorIncidentCausePing {

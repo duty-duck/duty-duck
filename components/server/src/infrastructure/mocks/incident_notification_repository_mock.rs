@@ -109,6 +109,7 @@ impl IncidentNotificationRepository for IncidentNotificationRepositoryMock {
 
 #[cfg(test)]
 mod tests {
+    use std::collections::HashSet;
     use std::time::Duration;
 
     use super::*;
@@ -137,7 +138,7 @@ mod tests {
                         error_kind: HttpMonitorErrorKind::Timeout,
                         http_code: None,
                     },
-                    previous_pings: vec![],
+                    previous_pings: HashSet::new(),
                 }),
                 incident_http_monitor_url: Some("https://example.com".to_string()),
             },

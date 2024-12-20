@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use uuid::Uuid;
 
 use crate::domain::{
@@ -32,7 +34,7 @@ fn create_test_new_incident(org_id: Uuid) -> NewIncident {
                 error_kind: HttpMonitorErrorKind::Timeout,
                 http_code: None,
             },
-            previous_pings: vec![],
+            previous_pings: HashSet::new(),
         })),
         metadata: EntityMetadata::default(),
     }
@@ -58,7 +60,7 @@ async fn test_create_incident_success() -> anyhow::Result<()> {
                     error_kind: HttpMonitorErrorKind::Timeout,
                     http_code: None,
                 },
-                previous_pings: vec![],
+                previous_pings: HashSet::new(),
             }),
             incident_http_monitor_url: None,
         },

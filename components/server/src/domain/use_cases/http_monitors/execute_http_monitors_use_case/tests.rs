@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use chrono::Utc;
 use uuid::Uuid;
 
@@ -68,7 +70,7 @@ fn create_test_incident(org_id: Uuid, monitor: &HttpMonitor, status: IncidentSta
                     error_kind: HttpMonitorErrorKind::Timeout,
                     http_code: None,
                 },
-                previous_pings: vec![],
+                previous_pings: HashSet::new(),
             },
         )),
         status,
@@ -439,7 +441,7 @@ async fn test_handle_ping_response_updates_incident_cause_when_error_code_change
                 error_kind: HttpMonitorErrorKind::HttpCode,
                 http_code: Some(500),
             },
-            previous_pings: vec![],
+            previous_pings: HashSet::new(),
         },
     ));
 
@@ -501,6 +503,7 @@ async fn test_handle_ping_response_updates_incident_cause_when_error_code_change
         ..
     }) = &updated_incident.cause.as_ref().unwrap()
     {
+        let previous_pings: Vec<_> = previous_pings.clone().into_iter().collect();
         assert_eq!(previous_pings.len(), 1);
         assert_eq!(
             previous_pings[0],
@@ -559,7 +562,7 @@ async fn test_handle_ping_response_http_code_500_to_recovering() -> anyhow::Resu
                     error_kind: HttpMonitorErrorKind::HttpCode,
                     http_code: Some(500),
                 },
-                previous_pings: vec![],
+                previous_pings: HashSet::new(),
             },
         ));
         incident_state.push(incident);
@@ -829,7 +832,7 @@ async fn test_handle_ping_response_suspicious_with_ongoing_incident() -> anyhow:
                     error_kind: HttpMonitorErrorKind::HttpCode,
                     http_code: Some(500),
                 },
-                previous_pings: vec![],
+                previous_pings: HashSet::new(),
             },
         ));
         incident_state.push(incident);
@@ -877,11 +880,12 @@ async fn test_handle_ping_response_suspicious_with_ongoing_incident() -> anyhow:
     let incident_state = use_case.incident_repository.state.lock().await;
     let updated_incident = incident_state.first().expect("Incident should exist");
     if let Some(IncidentCause::HttpMonitorIncidentCause(cause)) = &updated_incident.cause {
+        let previous_pings: Vec<_> = cause.previous_pings.clone().into_iter().collect();
         assert_eq!(cause.last_ping.error_kind, HttpMonitorErrorKind::Timeout);
         assert_eq!(cause.last_ping.http_code, None);
-        assert_eq!(cause.previous_pings.len(), 1);
+        assert_eq!(previous_pings.len(), 1);
         assert_eq!(
-            cause.previous_pings[0],
+            previous_pings[0],
             HttpMonitorIncidentCausePing {
                 error_kind: HttpMonitorErrorKind::HttpCode,
                 http_code: Some(500)

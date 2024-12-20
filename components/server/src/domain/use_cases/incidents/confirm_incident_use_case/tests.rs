@@ -1,3 +1,5 @@
+use std::collections::HashSet;
+
 use chrono::Utc;
 use uuid::Uuid;
 
@@ -34,7 +36,7 @@ fn create_test_incident(org_id: Uuid, status: IncidentStatus) -> Incident {
                 error_kind: HttpMonitorErrorKind::Timeout,
                 http_code: None,
             },
-            previous_pings: vec![],
+            previous_pings: HashSet::new(),
         })),
         status,
         priority: IncidentPriority::Critical,
@@ -73,7 +75,7 @@ async fn test_confirm_incident_success() -> anyhow::Result<()> {
                     error_kind: HttpMonitorErrorKind::Timeout,
                     http_code: None,
                 },
-                previous_pings: vec![],
+                previous_pings: HashSet::new(),
             }),
             incident_http_monitor_url: None,
         },
@@ -150,7 +152,7 @@ async fn test_confirm_incident_wrong_status() -> anyhow::Result<()> {
                     error_kind: HttpMonitorErrorKind::Timeout,
                     http_code: None,
                 },
-                previous_pings: vec![],
+                previous_pings: HashSet::new(),
             }),
             incident_http_monitor_url: None,
         },

@@ -104,7 +104,7 @@ impl From<i16> for HttpMonitorStatus {
     }
 }
 
-#[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq, ToSchema, Default)]
+#[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq, ToSchema, Default, Hash)]
 #[repr(i16)]
 #[serde(rename_all = "lowercase")]
 #[ts(export)]
