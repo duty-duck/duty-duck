@@ -82,7 +82,7 @@ useIntervalFn(() => {
     </div>
     <TaskFilteringBar v-model:includeStatuses="includeStatuses" v-model:query="query" @clear-filters="onClearFilters" />
     <div class="d-grid row-gap-3 mt-3">
-      <TaskCard v-for="t in tasks?.items" :task="t" :key="t.id" ref="cards" />
+      <TaskCard animated v-for="t in tasks?.items" :task="t" :key="t.id" ref="cards" />
       <BPagination v-if="tasks?.totalNumberOfFilteredResults! > 10" v-model="pageNumber"
         :prev-text="$t('pagination.prev')" :next-text="$t('pagination.next')"
         :total-rows="tasks?.totalNumberOfFilteredResults" :per-page="10" />

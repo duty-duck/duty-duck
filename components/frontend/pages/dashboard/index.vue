@@ -55,7 +55,7 @@ const { refresh: refreshDownMonitorsCount, data: downMonitorsCount } = await htt
     <section class="mb-4">
       <h3 class="mb-4 fs-4">{{ $t('dashboard.home.suggestedActions') }}</h3>
       <div class="row">
-        <div class="col">
+        <div class="col-md">
           <!-- Phone number verification -->
           <BAlert variant="info" class="mb-3"
             :model-value="auth.userProfile && (!auth.userProfile.user.phoneNumber || !auth.userProfile.user.phoneNumberVerified)">
@@ -70,7 +70,7 @@ const { refresh: refreshDownMonitorsCount, data: downMonitorsCount } = await htt
           </BAlert>
         </div>
 
-        <div class="col">
+        <div class="col-md">
           <!-- Push notifications -->
           <BAlert variant="info" class="mb-push-notifications-alert" :model-value="!thisDevice">
             <h5>{{ $t('dashboard.home.pushNotificationsRequired') }}</h5>

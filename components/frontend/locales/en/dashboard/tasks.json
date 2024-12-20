@@ -7,7 +7,22 @@
         "lastRuns": "Last runs",
         "taskStatus": "Status",
         "search": "Search",
-        "lastRunAt": "Last run at {date}"
+        "lastRunOn": "Last run on {date}",
+        "runsHistory": "Runs history",
+        "lastStatusChange": "Last status change",
+        "dateAgo": "{date} ago",
+        "schedule": "Schedule",
+        "nextDueAt": "Next due at",
+        "notAScheduledTask": "This task is not scheduled"
+    },
+    "taskRuns": {
+        "date": "Date",
+        "status": "Status",
+        "duration": "Duration",
+        "exitCode": "Exit code",
+        "startedAt": "Started at",
+        "completedAt": "Completed at",
+        "taskId": "Task Id"
     },
     "taskStatus": {
         "due": "Due",

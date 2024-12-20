@@ -7,7 +7,22 @@
         "lastRuns": "Dernières exécutions",
         "taskStatus": "Statut",
         "search": "Recherche",
-        "lastRunAt": "Dernière exécution le {date}"
+        "lastRunOn": "Dernière exécution le {date}",
+        "runsHistory": "Historique des exécutions",
+        "lastStatusChange": "Dernier changement de statut",
+        "dateAgo": "il y a {date}",
+        "schedule": "Planification",
+        "nextDueAt": "Prochaine éxécution prévue le",
+        "notAScheduledTask": "Cette tâche n'est pas planifiée"
+    },
+    "taskRuns": {
+        "date": "Date",
+        "status": "Statut",
+        "duration": "Durée",
+        "exitCode": "Code de sortie",
+        "startedAt": "Début",
+        "completedAt": "Fin",
+        "taskId": "ID de la tâche"
     },
     "taskStatus": {
         "due": "À venir",

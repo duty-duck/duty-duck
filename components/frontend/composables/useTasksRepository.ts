@@ -1,4 +1,5 @@
 import type { UseFetchOptions } from "#app"
+import type { GetTaskResponse } from "bindings/GetTaskResponse"
 import type { ListTaskRunsParams } from "bindings/ListTaskRunsParams"
 import type { ListTaskRunsResponse } from "bindings/ListTaskRunsResponse"
 import type { ListTasksParams } from "bindings/ListTasksParams"
@@ -11,6 +12,9 @@ export const useTasksRepository = () => {
         },
         async useTaskRuns(taskId: string, params?: ListTaskRunsParams | Ref<ListTaskRunsParams>, opts?: UseFetchOptions<ListTaskRunsResponse>) {
             return useServerFetch<ListTaskRunsResponse>(`/tasks/${taskId}/runs`, { query: params, retry: 3, dedupe: "cancel", ...(opts || {}) })
+        },
+        async useTask(taskId: string) {
+            return useServerFetch<GetTaskResponse>(`/tasks/${taskId}`, { retry: 3, dedupe: "cancel" })
         }
     }
 }

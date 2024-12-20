@@ -7,8 +7,8 @@ import type { OrderDirection } from "bindings/OrderDirection";
 import type { OrderIncidentsBy } from "bindings/OrderIncidentsBy";
 import { allStatuses } from "~/components/incident/StatusDropdown.vue";
 
+const itemsPerPage = 10;
 const localePath = useLocalePath();
-
 const pageNumber = useRouteQuery("pageNumber", 1, { transform: Number });
 const timeRange = useTimeRangeQuery();
 const includeStatuses = useRouteQuery<IncidentStatus[]>("statuses", ["ongoing"]);
@@ -34,7 +34,7 @@ const fetchParams = computed<ListIncidentsParams>(() => {
     pageNumber: pageNumber.value,
     status: includeStatuses.value,
     priority: null,
-    itemsPerPage: 15,
+    itemsPerPage,
     toDate: null,
     fromDate: fromDate ? fromDate.toISOString() : null,
     orderBy: orderBy.value,
@@ -89,7 +89,7 @@ useIntervalFn(() => {
           "dashboard.incidents.totalIncidentCount",
           data?.totalNumberOfResults || 0
         )
-      }}, {{ $t("dashboard.incidents.itemsPerPage", 15) }}
+      }}, {{ $t("dashboard.incidents.itemsPerPage", itemsPerPage) }}
       <span v-if="hiddenIncidentsCount != 0">
         ,
         {{
@@ -131,9 +131,9 @@ useIntervalFn(() => {
         </BButton>
       </div>
       <IncidentTableView v-else-if="data" :incidents="data!.items" />
-      <BPagination v-model="pageNumber" v-if="data?.totalNumberOfFilteredResults! > 15"
+      <BPagination v-model="pageNumber" v-if="data?.totalNumberOfFilteredResults! > itemsPerPage"
         :prev-text="$t('pagination.prev')" pills :next-text="$t('pagination.next')"
-        :total-rows="data?.totalNumberOfFilteredResults" :per-page="15" />
+        :total-rows="data?.totalNumberOfFilteredResults" :per-page="itemsPerPage" />
     </div>
 
     <BOffcanvas v-model="showFacetsOffcanvas" placement="end" body-class="p-0">

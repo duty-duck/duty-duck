@@ -15,8 +15,10 @@ declare global {
     type I18nKeys = GenerateKeyPaths<Locale>;
 }
 
-declare module "vue" {
+declare module "@vue/runtime-core" {
     interface ComponentCustomProperties {
-        $t(key: I18nKeys): string;
+        $t: (key: string, ...params: any[]) => string;
+        $d: (date: Date, format: string) => string;
+        $i18n: I18n;
     }
 }

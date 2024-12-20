@@ -28,7 +28,7 @@ defineExpose({
         <div class="d-flex align-items-center gap-2">
           <TaskStatusLabel :status="task.status" />
           <div class="text-secondary small" v-if="reversedRuns && reversedRuns.length > 0">
-            {{ $t('dashboard.tasks.lastRunAt', { date: $d(new Date(reversedRuns[0].startedAt), 'long') }) }}
+            {{ $t('dashboard.tasks.lastRunOn', { date: $d(new Date(reversedRuns[0].startedAt), 'long') }) }}
           </div>
         </div>
 
