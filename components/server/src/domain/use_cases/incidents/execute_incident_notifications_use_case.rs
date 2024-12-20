@@ -265,7 +265,7 @@ where
     fn build_email_message(
         notification: &IncidentNotification,
         user: &User,
-        _user_org: &Organization,
+        user_org: &Organization,
     ) -> anyhow::Result<Message> {
         let subject;
         let body;
@@ -274,7 +274,7 @@ where
             IncidentCause::HttpMonitorIncidentCause { .. } => {
                 let url = notification.notification_payload.incident_http_monitor_url.as_ref().context("Cannot build e-mail message, cause is HttpMonitorIncidentCause but HTTP monitor URL is not set")?;
                 subject = t!("newHttpMonitorIncidentEmailSubject", url = url).to_string();
-                body = t!("newHttpMonitorIncidentEmailBody", url = url).to_string();
+                body = t!("newHttpMonitorIncidentEmailBody", url = url, userName = user.first_name, org = user_org.name).to_string();
             }
         }
 

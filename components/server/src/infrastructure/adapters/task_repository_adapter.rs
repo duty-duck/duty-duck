@@ -149,9 +149,10 @@ impl TaskRepository for TaskRepositoryAdapter {
                 next_due_at,
                 start_window_seconds, 
                 lateness_window_seconds,
-                heartbeat_timeout_seconds
+                heartbeat_timeout_seconds,
+                last_status_change_at
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
             ON CONFLICT (organization_id, id) DO UPDATE SET
                 name = $3,
                 description = $4,
@@ -160,7 +161,8 @@ impl TaskRepository for TaskRepositoryAdapter {
                 next_due_at = $8,
                 start_window_seconds = $9,
                 lateness_window_seconds = $10,
-                heartbeat_timeout_seconds = $11
+                heartbeat_timeout_seconds = $11,
+                last_status_change_at = $12
             "#,
             task.organization_id, // $1
             task.id.as_str(), // $2
@@ -173,6 +175,7 @@ impl TaskRepository for TaskRepositoryAdapter {
             task.start_window_seconds, // $9
             task.lateness_window_seconds, // $10
             task.heartbeat_timeout_seconds, // $11
+            task.last_status_change_at, // $12
         )
         .execute(transaction.as_mut())
         .await?;

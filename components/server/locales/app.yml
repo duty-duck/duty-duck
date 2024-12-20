@@ -42,7 +42,7 @@ newHttpMonitorIncidentEmailBody:
         
         Head over to DutyDuck.net to investigate the incident.
 
-        You are receiving this alert because you are a member of the %{org} organization. 
+        You are receiving this alert because you are a member of the '%{org}' organization. 
         Do not reply to this e-mail.
     fr: |
         Bonjour %{userName},
@@ -50,7 +50,7 @@ newHttpMonitorIncidentEmailBody:
 
         Un moniteur HTTP pour l'url %{url} est en panne. 
 
-        Vous recevez cette alerte car vous êtes membre de l'organisation %{org}.
+        Vous recevez cette alerte car vous êtes membre de l'organisation '%{org}'.
         Rendez-vous sur DutyDuck.net pour investiguer l'incident.
 
 
