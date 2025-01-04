@@ -8,8 +8,9 @@
 	"service": "dev-container",
 	"mounts": [
 		"source=${localWorkspaceFolderBasename}-frontend-node_modules,target=${containerWorkspaceFolder}/frontend/node_modules,type=volume",
-		"source=${localWorkspaceFolderBasename}-fake-internet-node_modules,target=${containerWorkspaceFolder}/fake-internet/node_modules,type=volume",
-		"source=${localWorkspaceFolderBasename}-server-target,target=${containerWorkspaceFolder}/server/target,type=volume"
+		"source=${localWorkspaceFolderBasename}-fake-internet-node_modules,target=${containerWorkspaceFolder}/fake-internet/node_modules,type=volume"
+		// Do not mount the server target until this is fixed: https://github.com/orbstack/orbstack/issues/1393
+		// "source=${localWorkspaceFolderBasename}-server-target,target=${containerWorkspaceFolder}/server/target,type=volume"
 	],
 	"postCreateCommand": "/home/workspace/.devcontainer/postCreate.sh",
 	"customizations": {

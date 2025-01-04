@@ -1096,12 +1096,14 @@ dependencies = [
 ]
 
 [[package]]
-name = "croner"
-version = "2.1.0"
+name = "cron"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "38fd53511eaf0b00a185613875fee58b208dfce016577d0ad4bb548e1c4fb3ee"
+checksum = "dbe58904b68d95ad2c69a2e9607ffc70ce196c1910f83a340029c1448e06ed65"
 dependencies = [
  "chrono",
+ "once_cell",
+ "winnow 0.6.22",
 ]
 
 [[package]]
@@ -4340,7 +4342,7 @@ dependencies = [
  "built",
  "chrono",
  "clap",
- "croner",
+ "cron",
  "custom_derive",
  "dotenv",
  "email_address",
@@ -5154,7 +5156,7 @@ dependencies = [
  "serde",
  "serde_spanned",
  "toml_datetime",
- "winnow",
+ "winnow 0.5.40",
 ]
 
 [[package]]
@@ -5970,6 +5972,15 @@ name = "winnow"
 version = "0.5.40"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f593a95398737aeed53e489c785df13f3618e41dbcd6718c6addbf1395aa6876"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
+name = "winnow"
+version = "0.6.22"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "39281189af81c07ec09db316b302a3e67bf9bd7cbf6c820b50e35fee9c2fa980"
 dependencies = [
  "memchr",
 ]

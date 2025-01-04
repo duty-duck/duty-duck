@@ -13,7 +13,42 @@
         "dateAgo": "{date} ago",
         "schedule": "Schedule",
         "nextDueAt": "Next due at",
-        "notAScheduledTask": "This task is not scheduled"
+        "notAScheduledTask": "This task is not scheduled",
+        "cliCommandLabel": "You can create a task directly using the DutyDuck command line tool",
+        "createTaskButton": "New task",
+        "createTaskTitle": "Create task",
+        "noRuns": "This task has never been run",
+        "previousStatus": "Previous status",
+        "startRunCommandCta": "You can start this task using the DutyDuck command line tool",
+        "startRunCommand": "dutyduck tasks run --task-id {taskId} your-command arg1 arg2",
+        "description": "Description",
+        "card": {
+            "cronSchedule": "Cron schedule: {schedule}",
+            "nextDueAt": "Next due at: {date}",
+            "noRuns": "Never run yet"
+        },
+        "form": {
+            "id": "Task ID",
+            "idDescription": "The task ID is used to run the task using the command line tool or via the API. It must be unique and contain only alphanumeric characters and dashes. By default, it is generated from the task name.",
+            "name": "Task name",
+            "nameDescription": "The name of the task is used to identify the task in the dashboard.",
+            "schedule": "Schedule (Cron)",
+            "scheduleDescription": "Use the cron format to define the schedule of the task. We will ensure that the task runs as specified, and an incident will be created if the task is late or does not run.",
+            "isScheduledTask": "This is a scheduled task",
+            "isScheduledTaskDescription": "Check this box if this is a recurring task. We will ensure that the task runs as specified, and an incident will be created if the task is late or does not run.",
+            "scheduleInputLabel": "Schedule",
+            "seconds": "Seconds",
+            "startWindow": "Start window",
+            "startWindowDescription": "The start window is the time window during which the task is expected to run. If the task does not start in this window, it will be considered late and an incident will be created.",
+            "latenessWindow": "Lateness window",
+            "latenessWindowDescription": "The lateness window is the time window, beginning after the start window, during which a late task is still expected to run. If the late task does not start in this window, it will be considered failed.",
+            "heartbeatTimeout": "Heartbeat timeout",
+            "heartbeatTimeoutDescription": "Once a task is started, it is expected to send a periodic heartbeat to DutyDuck to confirm it is still running. If the task does not send a heartbeat in this window, it will be considered dead and an incident will be created. If you use the DutyDuck command line tool to start the task, the heartbeat is sent automatically.",
+            "advancedSettings": "Advanced settings",
+            "saveTaskButton": "Save task",
+            "taskIdNotAvailable": "Task id is not available, a task with this id already exists.",
+            "description": "Description"
+        }
     },
     "taskRuns": {
         "date": "Date",

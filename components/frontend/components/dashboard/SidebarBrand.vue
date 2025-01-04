@@ -1,12 +1,15 @@
 <template>
     <NuxtLink id="sidebar-brand" :to="localePath('dashboard')">
       <img src="@/assets/navbar-duck.png" alt="Duty Duck logo" />
-      <span class="d-none d-xxl-block">Duty Duck</span>
+      <span :class="{ 'd-none': !textAlwaysVisible }" class="d-xxl-block">Duty Duck</span>
     </NuxtLink>
   </template>
   
   <script setup lang="ts">
     const localePath = useLocalePath();
+    defineProps<{
+      textAlwaysVisible?: boolean;
+    }>();
   </script>
   
   <style lang="scss" scoped>

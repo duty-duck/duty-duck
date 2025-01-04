@@ -6,7 +6,7 @@ pub struct DueTask {
     pub(super) base: TaskBase,
     pub(super) next_due_at: DateTime<Utc>,
     // due tasks have a cron schedule
-    pub(super) cron_schedule: croner::Cron
+    pub(super) cron_schedule: cron::Schedule
 }
 
 impl DueTask {

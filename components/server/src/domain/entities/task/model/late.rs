@@ -8,7 +8,7 @@ pub struct LateTask {
     pub(super) base: TaskBase,
     pub(super) next_due_at: DateTime<Utc>,
     // late tasks have a cron schedule
-    pub(super) cron_schedule: croner::Cron
+    pub(super) cron_schedule: cron::Schedule
 }
 
 impl LateTask {
@@ -30,7 +30,7 @@ impl LateTask {
         
         Ok(AbsentTask {
             next_due_at: calculate_next_due_at(&self.base.cron_schedule, now)?
-                .ok_or(TaskError::InvalidCronSchedule)?,
+                .ok_or(TaskError::InvalidStateTransition { from: TaskStatus::Late, to: TaskStatus::Absent, details: "this task does not have a cron schedule".to_string() })?,
             cron_schedule: self.cron_schedule,
             base: TaskBase {
                 previous_status: Some(TaskStatus::Late),

@@ -13,7 +13,42 @@
         "dateAgo": "il y a {date}",
         "schedule": "Planification",
         "nextDueAt": "Prochaine éxécution prévue le",
-        "notAScheduledTask": "Cette tâche n'est pas planifiée"
+        "notAScheduledTask": "Cette tâche n'est pas planifiée",
+        "cliCommandLabel": "Vous pouvez créer une tâche directement en utilisant l'utilitaire DutyDuck",
+        "createTaskButton": "Nouvelle tâche",
+        "createTaskTitle": "Créer une tâche",
+        "noRuns": "Cette tâche n'a jamais été exécutée",
+        "previousStatus": "Statut précédent",
+        "startRunCommandCta": "Vous pouvez lancer cette tâche en utilisant l'utilitaire DutyDuck",
+        "startRunCommand": "dutyduck tasks run --task-id {taskId} your-command arg1 arg2",
+        "description": "Description",
+        "card": {
+            "cronSchedule": "Planification (Cron): {schedule}",
+            "nextDueAt": "Prochaine éxécution attendue le {date}",
+            "noRuns": "Jamais exécutée"
+        },
+        "form": {
+            "id": "Id de la tâche",
+            "idDescription": "L'id de la tâche est utilisé pour lancer la tâche à l'aide de l'utilitaire ou via l'API. Il doit être unique et ne contenir que des caractères alphanumériques et des tirets. Par défaut, il est généré à partir du nom de la tâche.",
+            "name": "Nom de la tâche",
+            "nameDescription": "Le nom de la tâche est utilisé pour identifier la tâche dans le dashboard.",
+            "schedule": "Planification (Cron)",
+            "scheduleDescription": "Utilisez le format cron pour définir la planification de la tâche. Nous nous assurerons que la tâche s'éxécute comme indiqué, et un incident sera créér si la tâche est en retard ou ne s'éxécute pas.",
+            "isScheduledTask": "Ceci est une tâche planifiée",
+            "isScheduledTaskDescription": "Cochez cette case s'il s'agit d'une tâche récurrente. Nous nous assurerons que la tâche s'éxécute comme indiqué, et un incident sera créér si la tâche est en retard ou ne s'éxécute pas.",
+            "scheduleInputLabel": "Planification",
+            "seconds": "Secondes",
+            "startWindow": "Fenêtre de début",
+            "startWindowDescription": "La fenêtre de début est la fenêtre de temps durant laquelle la tâche est attendue. Si la tâche ne démarre pas dans cette fenêtre, elle sera considérée comme en retard et un incident sera créé.",
+            "latenessWindow": "Fenêtre de fin de retard",
+            "latenessWindowDescription": "La fenêtre de fin de retard est la fenêtre de temps, commençant après la fenêtre de début, durant laquelle une tâche en retard peut encore s'éxécuter. Si la tâche en retard ne démarre pas dans cette fenêtre, elle sera considérée comme échouée.",
+            "heartbeatTimeout": "Timeout pour le battement de coeur (heartbeat)",
+            "heartbeatTimeoutDescription": "Une fois une tâche démarrée, elle est attendue à envoyer un signal périodique à DutyDuck pour confirmer qu'elle est toujours en cours d'exécution. Si nous ne recevons pas de signal de la tâche dans cette fenêtre, elle sera considérée comme échouée. Si vous utilisez l'utilitaire DutyDuck pour lancer la tâche, vous n'avez rien à faire de plus pour envoyer ce signal.",
+            "advancedSettings": "Paramètres avancés",
+            "saveTaskButton": "Enregistrer la tâche",
+            "taskIdNotAvailable": "L'id de la tâche n'est pas disponible. Une tâche avec cet id existe déjà.",
+            "description": "Description"
+        }
     },
     "taskRuns": {
         "date": "Date",

@@ -22,15 +22,15 @@ onBeforeMount(() => {
 
 <template>
   <BOffcanvas v-model="showOffcanvas" placement="start" v-if="!lgOrLarger" body-class="offcanvas-body-container">
-    <DashboardSidebarBrand />
-    <DashboardDynamicSidebar v-if="!lgOrLarger" />
+    <DashboardSidebarBrand textAlwaysVisible />
+    <DashboardDynamicSidebar style="flex-grow: 1" v-if="!lgOrLarger" />
   </BOffcanvas>
   <div class="container-fluid g-0">
     <div class="row g-0">
       <div class="d-none d-lg-block d-flex sticky-top" id="dashboard-sidebar">
         <div id="dashboard-sidebar-content">
           <DashboardSidebarBrand />
-          <DashboardDynamicSidebar v-if="lgOrLarger" />
+          <DashboardDynamicSidebar style="flex-grow: 1" v-if="lgOrLarger" />
         </div>
       </div>
       <div class="col">
@@ -57,6 +57,9 @@ onBeforeMount(() => {
 @import "~/assets/main.scss";
 
 .offcanvas-body-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
   position: absolute;
   top: 0;
   left: 0;
@@ -88,6 +91,12 @@ onBeforeMount(() => {
 
   @include media-breakpoint-up(xxl) {
     width: 260px;
+  }
+
+  #dashboard-sidebar-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
   }
 
   .nav-item {

@@ -18,7 +18,7 @@ api-client-rs = { path = "components/api-client-rs" }
 
 thiserror = "1.0.61"
 url = "2.5.3"
-croner = "2.1.0"
+cron = "0.14.0"
 chrono = { version = "0.4.38", features = ["serde"] }
 uuid = { version = "1.9", features = ["serde", "v4"] }
 futures = "0.3.30"

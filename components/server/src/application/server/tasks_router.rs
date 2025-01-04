@@ -78,6 +78,13 @@ async fn create_task_handler(
 ) -> impl IntoResponse {
     match create_task_use_case(&auth_context, &app_state.adapters.task_repository, command).await {
         Ok(_) => StatusCode::CREATED.into_response(),
+        Err(CreateTaskError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
+        Err(CreateTaskError::InvalidCronSchedule { details }) => {
+            (StatusCode::BAD_REQUEST, format!("Invalid cron schedule: {details}")).into_response()
+        }
+        Err(CreateTaskError::TaskAlreadyExists(task_id)) => {
+            (StatusCode::CONFLICT, format!("Task already exists: {task_id}")).into_response()
+        }
         Err(e) => {
             warn!(error = ?e, "Technical failure occured while creating a task");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()

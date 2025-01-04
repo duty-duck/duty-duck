@@ -37,14 +37,10 @@ const hiddenTasksCount = computed(() => {
   );
 });
 
+// Every 10 seconds, refresh the tasks, and then for each rendered task card, refresh the task runs
 useIntervalFn(() => {
-  console.log("Refreshing tasks");
   refreshTasks();
-  console.log("Refreshed task cards");
-  console.log(cards.value);
   cards.value.forEach(c => {
-    console.log(c);
-    console.log(c.refresh);
     if (c.refresh) {
       c.refresh();
     }
@@ -57,14 +53,14 @@ useIntervalFn(() => {
     <BBreadcrumb>
       <BBreadcrumbItem :to="localePath('/dashboard')">{{
         $t("dashboard.mainSidebar.home")
-      }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
       <BBreadcrumbItem active>{{
         $t("dashboard.mainSidebar.tasks")
-      }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
     </BBreadcrumb>
     <div class="d-flex align-items-center justify-content-between">
       <h2>{{ $t("dashboard.tasks.pageTitle") }}</h2>
-      <BButton variant="primary" size="sm">Add task</BButton>
+      <BButton variant="primary" size="sm" :to="localePath('/dashboard/tasks/new')">{{ $t("dashboard.tasks.createTaskButton") }}</BButton>
     </div>
     <div class="small text-secondary mb-2">
       {{
@@ -86,6 +82,12 @@ useIntervalFn(() => {
       <BPagination v-if="tasks?.totalNumberOfFilteredResults! > 10" v-model="pageNumber"
         :prev-text="$t('pagination.prev')" :next-text="$t('pagination.next')"
         :total-rows="tasks?.totalNumberOfFilteredResults" :per-page="10" />
+    </div>
+    <div class="mt-5 text-center">
+      <h4 class="fs-6 text-muted">{{ $t("dashboard.tasks.cliCommandLabel") }}</h4>
+      <code>
+        dutyduck tasks run --create --task-id "db-backup" pgbackrest --stanza=main backup
+      </code>
     </div>
   </BContainer>
 </template>

@@ -1,5 +1,3 @@
-use std::str::FromStr;
-
 use crate::domain::use_cases::tasks::CreateTaskCommand;
 
 use super::*;
@@ -20,10 +18,8 @@ impl HealthyTask {
     /// New tasks are always created with a status of Healthy
     pub fn new(organization_id: Uuid, command: CreateTaskCommand) -> Result<Self, TaskError> {
         let now = Utc::now();
-        let cron_schedule = command
-            .cron_schedule
-            .map(|s| croner::Cron::from_str(&s).map_err(|_| TaskError::InvalidCronSchedule))
-            .transpose()?;
+        let cron_schedule = parse_cron_schedule(&command.cron_schedule)?;
+
         Ok(Self {
             next_due_at: calculate_next_due_at(&cron_schedule, now)?,
             base: TaskBase {

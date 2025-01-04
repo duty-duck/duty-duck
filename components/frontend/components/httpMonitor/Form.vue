@@ -14,6 +14,8 @@ export type HttpMonitorFormData = {
   requestTimeoutMs: number,
 }
 
+// Define the props for the component
+// The props are used to populate the form when first rendered
 const props = withDefaults(defineProps<HttpMonitorFormData>(), {
   url: "",
   intervalSeconds: 60,
@@ -29,11 +31,16 @@ const props = withDefaults(defineProps<HttpMonitorFormData>(), {
   }
 });
 
+// Define the external events the form will emit
 const emits = defineEmits<{
   (e: 'submit', form: HttpMonitorFormData): void;
 }>();
 
+// Here's the internal state of the form, populated from the props
 const form = reactive({ ...props });
+
+// A computed property that determines if the form is valid
+// We could use a validation library such as Vuelidate here but this will do for now
 const formIsComplete = computed(
   () =>
     form.url &&

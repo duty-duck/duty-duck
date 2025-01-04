@@ -4,6 +4,7 @@ import type { BaseColorVariant } from "bootstrap-vue-next";
 
 const props = defineProps<{
   status: TaskStatus;
+  size?: "sm" | "md";
 }>();
 
 const variants: Record<TaskStatus, keyof BaseColorVariant> = {
@@ -17,7 +18,7 @@ const variants: Record<TaskStatus, keyof BaseColorVariant> = {
 </script>
 
 <template>
-  <BBadge :variant="variants[status]" class="rounded-pill text-white">
+  <BBadge :variant="variants[status]" class="rounded-pill text-white" :size="size">
     {{ $t(`dashboard.taskStatus.${status}`) }}
   </BBadge>
 </template>

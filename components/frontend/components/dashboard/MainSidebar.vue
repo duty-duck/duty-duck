@@ -7,6 +7,7 @@ const { userHasPermissionComputed } = await useAuth();
 const canReadHttpMonitors = userHasPermissionComputed('readHttpMonitors');
 const canReadIncidents = userHasPermissionComputed('readIncidents');
 const canReadTasks = userHasPermissionComputed('readTasks');
+const documentationPath = await useDocumentationFirstPage();
 
 let { refresh: refreshIncidentCount, data: incidentCount } = await incidentRepo.useOngoingIncidentsCount();
 useIntervalFn(() => refreshIncidentCount(), 20000);
@@ -14,7 +15,7 @@ watch(() => route.fullPath, () => refreshIncidentCount());
 </script>
 
 <template>
-  <div class="py-2 px-lg-2">
+  <div class="py-2 px-lg-2 d-flex flex-column justify-content-between">
     <ul class="nav nav-pills nav-light nav-fill flex-column gap-2">
       <li class="nav-item">
         <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard')" :class="{ 'active': route.path === localePath('/dashboard') }">
@@ -57,6 +58,14 @@ watch(() => route.fullPath, () => refreshIncidentCount());
           Infrastructure
           <BBadge>{{ $t('dashboard.mainSidebar.soon') }}</BBadge>
         </a>
+      </li>
+    </ul>
+    <ul class="nav nav-pills nav-light nav-fill">
+      <li class="nav-item">
+        <NuxtLink target="_blank" class="nav-link icon-link" :to="documentationPath">
+          <Icon name="ph:book-duotone" size="22px" />
+          {{ $t('dashboard.mainSidebar.docs') }}
+        </NuxtLink>
       </li>
     </ul>
   </div>

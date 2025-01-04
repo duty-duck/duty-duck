@@ -2,6 +2,9 @@
 import { useNow } from '@vueuse/core';
 import { useRouteQuery } from '@vueuse/router';
 
+import cronstrue from 'cronstrue';
+import 'cronstrue/locales/fr';
+
 const { locale } = useI18n();
 const localePath = useLocalePath();
 const { params: { taskId } } = useRoute();
@@ -16,84 +19,127 @@ const { data: lastTaskRunResponse } = await taskRepo.useTaskRuns(taskId as strin
 const { data: taskRunsResponse } = await taskRepo.useTaskRuns(taskId as string, taskRunsParams);
 
 const lastTaskRun = computed(() => lastTaskRunResponse.value?.runs?.[0]);
+const humanReadableCron = computed(() => {
+  return taskResponse.value?.task.cronSchedule ? cronstrue.toString(taskResponse.value.task.cronSchedule, { locale: locale.value, use24HourTimeFormat: true, verbose: true }) : '';
+});
 
 const lastStatusChange = computed(() => {
-    if (!taskResponse.value?.task.lastStatusChangeAt) {
-        return null;
-    }
-    const duration =
-        now.value.getTime() -
-        new Date(taskResponse.value.task.lastStatusChangeAt).getTime();
+  if (!taskResponse.value?.task.lastStatusChangeAt) {
+    return null;
+  }
+  const duration =
+    now.value.getTime() -
+    new Date(taskResponse.value.task.lastStatusChangeAt).getTime();
 
-    return formatDuration(duration, locale.value);
+  return formatDuration(duration, locale.value);
 });
 </script>
 
 <template>
-    <BContainer v-if="taskResponse">
-        <BBreadcrumb>
-            <BBreadcrumbItem :to="localePath('/dashboard')">{{ $t("dashboard.mainSidebar.home") }}</BBreadcrumbItem>
-            <BBreadcrumbItem :to="localePath('/dashboard/tasks')">{{ $t("dashboard.mainSidebar.tasks") }}
-            </BBreadcrumbItem>
-            <BBreadcrumbItem active>{{ taskResponse.task.name }}</BBreadcrumbItem>
-        </BBreadcrumb>
+  <BContainer v-if="taskResponse">
+    <BBreadcrumb>
+      <BBreadcrumbItem :to="localePath('/dashboard')">{{ $t("dashboard.mainSidebar.home") }}</BBreadcrumbItem>
+      <BBreadcrumbItem :to="localePath('/dashboard/tasks')">{{ $t("dashboard.mainSidebar.tasks") }}
+      </BBreadcrumbItem>
+      <BBreadcrumbItem active>{{ taskResponse.task.name }}</BBreadcrumbItem>
+    </BBreadcrumb>
 
-        <!-- Task name and status -->
-        <div class="my-5 py-3">
-            <h2 class="h4">
-                {{ taskResponse.task.name }}
-            </h2>
-            <TaskStatusLabel :status="taskResponse.task.status" />
-            &nbsp;
-            <span v-if="lastTaskRun" class="small text-secondary">
-                {{ $t("dashboard.tasks.lastRunOn", { date: $d(new Date(lastTaskRun.startedAt!), "long") }) }}
-            </span>
-        </div>
+    <!-- Task name and status -->
+    <div class="my-5 py-3">
+      <h2 class="h4">
+        {{ taskResponse.task.name }}
+      </h2>
+      <TaskStatusLabel :status="taskResponse.task.status" />
+      &nbsp;
+      <span v-if="lastTaskRun" class="small text-secondary">
+        {{ $t("dashboard.tasks.lastRunOn", { date: $d(new Date(lastTaskRun.startedAt!), "long") }) }}
+      </span>
+    </div>
 
-        <!-- Task overview -->
-        <div class="row mb-5  row-gap-3">
-            <div class="col-md-4">
-                <BCard>
-                    <p>{{ $t("dashboard.tasks.lastStatusChange") }}</p>
-                    <p class="h4">
-                        {{
-                            lastStatusChange
-                                ? $t("dashboard.tasks.dateAgo", {
-                                    date: lastStatusChange,
-                                })
-                        : "--"
-                        }}
-                    </p>
-                </BCard>
+    <!-- Task overview -->
+    <div class="row mb-5 row-gap-3 r">
+      <div class="col-md-4">
+        <BCard class="h-100">
+          <p>{{ $t("dashboard.tasks.lastStatusChange") }}</p>
+          <template v-if="lastStatusChange">
+            <div class="text-muted mb-2">
+              {{ $d(new Date(taskResponse.task.lastStatusChangeAt!), "long") }}
             </div>
-            <div class="col-md-4">
-                <BCard :class="{ 'bg-light': !taskResponse.task.cronSchedule }">
-                    <p>{{ $t("dashboard.tasks.schedule") }}</p>
-                    <p class="h4" v-if="taskResponse.task.cronSchedule">
-                        {{ taskResponse.task.cronSchedule }}
-                    </p>
-                    <p class="text-muted" v-else>
-                        {{ $t("dashboard.tasks.notAScheduledTask") }}
-                    </p>
-                </BCard>
+            <p class="h4">
+              {{ $t("dashboard.tasks.dateAgo", {
+                date: lastStatusChange,
+              })
+              }}
+            </p>
+            <hr>
+            <div class="text-muted small d-flex align-items-center gap-2" v-if="taskResponse.task.previousStatus">
+              {{ $t("dashboard.tasks.previousStatus") }}
+              <TaskStatusLabel :status="taskResponse.task.previousStatus" />
             </div>
-            <div class="col-md-4">
-                <BCard :class="{ 'bg-light': !taskResponse.task.nextDueAt }">
-                    <p>{{ $t("dashboard.tasks.nextDueAt") }}</p>
-                    <p class="h4" v-if="taskResponse.task.nextDueAt">
-                        {{ $d(new Date(taskResponse.task.nextDueAt), "long") }}
-                    </p>
-                    <p class="text-muted" v-else>
-                        {{ $t("dashboard.tasks.notAScheduledTask") }}
-                    </p>
-                </BCard>
+          </template>
+          <p class="text-muted" v-else>
+            --
+          </p>
+        </BCard>
+      </div>
+      <div class="col-md-4">
+        <BCard class="h-100" :class="{ 'bg-light': !taskResponse.task.cronSchedule }">
+          <template v-if="taskResponse.task.cronSchedule">
+            <p>{{ $t("dashboard.tasks.nextDueAt") }}</p>
+            <p class="h4" v-if="taskResponse.task.nextDueAt">
+              {{ $d(new Date(taskResponse.task.nextDueAt), "long") }}
+            </p>
+            <hr>
+            <div class="small text-muted">
+              {{ $t("dashboard.tasks.schedule") }} {{ taskResponse.task.cronSchedule }}<br>({{
+                humanReadableCron }})
             </div>
-        </div>
 
-        <!-- Task runs -->
-        <section class="d-flex flex-column gap-3">
-            <h3 class="fs-5">{{ $t("dashboard.tasks.runsHistory") }}</h3>
-            <TaskRunTableView v-if="taskRunsResponse?.runs" :taskRuns="taskRunsResponse.runs" />
-        </section>
-    </BContainer>
+          </template>
+          <template v-else>
+            <p>{{ $t("dashboard.tasks.schedule") }}</p>
+            <p class="text-muted">
+              {{ $t("dashboard.tasks.notAScheduledTask") }}
+            </p>
+          </template>
+
+        </BCard>
+      </div>
+    </div>
+
+    <!-- Task description -->
+    <section class="mb-5" v-if="taskResponse.task.description">
+      <h3 class="fs-5 d-flex align-items-center gap-2">
+        <Icon name="ph:info" />
+        {{ $t("dashboard.tasks.description") }}
+      </h3>
+      <p class="text-muted">
+        {{ taskResponse.task.description }}
+      </p>
+    </section>
+
+    <!-- Task runs -->
+    <section class="d-flex flex-column gap-3">
+      <h3 class="fs-5 d-flex align-items-center gap-2">
+        <Icon name="ph:clock-counter-clockwise" />
+        {{ $t("dashboard.tasks.runsHistory") }}
+      </h3>
+      <div v-if="taskRunsResponse?.runs && taskRunsResponse.runs.length > 0">
+        <TaskRunTableView :taskRuns="taskRunsResponse.runs" />
+        <BPagination v-model="pageNumber"
+          :total-rows="taskRunsResponse.totalFilteredRuns" :limit="taskRunsParams.itemsPerPage"
+          :next-text="$t('pagination.next')" :prev-text="$t('pagination.prev')" pills />
+      </div>
+      <div class="text-center text-muted" v-else>
+        {{ $t("dashboard.tasks.noRuns") }}
+      </div>
+
+      <!-- Start run command help -->
+      <div class="text-center text-muted">
+        {{ $t("dashboard.tasks.startRunCommandCta") }}
+        <br />
+        <code>{{ $t("dashboard.tasks.startRunCommand", { taskId: taskResponse.task.id }) }}</code>
+      </div>
+    </section>
+  </BContainer>
 </template>

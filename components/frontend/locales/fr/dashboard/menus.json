@@ -9,7 +9,8 @@
         "monitors": "Moniteurs",
         "incidents": "Incidents",
         "tasks": "Tâches",
-        "soon": "Bientôt"
+        "soon": "Bientôt",
+        "docs": "Documentation"
     },
     "settingsSidebar": {
         "myOrg": "Mon organisation",

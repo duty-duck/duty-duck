@@ -5,7 +5,7 @@ pub struct AbsentTask {
     pub(super) base: TaskBase,
     pub(super) next_due_at: DateTime<Utc>,
     // absent tasks have a cron schedule
-    pub(super) cron_schedule: croner::Cron,
+    pub(super) cron_schedule: cron::Schedule,
 }
 
 impl AbsentTask {

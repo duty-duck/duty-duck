@@ -9,7 +9,8 @@
         "monitors": "Monitors",
         "incidents": "Incidents",
         "tasks": "Tasks",
-        "soon": "Soon"
+        "soon": "Soon",
+        "docs": "Documentation"
     },
     "settingsSidebar": {
         "backToDashboard": "Back to dashboard",
