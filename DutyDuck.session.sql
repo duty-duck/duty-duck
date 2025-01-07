@@ -1,2 +1,0 @@
-alter table http_monitors
-alter column downtime_confirmation_threshold type smallint;

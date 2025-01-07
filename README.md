@@ -1,16 +1,72 @@
-# Uptime monitoring
+# Duty Duck 🦆
+
+This repository contains the code for the Duty Duck uptime monitoring platform, its website, its API client, and its command-line utility.
+
+## What is it ?
+
+Duty Duck is a platform that allows you to monitor the uptime of your services, and the liveliness of your recurring tasks, such as periodic backups.
+
+Its features (developed or planned) include:
+  - 🌐 HTTP uptime monitoring, using a real browser
+  - ✅ Flexible content assertions
+  - 📅 Task monitoring, for one-shot and recurring tasks
+  - ⚠️ Incident management features (incident tagging, comments, acknowledgments, escalation policies, vacation mode) (some implemented, some planned)
+  - ✨ Similar incident detection, automatically-generated incident reports, and suggestions for fixes (to be implemented)
+  - 📧 SMS, Push and E-mail notifications
+  - 📡 Webhooks for custom integrations (to be implemented)
+  - 👥 A multi-tenant architecture, built to enable multiple organizations on a single deployment
+  - 🌍 A multi-language dashboard (English and French at the moment)
+  - 📊 Status pages
+
+## Architecture
+
+The platform is composed of:
+- A PostgreSQL database
+- A Keycloak server
+- A back-end server in Rust 🦀, which is the main component of the platform, providing the API and the business logic
+- A Rust library to interact with the platform
+- A command-line utility to interact with the platform
+- A front-end in Vue.js 3 and Nuxt 🖖
+- A headless browser service, used to ping your services
+- A fake internet service, used to provide testing endpoints during development
+
+It also depends on a few external services:
+- An SMTP server, used to send e-mails
+- A Firebase account, used to send push notifications
+- An S3-compatible object storage, used to store HTTP responses and screenshots
+- AWS SNS, used to send SMS notifications
+
+The back-end server is completely stateless. It heavily relies on PostgresSQL's features, such as:
+- Declarative partitioning to implement data retention policies
+- Row-level security to isolate tenants (to be implemented)
+- `SKIP LOCKED` to implement concurrent job queues for many features (periodic HTTP calls, tasks lifecycle, notifications ...)
+- Partial indexes to enforce consistency rules (e.g. an endpoint can have multiple incidents, but only one ongoing incident at a time)
+
+We follow the "ports and adapters" architecture: core domain logic and entities are implemented in `components/server/src/domain`, external services are abstracted away using Rust traits we call "ports", and implementations, i.e. adapters, are provided in `components/server/src/infrastructure`.
+
+We also strive to use the [*typestate* pattern](https://cliffle.com/blog/rust-typestate/) whenever possible. This pattern models domain entities
+as finite state machines, whose transitions can be verified at compile-time. It is a way to *make illegal states unrepresentable*™️ (to quote the linked article, it makes entities "easy to use correctly and impossible to use incorrectly"). 
+
+We use this pattern heavily in the task monitoring feature: a Task can transition from `Pending` to `Running`, then from `Running` to `Completed` or `Failed`, but never from `Failed` to `Completed`. This is all enforced by the type system.
+
+The platform is deployed using Terraform and Nix. [This article explains our deployment approach](https://guillaumebogard.dev/posts/declarative-server-management-with-nix/).
 
 ## Dev container
 
-If you want to use Visual Studio Code, this project provides a ready-to-use devcontainer with all the dependencies available.
+If you use Visual Studio Code, this project provides a ready-to-use devcontainer with all the dependencies available. Starting the devcontainer will automatically start all
+the required services (Keycloak, Postgresql, Maildev, etc.), which are defined in the `docker-compose.yml` file.
 
 ## Manual Dev environment setup
 
 Make sure to install:
+- Docker (or Podman) and Docker Compose
 - Cargo
 - Node.js >= v18
 - SQLX ClI (`cargo install sqlx-cli`)
 - Node modules (`cd frontend && npm installs`)
+
+Start the required services using `docker compose up -d --scale dev-container=0`. 
+The `--scale dev-container=0` flag is used to prevent the devcontainer from starting, since you don't want to use the devcontainer.
 
 Then you can:
 - Start the back-end server (`cd components/server && cargo run`)
@@ -59,44 +115,4 @@ docker build -t ghcr.io/duty-duck/keycloak:latest -f components/keycloak/Dockerf
 
 ## Keycloak checklist
 
-- Create a `dutyduck-server` client with
-    - Correct Redirect URIs
-    - Client credentials grant type
-    - The `realm_admin` role
-- Create a `dutyduck-dashboard` client with
-    - Correct Redirect URIs
-- Make sure there is a Active_Organization_Info client scope with these mappers:
-    - active_organization
-        - token claim name: active_organization
-        - claim JSON type: JSON
-        - add to ID token: true
-        - add to access token: true
-        - add to userinfo: true
-    - organization_roles
-        - token claim name: organization_roles
-        - claim JSON type: String
-        - add to ID token: true
-        - add to access token: true
-        - add to userinfo: true
-- Make sure there is a `dutyduck-dashboard` client scope with an audience mapper to include the `dutyduck-dashboard` audience to the token,
-and make sure this client scope is enabled for the `dutyduck-dashboard` client
-- Make sure these user attributes exist in the Realm settings:
-    - phoneNumber
-    - phoneNumberVerified
-    - phoneNumberOtp
-- Make sure there is a "phone" client scope with:
-    - a "phone number" mapper
-        - token claim name: phoneNumber (camelCase!)
-        - Claim JSON type: String
-    - a "phone number verified" mapper
-        - token claim name: phoneNumberVerified
-        - Claim JSON type: Boolean
-    - a "phoneNumberOtp" mapper
-        - token claim name: phoneNumberOtp
-        - Claim JSON type: JSON
-- Make sure the "active_organization" and the "phone" client scopes are enabled for the "dutyduck-dashboard" client
-- Check e-mail server configuration
-- Check the theme configuration for the realm. To see the organization swticher, the admin theme phasetwo.v2 must be enabled **on the master realm**
-- Make sure e-mail verification is enabled for the realm
-- Make sure registration is disabled for the realm
-- Test the sign up feature and editing the user's profile (e.g. phone number)
+See [keycloak.md](docs/keycloak.md) for more information.
