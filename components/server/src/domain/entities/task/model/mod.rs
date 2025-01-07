@@ -158,17 +158,23 @@ fn test_parse_cron_schedule() {
     let schedules = ["0 0 * * *", "0 0 * * 2,5", "*/10 * * * *", "* * * * *"];
     let now = Utc::now();
     for schedule in schedules {
-        let cron_schedule = parse_cron_schedule(&Some(schedule.to_string()));
+        let cron_schedule_result = parse_cron_schedule(&Some(schedule.to_string()));
         assert!(
-            cron_schedule.is_ok(),
+            cron_schedule_result.is_ok(),
             "Failed to parse cron schedule: {:?}",
-            cron_schedule.err().unwrap()
+            cron_schedule_result.err().unwrap()
         );
-        let next_due_at = calculate_next_due_at(&cron_schedule.unwrap(), now);
+        let cron_schedule_opt = cron_schedule_result.unwrap();
+        let next_due_at = calculate_next_due_at(&cron_schedule_opt, now);
         assert!(
             next_due_at.is_ok(),
             "Failed to calculate next due at: {:?}",
             next_due_at.err().unwrap()
+        );
+        let schedule_string = cron_schedule_opt.unwrap().to_string();
+        assert!(
+            parse_cron_schedule(&Some(schedule_string)).is_ok(),
+            "Failed to parse serialized schedule back to a cron::Schedule"
         );
     }
 }

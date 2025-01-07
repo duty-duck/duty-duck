@@ -3,8 +3,12 @@ use super::*;
 /// A task that was scheduled to run, ran late, and eventually did not run at all
 pub struct AbsentTask {
     pub(super) base: TaskBase,
+    #[allow(unused)]
+    // in the context of an absent task, the next_due_at field is the last time the task was due to run before it was marked absent,
+    // i.e. the time of the expected run that never happened
     pub(super) next_due_at: DateTime<Utc>,
     // absent tasks have a cron schedule
+    #[allow(unused)]
     pub(super) cron_schedule: cron::Schedule,
 }
 
@@ -16,30 +20,6 @@ impl AbsentTask {
             base: self.base,
         })
     }
-
-    pub fn is_due(&self, now: DateTime<Utc>) -> bool {
-        now >= self.next_due_at
-    }
-
-    /// State transition: Absent -> Due
-    pub fn mark_due(self, now: DateTime<Utc>) -> Result<DueTask, TaskError> {
-        if !self.is_due(now) {
-            return Err(TaskError::InvalidStateTransition {
-                from: TaskStatus::Absent,
-                to: TaskStatus::Due,
-                details: "this task has a cron schedule but is not due to run yet".to_string(),
-            });
-        }
-        Ok(DueTask {
-            base: TaskBase {
-                previous_status: Some(TaskStatus::Absent),
-                last_status_change_at: Some(now),
-                ..self.base
-            },
-            cron_schedule: self.cron_schedule,
-            next_due_at: self.next_due_at,
-        })
-    }
 }
 
 impl TryFrom<AbsentTask> for BoundaryTask {
@@ -48,7 +28,9 @@ impl TryFrom<AbsentTask> for BoundaryTask {
     fn try_from(task: AbsentTask) -> Result<Self, Self::Error> {
         Ok(BoundaryTask {
             status: TaskStatus::Absent,
-            next_due_at: calculate_next_due_at(&task.base.cron_schedule, Utc::now())?,
+            // Next due at is required for absent tasks, and it's not present in the base task,
+            // so we need to add it here
+            next_due_at: Some(task.next_due_at),
             ..BoundaryTask::from(task.base)
         })
     }

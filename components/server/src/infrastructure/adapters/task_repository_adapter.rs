@@ -157,6 +157,7 @@ impl TaskRepository for TaskRepositoryAdapter {
                 name = $3,
                 description = $4,
                 status = $5,
+                previous_status = $6,
                 cron_schedule = $7,
                 next_due_at = $8,
                 start_window_seconds = $9,
@@ -169,7 +170,7 @@ impl TaskRepository for TaskRepositoryAdapter {
             task.name, // $3
             task.description, // $4
             task.status as i16, // $5
-            task.status as i16, // $6 - Initial previous_status is same as status
+            task.previous_status.map(|s| s as i16), // $6
             task.cron_schedule, // $7
             task.next_due_at, // $8
             task.start_window_seconds, // $9
@@ -197,10 +198,12 @@ impl TaskRepository for TaskRepositoryAdapter {
             AND $1::timestamptz >= next_due_at
             AND status != $2 -- status is not due 
             AND status != $3 -- status is not running
-            LIMIT $4",
+            AND status != $4 -- status is not absent
+            LIMIT $5",
             now,
             TaskStatus::Due as i16,
             TaskStatus::Running as i16,
+            TaskStatus::Absent as i16,
             limit as i64
         )
         .fetch_all(transaction.as_mut())

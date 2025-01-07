@@ -29,8 +29,7 @@ impl LateTask {
         }
         
         Ok(AbsentTask {
-            next_due_at: calculate_next_due_at(&self.base.cron_schedule, now)?
-                .ok_or(TaskError::InvalidStateTransition { from: TaskStatus::Late, to: TaskStatus::Absent, details: "this task does not have a cron schedule".to_string() })?,
+            next_due_at: self.next_due_at,
             cron_schedule: self.cron_schedule,
             base: TaskBase {
                 previous_status: Some(TaskStatus::Late),
@@ -60,8 +59,10 @@ impl TryFrom<LateTask> for BoundaryTask {
 
     fn try_from(task: LateTask) -> Result<Self, Self::Error> {
         Ok(BoundaryTask {
-            status: TaskStatus::Absent,
-            next_due_at: calculate_next_due_at(&task.base.cron_schedule, Utc::now())?,
+            status: TaskStatus::Late,
+            // Next due at is required for late tasks, and it's not present in the base task,
+            // so we need to add it here
+            next_due_at: Some(task.next_due_at),
             ..BoundaryTask::from(task.base)
         })
     }

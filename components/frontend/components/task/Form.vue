@@ -136,7 +136,7 @@ watch(() => form.name, (name) => {
             <BFormGroup>
               <label class="h6">{{ $t('dashboard.tasks.form.startWindow') }}</label>
               <div class="d-flex align-items-center gap-1">
-                <BInput min="10" style="width: 100px;" type="number" v-model="v$.startWindowSeconds.$model" />
+                <BInput min="10" style="width: 100px;" type="number" v-model.number="v$.startWindowSeconds.$model" />
                 <span class="ms-2">{{ $t('dashboard.tasks.form.seconds') }}</span>
               </div>
               <FormHelp :text="$t('dashboard.tasks.form.startWindowDescription')" />
@@ -146,7 +146,7 @@ watch(() => form.name, (name) => {
             <BFormGroup>
               <label class="h6">{{ $t('dashboard.tasks.form.latenessWindow') }}</label>
               <div class="d-flex align-items-center gap-1">
-                <BInput min="10" style="width: 100px;" type="number" v-model="v$.latenessWindowSeconds.$model" />
+                <BInput min="10" style="width: 100px;" type="number" v-model.number="v$.latenessWindowSeconds.$model" />
                 <span class="ms-2">{{ $t('dashboard.tasks.form.seconds') }}</span>
               </div>
               <FormHelp :text="$t('dashboard.tasks.form.latenessWindowDescription')" />
@@ -176,7 +176,7 @@ watch(() => form.name, (name) => {
         <BFormGroup>
           <label for="idInput">{{ $t('dashboard.tasks.form.heartbeatTimeout') }}</label>
           <div class="d-flex align-items-center gap-1">
-            <BInput min="5" id="idInput" type="number" v-model="v$.heartbeatTimeoutSeconds.$model"
+            <BInput min="5" id="idInput" type="number" v-model.number="v$.heartbeatTimeoutSeconds.$model"
               :state="v$.heartbeatTimeoutSeconds.$dirty ? !v$.heartbeatTimeoutSeconds.$invalid : null" size="sm"
               style="width: 100px;" />
             <span class="ms-2">{{ $t('dashboard.tasks.form.seconds') }}</span>

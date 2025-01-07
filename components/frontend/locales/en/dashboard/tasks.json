@@ -12,7 +12,7 @@
         "lastStatusChange": "Last status change",
         "dateAgo": "{date} ago",
         "schedule": "Schedule",
-        "nextDueAt": "Next due at",
+        "nextDueOn": "Next due on",
         "notAScheduledTask": "This task is not scheduled",
         "cliCommandLabel": "You can create a task directly using the DutyDuck command line tool",
         "createTaskButton": "New task",
@@ -22,9 +22,9 @@
         "startRunCommandCta": "You can start this task using the DutyDuck command line tool",
         "startRunCommand": "dutyduck tasks run --task-id {taskId} your-command arg1 arg2",
         "description": "Description",
+        "initiallyDueOn": "Initially due on",
         "card": {
             "cronSchedule": "Cron schedule: {schedule}",
-            "nextDueAt": "Next due at: {date}",
             "noRuns": "Never run yet"
         },
         "form": {

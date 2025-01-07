@@ -33,18 +33,13 @@ defineExpose({
         </div>
 
         <!-- Cron schedule and next due date -->
-        <div class="small text-secondary">
-          <template v-if="task.cronSchedule">
-            <Icon name="ph:clock" class="me-1" />
-            {{ $t('dashboard.tasks.card.cronSchedule', { schedule: task.cronSchedule }) }}
-          </template>
-          <template v-if="task.nextDueAt">
-            &nbsp;•&nbsp;
-            {{ $t('dashboard.tasks.card.nextDueAt', { date: $d(new Date(task.nextDueAt), 'long') }) }}
-          </template>
-        </div>
-        <div v-if="task.description" class="small text-secondary mt-1">
-          {{ task.description }}
+        <div class="small text-secondary d-flex align-items-center gap-2" v-if="task.cronSchedule">
+          <Icon name="ph:clock" />
+          {{ $t('dashboard.tasks.card.cronSchedule', { schedule: task.cronSchedule }) }}
+          <span v-if="task.nextDueAt">
+            &nbsp;|&nbsp;{{ $d(new Date(task.nextDueAt), 'long') }}
+          </span>
+
         </div>
       </div>
 

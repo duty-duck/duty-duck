@@ -52,7 +52,9 @@ impl TryFrom<DueTask> for BoundaryTask {
     fn try_from(task: DueTask) -> Result<Self, Self::Error> {
         Ok(BoundaryTask {
             status: TaskStatus::Due,
-            next_due_at: calculate_next_due_at(&task.base.cron_schedule, Utc::now())?,
+            // Next due at is required for due tasks, and it's not present in the base task,
+            // so we need to add it here
+            next_due_at: Some(task.next_due_at),
             ..BoundaryTask::from(task.base)
         })
     }

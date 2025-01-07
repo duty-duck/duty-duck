@@ -58,6 +58,7 @@ const lastStatusChange = computed(() => {
 
     <!-- Task overview -->
     <div class="row mb-5 row-gap-3 r">
+      <!-- Last status change column -->
       <div class="col-md-4">
         <BCard class="h-100">
           <p>{{ $t("dashboard.tasks.lastStatusChange") }}</p>
@@ -71,30 +72,40 @@ const lastStatusChange = computed(() => {
               })
               }}
             </p>
-            <hr>
-            <div class="text-muted small d-flex align-items-center gap-2" v-if="taskResponse.task.previousStatus">
-              {{ $t("dashboard.tasks.previousStatus") }}
-              <TaskStatusLabel :status="taskResponse.task.previousStatus" />
-            </div>
+            <template v-if="taskResponse.task.previousStatus">
+              <hr>
+              <div class="text-muted small d-flex align-items-center gap-2">
+                {{ $t("dashboard.tasks.previousStatus") }}
+                <TaskStatusLabel :status="taskResponse.task.previousStatus" />
+              </div>
+            </template>
           </template>
           <p class="text-muted" v-else>
             --
           </p>
         </BCard>
       </div>
+      <!-- Next due at column -->
       <div class="col-md-4">
         <BCard class="h-100" :class="{ 'bg-light': !taskResponse.task.cronSchedule }">
           <template v-if="taskResponse.task.cronSchedule">
-            <p>{{ $t("dashboard.tasks.nextDueAt") }}</p>
-            <p class="h4" v-if="taskResponse.task.nextDueAt">
-              {{ $d(new Date(taskResponse.task.nextDueAt), "long") }}
-            </p>
+            <template v-if="taskResponse.task.status === 'late' || taskResponse.task.status === 'absent'">
+              <p>{{ $t("dashboard.tasks.initiallyDueOn") }}</p>
+              <p class="h4" v-if="taskResponse.task.nextDueAt">
+                {{ $d(new Date(taskResponse.task.nextDueAt), "long") }}
+              </p>
+            </template>
+            <template v-else>
+              <p>{{ $t("dashboard.tasks.nextDueOn") }}</p>
+              <p class="h4" v-if="taskResponse.task.nextDueAt">
+                {{ $d(new Date(taskResponse.task.nextDueAt), "long") }}
+              </p>
+            </template>
             <hr>
             <div class="small text-muted">
               {{ $t("dashboard.tasks.schedule") }} {{ taskResponse.task.cronSchedule }}<br>({{
                 humanReadableCron }})
             </div>
-
           </template>
           <template v-else>
             <p>{{ $t("dashboard.tasks.schedule") }}</p>
@@ -126,9 +137,9 @@ const lastStatusChange = computed(() => {
       </h3>
       <div v-if="taskRunsResponse?.runs && taskRunsResponse.runs.length > 0">
         <TaskRunTableView :taskRuns="taskRunsResponse.runs" />
-        <BPagination v-model="pageNumber"
-          :total-rows="taskRunsResponse.totalFilteredRuns" :limit="taskRunsParams.itemsPerPage"
-          :next-text="$t('pagination.next')" :prev-text="$t('pagination.prev')" pills />
+        <BPagination v-model="pageNumber" :total-rows="taskRunsResponse.totalFilteredRuns"
+          :limit="taskRunsParams.itemsPerPage" :next-text="$t('pagination.next')" :prev-text="$t('pagination.prev')"
+          pills />
       </div>
       <div class="text-center text-muted" v-else>
         {{ $t("dashboard.tasks.noRuns") }}

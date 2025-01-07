@@ -84,7 +84,6 @@ where
             let due_aggregate = match aggregate {
                 TaskAggregate::Healthy(agg) => agg.mark_due(now),
                 TaskAggregate::Failing(agg) => agg.mark_due(now),
-                TaskAggregate::Absent(agg) => agg.mark_due(now),
                 _ => continue,
             }.context("Failed to mark task aggregate as due. This is likely a bug in the SQL query used to retrieve aggregates")?;
 

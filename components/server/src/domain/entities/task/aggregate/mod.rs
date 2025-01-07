@@ -59,7 +59,7 @@ pub enum TaskAggregate {
     Absent(AbsentTaskAggregate),
 }
 
-/// Retrive a task aggregate from the database by its id
+/// Retrieve a task aggregate from the database by its id
 pub async fn get_task_aggregate<TR, TRR>(
     task_repository: &TR,
     task_run_repository: &TRR,

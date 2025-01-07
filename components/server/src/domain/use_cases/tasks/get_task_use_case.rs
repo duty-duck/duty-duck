@@ -52,10 +52,6 @@ pub async fn get_task(
         .map_err(GetTaskError::TechnicalFailure)?
         .ok_or(GetTaskError::NotFound)?;
 
-    repository
-        .commit_transaction(tx)
-        .await
-        .map_err(GetTaskError::TechnicalFailure)?;
 
     Ok(GetTaskResponse { task })
 } 

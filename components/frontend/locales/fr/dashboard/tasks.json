@@ -12,7 +12,7 @@
         "lastStatusChange": "Dernier changement de statut",
         "dateAgo": "il y a {date}",
         "schedule": "Planification",
-        "nextDueAt": "Prochaine éxécution prévue le",
+        "nextDueOn": "Prochaine éxécution prévue le",
         "notAScheduledTask": "Cette tâche n'est pas planifiée",
         "cliCommandLabel": "Vous pouvez créer une tâche directement en utilisant l'utilitaire DutyDuck",
         "createTaskButton": "Nouvelle tâche",
@@ -21,10 +21,10 @@
         "previousStatus": "Statut précédent",
         "startRunCommandCta": "Vous pouvez lancer cette tâche en utilisant l'utilitaire DutyDuck",
         "startRunCommand": "dutyduck tasks run --task-id {taskId} your-command arg1 arg2",
+        "initiallyDueOn": "Initialement prévue le",
         "description": "Description",
         "card": {
             "cronSchedule": "Planification (Cron): {schedule}",
-            "nextDueAt": "Prochaine éxécution attendue le {date}",
             "noRuns": "Jamais exécutée"
         },
         "form": {

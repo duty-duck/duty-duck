@@ -77,6 +77,7 @@ where
             .map(|task| from_boundary(task, None))
             .collect::<anyhow::Result<Vec<_>>>()
             .context("Failed to convert late tasks from boundaries to task aggregates")?;
+
         let task_aggregates_len = task_aggregates.len();
 
         // turn every task aggregate into a failing one and save it
