@@ -68,7 +68,16 @@ export default defineNuxtConfig({
     "bindings": resolve(__dirname, "../server/bindings"),
   },
 
-  content: {},
+  content: {
+    highlight: {
+      theme: 'github-light',
+      langs: [
+        'bash',
+        'javascript',
+        'rust'
+      ]
+    },
+  },
 
   i18n: {
     strategy: 'prefix_except_default',

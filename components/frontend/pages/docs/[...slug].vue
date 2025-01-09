@@ -49,6 +49,13 @@ definePageMeta({
 <style lang="scss">
 @import "~/assets/main.scss";
 
+pre.shiki {
+    background-color: white;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin: 1rem 0;
+}
+
 #doc-content {
     h1>a,
     h2>a,
@@ -62,6 +69,11 @@ definePageMeta({
 
     h2,h3,h4,h5,h6 {
         @extend .mt-4;
+    }
+
+    img {
+        border: 4px solid white;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
 }
 </style>

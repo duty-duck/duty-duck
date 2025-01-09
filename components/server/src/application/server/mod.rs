@@ -34,7 +34,7 @@ pub async fn start_server(application_state: ApplicationState, port: u16) -> any
         .nest("/organizations", organizations_router())
         .nest("/files", file_router())
         .nest("/tasks", tasks_router())
-        .nest("/redoc", redoc_router())
+        .nest("/openapi", redoc_router())
         .nest("/api-tokens", api_tokens_router())
         .route("/", get(|| async { Json(build_info_json()) }))
         .layer(CorsLayer::permissive())

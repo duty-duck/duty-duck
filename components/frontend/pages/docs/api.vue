@@ -1,6 +1,6 @@
 <template>
     <ShowcaseDocumentationLayout>
-        <iframe class="mt-2" :src="`${serverUrl}/redoc`" />
+        <iframe class="mt-2" :src="`${serverUrl}/openapi/redoc`" />
     </ShowcaseDocumentationLayout>
 </template>
 

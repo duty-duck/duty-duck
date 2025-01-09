@@ -1,3 +1,4 @@
+use axum::response::IntoResponse;
 use utoipa::OpenApi;
 use utoipa_redoc::{Redoc, Servable};
 
@@ -68,11 +69,15 @@ use crate::domain::{
         FinishTaskCommand,
         StartTaskCommand,
         ListTaskRunsResponse,
-        NewTask
+        NewTask,
     ))
 )]
 struct ApiDoc;
 
+async fn openapi_handler() -> impl IntoResponse {
+    Json(ApiDoc::openapi())
+}
+
 pub fn redoc_router() -> Router<ApplicationState> {
-    Router::new().merge(Redoc::with_url("/", ApiDoc::openapi()))
+    Router::new().merge(Redoc::with_url("/redoc", ApiDoc::openapi())).route("/", get(openapi_handler))
 }

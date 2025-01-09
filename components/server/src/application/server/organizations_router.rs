@@ -15,22 +15,22 @@ use uuid::Uuid;
 pub(crate) fn organizations_router() -> Router<ApplicationState> {
     Router::new()
         .nest(
-            "/:organization_id/invitations",
+            "/{organization_id}/invitations",
             Router::new()
                 .route("/", get(list_invitations_handler))
                 .route(
-                    "/:invitation_id",
+                    "/{invitation_id}",
                     delete(remove_invitation_handler).get(get_invitation_handler),
                 )
-                .route("/:invitation_id/accept", post(accept_invitation_handler)),
+                .route("/{invitation_id}/accept", post(accept_invitation_handler)),
         )
         .nest(
-            "/:organization_id/members",
+            "/{organization_id}/members",
             Router::new()
                 .route("/", get(list_members_handler))
                 .route("/invite", post(invite_member_handler))
-                .route("/:member_id", delete(remove_member_handler))
-                .route("/:member_id/roles", put(change_member_role_handler)),
+                .route("/{member_id}", delete(remove_member_handler))
+                .route("/{member_id}/roles", put(change_member_role_handler)),
         )
 }
 

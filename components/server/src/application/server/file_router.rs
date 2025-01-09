@@ -15,7 +15,7 @@ use axum::{
 use uuid::Uuid;
 
 pub(crate) fn file_router() -> Router<ApplicationState> {
-    Router::new().route("/:file_id", get(serve_file_handler))
+    Router::new().route("/{file_id}", get(serve_file_handler))
 }
 
 async fn serve_file_handler(

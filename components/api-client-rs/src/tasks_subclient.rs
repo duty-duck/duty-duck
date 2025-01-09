@@ -149,7 +149,6 @@ impl FinishTaskBuilder {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-
 pub struct CreateTaskCommand {
     pub id: String,
     pub name: Option<String>,

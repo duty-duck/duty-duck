@@ -3,6 +3,7 @@ import type { NavItem } from '@nuxt/content';
 
 const { locale } = useI18n()
 const route = useRoute();
+const { public: { serverUrl } } = useRuntimeConfig();
 const localePath = useLocalePath();
 
 const docsQuery = queryContent('docs', locale.value);
@@ -24,6 +25,12 @@ const computeLinkDest = useComputeContentLinkDest();
                 </BNavItem>
                 <BNavItem v-if="item._path.endsWith('/developers')">
                     <NuxtLink :to="localePath('/docs/api')">{{ $t('documentation.apiReference') }}</NuxtLink>
+                </BNavItem>
+                <BNavItem v-if="item._path.endsWith('/developers')">
+                    <NuxtLink :to="`${serverUrl}/openapi`" target="_blank">
+                        <Icon name="ph:download-duotone" />
+                        {{ $t('documentation.apiReference') }} (OpenAPI)
+                    </NuxtLink>
                 </BNavItem>
             </BNav>
 

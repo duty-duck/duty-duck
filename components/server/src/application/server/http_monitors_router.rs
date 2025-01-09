@@ -12,10 +12,10 @@ use uuid::Uuid;
 use crate::{
     application::application_state::{ApplicationState, ExtractAppState},
     domain::{
-        entities::authorization::AuthContext,
+        entities::{authorization::AuthContext, http_monitor::HttpMonitor},
         use_cases::{
             http_monitors::{
-                self, ArchiveMonitorError, CreateHttpMonitorCommand, CreateHttpMonitorError, ListHttpMonitorsError, ListHttpMonitorsParams, ReadHttpMonitorError, ToggleMonitorError, UpdateHttpMonitorCommand, UpdateHttpMonitorError
+                self, ArchiveMonitorError, CreateHttpMonitorCommand, CreateHttpMonitorError, ListHttpMonitorsError, ListHttpMonitorsParams, ListHttpMonitorsResponse, ReadHttpMonitorError, ToggleMonitorError, UpdateHttpMonitorCommand, UpdateHttpMonitorError
             },
             incidents::{ListIncidentsError, ListIncidentsParams},
         },
@@ -33,15 +33,15 @@ pub fn http_monitors_router() -> Router<ApplicationState> {
             get(get_filterable_http_monitor_metadata_handler),
         )
         .route(
-            "/:monitor_id",
+            "/{monitor_id}",
             get(get_http_monitor_handler).patch(update_http_monitor_handler),
         )
         .route(
-            "/:monitor_id/incidents",
+            "/{monitor_id}/incidents",
             get(get_http_monitor_incidents_handler),
         )
-        .route("/:monitor_id/toggle", post(toggle_http_monitor_handler))
-        .route("/:monitor_id/archive", post(archive_http_monitor_handler))
+        .route("/{monitor_id}/toggle", post(toggle_http_monitor_handler))
+        .route("/{monitor_id}/archive", post(archive_http_monitor_handler))
 }
 
 /// Get a single HTTP monitor

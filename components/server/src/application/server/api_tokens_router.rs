@@ -20,7 +20,7 @@ use uuid::Uuid;
 pub fn api_tokens_router() -> Router<ApplicationState> {
     Router::new()
         .route("/", post(create_api_access_token_handler).get(list_api_access_tokens_handler))
-        .route("/:api_token", delete(delete_api_token_handler))
+        .route("/{api_token}", delete(delete_api_token_handler))
 }
 
 pub async fn create_api_access_token_handler(

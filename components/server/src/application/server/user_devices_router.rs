@@ -25,7 +25,7 @@ pub fn user_devices_router() -> Router<ApplicationState> {
             "/",
             get(list_user_devices_handler).post(register_user_device_handler),
         )
-        .route("/:user_device_id", delete(remove_user_device_handler))
+        .route("/{user_device_id}", delete(remove_user_device_handler))
 }
 
 async fn remove_user_device_handler(

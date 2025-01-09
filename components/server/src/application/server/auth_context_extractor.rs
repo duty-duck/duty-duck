@@ -1,4 +1,3 @@
-use axum::async_trait;
 use axum::extract::FromRequestParts;
 use axum::http::request::Parts;
 use axum::http::StatusCode;
@@ -28,7 +27,6 @@ struct ActiveOrganizationClaim {
     role: Vec<String>,
 }
 
-#[async_trait]
 impl FromRequestParts<ApplicationState> for AuthContext {
     type Rejection = (StatusCode, &'static str);
 

@@ -1,4 +1,4 @@
-use axum::async_trait;
+use async_trait::async_trait;
 use chrono::Utc;
 use std::sync::Arc;
 use tokio::sync::Mutex;

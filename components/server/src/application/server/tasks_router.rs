@@ -20,13 +20,13 @@ pub(crate) fn tasks_router() -> Router<ApplicationState> {
     Router::new()
         .route("/", get(list_tasks_handler).post(create_task_handler))
         .nest(
-            "/:task_id",
+            "/{task_id}",
             Router::new()
                 .route("/", get(get_task_handler))
                 .route("/start", post(start_task_handler))
                 .route("/finish", post(finish_task_handler))
                 .route("/heartbeat", post(send_task_heartbeat_handler))
-                .route("/runs/:started_at", get(get_task_run_handler))
+                .route("/runs/{started_at}", get(get_task_run_handler))
                 .route("/runs", get(list_task_runs_handler)),
         )
 }
