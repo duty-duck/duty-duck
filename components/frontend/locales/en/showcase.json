@@ -107,6 +107,7 @@
         "mainSections": {
             "uptime": {
                 "title": "Uptime monitoring that just works",
+                "iconLabel": "Uptime",
                 "description": "Be the first to know when you website is down",
                 "features": {
                     "checkInterval": {
@@ -133,6 +134,7 @@
             },
             "tasks": {
                 "title": "Task monitoring",
+                "iconLabel": "Tasks",
                 "description": "Monitor the status of any process, one-shot or recurring, and get notified when a task is failing, running late, or just not running at all. No more missed database backups.",
                 "features": {
                     "cronJobs": {
@@ -159,6 +161,7 @@
             },
             "incidents": {
                 "title": "Incidents",
+                "iconLabel": "Incidents",
                 "description": "Collect insights on past and ongoing incidents, understand what went wrong and know who is taking care of it.",
                 "features": {
                     "timeline": {
@@ -184,12 +187,17 @@
                     "integration": {
                         "title": "Integrate incidents from other systems",
                         "description": "With manual incident creation from our dashboard, or with our easy-to-use API, put all your incident data in one place"
+                    },
+                    "similarIncidentsAndSuggestions": {
+                        "title": "Similar incidents detection and suggestions",
+                        "description": "When an incident occurs, we can find similar incidents in the past and suggest fixes. We can also help you write post-mortems for your incidents."
                     }
                 }
             },
 
             "alerts": {
                 "title": "Alerts",
+                "iconLabel": "Alerts",
                 "description": "When things go wrong, we make sure the right people are alerted at exactly the right time. Working in teams? Fine-tune your alerting to your team's workflow.",
                 "features": {
                     "unlimitedEmails": {
@@ -215,25 +223,6 @@
                     "vacation": {
                         "title": "Someone going on vacation?",
                         "description": "Let your team members turn off their notifications, and escalate automatically to the next person in charge"
-                    }
-                }
-            },
-
-            "ai": {
-                "title": "AI",
-                "description": "We use AI to help you understand your incidents, and to help you fix them.",
-                "features": {
-                    "detection": {
-                        "title": "Similar incidents detection",
-                        "description": "We can organize similar incidents together"
-                    },
-                    "fixes": {
-                        "title": "Suggested fixes",
-                        "description": "We can suggest fixes for an incident, based on what worked before for similar incidents"
-                    },
-                    "postMortems": {
-                        "title": "Automatically-generated post-mortems",
-                        "description": "We can summarize an incident, and provide a quick overview of what happened, and what was fixed. We can send you that post-mortem by e-mail and let you use natural language to search in previous post-mortems."
                     }
                 }
             }

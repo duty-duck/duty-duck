@@ -49,23 +49,19 @@ onUnmounted(() => {
         <div id="sections-nav" ref="sectionsNavRef">
             <a href="#uptime" class="item" :class="{ active: activeSection === 'uptime' || activeSection === null }">
                 <Icon name="ph:globe-duotone" />
-                Uptime
+                {{ $t('homepage.mainSections.uptime.iconLabel') }}
             </a>
             <a href="#tasks" class="item" :class="{ active: activeSection === 'tasks' }">
                 <Icon name="ph:check-square-offset-duotone" />
-                Tâches
+                {{ $t('homepage.mainSections.tasks.iconLabel') }}
             </a>
             <a href="#incidents" class="item" :class="{ active: activeSection === 'incidents' }">
                 <Icon name="ph:seal-warning-duotone" />
-                Incidents
+                {{ $t('homepage.mainSections.incidents.iconLabel') }}
             </a>
             <a href="#alerts" class="item" :class="{ active: activeSection === 'alerts' }">
                 <Icon name="ph:bell-ringing-duotone" />
-                Alertes
-            </a>
-            <a href="#ai" class="item" :class="{ active: activeSection === 'ai' }">
-                <Icon name="mdi:stars" />
-                AI
+                {{ $t('homepage.mainSections.alerts.iconLabel') }}
             </a>
         </div>
 
@@ -161,12 +157,17 @@ onUnmounted(() => {
                     :title="t('homepage.mainSections.incidents.features.visualization.title')"
                     :description="t('homepage.mainSections.incidents.features.visualization.description')"
                     icon="ph:eye-duotone" 
-                    size="medium" />
+                    size="large" />
                 <ShowcaseFeatureBlock 
                     :title="t('homepage.mainSections.incidents.features.integration.title')"
                     :description="t('homepage.mainSections.incidents.features.integration.description')"
                     icon="ph:code-duotone" 
                     size="medium" />
+                <ShowcaseFeatureBlock 
+                    :title="t('homepage.mainSections.incidents.features.similarIncidentsAndSuggestions.title')"
+                    :description="t('homepage.mainSections.incidents.features.similarIncidentsAndSuggestions.description')"
+                    icon="ph:lightning-duotone" 
+                    size="large" />
             </ShowcaseFeatureSection>
 
             <ShowcaseFeatureSection 
@@ -203,27 +204,6 @@ onUnmounted(() => {
                     :description="t('homepage.mainSections.alerts.features.vacation.description')"
                     icon="ph:island-duotone" 
                     size="medium" />
-            </ShowcaseFeatureSection>
-
-            <ShowcaseFeatureSection 
-                id="ai" 
-                :title="t('homepage.mainSections.ai.title')"
-                :description="t('homepage.mainSections.ai.description')">
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.ai.features.detection.title')"
-                    :description="t('homepage.mainSections.ai.features.detection.description')"
-                    icon="ph:eyeglasses-duotone" 
-                    size="small" />
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.ai.features.fixes.title')"
-                    :description="t('homepage.mainSections.ai.features.fixes.description')"
-                    icon="ph:lightning-duotone" 
-                    size="small" />
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.ai.features.postMortems.title')"
-                    :description="t('homepage.mainSections.ai.features.postMortems.description')"
-                    icon="ph:clipboard-text-duotone" 
-                    size="large" />
             </ShowcaseFeatureSection>
 
             <!-- Final section (removes the primary color highlight on the sections navigation when intersecting)-->

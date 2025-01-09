@@ -107,6 +107,7 @@
         "mainSections": {
             "uptime": {
                 "title": "La surveillance d'uptime qui fonctionne",
+                "iconLabel": "Uptime",
                 "description": "Soyez le premier à savoir quand votre site est hors service",
                 "features": {
                     "checkInterval": {
@@ -133,6 +134,7 @@
             },
             "tasks": {
                 "title": "Surveillance des tâches",
+                "iconLabel": "Tâches",
                 "description": "Surveillez l'état de n'importe quel processus, ponctuel ou récurrent, et soyez notifié quand une tâche échoue, est en retard, ou ne s'exécute tout simplement pas. Plus de sauvegardes de base de données manquées.",
                 "features": {
                     "cronJobs": {
@@ -159,6 +161,7 @@
             },
             "incidents": {
                 "title": "Incidents",
+                "iconLabel": "Incidents",
                 "description": "Collectez des informations sur les incidents passés et en cours, comprenez ce qui s'est mal passé et sachez qui s'en occupe.",
                 "features": {
                     "timeline": {
@@ -184,11 +187,16 @@
                     "integration": {
                         "title": "Intégrez les incidents d'autres systèmes",
                         "description": "Avec la création manuelle d'incidents depuis notre tableau de bord, ou avec notre API facile à utiliser, centralisez toutes vos données d'incidents"
+                    },
+                    "similarIncidentsAndSuggestions": {
+                        "title": "Détection d'incidents similaires et suggestions",
+                        "description": "Quand un incident survient, nous pouvons trouver des incidents similaires dans le passé et suggérer des corrections. Nous pouvons aussi vous aider à rédiger des post-mortems pour vos incidents."
                     }
                 }
             },
             "alerts": {
                 "title": "Alertes",
+                "iconLabel": "Alertes",
                 "description": "Quand les choses ne fonctionnent pas, nous nous assurons que les bonnes personnes sont alertées. Vous travaillez en équipe? Nos alertes s'adaptent à votre manière de travailler.",
                 "features": {
                     "unlimitedEmails": {
@@ -214,24 +222,6 @@
                     "vacation": {
                         "title": "Quelqu'un part en vacances ?",
                         "description": "Permettez à vos membres d'équipe de désactiver leurs notifications, et nous alerterons automatiquement la prochaine personne de la chaine d'escalade"
-                    }
-                }
-            },
-            "ai": {
-                "title": "IA",
-                "description": "Nous utilisons l'IA pour vous aider à comprendre vos incidents et à les résoudre.",
-                "features": {
-                    "detection": {
-                        "title": "Détection d'incidents similaires",
-                        "description": "Nous pouvons organiser les incidents similaires ensemble"
-                    },
-                    "fixes": {
-                        "title": "Suggestions de corrections",
-                        "description": "Nous pouvons suggérer des corrections pour un incident, basées sur ce qui a fonctionné auparavant pour des incidents similaires"
-                    },
-                    "postMortems": {
-                        "title": "Post-mortems générés automatiquement",
-                        "description": "Nous pouvons résumer un incident et fournir un aperçu rapide de ce qui s'est passé et de ce qui a été corrigé. Nous pouvons vous envoyer ce post-mortem par e-mail et vous permettre d'utiliser le langage naturel pour rechercher dans les post-mortems précédents."
                     }
                 }
             }
