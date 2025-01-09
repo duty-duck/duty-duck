@@ -2,10 +2,10 @@ name: fake-internet image CI
 
 on:
   workflow_dispatch:
-  pull_request:
-    paths:
-      - "components/fake-internet/**"
   push:
+    branches:
+      - "main"
+      - "develop"
     paths:
       - "components/fake-internet/**"
 jobs:
