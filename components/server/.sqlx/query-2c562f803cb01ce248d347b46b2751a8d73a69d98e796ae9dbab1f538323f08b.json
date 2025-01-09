@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT * FROM tasks\n            WHERE cron_schedule IS NOT NULL\n            AND $1::timestamptz >= next_due_at\n            AND status != $2 -- status is not due \n            AND status != $3 -- status is not running\n            LIMIT $4",
+  "query": "\n            SELECT * FROM tasks\n            WHERE cron_schedule IS NOT NULL\n            AND $1::timestamptz >= next_due_at\n            AND status != $2 -- status is not due \n            AND status != $3 -- status is not running\n            AND status != $4 -- status is not absent\n            LIMIT $5",
   "describe": {
     "columns": [
       {
@@ -74,6 +74,7 @@
         "Timestamptz",
         "Int2",
         "Int2",
+        "Int2",
         "Int8"
       ]
     },
@@ -93,5 +94,5 @@
       false
     ]
   },
-  "hash": "42d87db0b2b8f5de2a181845c19b1a7557a52f642205cd6b3f6247630f92daf2"
+  "hash": "2c562f803cb01ce248d347b46b2751a8d73a69d98e796ae9dbab1f538323f08b"
 }
