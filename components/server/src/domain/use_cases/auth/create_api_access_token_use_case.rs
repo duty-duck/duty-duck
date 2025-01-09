@@ -53,8 +53,8 @@ pub async fn create_api_access_token(
         return Err(CreateApiAccessTokenError::InvalidExpirationDate);
     }
 
-    // Check if the expiration date is too far in the future. The expiration date must be within 18 months from now.
-    if request.expires_at > Utc::now() + Months::new(18) {
+    // Check if the expiration date is too far in the future. The expiration date must be within 12 months from now.
+    if request.expires_at > Utc::now() + Months::new(12) {
         return Err(CreateApiAccessTokenError::InvalidExpirationDate);
     }
 
