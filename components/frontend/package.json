@@ -14,6 +14,7 @@
     "typecheck": "npx nuxi typecheck"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.723.0",
     "@bootstrap-vue-next/nuxt": "0.24.22",
     "@editorjs/editorjs": "^2.30.6",
     "@editorjs/header": "^2.8.8",

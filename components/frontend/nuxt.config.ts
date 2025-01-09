@@ -52,7 +52,10 @@ export default defineNuxtConfig({
       firebaseAppId: "",
       firebaseVapidKey: "",
       serverUrl: '',
-    }
+    },
+    awsAccessKeyId: "",
+    awsSecretAccessKey: "",
+    awsRegion: "eu-central-1",
   },
 
   modules: [
