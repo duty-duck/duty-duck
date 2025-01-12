@@ -8,7 +8,7 @@ const questions = computed(() => tm('homepage.hero.headlines') as string[]);
 
 useIntervalFn(() => {
     currentQuestionIndex.value = (currentQuestionIndex.value + 1) % questions.value.length;
-}, 7000);
+}, 3500);
 </script>
 
 <template>

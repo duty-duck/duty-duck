@@ -17,12 +17,7 @@ definePageMeta({
 <template>
     <ShowcaseDocumentationLayout>
         <BContainer class="mt-5">
-            <BButton variant="outline-primary" data-bs-toggle="offcanvas" data-bs-target="#docs-offcanvas"
-                aria-controls="docs-offcanvas" aria-expanded="false" aria-label="Toggle navigation"
-                class="icon-link mb-4 d-lg-none">
-                <Icon name="ph:list-bold" />
-                Menu
-            </BButton>
+            <ShowcaseDocumentationMenuButton />
             <LazyContentDoc :path="docPath">
                 <template v-slot:empty="{ doc }">
                     <h1>{{ doc.title }}</h1>
@@ -35,13 +30,14 @@ definePageMeta({
                 </template>
             </LazyContentDoc>
 
-            <div class="d-flex justify-content-between mt-5 mb-4">
+            <div class="d-flex justify-content-between gap-2 mt-5 mb-4">
                 <ShowcaseDocumentationPaginationLink v-if="nextAndPrevious?.prev" :link="nextAndPrevious.prev"
                     direction="prev" />
                 <div v-else></div>
                 <ShowcaseDocumentationPaginationLink v-if="nextAndPrevious?.next" :link="nextAndPrevious.next"
                     direction="next" />
             </div>
+            <ShowcaseDocumentationMenuButton />
         </BContainer>
     </ShowcaseDocumentationLayout>
 </template>

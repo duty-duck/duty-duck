@@ -38,7 +38,7 @@ const buildRelease = async (s3CommonPrefix: CommonPrefix, s3Client: S3Client, aw
 }
 
 // A poor man's cache to save S3 calls, but it's good enough for now
-const cacheDuration = 2 * 3600 * 1000; // 2 hours
+const cacheDuration = 4 * 3600 * 1000; // 4 hours
 const lastResponseCache: { response: Response | null, builtAt: Date | null } = {
     response: null,
     builtAt: null
@@ -75,7 +75,7 @@ export default defineEventHandler(async (event) => {
     lastResponseCache.response = response;
     lastResponseCache.builtAt = new Date();
 
-    console.log("Listed CLI releases from S3: ", JSON.stringify(response, null, 2));
+    console.log(`Fetched ${releases.length} CLI releases from S3`);
     return response;
 
 })

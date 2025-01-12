@@ -280,6 +280,7 @@
     "documentation": {
         "apiReference": "API reference",
         "prev": "Previous",
-        "next": "Next"
+        "next": "Next",
+        "menuButton": "Navigation"
     }
 }

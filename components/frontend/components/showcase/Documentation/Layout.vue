@@ -43,5 +43,6 @@
 
 #docs-content {
     flex: 1;
+    max-width: 100vw;
 }
 </style>

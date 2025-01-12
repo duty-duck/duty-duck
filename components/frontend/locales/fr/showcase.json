@@ -279,6 +279,7 @@
     "documentation": {
         "apiReference": "Référence API",
         "prev": "Précédent",
-        "next": "Suivant"
+        "next": "Suivant",
+        "menuButton": "Navigation"
     }
 }
