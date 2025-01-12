@@ -52,6 +52,8 @@ impl TaskRepository for TaskRepositoryAdapter {
             lateness_window_seconds: row.lateness_window_seconds,
             heartbeat_timeout_seconds: row.heartbeat_timeout_seconds,
             created_at: row.created_at,
+            metadata: row.metadata.into(),
+            schedule_timezone: row.schedule_timezone,
         });
 
         Ok(task)
@@ -121,6 +123,8 @@ impl TaskRepository for TaskRepositoryAdapter {
                 lateness_window_seconds: row.lateness_window_seconds,
                 heartbeat_timeout_seconds: row.heartbeat_timeout_seconds,
                 created_at: row.created_at,
+                metadata: row.metadata.into(),
+                schedule_timezone: row.schedule_timezone,
             })
             .collect();
 
@@ -146,24 +150,28 @@ impl TaskRepository for TaskRepositoryAdapter {
                 status,
                 previous_status, 
                 cron_schedule, 
+                schedule_timezone,
                 next_due_at,
                 start_window_seconds, 
                 lateness_window_seconds,
                 heartbeat_timeout_seconds,
-                last_status_change_at
+                last_status_change_at,
+                metadata
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
             ON CONFLICT (organization_id, id) DO UPDATE SET
                 name = $3,
                 description = $4,
                 status = $5,
                 previous_status = $6,
                 cron_schedule = $7,
-                next_due_at = $8,
-                start_window_seconds = $9,
-                lateness_window_seconds = $10,
-                heartbeat_timeout_seconds = $11,
-                last_status_change_at = $12
+                schedule_timezone = $8,
+                next_due_at = $9,
+                start_window_seconds = $10,
+                lateness_window_seconds = $11,
+                heartbeat_timeout_seconds = $12,
+                last_status_change_at = $13,
+                metadata = $14
             "#,
             task.organization_id, // $1
             task.id.as_str(), // $2
@@ -172,11 +180,13 @@ impl TaskRepository for TaskRepositoryAdapter {
             task.status as i16, // $5
             task.previous_status.map(|s| s as i16), // $6
             task.cron_schedule, // $7
-            task.next_due_at, // $8
-            task.start_window_seconds, // $9
-            task.lateness_window_seconds, // $10
-            task.heartbeat_timeout_seconds, // $11
-            task.last_status_change_at, // $12
+            task.schedule_timezone, // $8
+            task.next_due_at, // $9
+            task.start_window_seconds, // $10
+            task.lateness_window_seconds, // $11
+            task.heartbeat_timeout_seconds, // $12
+            task.last_status_change_at, // $13
+            serde_json::to_value(task.metadata)?, // $14
         )
         .execute(transaction.as_mut())
         .await?;
@@ -225,6 +235,8 @@ impl TaskRepository for TaskRepositoryAdapter {
                 lateness_window_seconds: row.lateness_window_seconds,
                 heartbeat_timeout_seconds: row.heartbeat_timeout_seconds,
                 created_at: row.created_at,
+                metadata: row.metadata.into(),
+                schedule_timezone: row.schedule_timezone,
             })
             .collect();
 
@@ -268,6 +280,8 @@ impl TaskRepository for TaskRepositoryAdapter {
                     lateness_window_seconds: row.lateness_window_seconds,
                     heartbeat_timeout_seconds: row.heartbeat_timeout_seconds,
                     created_at: row.created_at,
+                    metadata: row.metadata.into(),
+                    schedule_timezone: row.schedule_timezone,
                 })
                 .collect();
     
@@ -311,6 +325,8 @@ impl TaskRepository for TaskRepositoryAdapter {
                 lateness_window_seconds: row.lateness_window_seconds,
                 heartbeat_timeout_seconds: row.heartbeat_timeout_seconds,
                 created_at: row.created_at,
+                metadata: row.metadata.into(),
+                schedule_timezone: row.schedule_timezone,
             })
             .collect();
 

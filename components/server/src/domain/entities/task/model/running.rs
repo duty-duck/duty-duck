@@ -16,7 +16,7 @@ impl RunningTask {
     pub fn finish(self, now: DateTime<Utc>) -> Result<HealthyTask, TaskError> {
         Ok(HealthyTask {
             // when a task run finishes, the next due at is recalculated
-            next_due_at: calculate_next_due_at(&self.base.cron_schedule, now)?,
+            next_due_at: calculate_next_due_at(self.base.cron_schedule.as_ref(), self.base.schedule_timezone.as_ref(), now)?,
             base: TaskBase {
                 previous_status: Some(TaskStatus::Running),
                 last_status_change_at: Some(now),
@@ -28,7 +28,7 @@ impl RunningTask {
     pub fn fail(self, now: DateTime<Utc>) -> Result<FailingTask, TaskError> {
         Ok(FailingTask {
             // when a task run fails, the next due at is recalculated
-            next_due_at: calculate_next_due_at(&self.base.cron_schedule, now)?,
+            next_due_at: calculate_next_due_at(self.base.cron_schedule.as_ref(), self.base.schedule_timezone.as_ref(), now)?,
             base: TaskBase {
                 previous_status: Some(TaskStatus::Running),
                 last_status_change_at: Some(now),
@@ -40,7 +40,7 @@ impl RunningTask {
     pub fn abort(self, now: DateTime<Utc>) -> Result<HealthyTask, TaskError> {
         Ok(HealthyTask {
             // when a task is aborted, the next due at is recalculated
-            next_due_at: calculate_next_due_at(&self.base.cron_schedule, now)?,
+            next_due_at: calculate_next_due_at(self.base.cron_schedule.as_ref(), self.base.schedule_timezone.as_ref(), now)?,
             base: TaskBase {
                 previous_status: Some(TaskStatus::Running),
                 last_status_change_at: Some(now),

@@ -2,6 +2,7 @@ use uuid::Uuid;
 use chrono::{DateTime, Utc};
 
 use crate::domain::entities::task::TaskId;
+use crate::domain::entities::entity_metadata::EntityMetadata;
 use super::TaskRunError;
 use super::super::boundary::{BoundaryTaskRun, TaskRunStatus};
 
@@ -13,6 +14,7 @@ pub struct FailedTaskRun {
     pub(super) updated_at: DateTime<Utc>,
     pub(super) exit_code: Option<i32>,
     pub(super) error_message: Option<String>,
+    pub(super) metadata: EntityMetadata,
 }
 
 
@@ -39,6 +41,7 @@ impl TryFrom<BoundaryTaskRun> for FailedTaskRun {
             updated_at: boundary.updated_at,
             exit_code: boundary.exit_code,
             error_message: boundary.error_message,
+            metadata: boundary.metadata,
         })
     }
 }
@@ -56,6 +59,7 @@ impl From<FailedTaskRun> for BoundaryTaskRun {
             error_message: failed.error_message,
             last_heartbeat_at: None,
             heartbeat_timeout_seconds: 0,
+            metadata: failed.metadata,
         }
     }
 }

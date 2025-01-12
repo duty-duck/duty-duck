@@ -41,6 +41,7 @@ pub struct NewTask {
     pub start_window_seconds: Option<u32>,
     pub lateness_window_seconds: Option<u32>,
     pub heartbeat_timeout_seconds: Option<u32>,
+    pub schedule_timezone: Option<String>,
 }
 
 #[derive(Error, Debug)]
@@ -95,6 +96,8 @@ where
                 start_window_seconds: new_task.start_window_seconds,
                 lateness_window_seconds: new_task.lateness_window_seconds,
                 heartbeat_timeout_seconds: new_task.heartbeat_timeout_seconds,
+                schedule_timezone: new_task.schedule_timezone,
+                metadata: None,
             };
             let new_task = HealthyTaskAggregate::new(auth_context.active_organization_id, new_task)
                 .context("failed to create a new task")?;

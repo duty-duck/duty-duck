@@ -5,8 +5,7 @@ use utoipa::ToSchema;
 
 use crate::domain::{
     entities::{
-        authorization::{AuthContext, Permission},
-        task::{BoundaryTask, HealthyTask, TaskError, TaskId},
+        authorization::{AuthContext, Permission}, entity_metadata::EntityMetadata, task::{BoundaryTask, HealthyTask, TaskError, TaskId}
     },
     ports::task_repository::TaskRepository,
 };
@@ -34,9 +33,11 @@ pub struct CreateTaskCommand {
     pub name: Option<String>,
     pub description: Option<String>,
     pub cron_schedule: Option<String>,
+    pub schedule_timezone: Option<String>,
     pub start_window_seconds: Option<u32>,
     pub lateness_window_seconds: Option<u32>,
     pub heartbeat_timeout_seconds: Option<u32>,
+    pub metadata: Option<EntityMetadata>,
 }
 
 pub async fn create_task_use_case(

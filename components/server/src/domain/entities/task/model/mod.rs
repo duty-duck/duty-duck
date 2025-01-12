@@ -25,6 +25,8 @@ use chrono::{DateTime, Utc};
 use thiserror::Error;
 use uuid::Uuid;
 
+use crate::domain::entities::entity_metadata::EntityMetadata;
+
 use super::{BoundaryTask, TaskId, TaskStatus};
 
 mod absent;
@@ -50,18 +52,22 @@ pub struct TaskBase {
     pub(super) name: String,
     pub(super) description: Option<String>,
     pub(super) cron_schedule: Option<cron::Schedule>,
+    pub(super) schedule_timezone: Option<chrono_tz::Tz>,
     pub(super) start_window: Duration,
     pub(super) lateness_window: Duration,
     pub(super) heartbeat_timeout: Duration,
     pub(super) created_at: DateTime<Utc>,
     pub(super) previous_status: Option<TaskStatus>,
     pub(super) last_status_change_at: Option<DateTime<Utc>>,
+    pub(super) metadata: EntityMetadata,
 }
 
 #[derive(Error, Debug)]
 pub enum TaskError {
     #[error("Invalid cron schedule")]
     InvalidCronSchedule { details: cron::error::Error },
+    #[error("Invalid schedule timezone")]
+    InvalidScheduleTimezone { details: String },
     #[error("Failed to calculate next due at")]
     FailedToCalculateNextDueAt {
         schedule: String,
@@ -77,40 +83,44 @@ pub enum TaskError {
 }
 
 fn calculate_next_due_at(
-    cron_schedule: &Option<cron::Schedule>,
+    cron_schedule: Option<&cron::Schedule>,
+    schedule_timezone: Option<&chrono_tz::Tz>,
     now: DateTime<Utc>,
 ) -> Result<Option<DateTime<Utc>>, TaskError> {
+    let timezone = schedule_timezone.unwrap_or(&chrono_tz::UTC);
+    let now_with_timezone = now.with_timezone(timezone);
+
     if let Some(schedule) = cron_schedule {
-        let next_due_at = schedule.after(&now).next().ok_or_else(|| {
+        let next_due_at = schedule.after(&now_with_timezone).next().ok_or_else(|| {
             TaskError::FailedToCalculateNextDueAt {
                 schedule: schedule.to_string(),
             }
         })?;
-        Ok(Some(next_due_at))
+        let next_due_at_utc = next_due_at.with_timezone(&Utc);
+        Ok(Some(next_due_at_utc))
     } else {
         Ok(None)
     }
 }
 
-fn parse_cron_schedule(cron_schedule: &Option<String>) -> Result<Option<cron::Schedule>, TaskError> {
-    match cron_schedule {
-        Some(schedule) => {
-            let components_len = schedule.split_ascii_whitespace().count();
+fn parse_cron_schedule(cron_schedule: &str) -> Result<cron::Schedule, TaskError> {
+    let components_len = cron_schedule.split_ascii_whitespace().count();
 
-            // If seconds are not specified, add a 0 to the beginning to match the format expected by the cron crate,
-            // with a schedule that runs at the first second of the minute.
-            let schedule_str = if components_len < 6 {
-                &format!("0 {}", schedule)
-            } else {
-                schedule
-            };
+    // If seconds are not specified, add a 0 to the beginning to match the format expected by the cron crate,
+    // with a schedule that runs at the first second of the minute.
+    let schedule_str = if components_len < 6 {
+        &format!("0 {}", cron_schedule)
+    } else {
+        cron_schedule
+    };
 
-            let cron = cron::Schedule::from_str(schedule_str)
-                .map_err(|err| TaskError::InvalidCronSchedule { details: err })?;
-            Ok(Some(cron))
-        }
-        None => Ok(None),
-    }
+    let cron = cron::Schedule::from_str(schedule_str)
+        .map_err(|err| TaskError::InvalidCronSchedule { details: err })?;
+    Ok(cron)
+}
+
+fn parse_schedule_timezone(schedule_timezone: &str) -> Result<chrono_tz::Tz, TaskError> {
+    schedule_timezone.parse::<chrono_tz::Tz>().map_err(|err| TaskError::InvalidScheduleTimezone { details: err.to_string() })
 }
 
 impl TryFrom<BoundaryTask> for TaskBase {
@@ -122,13 +132,15 @@ impl TryFrom<BoundaryTask> for TaskBase {
             organization_id: boundary.organization_id,
             name: boundary.name,
             description: boundary.description,
-            cron_schedule: parse_cron_schedule(&boundary.cron_schedule)?,
+            cron_schedule: boundary.cron_schedule.as_deref().map(parse_cron_schedule).transpose()?,
+            schedule_timezone: boundary.schedule_timezone.as_deref().map(parse_schedule_timezone).transpose()?,
             start_window: Duration::from_secs(boundary.start_window_seconds as u64),
             lateness_window: Duration::from_secs(boundary.lateness_window_seconds as u64),
             heartbeat_timeout: Duration::from_secs(boundary.heartbeat_timeout_seconds as u64),
             created_at: boundary.created_at,
             previous_status: boundary.previous_status,
             last_status_change_at: boundary.last_status_change_at,
+            metadata: boundary.metadata,
         })
     }
 }
@@ -144,11 +156,13 @@ impl From<TaskBase> for BoundaryTask {
             previous_status: base.previous_status,
             last_status_change_at: base.last_status_change_at,
             cron_schedule: base.cron_schedule.map(|c| c.to_string()),
+            schedule_timezone: base.schedule_timezone.map(|tz| tz.to_string()),
             next_due_at: None, // Overridden by specific implementations
             start_window_seconds: base.start_window.as_secs() as i32,
             lateness_window_seconds: base.lateness_window.as_secs() as i32,
             heartbeat_timeout_seconds: base.heartbeat_timeout.as_secs() as i32,
             created_at: base.created_at,
+            metadata: base.metadata,
         }
     }
 }
@@ -158,22 +172,22 @@ fn test_parse_cron_schedule() {
     let schedules = ["0 0 * * *", "0 0 * * 2,5", "*/10 * * * *", "* * * * *"];
     let now = Utc::now();
     for schedule in schedules {
-        let cron_schedule_result = parse_cron_schedule(&Some(schedule.to_string()));
+        let cron_schedule_result = parse_cron_schedule(schedule);
         assert!(
             cron_schedule_result.is_ok(),
             "Failed to parse cron schedule: {:?}",
             cron_schedule_result.err().unwrap()
         );
-        let cron_schedule_opt = cron_schedule_result.unwrap();
-        let next_due_at = calculate_next_due_at(&cron_schedule_opt, now);
+        let cron_schedule = cron_schedule_result.unwrap();
+        let next_due_at = calculate_next_due_at(Some(&cron_schedule), None, now);
         assert!(
             next_due_at.is_ok(),
             "Failed to calculate next due at: {:?}",
             next_due_at.err().unwrap()
         );
-        let schedule_string = cron_schedule_opt.unwrap().to_string();
+        let schedule_string = cron_schedule.to_string();
         assert!(
-            parse_cron_schedule(&Some(schedule_string)).is_ok(),
+            parse_cron_schedule(&schedule_string).is_ok(),
             "Failed to parse serialized schedule back to a cron::Schedule"
         );
     }

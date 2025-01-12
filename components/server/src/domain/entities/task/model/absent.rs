@@ -16,7 +16,7 @@ impl AbsentTask {
     /// State transition: Absent -> Running
     pub fn start(self, now: DateTime<Utc>) -> Result<RunningTask, TaskError> {
         Ok(RunningTask {
-            next_due_at: calculate_next_due_at(&self.base.cron_schedule, now)?,
+            next_due_at: calculate_next_due_at(self.base.cron_schedule.as_ref(), self.base.schedule_timezone.as_ref(), now)?,
             base: self.base,
         })
     }

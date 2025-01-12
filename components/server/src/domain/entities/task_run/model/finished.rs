@@ -4,7 +4,7 @@ use chrono::{DateTime, Utc};
 use crate::domain::entities::task::TaskId;
 use super::TaskRunError;
 use super::super::boundary::{BoundaryTaskRun, TaskRunStatus};
-
+use crate::domain::entities::entity_metadata::EntityMetadata;
 #[derive(Debug, Clone)]
 pub struct FinishedTaskRun {
     pub(super) organization_id: Uuid,
@@ -13,6 +13,7 @@ pub struct FinishedTaskRun {
     pub(super) completed_at: DateTime<Utc>,
     pub(super) updated_at: DateTime<Utc>,
     pub(super) exit_code: Option<i32>,
+    pub(super) metadata: EntityMetadata,
 }
 
 impl TryFrom<BoundaryTaskRun> for FinishedTaskRun {
@@ -37,6 +38,7 @@ impl TryFrom<BoundaryTaskRun> for FinishedTaskRun {
             completed_at,
             updated_at: boundary.updated_at,
             exit_code: boundary.exit_code,
+            metadata: boundary.metadata,
         })
     }
 }
@@ -54,6 +56,7 @@ impl From<FinishedTaskRun> for BoundaryTaskRun {
             error_message: None,
             last_heartbeat_at: None,
             heartbeat_timeout_seconds: 0,
+            metadata: finished.metadata,
         }
     }
 }

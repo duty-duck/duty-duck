@@ -95,6 +95,7 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
                 error_message: r.error_message,
                 last_heartbeat_at: r.last_heartbeat_at,
                 heartbeat_timeout_seconds: r.heartbeat_timeout_seconds,
+                metadata: r.metadata.into(),
             })
             .collect::<Vec<_>>();
 
@@ -190,11 +191,13 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
                 tasks.previous_status as "task_previous_status",
                 tasks.last_status_change_at as "task_last_status_change_at",
                 tasks.cron_schedule as "task_cron_schedule",
+                tasks.schedule_timezone as "task_schedule_timezone",
                 tasks.next_due_at as "task_next_due_at",
                 tasks.start_window_seconds as "task_start_window_seconds",
                 tasks.lateness_window_seconds as "task_lateness_window_seconds",
                 tasks.heartbeat_timeout_seconds as "task_heartbeat_timeout_seconds",
                 tasks.created_at as "task_created_at",
+                tasks.metadata as "task_metadata",
                 task_runs.*
             FROM task_runs
             INNER JOIN tasks ON task_runs.organization_id = tasks.organization_id AND task_runs.task_id = tasks.id
@@ -227,6 +230,8 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
                     lateness_window_seconds: r.task_lateness_window_seconds,
                     heartbeat_timeout_seconds: r.task_heartbeat_timeout_seconds,
                     created_at: r.task_created_at,
+                    metadata: r.task_metadata.into(),
+                    schedule_timezone: r.task_schedule_timezone,
                 };
 
                 let task_run = BoundaryTaskRun {
@@ -240,6 +245,7 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
                     error_message: r.error_message,
                     last_heartbeat_at: r.last_heartbeat_at,
                     heartbeat_timeout_seconds: r.heartbeat_timeout_seconds,
+                    metadata: r.metadata.into(),
                 };
                 (task, task_run)
             })

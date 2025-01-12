@@ -128,6 +128,8 @@ impl TaskRunRepository for TaskRunRepositoryMock {
 
 #[cfg(test)]
 mod tests {
+    use crate::domain::entities::entity_metadata::EntityMetadata;
+
     use super::*;
 
     fn create_test_task_run(org_id: Uuid, task_id: &str, status: TaskRunStatus) -> BoundaryTaskRun {
@@ -142,6 +144,7 @@ mod tests {
             error_message: None,
             last_heartbeat_at: None,
             heartbeat_timeout_seconds: 0,
+            metadata: EntityMetadata::default(),
         }
     }
 

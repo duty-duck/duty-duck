@@ -193,6 +193,8 @@ impl TaskRepository for TaskRepositoryMock {
 
 #[cfg(test)]
 mod tests {
+    use crate::domain::entities::entity_metadata::EntityMetadata;
+
     use super::*;
 
     fn create_test_task(org_id: Uuid, name: &str, status: TaskStatus) -> BoundaryTask {
@@ -210,6 +212,8 @@ mod tests {
             lateness_window_seconds: 600,
             heartbeat_timeout_seconds: 60,
             created_at: Utc::now(),
+            metadata: EntityMetadata::default(),
+            schedule_timezone: None,
         }
     }
 

@@ -3,10 +3,13 @@ use serde::{Deserialize, Serialize};
 use ts_rs::TS;
 use utoipa::ToSchema;
 use uuid::Uuid;
+use sqlx::FromRow;
+
+use crate::domain::entities::entity_metadata::EntityMetadata;
 
 use super::id::TaskId;
 
-#[derive(Debug, Serialize, Deserialize, TS, ToSchema, Clone)]
+#[derive(Debug, Serialize, Deserialize, TS, ToSchema, Clone, FromRow)]
 #[ts(export)]
 #[ts(rename = "Task")]
 #[serde(rename_all = "camelCase")]
@@ -21,11 +24,14 @@ pub struct BoundaryTask {
     pub previous_status: Option<TaskStatus>,
     pub last_status_change_at: Option<DateTime<Utc>>,
     pub cron_schedule: Option<String>,
+    pub schedule_timezone: Option<String>,
     pub next_due_at: Option<DateTime<Utc>>,
     pub start_window_seconds: i32,
     pub lateness_window_seconds: i32,
     pub heartbeat_timeout_seconds: i32,
     pub created_at: DateTime<Utc>,
+    #[sqlx(json)]
+    pub metadata: EntityMetadata,
 }
 
 /// An enum that represents the status of a task run

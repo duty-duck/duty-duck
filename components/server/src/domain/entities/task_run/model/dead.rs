@@ -3,6 +3,7 @@ use std::time::Duration;
 use uuid::Uuid;
 use chrono::{DateTime, Utc};
 
+use crate::domain::entities::entity_metadata::EntityMetadata;
 use crate::domain::entities::task::TaskId;
 use super::TaskRunError;
 use super::super::boundary::{BoundaryTaskRun, TaskRunStatus};
@@ -15,6 +16,7 @@ pub struct DeadTaskRun {
     pub(super) updated_at: DateTime<Utc>,
     pub(super) last_heartbeat_at: DateTime<Utc>,
     pub(super) heartbeat_timeout: Duration,
+    pub(super) metadata: EntityMetadata,
 }
 
 impl TryFrom<BoundaryTaskRun> for DeadTaskRun {
@@ -45,6 +47,7 @@ impl TryFrom<BoundaryTaskRun> for DeadTaskRun {
             updated_at: boundary.updated_at,
             last_heartbeat_at,
             heartbeat_timeout: Duration::from_secs(boundary.heartbeat_timeout_seconds as u64),
+            metadata: boundary.metadata,
         })
     }
 }
@@ -63,6 +66,7 @@ impl From<DeadTaskRun> for BoundaryTaskRun {
             error_message: None,
             last_heartbeat_at: Some(dead.last_heartbeat_at),
             heartbeat_timeout_seconds: dead.heartbeat_timeout.as_secs() as i32,
+            metadata: dead.metadata,
         }
     }
 }

@@ -8,6 +8,7 @@ use getset::Getters;
 use crate::domain::entities::task::TaskId;
 use super::{AbortedTaskRun, DeadTaskRun, FailedTaskRun, FinishedTaskRun, TaskRunError};
 use super::super::boundary::{BoundaryTaskRun, TaskRunStatus};
+use crate::domain::entities::entity_metadata::EntityMetadata;
 
 #[derive(Getters, Debug, Clone)]
 #[getset(get = "pub")]
@@ -17,6 +18,7 @@ pub struct RunningTaskRun {
     started_at: DateTime<Utc>,
     last_heartbeat_at: DateTime<Utc>,
     heartbeat_timeout: Duration,
+    metadata: EntityMetadata,
 }
 
 impl RunningTaskRun {
@@ -27,6 +29,7 @@ impl RunningTaskRun {
             started_at,
             last_heartbeat_at: started_at,
             heartbeat_timeout,
+            metadata: EntityMetadata::default(),
         }
     }
 
@@ -47,6 +50,7 @@ impl RunningTaskRun {
             updated_at: now,
             last_heartbeat_at: self.last_heartbeat_at,
             heartbeat_timeout: self.heartbeat_timeout,
+            metadata: self.metadata,
         })
     }
 
@@ -58,6 +62,7 @@ impl RunningTaskRun {
             started_at: self.started_at,
             completed_at: now,
             updated_at: now,
+            metadata: self.metadata,
         })
     }
 
@@ -81,6 +86,7 @@ impl RunningTaskRun {
             completed_at: now,
             updated_at: now,
             exit_code,
+            metadata: self.metadata,
         })
     }
 
@@ -106,6 +112,7 @@ impl RunningTaskRun {
             updated_at: now,
             exit_code,
             error_message,
+            metadata: self.metadata,
         })
     }
 }
@@ -131,6 +138,7 @@ impl TryFrom<BoundaryTaskRun> for RunningTaskRun {
             started_at: boundary.started_at,
             last_heartbeat_at,
             heartbeat_timeout: Duration::from_secs(boundary.heartbeat_timeout_seconds as u64),
+            metadata: boundary.metadata,
         })
     }
 }
@@ -148,6 +156,7 @@ impl From<RunningTaskRun> for BoundaryTaskRun {
             error_message: None,
             last_heartbeat_at: Some(running.last_heartbeat_at),
             heartbeat_timeout_seconds: running.heartbeat_timeout.as_secs() as i32,
+            metadata: running.metadata,
         }
     }
 }

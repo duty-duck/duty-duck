@@ -6,6 +6,7 @@ publish = false
 
 [dependencies]
 chrono.workspace = true
+chrono-tz.workspace = true
 futures.workspace = true
 futures-util.workspace = true
 anyhow.workspace = true

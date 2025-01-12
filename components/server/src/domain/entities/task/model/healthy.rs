@@ -18,16 +18,19 @@ impl HealthyTask {
     /// New tasks are always created with a status of Healthy
     pub fn new(organization_id: Uuid, command: CreateTaskCommand) -> Result<Self, TaskError> {
         let now = Utc::now();
-        let cron_schedule = parse_cron_schedule(&command.cron_schedule)?;
+        let cron_schedule = command.cron_schedule.as_deref().map(parse_cron_schedule).transpose()?;
+        let schedule_timezone = command.schedule_timezone.as_deref().map(parse_schedule_timezone).transpose()?;
 
         Ok(Self {
-            next_due_at: calculate_next_due_at(&cron_schedule, now)?,
+            next_due_at: calculate_next_due_at(cron_schedule.as_ref(), schedule_timezone.as_ref(), now)?,
             base: TaskBase {
                 name: command.name.unwrap_or_else(|| command.id.to_string()),
                 id: command.id,
+                metadata: command.metadata.unwrap_or_default(),
                 organization_id,
                 description: command.description,
                 cron_schedule,
+                schedule_timezone,
                 start_window: command
                     .start_window_seconds
                     .map_or(DEFAULT_START_WINDOW, |secs| {
@@ -54,7 +57,7 @@ impl HealthyTask {
     pub fn start(self, now: DateTime<Utc>) -> Result<RunningTask, TaskError> {
         Ok(RunningTask {
             // When a task starts, its next_due_at field is updated to the next time the task is due to run
-            next_due_at: calculate_next_due_at(&self.base.cron_schedule, now)?,
+            next_due_at: calculate_next_due_at(self.base.cron_schedule.as_ref(), self.base.schedule_timezone.as_ref(), now)?,
             base: TaskBase {
                 previous_status: Some(TaskStatus::Healthy),
                 last_status_change_at: Some(now),

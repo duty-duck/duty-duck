@@ -1,15 +1,16 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use sqlx::FromRow;
 use ts_rs::TS;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
+use crate::domain::entities::entity_metadata::EntityMetadata;
 use crate::domain::entities::task::TaskId;
-
 
 /// A unspecialized representation of a task run, used at API and database boundaries
 /// We have a set of conversions to/from this type to the specific task run types.
-#[derive(Debug, Serialize, Deserialize, TS, ToSchema, Clone)]
+#[derive(Debug, Serialize, Deserialize, TS, ToSchema, Clone, FromRow)]
 #[ts(export)]
 #[ts(rename = "TaskRun")]
 #[serde(rename_all = "camelCase")]
@@ -26,6 +27,8 @@ pub struct BoundaryTaskRun {
     pub error_message: Option<String>,
     pub last_heartbeat_at: Option<DateTime<Utc>>,
     pub heartbeat_timeout_seconds: i32,
+    #[sqlx(json)]
+    pub metadata: EntityMetadata,
 }
 
 /// An enum that represents the status of a task run
