@@ -5,10 +5,9 @@ use utoipa::{IntoParams, ToSchema};
 
 use crate::domain::{
     entities::{
-        authorization::{AuthContext, Permission},
-        task::{BoundaryTask, TaskStatus},
+        authorization::{AuthContext, Permission}, entity_metadata::MetadataFilter, task::{BoundaryTask, TaskStatus}
     },
-    ports::task_repository::{TaskRepository, ListTasksOutput},
+    ports::task_repository::{ListTasksOpts, ListTasksOutput, TaskRepository}, use_cases::shared::OrderDirection,
 };
 
 #[derive(Serialize, Deserialize, TS, Clone, Debug, IntoParams)]
@@ -18,11 +17,36 @@ pub struct ListTasksParams {
     #[serde(default)]
     pub include: Option<Vec<TaskStatus>>,
     #[serde(default)]
-    pub search_query: String,
+    pub query: Option<String>,
     #[serde(default)]
     pub page_number: Option<u32>,
     #[serde(default)]
     pub items_per_page: Option<u32>,
+    #[serde(default)]
+    pub order_by: Option<OrderTasksBy>,
+    #[serde(default)]
+    pub order_direction: Option<OrderDirection>,
+    #[ts(type = "Option<MetadataFilter>")]
+    pub metadata_filter: Option<String>,
+}
+
+impl ListTasksParams {
+    pub fn metadata_filter(&self) -> MetadataFilter {
+        self.metadata_filter
+            .as_ref()
+            .and_then(|s| serde_json::from_str(s).ok())
+            .unwrap_or_default()
+    }
+}
+
+#[derive(Serialize, Deserialize, TS, Clone, Copy, Debug, Default, ToSchema)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub enum OrderTasksBy {
+    #[default]
+    CreatedAt,
+    LastStatusChangeAt,
+    Name
 }
 
 #[derive(Serialize, TS, Debug, ToSchema)]
@@ -61,10 +85,15 @@ pub async fn list_tasks(
     } = repository
         .list_tasks(
             auth_context.active_organization_id,
-            params.include.unwrap_or_default(),
-            params.search_query,
-            items_per_page,
-            items_per_page * (page_number - 1),
+            ListTasksOpts {
+                metadata_filter: params.metadata_filter(),
+                include_statuses: &params.include.unwrap_or_default(),
+                query: &params.query.unwrap_or_default(),
+                limit: items_per_page,
+                offset: items_per_page * (page_number - 1),
+                order_by: params.order_by.unwrap_or(OrderTasksBy::LastStatusChangeAt),
+                order_direction: params.order_direction.unwrap_or(OrderDirection::Desc),
+            },
         )
         .await
         .map_err(ListTasksError::TechnicalFailure)?;

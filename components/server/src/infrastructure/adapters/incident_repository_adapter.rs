@@ -64,13 +64,7 @@ impl IncidentRepository for IncidentRepositoryAdapter {
     ///
     /// * `transaction` - A mutable reference to the transaction object.
     /// * `organization_id` - The ID of the organization to list incidents for.
-    /// * `include_statuses` - A slice of `IncidentStatus` values to include in the results. Make sure to include every status you are interested in. Otherwise, the query will return an empty list.
-    /// * `include_priorities` - A slice of `IncidentPriority` values to include in the results. Make sure to include every priority you are interested in. Otherwise, the query will return an empty list.
-    /// * `include_sources` - A slice of `IncidentSource` values to include in the results.
-    /// * `limit` - The maximum number of incidents to return.
-    /// * `offset` - The number of incidents to skip before returning the results.
-    /// * `from_date` - The start date to filter incidents by.
-    /// * `to_date` - The end date to filter incidents by.
+    /// * `opts` - The options to filter and order the incidents.
     ///
     /// # Returns
     ///

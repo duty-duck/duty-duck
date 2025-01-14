@@ -1,14 +1,14 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
-use sqlx::PgPool;
+use sqlx::{PgPool, Row};
 use uuid::Uuid;
 
 use crate::domain::{
     entities::task::{BoundaryTask, TaskId, TaskStatus},
     ports::{
-        task_repository::{ListTasksOutput, TaskRepository},
+        task_repository::{ListTasksOpts, ListTasksOutput, TaskRepository},
         transactional_repository::TransactionalRepository,
-    },
+    }, use_cases::{shared::OrderDirection, tasks::OrderTasksBy},
 };
 use anyhow::*;
 
@@ -59,37 +59,80 @@ impl TaskRepository for TaskRepositoryAdapter {
         Ok(task)
     }
 
-    async fn list_tasks(
+    async fn list_tasks<'a>(
         &self,
         organization_id: Uuid,
-        include_statuses: Vec<TaskStatus>,
-        query: String,
-        limit: u32,
-        offset: u32,
+        opts: ListTasksOpts<'a>,
     ) -> anyhow::Result<ListTasksOutput> {
         let mut tx = self.begin_transaction().await?;
-        let query = format!("%{query}%");
-        let statuses = include_statuses
-            .into_iter()
-            .map(|s| s as i32)
+        let query = format!("%{}%", opts.query);
+        let statuses = opts.include_statuses
+            .iter()
+            .map(|s| *s as i32)
             .collect::<Vec<_>>();
+        let metadata_filter = serde_json::to_value(opts.metadata_filter.items)?;
 
-        let rows = sqlx::query!(
+        let rows = sqlx::query(&format!(
             r#"
+            WITH filter_conditions AS (
+                SELECT 
+                    key,
+                    jsonb_array_elements_text(value) as filter_value
+                FROM jsonb_each($6::jsonb) -- Replace with your filter object
+            )
+
             SELECT *, COUNT(*) OVER() as "filtered_count!" 
-            FROM tasks
+            FROM tasks t
             WHERE organization_id = $1
-            AND ($2::integer[] = '{}' OR status = ANY($2))
+
+            -- Filter by status
+            AND ($2::integer[] = '{{}}' OR status = ANY($2))
+
+            -- Filter by name or description
             AND ($3 = '' OR name ILIKE $3 OR description ILIKE $3)
-            ORDER BY name
+
+            -- filter by metadata
+            AND (
+                $6::jsonb = '{{}}'::jsonb OR
+                NOT EXISTS (
+                    SELECT 1 FROM filter_conditions fc
+                    WHERE NOT EXISTS (
+                        SELECT 1 FROM jsonb_each(t.metadata->'records') m
+                        WHERE m.key = fc.key
+                        -- the braces are escaped here because we are in a format! macro
+                        AND (m.value #>> '{{}}') = fc.filter_value
+                    )
+                )
+            )
+
+            -- Order by the chosen column and direction
+            ORDER BY {} {}
+
+            -- Limit and offset
             LIMIT $4 OFFSET $5
             "#,
-            organization_id,
-            &statuses,
-            &query,
-            limit as i64,
-            offset as i64,
-        )
+            match opts.order_by {
+                OrderTasksBy::CreatedAt => "created_at",
+                OrderTasksBy::Name => "name",
+                OrderTasksBy::LastStatusChangeAt => "last_status_change_at",
+            },
+            match opts.order_direction {
+                OrderDirection::Asc => "ASC",
+                OrderDirection::Desc => "DESC",
+            }
+        ))
+        // $1: organization_id
+        .bind(organization_id)
+        // $2: statuses
+        .bind(&statuses)
+        // $3: query
+        .bind(&query)
+        // $4: limit
+        .bind(opts.limit as i64)
+        // $5: offset
+        .bind(opts.offset as i64)
+        // $6: metadata filter
+        .bind(&metadata_filter)
         .fetch_all(&mut *tx)
         .await?;
 
@@ -104,27 +147,27 @@ impl TaskRepository for TaskRepositoryAdapter {
 
         let total_filtered_count = rows
             .first()
-            .map(|row| row.filtered_count)
+            .map(|row| row.get::<i64, _>("filtered_count"))
             .unwrap_or_default();
 
         let tasks = rows
             .into_iter()
             .map(|row| BoundaryTask {
-                organization_id: row.organization_id,
-                id: TaskId::new(row.id).expect("Invalid task ID in database"),
-                name: row.name,
-                description: row.description,
-                status: TaskStatus::from(row.status),
-                previous_status: row.previous_status.map(TaskStatus::from),
-                last_status_change_at: row.last_status_change_at,
-                cron_schedule: row.cron_schedule,
-                next_due_at: row.next_due_at,
-                start_window_seconds: row.start_window_seconds,
-                lateness_window_seconds: row.lateness_window_seconds,
-                heartbeat_timeout_seconds: row.heartbeat_timeout_seconds,
-                created_at: row.created_at,
-                metadata: row.metadata.into(),
-                schedule_timezone: row.schedule_timezone,
+                organization_id: row.get("organization_id"),
+                id: TaskId::new(row.get("id")).expect("Invalid task ID in database"),
+                name: row.get("name"),
+                description: row.get("description"),
+                status: row.get::<i16, _>("status").into(),
+                previous_status: row.get::<Option<i16>, _>("previous_status").map(|s| s.into()),
+                last_status_change_at: row.get("last_status_change_at"),
+                cron_schedule: row.get("cron_schedule"),
+                next_due_at: row.get("next_due_at"),
+                start_window_seconds: row.get("start_window_seconds"),
+                lateness_window_seconds: row.get("lateness_window_seconds"),
+                heartbeat_timeout_seconds: row.get("heartbeat_timeout_seconds"),
+                created_at: row.get("created_at"),
+                metadata: row.get::<Option<serde_json::Value>, _>("metadata").into(),
+                schedule_timezone: row.get("schedule_timezone"),
             })
             .collect();
 

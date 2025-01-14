@@ -7,7 +7,7 @@ use uuid::Uuid;
 use crate::domain::{
     entities::task::{BoundaryTask, TaskId, TaskStatus},
     ports::{
-        task_repository::{ListTasksOutput, TaskRepository},
+        task_repository::{ListTasksOpts, ListTasksOutput, TaskRepository},
         transactional_repository::{TransactionMock, TransactionalRepository},
     },
 };
@@ -57,13 +57,10 @@ impl TaskRepository for TaskRepositoryMock {
             .cloned())
     }
 
-    async fn list_tasks(
+    async fn list_tasks<'a>(
         &self,
         organization_id: Uuid,
-        include_statuses: Vec<TaskStatus>,
-        query: String,
-        limit: u32,
-        offset: u32,
+        opts: ListTasksOpts<'a>,
     ) -> anyhow::Result<ListTasksOutput> {
         let state = self.state.lock().await;
 
@@ -75,13 +72,13 @@ impl TaskRepository for TaskRepositoryMock {
         let filtered_tasks: Vec<BoundaryTask> = state
             .iter()
             .filter(|t| t.organization_id == organization_id)
-            .filter(|t| include_statuses.is_empty() || include_statuses.contains(&t.status))
+            .filter(|t| opts.include_statuses.is_empty() || opts.include_statuses.contains(&t.status))
             .filter(|t| {
-                query.is_empty()
-                    || t.name.to_lowercase().contains(&query.to_lowercase())
+                opts.query.is_empty()
+                    || t.name.to_lowercase().contains(&opts.query.to_lowercase())
                     || t.description
                         .as_ref()
-                        .map(|d| d.to_lowercase().contains(&query.to_lowercase()))
+                        .map(|d| d.to_lowercase().contains(&opts.query.to_lowercase()))
                         .unwrap_or(false)
             })
             .cloned()
@@ -89,8 +86,8 @@ impl TaskRepository for TaskRepositoryMock {
 
         let total_filtered_tasks = filtered_tasks.len() as u32;
 
-        let start = offset as usize;
-        let end = (offset + limit) as usize;
+        let start = opts.offset as usize;
+        let end = (opts.offset + opts.limit) as usize;
         let tasks =
             filtered_tasks[start.min(filtered_tasks.len())..end.min(filtered_tasks.len())].to_vec();
 
