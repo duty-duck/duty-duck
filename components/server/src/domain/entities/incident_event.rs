@@ -37,7 +37,7 @@ pub enum IncidentEventPayload {
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct CommentPayload {
-    editorjs_data: serde_json::Value 
+    editorjs_data: serde_json::Value,
 }
 
 #[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]
@@ -46,7 +46,6 @@ pub struct CommentPayload {
 pub struct AcknowledgedEventPayload {
     pub user_id: Uuid,
 }
-
 
 #[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]
 #[serde(rename_all = "camelCase")]
@@ -87,6 +86,12 @@ pub enum IncidentEventType {
     MonitorSwitchedToRecovering = 7,
     MonitorSwitchedToSuspicious = 8,
     MonitorSwitchedToDown = 9,
+    TaskSwitchedToDue = 10,
+    TaskSwitchedToLate = 11,
+    TaskSwitchedToAbsent = 12,
+    TaskRunStarted = 14,
+    TaskRunIsDead = 15,
+    TaskRunFailed = 16,
 }
 
 impl From<i16> for IncidentEventType {
@@ -102,6 +107,12 @@ impl From<i16> for IncidentEventType {
             7 => Self::MonitorSwitchedToRecovering,
             8 => Self::MonitorSwitchedToSuspicious,
             9 => Self::MonitorSwitchedToDown,
+            10 => Self::TaskSwitchedToDue,
+            11 => Self::TaskSwitchedToLate,
+            12 => Self::TaskSwitchedToAbsent,
+            14 => Self::TaskRunStarted,
+            15 => Self::TaskRunIsDead,
+            16 => Self::TaskRunFailed,
             _ => panic!("invalid IncidentEventType discriminant: {value}"),
         }
     }

@@ -3,4 +3,4 @@
 /**
  * An enum the can hold one of the different incident types at runtime
  */
-export type IncidentSource = { "type": "HttpMonitor", id: string, };
+export type IncidentSource = { "type": "HttpMonitor", id: string, } | { "type": "Task", id: string, } | { "type": "TaskRun", id: string, };

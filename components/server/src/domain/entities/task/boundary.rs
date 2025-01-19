@@ -1,9 +1,9 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+use sqlx::FromRow;
 use ts_rs::TS;
 use utoipa::ToSchema;
 use uuid::Uuid;
-use sqlx::FromRow;
 
 use crate::domain::entities::entity_metadata::EntityMetadata;
 
@@ -15,8 +15,11 @@ use super::id::TaskId;
 #[serde(rename_all = "camelCase")]
 #[schema(as = Task)]
 pub struct BoundaryTask {
+    /// A random, unique identifier for the task.
+    pub id: Uuid,
+    /// A unique, user-friendly identifier for the task.
     #[ts(type = "string")]
-    pub id: TaskId,
+    pub user_id: TaskId,
     pub organization_id: Uuid,
     pub name: String,
     pub description: Option<String>,

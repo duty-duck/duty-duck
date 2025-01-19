@@ -1,5 +1,8 @@
 use crate::domain::{
-    entities::{entity_metadata::{FilterableMetadata, FilterableMetadataItem, FilterableMetadataValue}, incident::*},
+    entities::{
+        entity_metadata::{FilterableMetadata, FilterableMetadataItem, FilterableMetadataValue},
+        incident::*,
+    },
     ports::incident_repository::{IncidentRepository, ListIncidentsOpts, ListIncidentsOutput},
     use_cases::{incidents::OrderIncidentsBy, shared::OrderDirection},
 };
@@ -28,6 +31,8 @@ impl IncidentRepository for IncidentRepositoryAdapter {
         };
         let (incident_source_type, incident_source_id) = match incident.source {
             IncidentSource::HttpMonitor { id } => (IncidentSourceType::HttpMonitor as i16, id),
+            IncidentSource::Task { id } => (IncidentSourceType::Task as i16, id),
+            IncidentSource::TaskRun { id } => (IncidentSourceType::TaskRun as i16, id),
         };
         let new_incident_id = sqlx::query!(
             "insert into incidents (
@@ -86,15 +91,12 @@ impl IncidentRepository for IncidentRepositoryAdapter {
             .iter()
             .map(|s| *s as i32)
             .collect::<Vec<_>>();
-        let metadata_filter = serde_json::to_value(opts.metadata_filter.items)?;
+        let metadata_filter = serde_json::to_value(&opts.metadata_filter.items)?;
+
         // Used to retrieve incidents by speciifc sources
-        let http_monitor_sources_ids = opts
-            .include_sources
-            .iter()
-            .map(|s| match s {
-                IncidentSource::HttpMonitor { id } => *id,
-            })
-            .collect::<Vec<_>>();
+        let http_monitor_sources_ids = opts.include_http_monitor_ids();
+        let task_sources_ids = opts.include_task_ids();
+        let task_run_sources_ids = opts.include_task_run_ids();
 
         let total_count = sqlx::query!(
             "SELECT count(DISTINCT id) FROM incidents WHERE organization_id = $1",
@@ -123,11 +125,27 @@ impl IncidentRepository for IncidentRepositoryAdapter {
             -- Filter by priority
             AND priority IN (SELECT unnest($3::integer[]))
 
-            -- Filter by http monitor ids
+            -- Filter by sources (any of the sources)
             AND (
-                $7::uuid[] = '{{}}' OR
-                (i.incident_source_type = $6 AND i.incident_source_id = ANY($7::uuid[]))
+                -- Filter by http monitor ids
+                (
+                    $7::uuid[] = '{{}}' OR
+                    (i.incident_source_type = $6 AND i.incident_source_id = ANY($7::uuid[]))
+                )
+                
+                -- Filter by task ids
+                OR (
+                    $12::uuid[] = '{{}}' OR
+                    (i.incident_source_type = $11 AND i.incident_source_id = ANY($12::uuid[]))
+                )
+
+                -- Filter by task run ids
+                OR (
+                    $14::uuid[] = '{{}}' OR
+                    (i.incident_source_type = $13 AND i.incident_source_id = ANY($14::uuid[]))
+                )
             )
+            -- [end of filter by sources]
 
             -- Filter by date (ongoing incidents are always returned)
             AND (
@@ -179,6 +197,14 @@ impl IncidentRepository for IncidentRepositoryAdapter {
         .bind(opts.to_date)
         // $10: metadata filter
         .bind(&metadata_filter)
+        // $11: task incident_source_type
+        .bind(IncidentSourceType::Task as i16)
+        // $12: task ids
+        .bind(&task_sources_ids)
+        // $13: task run incident_source_type
+        .bind(IncidentSourceType::TaskRun as i16)
+        // $14: task run ids
+        .bind(&task_run_sources_ids)
         .fetch_all(transaction.as_mut())
         .await?;
 

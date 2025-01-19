@@ -529,7 +529,10 @@ async fn test_handle_ping_response_updates_incident_cause_when_error_code_change
     }
 
     let switch_to_down_event = events.last().expect("Event should exist");
-    assert_eq!(switch_to_down_event.event_type, IncidentEventType::MonitorSwitchedToDown);
+    assert_eq!(
+        switch_to_down_event.event_type,
+        IncidentEventType::MonitorSwitchedToDown
+    );
 
     Ok(())
 }
@@ -649,8 +652,13 @@ async fn test_handle_ping_response_http_code_500_to_recovering() -> anyhow::Resu
         panic!("Event payload should be MonitorPing");
     }
 
-    let switch_to_recovering_event = events.last().expect("Switch to recovering event should exist");
-    assert_eq!(switch_to_recovering_event.event_type, IncidentEventType::MonitorSwitchedToRecovering);
+    let switch_to_recovering_event = events
+        .last()
+        .expect("Switch to recovering event should exist");
+    assert_eq!(
+        switch_to_recovering_event.event_type,
+        IncidentEventType::MonitorSwitchedToRecovering
+    );
 
     Ok(())
 }
@@ -905,8 +913,13 @@ async fn test_handle_ping_response_suspicious_with_ongoing_incident() -> anyhow:
             panic!("Event payload should be MonitorPing");
         }
 
-        let switch_to_suspicious_event = events.last().expect("Switch to suspicious event should exist");
-        assert_eq!(switch_to_suspicious_event.event_type, IncidentEventType::MonitorSwitchedToSuspicious);
+        let switch_to_suspicious_event = events
+            .last()
+            .expect("Switch to suspicious event should exist");
+        assert_eq!(
+            switch_to_suspicious_event.event_type,
+            IncidentEventType::MonitorSwitchedToSuspicious
+        );
     } else {
         panic!("Incident cause should be HttpMonitorIncidentCause");
     }

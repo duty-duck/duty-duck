@@ -1,5 +1,5 @@
-use chrono::{DateTime, Utc};
 use crate::domain::use_cases::tasks::CreateTaskCommand;
+use chrono::{DateTime, Utc};
 
 use super::*;
 
@@ -26,21 +26,25 @@ pub struct HealthyTaskAggregate {
 }
 
 impl HealthyTaskAggregate {
-    pub fn new(organization_id: Uuid, command: CreateTaskCommand) -> Result<Self, TaskAggregateError> {
+    pub fn new(
+        organization_id: Uuid,
+        command: CreateTaskCommand,
+    ) -> Result<Self, TaskAggregateError> {
         let task = HealthyTask::new(organization_id, command)?;
-        Ok(Self { task, last_task_run: None })
+        Ok(Self {
+            task,
+            last_task_run: None,
+        })
     }
 
     /// State transition: Healthy -> Running
     /// Returns the new running task aggregate and the task run that was in the healthy state
-    pub fn start(self, now: DateTime<Utc>) -> Result<(RunningTaskAggregate, Option<HealthyTaskRun>), TaskAggregateError> {
+    pub fn start(
+        self,
+        now: DateTime<Utc>,
+    ) -> Result<(RunningTaskAggregate, Option<HealthyTaskRun>), TaskAggregateError> {
         let task = self.task.start(now)?;
-        let task_run = RunningTaskRun::new(
-            *task.base().organization_id(),
-            task.base().id().clone(),
-            now,
-            *task.base().heartbeat_timeout(),
-        );
+        let task_run = RunningTaskRun::new(task.base(), now);
         Ok((RunningTaskAggregate { task, task_run }, self.last_task_run))
     }
 
@@ -50,4 +54,3 @@ impl HealthyTaskAggregate {
         Ok(DueTaskAggregate { task })
     }
 }
-

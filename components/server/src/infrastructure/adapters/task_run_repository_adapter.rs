@@ -5,7 +5,7 @@ use uuid::Uuid;
 
 use crate::domain::{
     entities::{
-        task::{BoundaryTask, TaskId},
+        task::BoundaryTask,
         task_run::{BoundaryTaskRun, TaskRunStatus},
     },
     ports::task_run_repository::{ListTaskRunsOpts, ListTaskRunsOutput, TaskRunRepository},
@@ -51,14 +51,15 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
             r#"
             SELECT *, COUNT(*) OVER () as "filtered_count!"
             FROM task_runs 
-            WHERE organization_id = $1
-            AND task_id = $2
-            AND ($3::smallint[] = '{}' OR status = ANY($3))
+            WHERE 
+                organization_id = $1
+                AND task_id = $2
+                AND ($3::smallint[] = '{}' OR status = ANY($3))
             ORDER BY started_at DESC
             LIMIT $4 OFFSET $5
             "#,
             organization_id,
-            opts.task_id.as_str(),
+            opts.task_id,
             &statuses,
             opts.limit as i64,
             opts.offset as i64,
@@ -68,9 +69,11 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
         .context("Failed to list task runs")?;
 
         let total_count = sqlx::query!(
-            "SELECT count(*) FROM task_runs WHERE organization_id = $1 AND task_id = $2",
+            "SELECT count(*) FROM task_runs 
+             WHERE 
+                organization_id = $1 AND task_id = $2",
             organization_id,
-            opts.task_id.as_str(),
+            opts.task_id,
         )
         .fetch_one(transaction.as_mut())
         .await?
@@ -86,7 +89,8 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
             .into_iter()
             .map(|r| BoundaryTaskRun {
                 organization_id: r.organization_id,
-                task_id: r.task_id.into(),
+                task_id: r.task_id,
+                task_user_id: r.task_user_id.into(),
                 status: r.status.into(),
                 started_at: r.started_at,
                 updated_at: r.updated_at,
@@ -110,7 +114,7 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
         &self,
         transaction: &mut Self::Transaction,
         organization_id: Uuid,
-        task_id: &TaskId,
+        task_id: Uuid,
         started_at: DateTime<Utc>,
     ) -> anyhow::Result<Option<BoundaryTaskRun>> {
         sqlx::query_as!(
@@ -118,12 +122,13 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
             r#"
             SELECT *
             FROM task_runs
-            WHERE organization_id = $1
-            AND task_id = $2
-            AND started_at = $3
+            WHERE 
+                organization_id = $1
+                AND task_id = $2
+                AND started_at = $3
             "#,
             organization_id,
-            task_id.as_str(),
+            task_id,
             started_at,
         )
         .fetch_optional(transaction.as_mut())
@@ -141,6 +146,7 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
             INSERT INTO task_runs (
                 organization_id,
                 task_id,
+                task_user_id,
                 status,
                 started_at,
                 completed_at,
@@ -149,24 +155,25 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
                 last_heartbeat_at,
                 heartbeat_timeout_seconds
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             ON CONFLICT (organization_id, task_id, started_at) DO UPDATE SET
-                status = $3,
-                completed_at = $5,
-                exit_code = $6,
-                error_message = $7,
-                last_heartbeat_at = $8,
-                heartbeat_timeout_seconds = $9
+                status = $4,
+                completed_at = $6,
+                exit_code = $7,
+                error_message = $8,
+                last_heartbeat_at = $9,
+                heartbeat_timeout_seconds = $10
             "#,
-            task_run.organization_id, // $1
-            task_run.task_id.as_str(), // $2
-            task_run.status as i16, // $3
-            task_run.started_at, // $4
-            task_run.completed_at, // $5
-            task_run.exit_code, // $6
-            task_run.error_message, // $7
-            task_run.last_heartbeat_at, // $8
-            task_run.heartbeat_timeout_seconds, // $9
+            task_run.organization_id,           // $1
+            task_run.task_id,                   // $2
+            task_run.task_user_id.as_str(),     // $3
+            task_run.status as i16,             // $4
+            task_run.started_at,                // $5
+            task_run.completed_at,              // $6
+            task_run.exit_code,                 // $7
+            task_run.error_message,             // $8
+            task_run.last_heartbeat_at,         // $9
+            task_run.heartbeat_timeout_seconds, // $10
         )
         .execute(transaction.as_mut())
         .await
@@ -201,7 +208,9 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
                 task_runs.*
             FROM task_runs
             INNER JOIN tasks ON task_runs.organization_id = tasks.organization_id AND task_runs.task_id = tasks.id
-            WHERE (task_runs.last_heartbeat_at < ($1::timestamptz - INTERVAL '1 second' * task_runs.heartbeat_timeout_seconds)) AND task_runs.status = $2
+            WHERE 
+                (task_runs.last_heartbeat_at < ($1::timestamptz - INTERVAL '1 second' * task_runs.heartbeat_timeout_seconds)) 
+                AND task_runs.status = $2
             ORDER BY task_runs.last_heartbeat_at ASC
             LIMIT $3
             "#,
@@ -217,7 +226,8 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
             .into_iter()
             .map(|r| {
                 let task = BoundaryTask {
-                    id: r.task_id.clone().into(),
+                    id: r.task_id,
+                    user_id: r.task_user_id.clone().into(),
                     status: r.task_status.into(),
                     organization_id: r.organization_id,
                     name: r.task_name,
@@ -236,7 +246,8 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
 
                 let task_run = BoundaryTaskRun {
                     organization_id: r.organization_id,
-                    task_id: r.task_id.into(),
+                    task_id: r.task_id,
+                    task_user_id: r.task_user_id.into(),
                     status: r.status.into(),
                     started_at: r.started_at,
                     updated_at: r.updated_at,

@@ -2,13 +2,19 @@ use async_trait::async_trait;
 use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
-use crate::domain::{entities::{entity_metadata::MetadataFilter, task::{BoundaryTask, TaskId, TaskStatus}}, use_cases::{shared::OrderDirection, tasks::OrderTasksBy}};
 use super::transactional_repository::TransactionalRepository;
+use crate::domain::{
+    entities::{
+        entity_metadata::MetadataFilter,
+        task::{BoundaryTask, TaskId, TaskStatus},
+    },
+    use_cases::{shared::OrderDirection, tasks::OrderTasksBy},
+};
 
 #[async_trait]
 pub trait TaskRepository: TransactionalRepository + Clone + Send + Sync + 'static {
     /// Get a single task by organization ID and task ID
-    async fn get_task(
+    async fn get_task_by_user_id(
         &self,
         transaction: &mut Self::Transaction,
         organization_id: Uuid,
@@ -26,7 +32,7 @@ pub trait TaskRepository: TransactionalRepository + Clone + Send + Sync + 'stati
     async fn upsert_task(
         &self,
         transaction: &mut Self::Transaction,
-        task: BoundaryTask
+        task: BoundaryTask,
     ) -> anyhow::Result<TaskId>;
 
     /// List scheduled tasks that should transition to Due
@@ -36,7 +42,7 @@ pub trait TaskRepository: TransactionalRepository + Clone + Send + Sync + 'stati
         now: DateTime<Utc>,
         limit: u32,
     ) -> anyhow::Result<Vec<BoundaryTask>>;
-    
+
     /// List due tasks that should transition to Late
     async fn list_due_tasks_running_late(
         &self,
@@ -52,7 +58,6 @@ pub trait TaskRepository: TransactionalRepository + Clone + Send + Sync + 'stati
         now: DateTime<Utc>,
         limit: u32,
     ) -> anyhow::Result<Vec<BoundaryTask>>;
-
 }
 
 #[derive(Clone, Debug, Default)]
@@ -66,9 +71,8 @@ pub struct ListTasksOpts<'a> {
     pub order_direction: OrderDirection,
 }
 
-
 pub struct ListTasksOutput {
     pub tasks: Vec<BoundaryTask>,
     pub total_tasks: u32,
     pub total_filtered_tasks: u32,
-} 
+}

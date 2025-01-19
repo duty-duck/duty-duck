@@ -6,10 +6,14 @@ use crate::domain::ports::file_storage::{FileStorage, FileStorageKey};
 #[derive(Clone)]
 pub struct FileStorageMock;
 
-
 #[async_trait]
 impl FileStorage for FileStorageMock {
-    async fn store_file(&self, _file_storage_key: FileStorageKey, _content_type: &str, _data: Vec<u8>) -> anyhow::Result<()> {
+    async fn store_file(
+        &self,
+        _file_storage_key: FileStorageKey,
+        _content_type: &str,
+        _data: Vec<u8>,
+    ) -> anyhow::Result<()> {
         Ok(())
     }
 

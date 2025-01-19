@@ -58,7 +58,7 @@ impl TaskRunRepository for TaskRunRepositoryMock {
 
         let filtered_runs: Vec<BoundaryTaskRun> = state
             .iter()
-            .filter(|r| r.organization_id == organization_id && r.task_id == *opts.task_id)
+            .filter(|r| r.organization_id == organization_id && r.task_id == opts.task_id)
             .filter(|r| {
                 opts.include_statuses.is_empty() || opts.include_statuses.contains(&r.status)
             })
@@ -79,7 +79,7 @@ impl TaskRunRepository for TaskRunRepositoryMock {
         &self,
         _transaction: &mut Self::Transaction,
         organization_id: Uuid,
-        task_id: &TaskId,
+        task_id: Uuid,
         started_at: DateTime<Utc>,
     ) -> anyhow::Result<Option<BoundaryTaskRun>> {
         let state = self.state.lock().await;
@@ -87,7 +87,7 @@ impl TaskRunRepository for TaskRunRepositoryMock {
             .iter()
             .find(|r| {
                 r.organization_id == organization_id
-                    && r.task_id == *task_id
+                    && r.task_id == task_id
                     && r.started_at == started_at
             })
             .cloned())
@@ -132,10 +132,16 @@ mod tests {
 
     use super::*;
 
-    fn create_test_task_run(org_id: Uuid, task_id: &str, status: TaskRunStatus) -> BoundaryTaskRun {
+    fn create_test_task_run(
+        org_id: Uuid,
+        task_id: Uuid,
+        task_user_id: &str,
+        status: TaskRunStatus,
+    ) -> BoundaryTaskRun {
         BoundaryTaskRun {
             organization_id: org_id,
-            task_id: TaskId::new(task_id.to_string()).expect("Valid test task ID"),
+            task_id,
+            task_user_id: TaskId::new(task_user_id.to_string()).expect("Valid test task ID"),
             status,
             started_at: Utc::now(),
             updated_at: Utc::now(),
@@ -152,15 +158,16 @@ mod tests {
     async fn test_create_task_run_updates_state() -> anyhow::Result<()> {
         let repo = TaskRunRepositoryMock::new();
         let org_id = Uuid::new_v4();
+        let task_id = Uuid::new_v4();
         let mut tx = repo.begin_transaction().await?;
 
-        let task_run = create_test_task_run(org_id, "test-task", TaskRunStatus::Running);
+        let task_run = create_test_task_run(org_id, task_id, "test-task", TaskRunStatus::Running);
         repo.upsert_task_run(&mut tx, task_run.clone()).await?;
 
         let state = repo.state.lock().await;
         assert_eq!(state.len(), 1);
         assert_eq!(state[0].organization_id, org_id);
-        assert_eq!(state[0].task_id.as_str(), "test-task");
+        assert_eq!(state[0].task_user_id.as_str(), "test-task");
         assert_eq!(state[0].status, TaskRunStatus::Running);
 
         Ok(())
@@ -170,13 +177,14 @@ mod tests {
     async fn test_list_task_runs_with_status_filter() -> anyhow::Result<()> {
         let repo = TaskRunRepositoryMock::new();
         let org_id = Uuid::new_v4();
+        let task_id = Uuid::new_v4();
         let mut tx = repo.begin_transaction().await?;
 
         // Create task runs with different statuses
         let task_runs = vec![
-            create_test_task_run(org_id, "test-task", TaskRunStatus::Running),
-            create_test_task_run(org_id, "test-task", TaskRunStatus::Finished),
-            create_test_task_run(org_id, "test-task", TaskRunStatus::Failed),
+            create_test_task_run(org_id, task_id, "test-task", TaskRunStatus::Running),
+            create_test_task_run(org_id, task_id, "test-task", TaskRunStatus::Finished),
+            create_test_task_run(org_id, task_id, "test-task", TaskRunStatus::Failed),
         ];
 
         for task_run in task_runs {
@@ -188,7 +196,7 @@ mod tests {
                 &mut tx,
                 org_id,
                 ListTaskRunsOpts {
-                    task_id: &TaskId::new("test-task".to_string()).unwrap(),
+                    task_id,
                     include_statuses: &[TaskRunStatus::Running],
                     limit: 10,
                     offset: 0,
@@ -206,9 +214,11 @@ mod tests {
     async fn test_update_task_run() -> anyhow::Result<()> {
         let repo = TaskRunRepositoryMock::new();
         let org_id = Uuid::new_v4();
+        let task_id = Uuid::new_v4();
         let mut tx = repo.begin_transaction().await?;
 
-        let mut task_run = create_test_task_run(org_id, "test-task", TaskRunStatus::Running);
+        let mut task_run =
+            create_test_task_run(org_id, task_id, "test-task", TaskRunStatus::Running);
         repo.upsert_task_run(&mut tx, task_run.clone()).await?;
 
         task_run.status = TaskRunStatus::Finished;

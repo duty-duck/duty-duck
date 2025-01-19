@@ -5,9 +5,9 @@ mod http_monitors_router;
 mod incidents_router;
 mod openapi;
 mod organizations_router;
+mod tasks_router;
 mod user_devices_router;
 mod users_router;
-mod tasks_router;
 
 use std::time::Duration;
 

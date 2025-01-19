@@ -102,7 +102,7 @@ pub struct WriteOrganizationRequest<'a> {
     pub url: Option<String>,
     pub domains: Vec<String>,
     pub attributes: AttributeMap,
-    pub realm: &'a str
+    pub realm: &'a str,
 }
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
@@ -142,7 +142,7 @@ impl AttributeMap {
             .insert(key.to_string(), vec![value.to_string()])
             .and_then(|vec| vec.into_iter().next())
     }
-    
+
     #[allow(unused)]
     pub fn put_json<T: Serialize>(&mut self, key: &str, value: &T) {
         if let Ok(v) = serde_json::to_string(value) {

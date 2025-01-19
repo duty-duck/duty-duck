@@ -19,7 +19,7 @@ pub struct PingResponse {
     #[allow(unused)]
     pub response_body_size_bytes: u64,
     pub response_body_content: Option<Vec<u8>>,
-    pub screenshot: Option<Screenshot>
+    pub screenshot: Option<Screenshot>,
 }
 
 impl std::fmt::Debug for PingResponse {

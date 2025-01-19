@@ -46,33 +46,37 @@ where
         }
         IncidentStatus::Ongoing => {
             incident_repo
-            .update_incident(
-                transaction,
-                Incident {
-                    status: IncidentStatus::Resolved,
-                    resolved_at: Some(Utc::now()),
-                    ..incident.clone()
-                },
-            )
-            .await
-            .context("Failed to resolve incident")?;
-    
-        incident_notification_repo
-            .cancel_all_notifications_for_incident(transaction, incident.organization_id, incident.id)
-            .await
-            .context("Failed to cancel pending notifications for incident")?;
-    
-        let event = IncidentEvent {
-            organization_id: incident.organization_id,
-            incident_id: incident.id,
-            user_id: None,
-            created_at: Utc::now(),
-            event_type: IncidentEventType::Resolution,
-            event_payload: None,
-        };
-    
-        incident_event_repo
-            .create_incident_event(transaction, event)
+                .update_incident(
+                    transaction,
+                    Incident {
+                        status: IncidentStatus::Resolved,
+                        resolved_at: Some(Utc::now()),
+                        ..incident.clone()
+                    },
+                )
+                .await
+                .context("Failed to resolve incident")?;
+
+            incident_notification_repo
+                .cancel_all_notifications_for_incident(
+                    transaction,
+                    incident.organization_id,
+                    incident.id,
+                )
+                .await
+                .context("Failed to cancel pending notifications for incident")?;
+
+            let event = IncidentEvent {
+                organization_id: incident.organization_id,
+                incident_id: incident.id,
+                user_id: None,
+                created_at: Utc::now(),
+                event_type: IncidentEventType::Resolution,
+                event_payload: None,
+            };
+
+            incident_event_repo
+                .create_incident_event(transaction, event)
                 .await
                 .context("Failed to create incident event")?;
 

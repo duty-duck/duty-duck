@@ -5,16 +5,11 @@ pub struct AbsentTaskAggregate {
     pub(super) task: AbsentTask,
 }
 
-
 impl AbsentTaskAggregate {
     pub fn start(self, now: DateTime<Utc>) -> Result<RunningTaskAggregate, TaskAggregateError> {
         let task = self.task.start(now)?;
-        let task_run = RunningTaskRun::new(
-            *task.base().organization_id(),
-            task.base().id().clone(),
-            now,
-            *task.base().heartbeat_timeout(),
-        );
+
+        let task_run = RunningTaskRun::new(task.base(), now);
         Ok(RunningTaskAggregate { task, task_run })
     }
 }

@@ -5,7 +5,9 @@ use utoipa::{IntoParams, ToSchema};
 
 use crate::domain::{
     entities::{
-        authorization::{AuthContext, Permission}, entity_metadata::MetadataFilter, http_monitor::{HttpMonitor, HttpMonitorStatus}
+        authorization::{AuthContext, Permission},
+        entity_metadata::MetadataFilter,
+        http_monitor::{HttpMonitor, HttpMonitorStatus},
     },
     ports::http_monitor_repository::{HttpMonitorRepository, ListHttpMonitorsOutput},
 };

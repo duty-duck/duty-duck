@@ -114,7 +114,9 @@ mod tests {
 
     use super::*;
     use crate::domain::entities::http_monitor::HttpMonitorErrorKind;
-    use crate::domain::entities::incident::{HttpMonitorIncidentCause, HttpMonitorIncidentCausePing, IncidentCause};
+    use crate::domain::entities::incident::{
+        HttpMonitorIncidentCause, HttpMonitorIncidentCausePing, IncidentCause,
+    };
     use crate::domain::entities::incident_notification::{
         IncidentNotificationPayload, IncidentNotificationType,
     };
@@ -141,6 +143,7 @@ mod tests {
                     previous_pings: HashSet::new(),
                 }),
                 incident_http_monitor_url: Some("https://example.com".to_string()),
+                incident_task_id: None,
             },
             send_sms: true,
             send_push_notification: true,

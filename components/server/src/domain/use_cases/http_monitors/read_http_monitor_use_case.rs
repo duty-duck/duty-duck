@@ -10,7 +10,8 @@ use crate::domain::{
         incident::{Incident, IncidentPriority, IncidentSource, IncidentStatus},
     },
     ports::{
-        http_monitor_repository::HttpMonitorRepository, incident_repository::{IncidentRepository, ListIncidentsOpts},
+        http_monitor_repository::HttpMonitorRepository,
+        incident_repository::{IncidentRepository, ListIncidentsOpts},
     },
 };
 
@@ -67,7 +68,7 @@ where
                 include_sources: &sources,
                 limit: 1,
                 ..Default::default()
-            }
+            },
         )
         .await?
         .incidents

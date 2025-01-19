@@ -14,7 +14,10 @@ use crate::{
     domain::{
         entities::authorization::AuthContext,
         use_cases::incidents::{
-            self, AcknowledgeIncidentError, CommentIncidentError, CommentIncidentRequest, GetIncidentError, GetIncidentResponse, GetIncidentTimelineError, GetIncidentTimelineParams, GetIncidentTimelineResponse, ListIncidentsError, ListIncidentsParams, ListIncidentsResponse
+            self, AcknowledgeIncidentError, CommentIncidentError, CommentIncidentRequest,
+            GetIncidentError, GetIncidentResponse, GetIncidentTimelineError,
+            GetIncidentTimelineParams, GetIncidentTimelineResponse, ListIncidentsError,
+            ListIncidentsParams, ListIncidentsResponse,
         },
     },
 };
@@ -22,7 +25,10 @@ use crate::{
 pub fn incidents_router() -> Router<ApplicationState> {
     Router::new()
         .route("/", get(list_incidents_handler))
-        .route("/filterable-metadata", get(get_filterable_incident_metadata_handler))
+        .route(
+            "/filterable-metadata",
+            get(get_filterable_incident_metadata_handler),
+        )
         .route("/{incident_id}", get(get_incident_handler))
         .route(
             "/{incident_id}/acknowledge",

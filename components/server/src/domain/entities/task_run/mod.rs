@@ -1,6 +1,5 @@
-
-mod model;
 mod boundary;
+mod model;
 
-pub use model::*;
 pub use boundary::*;
+pub use model::*;

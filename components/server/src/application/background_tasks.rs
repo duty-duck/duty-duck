@@ -1,5 +1,6 @@
 use std::sync::Arc;
 
+use chrono::Utc;
 use clap::*;
 
 use crate::domain::use_cases::{
@@ -37,8 +38,16 @@ pub async fn run_background_task(task: BackgroundTask) -> anyhow::Result<()> {
 
     match task {
         BackgroundTask::CreateMonthlyPartitions => {
-            application_state.adapters.task_run_repository.create_task_run_partition_for_month().await?;
-            application_state.adapters.incident_event_repository.create_incident_timeline_partition_for_month().await?;
+            application_state
+                .adapters
+                .task_run_repository
+                .create_task_run_partition_for_month()
+                .await?;
+            application_state
+                .adapters
+                .incident_event_repository
+                .create_incident_timeline_partition_for_month()
+                .await?;
         }
         BackgroundTask::HttpMonitors => {
             ExecuteHttpMonitorsUseCase {
@@ -112,9 +121,18 @@ pub async fn run_background_task(task: BackgroundTask) -> anyhow::Result<()> {
             CollectLateTasksUseCase {
                 task_repository: application_state.adapters.task_repository.clone(),
                 task_run_repository: application_state.adapters.task_run_repository.clone(),
+                incident_repository: application_state.adapters.incident_repository.clone(),
+                incident_event_repository: application_state
+                    .adapters
+                    .incident_event_repository
+                    .clone(),
+                incident_notification_repository: application_state
+                    .adapters
+                    .incident_notification_repository
+                    .clone(),
                 select_limit: config.late_tasks_collector.select_limit,
             }
-            .collect_late_tasks()
+            .collect_late_tasks(Utc::now())
             .await?;
         }
         BackgroundTask::CollectAbsentTasks => {

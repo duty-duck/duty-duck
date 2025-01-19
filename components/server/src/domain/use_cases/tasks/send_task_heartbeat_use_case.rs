@@ -5,7 +5,9 @@ use thiserror::Error;
 use crate::domain::{
     entities::{
         authorization::{AuthContext, Permission},
-        task::{get_task_aggregate, save_task_aggregate, RunningTaskAggregate, TaskAggregate, TaskId},
+        task::{
+            get_task_aggregate, save_task_aggregate, RunningTaskAggregate, TaskAggregate, TaskId,
+        },
     },
     ports::{task_repository::TaskRepository, task_run_repository::TaskRunRepository},
 };
@@ -49,13 +51,19 @@ where
 
     let running_aggregate: RunningTaskAggregate = match aggregate {
         None => return Err(SendTaskHeartbeatError::TaskNotFound),
-        Some(TaskAggregate::Running(t)) => {
-            t.receive_heartbeat(now).context("failed to receive heartbeat")?
-        },
+        Some(TaskAggregate::Running(t)) => t
+            .receive_heartbeat(now)
+            .context("failed to receive heartbeat")?,
         Some(_) => return Err(SendTaskHeartbeatError::TaskIsNotRunning),
     };
 
-    save_task_aggregate(task_repository, task_run_repository, &mut tx, TaskAggregate::Running(running_aggregate)).await?;
+    save_task_aggregate(
+        task_repository,
+        task_run_repository,
+        &mut tx,
+        TaskAggregate::Running(running_aggregate),
+    )
+    .await?;
     task_repository.commit_transaction(tx).await?;
 
     Ok(())

@@ -39,20 +39,29 @@ pub async fn get_user_profile(
     {
         Ok(organization) => organization,
         Err(ReadOrganizationError::OrganizationNotFound) => return Err(GetProfileError::NotFound),
-        Err(ReadOrganizationError::TechnicalFailure(e)) => return Err(GetProfileError::TechnicalFailure(e)),
+        Err(ReadOrganizationError::TechnicalFailure(e)) => {
+            return Err(GetProfileError::TechnicalFailure(e))
+        }
     };
 
-    let user = match user_repository.get_user(auth_context.active_user_id, false).await {
+    let user = match user_repository
+        .get_user(auth_context.active_user_id, false)
+        .await
+    {
         Ok(Some(user)) => user,
         Ok(None) => return Err(GetProfileError::NotFound),
         Err(e) => return Err(GetProfileError::TechnicalFailure(e)),
     };
 
-
-    let organization_roles = match organization_repository.list_organization_roles_for_user(organization.id, user.id).await {
+    let organization_roles = match organization_repository
+        .list_organization_roles_for_user(organization.id, user.id)
+        .await
+    {
         Ok(roles) => roles,
         Err(ReadOrganizationError::OrganizationNotFound) => return Err(GetProfileError::NotFound),
-        Err(ReadOrganizationError::TechnicalFailure(e)) => return Err(GetProfileError::TechnicalFailure(e)),
+        Err(ReadOrganizationError::TechnicalFailure(e)) => {
+            return Err(GetProfileError::TechnicalFailure(e))
+        }
     };
 
     let response = GetProfileResponse {

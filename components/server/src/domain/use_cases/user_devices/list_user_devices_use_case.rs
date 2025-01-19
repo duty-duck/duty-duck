@@ -16,14 +16,20 @@ pub enum ListUserDevicesError {
 #[derive(Serialize, TS)]
 #[ts(export)]
 pub struct ListUserDevicesResponse {
-    pub devices: Vec<UserDevice>
+    pub devices: Vec<UserDevice>,
 }
 
 pub async fn list_user_devices(
     auth_context: &AuthContext,
     repository: &impl UserDevicesRepository,
 ) -> Result<ListUserDevicesResponse, ListUserDevicesError> {
-    match repository.list_user_devices(auth_context.active_organization_id, auth_context.active_user_id).await {
+    match repository
+        .list_user_devices(
+            auth_context.active_organization_id,
+            auth_context.active_user_id,
+        )
+        .await
+    {
         Ok(devices) => Ok(ListUserDevicesResponse { devices }),
         Err(e) => Err(ListUserDevicesError::TechnicalFailure(e)),
     }

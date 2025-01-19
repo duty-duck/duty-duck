@@ -144,7 +144,7 @@ pub struct AppConfig {
     #[envconfig(nested = true)]
     pub absent_tasks_collector: AbsentTasksCollectorConfig,
     #[envconfig(nested = true)]
-    pub smtp: SmtpConfig
+    pub smtp: SmtpConfig,
 }
 
 impl AppConfig {

@@ -4,8 +4,24 @@ use utoipa_redoc::{Redoc, Servable};
 
 use super::*;
 use crate::domain::{
-    entities::{entity_metadata::EntityMetadata, http_monitor::*, incident::*, incident_event::*, task::{BoundaryTask, TaskId, TaskStatus}, task_run::{BoundaryTaskRun, TaskRunStatus}, user::UserNameInfo},
-    use_cases::{http_monitors::*, incidents::*, shared::OrderDirection, tasks::{FinishTaskCommand, GetTaskResponse, ListTaskRunsResponse, ListTasksResponse, NewTask, StartTaskCommand}},
+    entities::{
+        entity_metadata::EntityMetadata,
+        http_monitor::*,
+        incident::*,
+        incident_event::*,
+        task::{BoundaryTask, TaskId, TaskStatus},
+        task_run::{BoundaryTaskRun, TaskRunStatus},
+        user::UserNameInfo,
+    },
+    use_cases::{
+        http_monitors::*,
+        incidents::*,
+        shared::OrderDirection,
+        tasks::{
+            FinishTaskCommand, GetTaskResponse, ListTaskRunsResponse, ListTasksResponse, NewTask,
+            StartTaskCommand,
+        },
+    },
 };
 
 #[derive(OpenApi)]
@@ -79,5 +95,7 @@ async fn openapi_handler() -> impl IntoResponse {
 }
 
 pub fn redoc_router() -> Router<ApplicationState> {
-    Router::new().merge(Redoc::with_url("/redoc", ApiDoc::openapi())).route("/", get(openapi_handler))
+    Router::new()
+        .merge(Redoc::with_url("/redoc", ApiDoc::openapi()))
+        .route("/", get(openapi_handler))
 }

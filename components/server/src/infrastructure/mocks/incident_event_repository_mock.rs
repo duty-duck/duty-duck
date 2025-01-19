@@ -1,5 +1,6 @@
 use async_trait::async_trait;
 use chrono::Utc;
+use itertools::Itertools;
 use std::sync::Arc;
 use tokio::sync::Mutex;
 use uuid::Uuid;
@@ -67,6 +68,7 @@ impl IncidentEventRepository for IncidentEventRepositoryMock {
             .iter()
             .filter(|e| e.organization_id == organization_id && e.incident_id == incident_id)
             .cloned()
+            .sorted_by_key(|e| e.created_at)
             .collect();
 
         let start = offset as usize;

@@ -9,7 +9,9 @@ use crate::domain::{
         authorization::{AuthContext, Permission},
         incident_event::{CommentPayload, IncidentEvent, IncidentEventPayload, IncidentEventType},
     },
-    ports::{incident_event_repository::IncidentEventRepository, incident_repository::IncidentRepository},
+    ports::{
+        incident_event_repository::IncidentEventRepository, incident_repository::IncidentRepository,
+    },
 };
 
 #[derive(Debug, Deserialize, TS)]
@@ -28,7 +30,10 @@ pub enum CommentIncidentError {
     TechnicalFailure(#[from] anyhow::Error),
 }
 
-pub async fn comment_incident<IR: IncidentRepository, IER: IncidentEventRepository<Transaction = IR::Transaction>>(
+pub async fn comment_incident<
+    IR: IncidentRepository,
+    IER: IncidentEventRepository<Transaction = IR::Transaction>,
+>(
     auth_context: &AuthContext,
     incident_repo: &IR,
     incident_event_repo: &IER,
@@ -39,7 +44,9 @@ pub async fn comment_incident<IR: IncidentRepository, IER: IncidentEventReposito
         return Err(CommentIncidentError::Forbidden);
     }
     let mut tx = incident_event_repo.begin_transaction().await?;
-    let incident = incident_repo.get_incident(&mut tx, auth_context.active_organization_id, incident_id).await?;
+    let incident = incident_repo
+        .get_incident(&mut tx, auth_context.active_organization_id, incident_id)
+        .await?;
 
     if incident.is_none() {
         return Err(CommentIncidentError::IncidentNotFound);
@@ -54,7 +61,9 @@ pub async fn comment_incident<IR: IncidentRepository, IER: IncidentEventReposito
         event_payload: Some(IncidentEventPayload::Comment(request.payload)),
     };
 
-    incident_event_repo.create_incident_event(&mut tx, event).await?;
+    incident_event_repo
+        .create_incident_event(&mut tx, event)
+        .await?;
     incident_event_repo.commit_transaction(tx).await?;
 
     Ok(())

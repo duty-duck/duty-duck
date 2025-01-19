@@ -10,7 +10,14 @@ async fn build_client() -> anyhow::Result<KeycloakClient> {
     let client_secret = "****";
     let keycloak_realm = "duty-duck-preprod";
 
-    KeycloakClient::new(keycloak_url.clone(), keycloak_url, keycloak_realm, client_id, client_secret).await
+    KeycloakClient::new(
+        keycloak_url.clone(),
+        keycloak_url,
+        keycloak_realm,
+        client_id,
+        client_secret,
+    )
+    .await
 }
 
 #[tokio::test]

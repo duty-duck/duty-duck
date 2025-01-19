@@ -3,7 +3,7 @@ use std::fmt::{self, Display};
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-#[derive(Debug, Serialize, ToSchema, Clone, PartialEq, Eq)]
+#[derive(Debug, Serialize, ToSchema, Clone, PartialEq, Eq, Hash)]
 #[serde(transparent)]
 pub struct TaskId(String);
 

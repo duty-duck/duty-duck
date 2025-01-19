@@ -7,7 +7,10 @@ use ts_rs::TS;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-use super::{entity_metadata::EntityMetadata, http_monitor::HttpMonitorErrorKind, user::UserNameInfo};
+use super::{
+    entity_metadata::EntityMetadata, http_monitor::HttpMonitorErrorKind, task::TaskId,
+    task_run::TaskRunStatus, user::UserNameInfo,
+};
 
 /// The base struct used by all incident types
 #[derive(Serialize, Deserialize, TS, Debug, Clone, FromRow, ToSchema)]
@@ -46,8 +49,11 @@ pub struct IncidentWithUsers {
 #[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema, PartialEq, Eq)]
 #[serde(tag = "causeType", rename_all_fields = "camelCase")]
 #[ts(export)]
+#[allow(clippy::enum_variant_names)]
 pub enum IncidentCause {
     HttpMonitorIncidentCause(HttpMonitorIncidentCause),
+    ScheduledTaskIncidentCause(ScheduledTaskIncidentCause),
+    TaskRunIncidentCause(TaskRunIncidentCause),
 }
 
 #[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema, PartialEq, Eq)]
@@ -63,6 +69,30 @@ pub struct HttpMonitorIncidentCause {
 pub struct HttpMonitorIncidentCausePing {
     pub error_kind: HttpMonitorErrorKind,
     pub http_code: Option<i16>,
+}
+
+#[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct ScheduledTaskIncidentCause {
+    pub task_id: Uuid,
+    #[ts(type = "string")]
+    pub task_user_id: TaskId,
+    pub task_was_due_at: DateTime<Utc>,
+    pub task_ran_late_at: Option<DateTime<Utc>>,
+    pub task_switched_to_absent_at: Option<DateTime<Utc>>,
+}
+
+#[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema, PartialEq, Eq)]
+#[serde(rename_all = "camelCase")]
+#[ts(export)]
+pub struct TaskRunIncidentCause {
+    #[ts(type = "string")]
+    pub task_id: TaskId,
+    pub task_run_id: Uuid,
+    pub task_run_started_at: DateTime<Utc>,
+    pub task_run_finished_at: Option<DateTime<Utc>>,
+    pub task_run_status: TaskRunStatus,
 }
 
 /// An enum that represents the status of an incident
@@ -138,12 +168,16 @@ impl IncidentPriority {
 #[ts(export)]
 pub enum IncidentSourceType {
     HttpMonitor = 0,
+    Task = 1,
+    TaskRun = 2,
 }
 
 impl From<i16> for IncidentSourceType {
     fn from(value: i16) -> Self {
         match value {
             0 => Self::HttpMonitor,
+            1 => Self::Task,
+            2 => Self::TaskRun,
             _ => panic!("invalid IncidentSourceType discriminant: {value}"),
         }
     }
@@ -155,6 +189,8 @@ impl From<i16> for IncidentSourceType {
 #[serde(tag = "type")]
 pub enum IncidentSource {
     HttpMonitor { id: Uuid },
+    Task { id: Uuid },
+    TaskRun { id: Uuid },
 }
 
 /// A struct that represents the data needed to create a new incident

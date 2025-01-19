@@ -12,7 +12,9 @@ pub fn next_status(
     match (current_status, last_ping_ok) {
         // Transition from archived should not change the status
         // An archived monitor is not monitored anymore and should never go through the status machine
-        (HttpMonitorStatus::Archived, _) => unreachable!("try to compute the next status of an archived monitor"),
+        (HttpMonitorStatus::Archived, _) => {
+            unreachable!("try to compute the next status of an archived monitor")
+        }
         // Down monitor staying down
         (HttpMonitorStatus::Down, false) => (
             current_status_counter.saturating_add(1),
@@ -23,9 +25,10 @@ pub fn next_status(
             (1, HttpMonitorStatus::Recovering)
         }
         // Transition from down/unknown/inactive to up (no confirmation)
-        (HttpMonitorStatus::Down | HttpMonitorStatus::Unknown | HttpMonitorStatus::Inactive, true) => {
-            (1, HttpMonitorStatus::Up)
-        }
+        (
+            HttpMonitorStatus::Down | HttpMonitorStatus::Unknown | HttpMonitorStatus::Inactive,
+            true,
+        ) => (1, HttpMonitorStatus::Up),
         // Transition from suspicious to down
         (HttpMonitorStatus::Suspicious, false) => {
             let next_status_counter = current_status_counter.saturating_add(1);
@@ -53,15 +56,15 @@ pub fn next_status(
             }
         }
         // Transition from up/unknown/inactive to suspicious
-        (HttpMonitorStatus::Up | HttpMonitorStatus::Unknown | HttpMonitorStatus::Inactive, false)
-            if downtime_confirmation_threshold > 1 =>
-        {
-            (1, HttpMonitorStatus::Suspicious)
-        }
+        (
+            HttpMonitorStatus::Up | HttpMonitorStatus::Unknown | HttpMonitorStatus::Inactive,
+            false,
+        ) if downtime_confirmation_threshold > 1 => (1, HttpMonitorStatus::Suspicious),
         // Transition from up to down (no confirmation)
-        (HttpMonitorStatus::Up | HttpMonitorStatus::Unknown | HttpMonitorStatus::Inactive, false) => {
-            (1, HttpMonitorStatus::Down)
-        }
+        (
+            HttpMonitorStatus::Up | HttpMonitorStatus::Unknown | HttpMonitorStatus::Inactive,
+            false,
+        ) => (1, HttpMonitorStatus::Down),
 
         // Up monitor staying up
         (HttpMonitorStatus::Up, true) => (

@@ -74,11 +74,15 @@ pub async fn update_user_profile(
         let phone_number_str = phone_number.replace(" ", "");
         let parsed_phone_number = match phonenumber::parse(None, phone_number_str) {
             Ok(n) => n,
-            Err(_) => return Err(UpdateProfileError::InvalidPhoneNumber)
+            Err(_) => return Err(UpdateProfileError::InvalidPhoneNumber),
         };
 
-        command.phone_number = Some(parsed_phone_number.format().mode(phonenumber::Mode::E164).to_string());
-        
+        command.phone_number = Some(
+            parsed_phone_number
+                .format()
+                .mode(phonenumber::Mode::E164)
+                .to_string(),
+        );
     }
 
     // Check the new password is valid

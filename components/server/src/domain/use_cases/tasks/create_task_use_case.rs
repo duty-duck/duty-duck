@@ -5,7 +5,9 @@ use utoipa::ToSchema;
 
 use crate::domain::{
     entities::{
-        authorization::{AuthContext, Permission}, entity_metadata::EntityMetadata, task::{BoundaryTask, HealthyTask, TaskError, TaskId}
+        authorization::{AuthContext, Permission},
+        entity_metadata::EntityMetadata,
+        task::{BoundaryTask, HealthyTask, TaskError, TaskId},
     },
     ports::task_repository::TaskRepository,
 };
@@ -52,7 +54,7 @@ pub async fn create_task_use_case(
     let mut tx = task_repository.begin_transaction().await?;
 
     let existing_task = task_repository
-        .get_task(&mut tx, auth_context.active_organization_id, &command.id)
+        .get_task_by_user_id(&mut tx, auth_context.active_organization_id, &command.id)
         .await?;
 
     if existing_task.is_some() {
@@ -61,7 +63,9 @@ pub async fn create_task_use_case(
 
     let new_task = HealthyTask::new(auth_context.active_organization_id, command)?;
     let new_task: BoundaryTask = new_task.try_into().map_err(|e| match e {
-        TaskError::InvalidCronSchedule { details } => CreateTaskError::InvalidCronSchedule { details },
+        TaskError::InvalidCronSchedule { details } => {
+            CreateTaskError::InvalidCronSchedule { details }
+        }
         _ => CreateTaskError::TechnicalFailure(e.into()),
     })?;
     task_repository.upsert_task(&mut tx, new_task).await?;

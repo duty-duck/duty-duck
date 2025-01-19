@@ -47,7 +47,10 @@ pub use running::*;
 #[derive(getset::Getters, Debug, Clone)]
 #[getset(get = "pub")]
 pub struct TaskBase {
-    pub(super) id: TaskId,
+    /// A random, unique identifier for the task.
+    pub(super) id: Uuid,
+    /// A unique, user-friendly identifier for the task.
+    pub(super) user_id: TaskId,
     pub(super) organization_id: Uuid,
     pub(super) name: String,
     pub(super) description: Option<String>,
@@ -69,9 +72,7 @@ pub enum TaskError {
     #[error("Invalid schedule timezone")]
     InvalidScheduleTimezone { details: String },
     #[error("Failed to calculate next due at")]
-    FailedToCalculateNextDueAt {
-        schedule: String,
-    },
+    FailedToCalculateNextDueAt { schedule: String },
     #[error("Invalid state transition from {from:?} to {to:?}: {details}")]
     InvalidStateTransition {
         from: TaskStatus,
@@ -120,7 +121,11 @@ fn parse_cron_schedule(cron_schedule: &str) -> Result<cron::Schedule, TaskError>
 }
 
 fn parse_schedule_timezone(schedule_timezone: &str) -> Result<chrono_tz::Tz, TaskError> {
-    schedule_timezone.parse::<chrono_tz::Tz>().map_err(|err| TaskError::InvalidScheduleTimezone { details: err.to_string() })
+    schedule_timezone
+        .parse::<chrono_tz::Tz>()
+        .map_err(|err| TaskError::InvalidScheduleTimezone {
+            details: err.to_string(),
+        })
 }
 
 impl TryFrom<BoundaryTask> for TaskBase {
@@ -129,11 +134,20 @@ impl TryFrom<BoundaryTask> for TaskBase {
     fn try_from(boundary: BoundaryTask) -> Result<Self, Self::Error> {
         Ok(TaskBase {
             id: boundary.id,
+            user_id: boundary.user_id,
             organization_id: boundary.organization_id,
             name: boundary.name,
             description: boundary.description,
-            cron_schedule: boundary.cron_schedule.as_deref().map(parse_cron_schedule).transpose()?,
-            schedule_timezone: boundary.schedule_timezone.as_deref().map(parse_schedule_timezone).transpose()?,
+            cron_schedule: boundary
+                .cron_schedule
+                .as_deref()
+                .map(parse_cron_schedule)
+                .transpose()?,
+            schedule_timezone: boundary
+                .schedule_timezone
+                .as_deref()
+                .map(parse_schedule_timezone)
+                .transpose()?,
             start_window: Duration::from_secs(boundary.start_window_seconds as u64),
             lateness_window: Duration::from_secs(boundary.lateness_window_seconds as u64),
             heartbeat_timeout: Duration::from_secs(boundary.heartbeat_timeout_seconds as u64),
@@ -149,6 +163,7 @@ impl From<TaskBase> for BoundaryTask {
     fn from(base: TaskBase) -> Self {
         BoundaryTask {
             id: base.id,
+            user_id: base.user_id,
             organization_id: base.organization_id,
             name: base.name,
             description: base.description,

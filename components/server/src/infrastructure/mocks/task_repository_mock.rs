@@ -44,7 +44,7 @@ impl TransactionalRepository for TaskRepositoryMock {
 
 #[async_trait]
 impl TaskRepository for TaskRepositoryMock {
-    async fn get_task(
+    async fn get_task_by_user_id(
         &self,
         _transaction: &mut Self::Transaction,
         organization_id: Uuid,
@@ -53,7 +53,7 @@ impl TaskRepository for TaskRepositoryMock {
         let state = self.state.lock().await;
         Ok(state
             .iter()
-            .find(|t| t.id == *task_id && t.organization_id == organization_id)
+            .find(|t| t.user_id == *task_id && t.organization_id == organization_id)
             .cloned())
     }
 
@@ -72,7 +72,9 @@ impl TaskRepository for TaskRepositoryMock {
         let filtered_tasks: Vec<BoundaryTask> = state
             .iter()
             .filter(|t| t.organization_id == organization_id)
-            .filter(|t| opts.include_statuses.is_empty() || opts.include_statuses.contains(&t.status))
+            .filter(|t| {
+                opts.include_statuses.is_empty() || opts.include_statuses.contains(&t.status)
+            })
             .filter(|t| {
                 opts.query.is_empty()
                     || t.name.to_lowercase().contains(&opts.query.to_lowercase())
@@ -107,7 +109,7 @@ impl TaskRepository for TaskRepositoryMock {
 
         if let Some(existing) = state
             .iter_mut()
-            .find(|t| t.id == task.id && t.organization_id == task.organization_id)
+            .find(|t| t.user_id == task.user_id && t.organization_id == task.organization_id)
         {
             existing.name = task.name;
             existing.description = task.description;
@@ -117,9 +119,9 @@ impl TaskRepository for TaskRepositoryMock {
             existing.start_window_seconds = task.start_window_seconds;
             existing.lateness_window_seconds = task.lateness_window_seconds;
             existing.heartbeat_timeout_seconds = task.heartbeat_timeout_seconds;
-            Ok(task.id)
+            Ok(task.user_id)
         } else {
-            let id = task.id.clone();
+            let id = task.user_id.clone();
             state.push(task);
             Ok(id)
         }
@@ -197,7 +199,8 @@ mod tests {
     fn create_test_task(org_id: Uuid, name: &str, status: TaskStatus) -> BoundaryTask {
         BoundaryTask {
             organization_id: org_id,
-            id: TaskId::new(name.to_string()).expect("Invalid task ID"),
+            id: Uuid::new_v4(),
+            user_id: TaskId::new(name.to_string()).expect("Invalid task ID"),
             name: name.to_string(),
             description: None,
             status,
@@ -226,7 +229,7 @@ mod tests {
         assert_eq!(state.len(), 1);
 
         let created_task = &state[0];
-        assert_eq!(created_task.id, id);
+        assert_eq!(created_task.user_id, id);
         assert_eq!(created_task.organization_id, org_id);
         assert_eq!(created_task.name, "test-task");
         assert_eq!(created_task.status, TaskStatus::Healthy);

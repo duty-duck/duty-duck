@@ -8,8 +8,12 @@ use sqlx::postgres::PgPoolOptions;
 
 use crate::{
     domain::use_cases::{
-        http_monitors::ExecuteHttpMonitorsUseCase, incidents::ExecuteIncidentNotificationsUseCase,
-        tasks::{CollectAbsentTasksUseCase, CollectDeadTaskRunsUseCase, CollectDueTasksUseCase, CollectLateTasksUseCase},
+        http_monitors::ExecuteHttpMonitorsUseCase,
+        incidents::ExecuteIncidentNotificationsUseCase,
+        tasks::{
+            CollectAbsentTasksUseCase, CollectDeadTaskRunsUseCase, CollectDueTasksUseCase,
+            CollectLateTasksUseCase,
+        },
     },
     infrastructure::{
         adapters::{
@@ -35,10 +39,10 @@ use crate::{
 
 pub mod application_config;
 pub mod application_state;
-pub mod built_info;
-pub mod server;
 pub mod background_tasks;
+pub mod built_info;
 pub mod migrations;
+pub mod server;
 
 pub async fn start_server() -> anyhow::Result<()> {
     let config = Arc::new(AppConfig::load()?);
@@ -114,6 +118,12 @@ pub async fn start_server() -> anyhow::Result<()> {
     let late_tasks_collector = CollectLateTasksUseCase {
         task_repository: application_state.adapters.task_repository.clone(),
         task_run_repository: application_state.adapters.task_run_repository.clone(),
+        incident_repository: application_state.adapters.incident_repository.clone(),
+        incident_event_repository: application_state.adapters.incident_event_repository.clone(),
+        incident_notification_repository: application_state
+            .adapters
+            .incident_notification_repository
+            .clone(),
         select_limit: config.late_tasks_collector.select_limit,
     };
     let late_tasks_collector_tasks = late_tasks_collector.spawn_tasks(
@@ -208,6 +218,11 @@ async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationSt
         config: config.clone(),
         adapters,
         keycloak_client: keycloak_client.clone(),
-        access_token_audience: config.keycloak.access_token_audience.split(',').map(|s| s.to_string()).collect(),
+        access_token_audience: config
+            .keycloak
+            .access_token_audience
+            .split(',')
+            .map(|s| s.to_string())
+            .collect(),
     })
 }

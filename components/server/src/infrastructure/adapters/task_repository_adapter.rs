@@ -8,7 +8,8 @@ use crate::domain::{
     ports::{
         task_repository::{ListTasksOpts, ListTasksOutput, TaskRepository},
         transactional_repository::TransactionalRepository,
-    }, use_cases::{shared::OrderDirection, tasks::OrderTasksBy},
+    },
+    use_cases::{shared::OrderDirection, tasks::OrderTasksBy},
 };
 use anyhow::*;
 
@@ -21,7 +22,7 @@ crate::postgres_transactional_repo!(TaskRepositoryAdapter);
 
 #[async_trait]
 impl TaskRepository for TaskRepositoryAdapter {
-    async fn get_task(
+    async fn get_task_by_user_id(
         &self,
         transaction: &mut Self::Transaction,
         organization_id: Uuid,
@@ -30,7 +31,8 @@ impl TaskRepository for TaskRepositoryAdapter {
         let record = sqlx::query!(
             "SELECT *
             FROM tasks 
-            WHERE organization_id = $1 AND id = $2",
+            WHERE 
+                organization_id = $1 AND user_id = $2",
             organization_id,
             task_id.as_str(),
         )
@@ -40,7 +42,8 @@ impl TaskRepository for TaskRepositoryAdapter {
 
         let task = record.map(|row| BoundaryTask {
             organization_id: row.organization_id,
-            id: TaskId::new(row.id).expect("Invalid task ID in database"),
+            id: row.id,
+            user_id: TaskId::new(row.user_id).expect("Invalid task ID in database"),
             name: row.name,
             description: row.description,
             status: TaskStatus::from(row.status),
@@ -66,7 +69,8 @@ impl TaskRepository for TaskRepositoryAdapter {
     ) -> anyhow::Result<ListTasksOutput> {
         let mut tx = self.begin_transaction().await?;
         let query = format!("%{}%", opts.query);
-        let statuses = opts.include_statuses
+        let statuses = opts
+            .include_statuses
             .iter()
             .map(|s| *s as i32)
             .collect::<Vec<_>>();
@@ -107,7 +111,6 @@ impl TaskRepository for TaskRepositoryAdapter {
 
             -- Order by the chosen column and direction
             ORDER BY {} {}
-
             -- Limit and offset
             LIMIT $4 OFFSET $5
             "#,
@@ -154,11 +157,14 @@ impl TaskRepository for TaskRepositoryAdapter {
             .into_iter()
             .map(|row| BoundaryTask {
                 organization_id: row.get("organization_id"),
-                id: TaskId::new(row.get("id")).expect("Invalid task ID in database"),
+                id: row.get("id"),
+                user_id: TaskId::new(row.get("id")).expect("Invalid task ID in database"),
                 name: row.get("name"),
                 description: row.get("description"),
                 status: row.get::<i16, _>("status").into(),
-                previous_status: row.get::<Option<i16>, _>("previous_status").map(|s| s.into()),
+                previous_status: row
+                    .get::<Option<i16>, _>("previous_status")
+                    .map(|s| s.into()),
                 last_status_change_at: row.get("last_status_change_at"),
                 cron_schedule: row.get("cron_schedule"),
                 next_due_at: row.get("next_due_at"),
@@ -188,6 +194,7 @@ impl TaskRepository for TaskRepositoryAdapter {
             INSERT INTO tasks (
                 organization_id, 
                 id, 
+                user_id,
                 name, 
                 description, 
                 status,
@@ -201,40 +208,41 @@ impl TaskRepository for TaskRepositoryAdapter {
                 last_status_change_at,
                 metadata
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
             ON CONFLICT (organization_id, id) DO UPDATE SET
-                name = $3,
-                description = $4,
-                status = $5,
-                previous_status = $6,
-                cron_schedule = $7,
-                schedule_timezone = $8,
-                next_due_at = $9,
-                start_window_seconds = $10,
-                lateness_window_seconds = $11,
-                heartbeat_timeout_seconds = $12,
-                last_status_change_at = $13,
-                metadata = $14
+                name = $4,
+                description = $5,
+                status = $6,
+                previous_status = $7,
+                cron_schedule = $8,
+                schedule_timezone = $9,
+                next_due_at = $10,
+                start_window_seconds = $11,
+                lateness_window_seconds = $12,
+                heartbeat_timeout_seconds = $13,
+                last_status_change_at = $14,
+                metadata = $15
             "#,
-            task.organization_id, // $1
-            task.id.as_str(), // $2
-            task.name, // $3
-            task.description, // $4
-            task.status as i16, // $5
-            task.previous_status.map(|s| s as i16), // $6
-            task.cron_schedule, // $7
-            task.schedule_timezone, // $8
-            task.next_due_at, // $9
-            task.start_window_seconds, // $10
-            task.lateness_window_seconds, // $11
-            task.heartbeat_timeout_seconds, // $12
-            task.last_status_change_at, // $13
-            serde_json::to_value(task.metadata)?, // $14
+            task.organization_id,                   // $1
+            task.id,                                // $2
+            task.user_id.as_str(),                  // $3
+            task.name,                              // $4
+            task.description,                       // $5
+            task.status as i16,                     // $6
+            task.previous_status.map(|s| s as i16), // $7
+            task.cron_schedule,                     // $8
+            task.schedule_timezone,                 // $9
+            task.next_due_at,                       // $10
+            task.start_window_seconds,              // $11
+            task.lateness_window_seconds,           // $12
+            task.heartbeat_timeout_seconds,         // $13
+            task.last_status_change_at,             // $14
+            serde_json::to_value(task.metadata)?,   // $15
         )
         .execute(transaction.as_mut())
         .await?;
 
-        Ok(task.id)
+        Ok(task.user_id)
     }
 
     /// List scheduled tasks that should transition to Due
@@ -247,11 +255,12 @@ impl TaskRepository for TaskRepositoryAdapter {
         let rows = sqlx::query!(
             "
             SELECT * FROM tasks
-            WHERE cron_schedule IS NOT NULL
-            AND $1::timestamptz >= next_due_at
-            AND status != $2 -- status is not due 
-            AND status != $3 -- status is not running
-            AND status != $4 -- status is not absent
+            WHERE
+                cron_schedule IS NOT NULL
+                AND $1::timestamptz >= next_due_at
+                AND status != $2 -- status is not due 
+                AND status != $3 -- status is not running
+                AND status != $4 -- status is not absent
             LIMIT $5",
             now,
             TaskStatus::Due as i16,
@@ -266,7 +275,8 @@ impl TaskRepository for TaskRepositoryAdapter {
             .into_iter()
             .map(|row| BoundaryTask {
                 organization_id: row.organization_id,
-                id: TaskId::new(row.id).expect("Invalid task ID in database"),
+                id: row.id,
+                user_id: TaskId::new(row.user_id).expect("Invalid task ID in database"),
                 name: row.name,
                 description: row.description,
                 status: TaskStatus::from(row.status),
@@ -286,64 +296,67 @@ impl TaskRepository for TaskRepositoryAdapter {
         Ok(tasks)
     }
 
-        /// List due tasks that should transition to Late
-        async fn list_due_tasks_running_late(
-            &self,
-            transaction: &mut Self::Transaction,
-            now: DateTime<Utc>,
-            limit: u32,
-        ) -> anyhow::Result<Vec<BoundaryTask>> {
-            let rows = sqlx::query!(
-                "
+    /// List due tasks that should transition to Late
+    async fn list_due_tasks_running_late(
+        &self,
+        transaction: &mut Self::Transaction,
+        now: DateTime<Utc>,
+        limit: u32,
+    ) -> anyhow::Result<Vec<BoundaryTask>> {
+        let rows = sqlx::query!(
+            "
                 SELECT * FROM tasks
-                WHERE cron_schedule IS NOT NULL
-                AND $1::timestamptz >= next_due_at + (start_window_seconds || ' seconds')::interval
-                AND status = $2 -- status is due
+                WHERE 
+                    cron_schedule IS NOT NULL
+                    AND $1::timestamptz >= next_due_at + (start_window_seconds || ' seconds')::interval
+                    AND status = $2 -- status is due
                 LIMIT $3",
-                now,
-                TaskStatus::Due as i16,
-                limit as i64
-            )
-            .fetch_all(transaction.as_mut())
-            .await?;
-    
-            let tasks = rows
-                .into_iter()
-                .map(|row| BoundaryTask {
-                    organization_id: row.organization_id,
-                    id: TaskId::new(row.id).expect("Invalid task ID in database"),
-                    name: row.name,
-                    description: row.description,
-                    status: TaskStatus::from(row.status),
-                    previous_status: row.previous_status.map(TaskStatus::from),
-                    last_status_change_at: row.last_status_change_at,
-                    cron_schedule: row.cron_schedule,
-                    next_due_at: row.next_due_at,
-                    start_window_seconds: row.start_window_seconds,
-                    lateness_window_seconds: row.lateness_window_seconds,
-                    heartbeat_timeout_seconds: row.heartbeat_timeout_seconds,
-                    created_at: row.created_at,
-                    metadata: row.metadata.into(),
-                    schedule_timezone: row.schedule_timezone,
-                })
-                .collect();
-    
-            Ok(tasks)
-        }
-    
-        /// List late tasks that should transition to Absent
-        async fn list_next_absent_tasks(
-            &self,
-            transaction: &mut Self::Transaction,
-            now: DateTime<Utc>,
+            now,
+            TaskStatus::Due as i16,
+            limit as i64
+        )
+        .fetch_all(transaction.as_mut())
+        .await?;
+
+        let tasks = rows
+            .into_iter()
+            .map(|row| BoundaryTask {
+                organization_id: row.organization_id,
+                id: row.id,
+                user_id: TaskId::new(row.user_id).expect("Invalid task ID in database"),
+                name: row.name,
+                description: row.description,
+                status: TaskStatus::from(row.status),
+                previous_status: row.previous_status.map(TaskStatus::from),
+                last_status_change_at: row.last_status_change_at,
+                cron_schedule: row.cron_schedule,
+                next_due_at: row.next_due_at,
+                start_window_seconds: row.start_window_seconds,
+                lateness_window_seconds: row.lateness_window_seconds,
+                heartbeat_timeout_seconds: row.heartbeat_timeout_seconds,
+                created_at: row.created_at,
+                metadata: row.metadata.into(),
+                schedule_timezone: row.schedule_timezone,
+            })
+            .collect();
+
+        Ok(tasks)
+    }
+
+    /// List late tasks that should transition to Absent
+    async fn list_next_absent_tasks(
+        &self,
+        transaction: &mut Self::Transaction,
+        now: DateTime<Utc>,
         limit: u32,
     ) -> anyhow::Result<Vec<BoundaryTask>> {
         let rows = sqlx::query!(
             "
             SELECT * FROM tasks
-            WHERE cron_schedule IS NOT NULL
-            AND $1::timestamptz >= next_due_at + (start_window_seconds || ' seconds')::interval + (lateness_window_seconds || ' seconds')::interval
-            AND status = $2 -- status is late
+            WHERE 
+                cron_schedule IS NOT NULL
+                AND $1::timestamptz >= next_due_at + (start_window_seconds || ' seconds')::interval + (lateness_window_seconds || ' seconds')::interval
+                AND status = $2 -- status is late
             LIMIT $3",
             now,
             TaskStatus::Late as i16,
@@ -356,7 +369,8 @@ impl TaskRepository for TaskRepositoryAdapter {
             .into_iter()
             .map(|row| BoundaryTask {
                 organization_id: row.organization_id,
-                id: TaskId::new(row.id).expect("Invalid task ID in database"),
+                id: row.id,
+                user_id: TaskId::new(row.user_id).expect("Invalid task ID in database"),
                 name: row.name,
                 description: row.description,
                 status: TaskStatus::from(row.status),

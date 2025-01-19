@@ -35,6 +35,7 @@ pub(crate) fn tasks_router() -> Router<ApplicationState> {
 #[utoipa::path(
     get,
     path = "/tasks",
+    params(ListTasksParams),
     responses(
         (status = 200, body = ListTasksResponse),
         (status = 403, description = "User is not authorized to list tasks"),
@@ -64,6 +65,11 @@ async fn list_tasks_handler(
 #[utoipa::path(
     post,
     path = "/tasks",
+    request_body(
+        content = CreateTaskCommand,
+        description = "The command to create a task",
+        content_type = "application/json"
+    ),
     responses(
         (status = 201, description = "Task created successfully"),
         (status = 403, description = "User is not authorized to create a task"),
@@ -79,12 +85,16 @@ async fn create_task_handler(
     match create_task_use_case(&auth_context, &app_state.adapters.task_repository, command).await {
         Ok(_) => StatusCode::CREATED.into_response(),
         Err(CreateTaskError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
-        Err(CreateTaskError::InvalidCronSchedule { details }) => {
-            (StatusCode::BAD_REQUEST, format!("Invalid cron schedule: {details}")).into_response()
-        }
-        Err(CreateTaskError::TaskAlreadyExists(task_id)) => {
-            (StatusCode::CONFLICT, format!("Task already exists: {task_id}")).into_response()
-        }
+        Err(CreateTaskError::InvalidCronSchedule { details }) => (
+            StatusCode::BAD_REQUEST,
+            format!("Invalid cron schedule: {details}"),
+        )
+            .into_response(),
+        Err(CreateTaskError::TaskAlreadyExists(task_id)) => (
+            StatusCode::CONFLICT,
+            format!("Task already exists: {task_id}"),
+        )
+            .into_response(),
         Err(e) => {
             warn!(error = ?e, "Technical failure occured while creating a task");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
@@ -92,10 +102,11 @@ async fn create_task_handler(
     }
 }
 
-/// Get a task by id
+/// Get a task by its user-provided id
+/// The id to use is the `user-id` field of the task, not the `id` field, which is the server-generated UUID
 #[utoipa::path(
     get,
-    path = "/tasks/:task_id",
+    path = "/tasks/:user_id",
     responses(
         (status = 200, body = GetTaskResponse),
         (status = 403, description = "User is not authorized to get a task"),
@@ -107,9 +118,9 @@ async fn create_task_handler(
 async fn get_task_handler(
     State(app_state): ExtractAppState,
     auth_context: AuthContext,
-    Path(task_id): Path<TaskId>,
+    Path(user_id): Path<TaskId>,
 ) -> impl IntoResponse {
-    match get_task(&auth_context, &app_state.adapters.task_repository, task_id).await {
+    match get_task(&auth_context, &app_state.adapters.task_repository, user_id).await {
         Ok(response) => Json(response).into_response(),
         Err(GetTaskError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
         Err(GetTaskError::NotFound) => StatusCode::NOT_FOUND.into_response(),
@@ -123,9 +134,11 @@ async fn get_task_handler(
 /// List all runs for a task
 ///
 /// This endpoint can be used to get a paginated list of task runs for a task.
+/// The task id to use is the `user-id` field of the task, not the `id` field, which is the server-generated UUID
 #[utoipa::path(
     get,
-    path = "/tasks/:task_id/runs",
+    path = "/tasks/:user_id/runs",
+    params(ListTaskRunsParams),
     responses(
         (status = 200, body = ListTaskRunsResponse),
         (status = 403, description = "User is not allowed to list task runs"),
@@ -135,13 +148,21 @@ async fn get_task_handler(
 async fn list_task_runs_handler(
     State(app_state): ExtractAppState,
     auth_context: AuthContext,
-    Path(task_id): Path<TaskId>,
+    Path(user_id): Path<TaskId>,
     Query(params): Query<ListTaskRunsParams>,
 ) -> impl IntoResponse {
-
-    match list_task_runs_use_case(&auth_context, &app_state.adapters.task_run_repository, task_id, params).await {
+    match list_task_runs_use_case(
+        &auth_context,
+        &app_state.adapters.task_repository,
+        &app_state.adapters.task_run_repository,
+        user_id,
+        params,
+    )
+    .await
+    {
         Ok(response) => Json(response).into_response(),
         Err(ListTaskRunsError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
+        Err(ListTaskRunsError::TaskNotFound) => StatusCode::NOT_FOUND.into_response(),
         Err(ListTaskRunsError::TechnicalFailure(e)) => {
             warn!("Technical failure occured while listing task runs: {e}");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
@@ -172,11 +193,27 @@ async fn start_task_handler(
     Path(task_id): Path<TaskId>,
     Json(command): Json<Option<StartTaskCommand>>,
 ) -> impl IntoResponse {
-    match start_task_use_case(&auth_context, &app_state.adapters.task_repository, &app_state.adapters.task_run_repository, task_id, command).await {
+    match start_task_use_case(
+        &auth_context,
+        &app_state.adapters.task_repository,
+        &app_state.adapters.task_run_repository,
+        task_id,
+        command,
+    )
+    .await
+    {
         Ok(_) => StatusCode::CREATED.into_response(),
-        Err(StartTaskError::Forbidden) => (StatusCode::FORBIDDEN, "User is not allowed to start this task").into_response(),
-        Err(StartTaskError::TaskNotFound) => (StatusCode::NOT_FOUND, "Task not found").into_response(),
-        Err(StartTaskError::TaskAlreadyStarted) => (StatusCode::CONFLICT, "Task already started").into_response(),
+        Err(StartTaskError::Forbidden) => (
+            StatusCode::FORBIDDEN,
+            "User is not allowed to start this task",
+        )
+            .into_response(),
+        Err(StartTaskError::TaskNotFound) => {
+            (StatusCode::NOT_FOUND, "Task not found").into_response()
+        }
+        Err(StartTaskError::TaskAlreadyStarted) => {
+            (StatusCode::CONFLICT, "Task already started").into_response()
+        }
         Err(StartTaskError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while starting a task");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
@@ -186,9 +223,11 @@ async fn start_task_handler(
 
 /// Send a heartbeat for a running task, to indicate that it is still running
 /// Without a regular heartbeat, a running task will eventually be considered failed and retried.
+///
+/// The task id to use is the `user-id` field of the task, not the `id` field, which is the server-generated UUID
 #[utoipa::path(
     post,
-    path = "/tasks/:task_id/heartbeat",
+    path = "/tasks/:user_id/heartbeat",
     responses(
         (status = 200, description = "Heartbeat sent successfully"),
         (status = 403, description = "User is not authorized to send a heartbeat for this task"),
@@ -200,13 +239,28 @@ async fn start_task_handler(
 async fn send_task_heartbeat_handler(
     State(app_state): ExtractAppState,
     auth_context: AuthContext,
-    Path(task_id): Path<TaskId>,
+    Path(user_id): Path<TaskId>,
 ) -> impl IntoResponse {
-    match send_task_heartbeat_use_case(&auth_context, &app_state.adapters.task_repository, &app_state.adapters.task_run_repository, task_id).await {
+    match send_task_heartbeat_use_case(
+        &auth_context,
+        &app_state.adapters.task_repository,
+        &app_state.adapters.task_run_repository,
+        user_id,
+    )
+    .await
+    {
         Ok(_) => StatusCode::OK.into_response(),
-        Err(SendTaskHeartbeatError::Forbidden) => (StatusCode::FORBIDDEN, "User is not allowed to send a heartbeat for this task").into_response(),
-        Err(SendTaskHeartbeatError::TaskNotFound) => (StatusCode::NOT_FOUND, "Task not found").into_response(),
-        Err(SendTaskHeartbeatError::TaskIsNotRunning) => (StatusCode::BAD_REQUEST, "Task is not running").into_response(),
+        Err(SendTaskHeartbeatError::Forbidden) => (
+            StatusCode::FORBIDDEN,
+            "User is not allowed to send a heartbeat for this task",
+        )
+            .into_response(),
+        Err(SendTaskHeartbeatError::TaskNotFound) => {
+            (StatusCode::NOT_FOUND, "Task not found").into_response()
+        }
+        Err(SendTaskHeartbeatError::TaskIsNotRunning) => {
+            (StatusCode::BAD_REQUEST, "Task is not running").into_response()
+        }
         Err(SendTaskHeartbeatError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while sending a heartbeat");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
@@ -217,9 +271,16 @@ async fn send_task_heartbeat_handler(
 /// Finish a running task
 ///
 /// This will mark the task as finished, and record the exit code and error message if the task failed.
+///
+/// The task id to use is the `user-id` field of the task, not the `id` field, which is the server-generated UUID
 #[utoipa::path(
     post,
-    path = "/tasks/:task_id/finish",
+    path = "/tasks/:user_id/finish",
+    request_body(
+        content = FinishTaskCommand,
+        description = "The command to finish a task",
+        content_type = "application/json"
+    ),
     responses(
         (status = 200, description = "Task finished successfully"),
         (status = 403, description = "User is not authorized to finish a task"),
@@ -229,14 +290,28 @@ async fn send_task_heartbeat_handler(
 async fn finish_task_handler(
     State(app_state): ExtractAppState,
     auth_context: AuthContext,
-    Path(task_id): Path<TaskId>,
+    Path(user_id): Path<TaskId>,
     Json(command): Json<FinishTaskCommand>,
 ) -> impl IntoResponse {
-    match finish_task_use_case(&auth_context, &app_state.adapters.task_repository, &app_state.adapters.task_run_repository, task_id, command).await {
+    match finish_task_use_case(
+        &auth_context,
+        &app_state.adapters.task_repository,
+        &app_state.adapters.task_run_repository,
+        user_id,
+        command,
+    )
+    .await
+    {
         Ok(_) => StatusCode::OK.into_response(),
-        Err(FinishTaskError::Forbidden) => (StatusCode::FORBIDDEN, "User is not allowed to finish this task").into_response(),
+        Err(FinishTaskError::Forbidden) => (
+            StatusCode::FORBIDDEN,
+            "User is not allowed to finish this task",
+        )
+            .into_response(),
         Err(FinishTaskError::NotFound) => (StatusCode::NOT_FOUND, "Task not found").into_response(),
-        Err(FinishTaskError::TaskIsNotRunning) => (StatusCode::BAD_REQUEST, "Task is not running").into_response(),
+        Err(FinishTaskError::TaskIsNotRunning) => {
+            (StatusCode::BAD_REQUEST, "Task is not running").into_response()
+        }
         Err(FinishTaskError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while finishing a task");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
@@ -245,9 +320,12 @@ async fn finish_task_handler(
 }
 
 /// Get a single task run
+///
+/// A single task run is identified by the id of the task and the timestamp of when it started.
+/// The task id to use is the `user-id` field of the task, not the `id` field, which is the server-generated UUID
 #[utoipa::path(
     get,
-    path = "/tasks/:task_id/runs/:started_at",
+    path = "/tasks/:user_id/runs/:started_at",
     responses(
         (status = 200, body = GetTaskRunResponse),
         (status = 403, description = "User is not authorized to get a task run"),
@@ -257,9 +335,17 @@ async fn finish_task_handler(
 async fn get_task_run_handler(
     State(app_state): ExtractAppState,
     auth_context: AuthContext,
-    Path((task_id, started_at)): Path<(TaskId, DateTime<Utc>)>,
+    Path((user_id, started_at)): Path<(TaskId, DateTime<Utc>)>,
 ) -> impl IntoResponse {
-    match get_task_run(&auth_context, &app_state.adapters.task_run_repository, task_id, started_at).await {
+    match get_task_run(
+        &auth_context,
+        &app_state.adapters.task_repository,
+        &app_state.adapters.task_run_repository,
+        user_id,
+        started_at,
+    )
+    .await
+    {
         Ok(response) => Json(response).into_response(),
         Err(GetTaskRunError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
         Err(GetTaskRunError::NotFound) => StatusCode::NOT_FOUND.into_response(),

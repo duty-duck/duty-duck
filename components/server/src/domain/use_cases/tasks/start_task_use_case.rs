@@ -9,8 +9,8 @@ use crate::domain::{
     entities::{
         authorization::{AuthContext, Permission},
         task::{
-            get_task_aggregate, save_task_aggregate, HealthyTaskAggregate,
-            RunningTaskAggregate, TaskAggregate, TaskId,
+            get_task_aggregate, save_task_aggregate, HealthyTaskAggregate, RunningTaskAggregate,
+            TaskAggregate, TaskId,
         },
     },
     ports::{task_repository::TaskRepository, task_run_repository::TaskRunRepository},
@@ -105,7 +105,9 @@ where
         }
         Some(TaskAggregate::Running(t)) => {
             if command.is_some_and(|c| c.abort_previous_running_task) {
-                let aborted_task = t.mark_aborted(now).context("failed to abort running task")?;
+                let aborted_task = t
+                    .mark_aborted(now)
+                    .context("failed to abort running task")?;
                 save_task_aggregate(
                     task_repository,
                     task_run_repository,
@@ -115,7 +117,10 @@ where
                 .await
                 .context("failed to save aborted task to the database")?;
 
-                aborted_task.start(now).context("failed to start aborted task")?.0
+                aborted_task
+                    .start(now)
+                    .context("failed to start aborted task")?
+                    .0
             } else {
                 return Err(StartTaskError::TaskAlreadyStarted);
             }
@@ -136,7 +141,10 @@ where
     .await
     .context("failed to save task aggregate to the database")?;
 
-    task_repository.commit_transaction(tx).await.context("failed to commit transaction")?;
+    task_repository
+        .commit_transaction(tx)
+        .await
+        .context("failed to commit transaction")?;
 
     Ok(())
 }

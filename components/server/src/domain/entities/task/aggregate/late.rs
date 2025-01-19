@@ -1,23 +1,25 @@
-use super::{
-    AbsentTaskAggregate, LateTask, RunningTaskAggregate,
-    RunningTaskRun, TaskAggregateError, TaskStatus,
-};
+use super::*;
 use chrono::{DateTime, Utc};
 
+#[derive(getset::Getters)]
 pub struct LateTaskAggregate {
+    #[getset(get = "pub")]
     pub(super) task: LateTask,
 }
 
 impl LateTaskAggregate {
+    pub fn user_id(&self) -> &TaskId {
+        self.task.base().user_id()
+    }
+
+    pub fn task_base(&self) -> &TaskBase {
+        self.task.base()
+    }
+
     /// State transition: Late -> Running
     pub fn start(self, now: DateTime<Utc>) -> Result<RunningTaskAggregate, TaskAggregateError> {
         let task = self.task.start(now)?;
-        let task_run = RunningTaskRun::new(
-            *task.base().organization_id(),
-            task.base().id().clone(),
-            now,
-            *task.base().heartbeat_timeout(),
-        );
+        let task_run = RunningTaskRun::new(task.base(), now);
         Ok(RunningTaskAggregate { task, task_run })
     }
 

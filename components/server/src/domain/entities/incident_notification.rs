@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::*;
 use uuid::Uuid;
 
-use super::incident::IncidentCause;
+use super::{incident::IncidentCause, task::TaskId};
 
 #[derive(Serialize, Deserialize, Debug, Clone, FromRow)]
 #[serde(rename_all = "camelCase")]
@@ -24,7 +24,8 @@ pub struct IncidentNotification {
 #[serde(rename_all = "camelCase")]
 pub struct IncidentNotificationPayload {
     pub incident_cause: IncidentCause,
-    pub incident_http_monitor_url: Option<String>
+    pub incident_http_monitor_url: Option<String>,
+    pub incident_task_id: Option<TaskId>,
 }
 
 #[derive(sqlx::Type, Serialize, Deserialize, Debug, Clone, Copy, PartialEq, Eq)]

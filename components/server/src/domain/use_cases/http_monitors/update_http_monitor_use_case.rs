@@ -8,7 +8,9 @@ use uuid::Uuid;
 
 use crate::domain::{
     entities::{
-        authorization::{AuthContext, Permission}, entity_metadata::EntityMetadata, http_monitor::{HttpMonitorStatus, RequestHeaders, MAXIMUM_REQUEST_TIMEOUT_MS}
+        authorization::{AuthContext, Permission},
+        entity_metadata::EntityMetadata,
+        http_monitor::{HttpMonitorStatus, RequestHeaders, MAXIMUM_REQUEST_TIMEOUT_MS},
     },
     ports::http_monitor_repository::{HttpMonitorRepository, NewHttpMonitor},
 };
@@ -27,7 +29,7 @@ pub struct UpdateHttpMonitorCommand {
     pub push_notification_enabled: bool,
     pub sms_notification_enabled: bool,
     pub request_headers: RequestHeaders,
-    pub request_timeout_ms: u32
+    pub request_timeout_ms: u32,
 }
 
 #[derive(Error, Debug)]
@@ -101,7 +103,9 @@ pub async fn update_http_monitor(
         request_headers: command.request_headers,
         request_timeout_ms: command.request_timeout_ms as i32,
     };
-    repository.update_http_monitor(&mut tx, id, new_monitor).await?;
+    repository
+        .update_http_monitor(&mut tx, id, new_monitor)
+        .await?;
     repository.commit_transaction(tx).await?;
     Ok(())
 }

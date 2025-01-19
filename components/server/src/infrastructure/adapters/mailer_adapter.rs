@@ -36,8 +36,12 @@ impl MailerAdapter {
 
         builder = builder.port(config.smtp_server_port);
         if let Some(username) = config.smtp_username {
-            let password = config.smtp_password.with_context(|| "Cannot send SMTP username without a corresponding password")?;
-            builder = builder.authentication(vec![Mechanism::Plain]).credentials(Credentials::new(username, password));
+            let password = config
+                .smtp_password
+                .with_context(|| "Cannot send SMTP username without a corresponding password")?;
+            builder = builder
+                .authentication(vec![Mechanism::Plain])
+                .credentials(Credentials::new(username, password));
         }
 
         Ok(Self {

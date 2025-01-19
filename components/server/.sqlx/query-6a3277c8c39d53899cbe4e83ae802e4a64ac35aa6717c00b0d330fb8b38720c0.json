@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT * FROM tasks\n            WHERE cron_schedule IS NOT NULL\n            AND $1::timestamptz >= next_due_at + (start_window_seconds || ' seconds')::interval + (lateness_window_seconds || ' seconds')::interval\n            AND status = $2 -- status is late\n            LIMIT $3",
+  "query": "\n            SELECT * FROM tasks\n            WHERE\n                cron_schedule IS NOT NULL\n                AND $1::timestamptz >= next_due_at\n                AND status != $2 -- status is not due \n                AND status != $3 -- status is not running\n                AND status != $4 -- status is not absent\n            LIMIT $5",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "id",
+        "name": "user_id",
         "type_info": "Text"
       },
       {
@@ -67,11 +67,43 @@
         "ordinal": 12,
         "name": "created_at",
         "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 13,
+        "name": "schedule_timezone",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 14,
+        "name": "metadata",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 15,
+        "name": "email_notification_enabled",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 16,
+        "name": "push_notification_enabled",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 17,
+        "name": "sms_notification_enabled",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 18,
+        "name": "id",
+        "type_info": "Uuid"
       }
     ],
     "parameters": {
       "Left": [
         "Timestamptz",
+        "Int2",
+        "Int2",
         "Int2",
         "Int8"
       ]
@@ -89,8 +121,14 @@
       false,
       false,
       false,
+      false,
+      true,
+      true,
+      false,
+      false,
+      false,
       false
     ]
   },
-  "hash": "31cbc81ab2b0f50a6f7413e144954ed4290844dbb2c0378d7d21d90fbb1c4d5b"
+  "hash": "6a3277c8c39d53899cbe4e83ae802e4a64ac35aa6717c00b0d330fb8b38720c0"
 }

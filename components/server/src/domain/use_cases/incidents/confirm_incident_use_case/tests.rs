@@ -8,7 +8,8 @@ use crate::domain::{
         entity_metadata::EntityMetadata,
         http_monitor::HttpMonitorErrorKind,
         incident::{
-            HttpMonitorIncidentCause, HttpMonitorIncidentCausePing, Incident, IncidentCause, IncidentPriority, IncidentStatus
+            HttpMonitorIncidentCause, HttpMonitorIncidentCausePing, Incident, IncidentCause,
+            IncidentPriority, IncidentStatus,
         },
         incident_event::IncidentEventType,
         incident_notification::{IncidentNotificationPayload, IncidentNotificationType},
@@ -31,13 +32,15 @@ fn create_test_incident(org_id: Uuid, status: IncidentStatus) -> Incident {
         created_at: Utc::now(),
         created_by: Some(Uuid::new_v4()),
         resolved_at: None,
-        cause: Some(IncidentCause::HttpMonitorIncidentCause(HttpMonitorIncidentCause {
-            last_ping: HttpMonitorIncidentCausePing {
-                error_kind: HttpMonitorErrorKind::Timeout,
-                http_code: None,
+        cause: Some(IncidentCause::HttpMonitorIncidentCause(
+            HttpMonitorIncidentCause {
+                last_ping: HttpMonitorIncidentCausePing {
+                    error_kind: HttpMonitorErrorKind::Timeout,
+                    http_code: None,
+                },
+                previous_pings: HashSet::new(),
             },
-            previous_pings: HashSet::new(),
-        })),
+        )),
         status,
         priority: IncidentPriority::Critical,
         incident_source_type: crate::domain::entities::incident::IncidentSourceType::HttpMonitor,
@@ -78,6 +81,7 @@ async fn test_confirm_incident_success() -> anyhow::Result<()> {
                 previous_pings: HashSet::new(),
             }),
             incident_http_monitor_url: None,
+            incident_task_id: None,
         },
     };
 
@@ -155,6 +159,7 @@ async fn test_confirm_incident_wrong_status() -> anyhow::Result<()> {
                 previous_pings: HashSet::new(),
             }),
             incident_http_monitor_url: None,
+            incident_task_id: None,
         },
     };
 

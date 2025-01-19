@@ -8,7 +8,9 @@ use uuid::Uuid;
 
 use crate::domain::{
     entities::{
-        authorization::{AuthContext, Permission}, entity_metadata::EntityMetadata, http_monitor::{HttpMonitorStatus, RequestHeaders}
+        authorization::{AuthContext, Permission},
+        entity_metadata::EntityMetadata,
+        http_monitor::{HttpMonitorStatus, RequestHeaders},
     },
     ports::http_monitor_repository::{HttpMonitorRepository, NewHttpMonitor},
 };

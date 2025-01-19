@@ -1,7 +1,7 @@
 use std::collections::HashSet;
 
 use anyhow::Context;
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use tracing::{debug, warn};
 use uuid::Uuid;
 
@@ -65,6 +65,7 @@ where
         mut ping_response: crate::domain::ports::http_client::PingResponse,
         existing_incident: Option<Incident>,
     ) -> anyhow::Result<()> {
+        let now = Utc::now();
         let (status_counter, status) = status_machine::next_status(
             monitor.downtime_confirmation_threshold,
             monitor.recovery_confirmation_threshold,
@@ -76,9 +77,9 @@ where
 
         let error_kind = ping_response.error_kind;
         let last_http_code = ping_response.http_code.map(|c| c as i16);
-        let next_ping_at = Some(Utc::now() + monitor.interval());
+        let next_ping_at = Some(now + monitor.interval());
         let last_status_change_at = if status != monitor.status {
-            Utc::now()
+            now
         } else {
             monitor.last_status_change_at
         };
@@ -142,7 +143,7 @@ where
                 );
 
                 let ping_event = self
-                    .create_ping_event(&monitor, incident.id, &mut ping_response)
+                    .create_ping_event(&monitor, incident.id, &mut ping_response, now)
                     .await;
 
                 self.incident_event_repository
@@ -170,14 +171,14 @@ where
 
                 if status_counter == 1 {
                     let ping_event = self
-                        .create_ping_event(&monitor, incident.id, &mut ping_response)
+                        .create_ping_event(&monitor, incident.id, &mut ping_response, now)
                         .await;
 
                     let switch_to_recovering_event = IncidentEvent {
                         organization_id: monitor.organization_id,
                         incident_id: incident.id,
                         user_id: None,
-                        created_at: Utc::now(),
+                        created_at: now,
                         event_type: IncidentEventType::MonitorSwitchedToRecovering,
                         event_payload: None,
                     };
@@ -210,6 +211,7 @@ where
                         },
                         previous_pings: HashSet::new(),
                     }),
+                    now,
                     ping_response,
                 )
                 .await?;
@@ -234,6 +236,7 @@ where
                         },
                         previous_pings: HashSet::new(),
                     }),
+                    now,
                     ping_response,
                 )
                 .await?;
@@ -270,6 +273,7 @@ where
                         incident,
                         cause,
                         ping_response,
+                        now,
                     )
                     .await?;
                 }
@@ -303,13 +307,14 @@ where
                         incident,
                         cause,
                         ping_response,
+                        now,
                     )
                     .await?;
                 }
                 // Else, create a ping event if the monitor is switching to a new status
                 else if status_counter == 1 {
                     let ping_event = self
-                        .create_ping_event(&monitor, incident.id, &mut ping_response)
+                        .create_ping_event(&monitor, incident.id, &mut ping_response, now)
                         .await;
 
                     self.incident_event_repository
@@ -323,7 +328,7 @@ where
                         organization_id: monitor.organization_id,
                         incident_id: incident.id,
                         user_id: None,
-                        created_at: Utc::now(),
+                        created_at: now,
                         event_type: if status == HttpMonitorStatus::Suspicious {
                             IncidentEventType::MonitorSwitchedToSuspicious
                         } else {
@@ -391,6 +396,7 @@ where
         monitor: &HttpMonitor,
         confirmed_incident: bool,
         incident_cause: IncidentCause,
+        now: DateTime<Utc>,
         mut ping_response: crate::domain::ports::http_client::PingResponse,
     ) -> anyhow::Result<()>
     where
@@ -439,6 +445,7 @@ where
                 notification_payload: IncidentNotificationPayload {
                     incident_cause,
                     incident_http_monitor_url: Some(monitor.url.clone()),
+                    incident_task_id: None,
                 },
             })
         } else {
@@ -450,6 +457,7 @@ where
             &self.incident_repository,
             &self.incident_event_repository,
             &self.incident_notification_repository,
+            now,
             new_incident,
             notification,
         )
@@ -457,7 +465,7 @@ where
         .context("Failed to create incident")?;
 
         let ping_event = self
-            .create_ping_event(monitor, incident_id, &mut ping_response)
+            .create_ping_event(monitor, incident_id, &mut ping_response, now)
             .await;
 
         self.incident_event_repository
@@ -491,6 +499,7 @@ where
                     .clone()
                     .context("Incident cause is required")?,
                 incident_http_monitor_url: Some(monitor.url.clone()),
+                incident_task_id: None,
             },
         };
 
@@ -512,6 +521,7 @@ where
         incident: &Incident,
         cause: &HttpMonitorIncidentCause,
         mut ping_response: crate::domain::ports::http_client::PingResponse,
+        now: DateTime<Utc>,
     ) -> anyhow::Result<()> {
         let mut previous_pings = cause.previous_pings.clone();
         previous_pings.insert(cause.last_ping.clone());
@@ -530,7 +540,7 @@ where
         };
 
         let ping_event = self
-            .create_ping_event(monitor, incident.id, &mut ping_response)
+            .create_ping_event(monitor, incident.id, &mut ping_response, now)
             .await;
 
         self.incident_repository
@@ -548,6 +558,7 @@ where
         monitor: &HttpMonitor,
         incident_id: uuid::Uuid,
         ping_response: &mut crate::domain::ports::http_client::PingResponse,
+        now: DateTime<Utc>,
     ) -> IncidentEvent {
         // Store the response body in the file storage
         let response_file_id = match ping_response.response_body_content.take() {
@@ -602,7 +613,7 @@ where
         IncidentEvent {
             organization_id: monitor.organization_id,
             user_id: None,
-            created_at: Utc::now(),
+            created_at: now,
             incident_id,
             event_type: IncidentEventType::MonitorPinged,
             event_payload: Some(IncidentEventPayload::MonitorPing(PingEventPayload {

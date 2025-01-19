@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT \n                tasks.status as \"task_status!\",\n                tasks.name as \"task_name!\",\n                tasks.description as \"task_description\",\n                tasks.previous_status as \"task_previous_status\",\n                tasks.last_status_change_at as \"task_last_status_change_at\",\n                tasks.cron_schedule as \"task_cron_schedule\",\n                tasks.next_due_at as \"task_next_due_at\",\n                tasks.start_window_seconds as \"task_start_window_seconds\",\n                tasks.lateness_window_seconds as \"task_lateness_window_seconds\",\n                tasks.heartbeat_timeout_seconds as \"task_heartbeat_timeout_seconds\",\n                tasks.created_at as \"task_created_at\",\n                task_runs.*\n            FROM task_runs\n            INNER JOIN tasks ON task_runs.organization_id = tasks.organization_id AND task_runs.task_id = tasks.id\n            WHERE (task_runs.last_heartbeat_at < ($1::timestamptz - INTERVAL '1 second' * task_runs.heartbeat_timeout_seconds)) AND task_runs.status = $2\n            ORDER BY task_runs.last_heartbeat_at ASC\n            LIMIT $3\n            ",
+  "query": "\n            SELECT \n                tasks.status as \"task_status!\",\n                tasks.name as \"task_name!\",\n                tasks.description as \"task_description\",\n                tasks.previous_status as \"task_previous_status\",\n                tasks.last_status_change_at as \"task_last_status_change_at\",\n                tasks.cron_schedule as \"task_cron_schedule\",\n                tasks.schedule_timezone as \"task_schedule_timezone\",\n                tasks.next_due_at as \"task_next_due_at\",\n                tasks.start_window_seconds as \"task_start_window_seconds\",\n                tasks.lateness_window_seconds as \"task_lateness_window_seconds\",\n                tasks.heartbeat_timeout_seconds as \"task_heartbeat_timeout_seconds\",\n                tasks.created_at as \"task_created_at\",\n                tasks.metadata as \"task_metadata\",\n                task_runs.*\n            FROM task_runs\n            INNER JOIN tasks ON task_runs.organization_id = tasks.organization_id AND task_runs.task_id = tasks.id\n            WHERE \n                (task_runs.last_heartbeat_at < ($1::timestamptz - INTERVAL '1 second' * task_runs.heartbeat_timeout_seconds)) \n                AND task_runs.status = $2\n            ORDER BY task_runs.last_heartbeat_at ASC\n            LIMIT $3\n            ",
   "describe": {
     "columns": [
       {
@@ -35,78 +35,98 @@
       },
       {
         "ordinal": 6,
+        "name": "task_schedule_timezone",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
         "name": "task_next_due_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "task_start_window_seconds",
         "type_info": "Int4"
       },
       {
-        "ordinal": 8,
+        "ordinal": 9,
         "name": "task_lateness_window_seconds",
         "type_info": "Int4"
       },
       {
-        "ordinal": 9,
+        "ordinal": 10,
         "name": "task_heartbeat_timeout_seconds",
         "type_info": "Int4"
       },
       {
-        "ordinal": 10,
+        "ordinal": 11,
         "name": "task_created_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 11,
+        "ordinal": 12,
+        "name": "task_metadata",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 13,
         "name": "organization_id",
         "type_info": "Uuid"
       },
       {
-        "ordinal": 12,
-        "name": "task_id",
+        "ordinal": 14,
+        "name": "task_user_id",
         "type_info": "Text"
       },
       {
-        "ordinal": 13,
+        "ordinal": 15,
         "name": "status",
         "type_info": "Int2"
       },
       {
-        "ordinal": 14,
+        "ordinal": 16,
         "name": "started_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 15,
+        "ordinal": 17,
         "name": "completed_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 16,
+        "ordinal": 18,
         "name": "exit_code",
         "type_info": "Int4"
       },
       {
-        "ordinal": 17,
+        "ordinal": 19,
         "name": "error_message",
         "type_info": "Text"
       },
       {
-        "ordinal": 18,
+        "ordinal": 20,
         "name": "last_heartbeat_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 19,
+        "ordinal": 21,
         "name": "heartbeat_timeout_seconds",
         "type_info": "Int4"
       },
       {
-        "ordinal": 20,
+        "ordinal": 22,
         "name": "updated_at",
         "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 23,
+        "name": "metadata",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 24,
+        "name": "task_id",
+        "type_info": "Uuid"
       }
     ],
     "parameters": {
@@ -124,10 +144,12 @@
       true,
       true,
       true,
+      true,
       false,
       false,
       false,
       false,
+      true,
       false,
       false,
       false,
@@ -137,8 +159,10 @@
       true,
       true,
       false,
+      false,
+      true,
       false
     ]
   },
-  "hash": "e7a11da1b22c0f28ee83dd793c032601c0c415c19aea3aad17e30d4825cc28b6"
+  "hash": "deb1b271afa981f8f03f82bd05c266cd519a5d038c2fd1d85a529c2a1bef01a0"
 }

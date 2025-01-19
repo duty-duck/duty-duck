@@ -117,7 +117,12 @@ where
                 let request_headers = monitor.request_headers.headers.clone();
                 let request_timeout = monitor.request_timeout();
                 async move {
-                    (monitor, http_client.ping(&url, request_timeout, request_headers).await)
+                    (
+                        monitor,
+                        http_client
+                            .ping(&url, request_timeout, request_headers)
+                            .await,
+                    )
                 }
             })
             .buffer_unordered(concurrency_limit);

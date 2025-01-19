@@ -1,0 +1,28 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            INSERT INTO tasks (\n                organization_id, \n                id, \n                user_id,\n                name, \n                description, \n                status,\n                previous_status, \n                cron_schedule, \n                schedule_timezone,\n                next_due_at,\n                start_window_seconds, \n                lateness_window_seconds,\n                heartbeat_timeout_seconds,\n                last_status_change_at,\n                metadata\n            )\n            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)\n            ON CONFLICT (organization_id, id) DO UPDATE SET\n                name = $4,\n                description = $5,\n                status = $6,\n                previous_status = $7,\n                cron_schedule = $8,\n                schedule_timezone = $9,\n                next_due_at = $10,\n                start_window_seconds = $11,\n                lateness_window_seconds = $12,\n                heartbeat_timeout_seconds = $13,\n                last_status_change_at = $14,\n                metadata = $15\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Text",
+        "Varchar",
+        "Text",
+        "Int2",
+        "Int2",
+        "Text",
+        "Text",
+        "Timestamptz",
+        "Int4",
+        "Int4",
+        "Int4",
+        "Timestamptz",
+        "Jsonb"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "b45cf186136dd3f9422baad341bc2b51af493dfa9c19a0b5025c81c051bcaa87"
+}

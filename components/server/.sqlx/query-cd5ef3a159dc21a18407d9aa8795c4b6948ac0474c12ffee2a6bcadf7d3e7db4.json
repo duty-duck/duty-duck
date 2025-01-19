@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT count(*) FROM task_runs WHERE organization_id = $1 AND task_id = $2",
+  "query": "SELECT count(*) FROM task_runs \n             WHERE \n                organization_id = $1 AND task_id = $2",
   "describe": {
     "columns": [
       {
@@ -12,12 +12,12 @@
     "parameters": {
       "Left": [
         "Uuid",
-        "Text"
+        "Uuid"
       ]
     },
     "nullable": [
       null
     ]
   },
-  "hash": "21ec3f93255062c5d6bcef5ae8e97ffe8ba74992abd1df96f4d8859638802406"
+  "hash": "cd5ef3a159dc21a18407d9aa8795c4b6948ac0474c12ffee2a6bcadf7d3e7db4"
 }

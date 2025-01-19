@@ -30,7 +30,12 @@ impl FileStorageAdapter {
 
 #[async_trait]
 impl FileStorage for FileStorageAdapter {
-    async fn store_file(&self, key: FileStorageKey, content_type: &str, data: Vec<u8>) -> anyhow::Result<()> {
+    async fn store_file(
+        &self,
+        key: FileStorageKey,
+        content_type: &str,
+        data: Vec<u8>,
+    ) -> anyhow::Result<()> {
         let body = ByteStream::from(data);
         self.client
             .put_object()

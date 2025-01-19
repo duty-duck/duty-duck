@@ -20,7 +20,13 @@ use crate::domain::{
         user_device::UserDevice,
     },
     ports::{
-        incident_event_repository::IncidentEventRepository, incident_notification_repository::IncidentNotificationRepository, mailer::Mailer, organization_repository::OrganizationRepository, push_notification_server::PushNotificationServer, sms_notification_server::{Sms, SmsNotificationServer}, user_devices_repository::UserDevicesRepository
+        incident_event_repository::IncidentEventRepository,
+        incident_notification_repository::IncidentNotificationRepository,
+        mailer::Mailer,
+        organization_repository::OrganizationRepository,
+        push_notification_server::PushNotificationServer,
+        sms_notification_server::{Sms, SmsNotificationServer},
+        user_devices_repository::UserDevicesRepository,
     },
 };
 
@@ -36,7 +42,8 @@ pub struct ExecuteIncidentNotificationsUseCase<OR, INR, IER, PNS, SNS, UDR, M> {
     pub select_limit: u32,
 }
 
-impl<OR, INR, IER, PNS, SNS, UDR, M> ExecuteIncidentNotificationsUseCase<OR, INR, IER, PNS, SNS, UDR, M>
+impl<OR, INR, IER, PNS, SNS, UDR, M>
+    ExecuteIncidentNotificationsUseCase<OR, INR, IER, PNS, SNS, UDR, M>
 where
     OR: OrganizationRepository,
     INR: IncidentNotificationRepository,
@@ -91,14 +98,14 @@ where
         join_set
     }
 
-    pub async fn fetch_and_execute_due_notifications(
-        &self
-    ) -> anyhow::Result<usize>
-  {
+    pub async fn fetch_and_execute_due_notifications(&self) -> anyhow::Result<usize> {
         let mut user_devices_cache: UserDevicesByOrgCache = UserDevicesByOrgCache::new();
         let mut org_cache: OrgCache = OrgCache::new();
 
-        let mut tx = self.incident_notification_repository.begin_transaction().await?;
+        let mut tx = self
+            .incident_notification_repository
+            .begin_transaction()
+            .await?;
         let incident_notifications = self
             .incident_notification_repository
             .get_next_notifications_to_send(&mut tx, self.select_limit)
@@ -130,12 +137,8 @@ where
                 )),
             };
 
-            self.send_notification(
-                notification,
-                &mut user_devices_cache,
-                &mut org_cache,
-            )
-            .await?;
+            self.send_notification(notification, &mut user_devices_cache, &mut org_cache)
+                .await?;
 
             if should_create_event {
                 self.incident_event_repository
@@ -155,14 +158,13 @@ where
 
     /// Sends an event notification, if any notification channel is enabled
     async fn send_notification(
-        &self,        
+        &self,
         notification: IncidentNotification,
         user_devices_cache: &mut UserDevicesByOrgCache,
         org_cache: &mut OrgCache,
     ) -> anyhow::Result<()> {
         let org_id = notification.organization_id;
-        let (org, org_users) =
-            self.fetch_organization_and_users(org_id, org_cache).await?;
+        let (org, org_users) = self.fetch_organization_and_users(org_id, org_cache).await?;
 
         // Send e-mails, if e-email notifications are enabled
         if notification.send_email {
@@ -184,28 +186,26 @@ where
         // Send SMS, if SMS notifications are enabled
         if notification.send_sms {
             let messages = org_users
-            .into_iter()
-            .filter(|user| user.phone_number.is_some() && user.phone_number_verified)
-            .filter_map(
-                |user| match Self::build_sms_message(&notification, &user, &org) {
-                    Ok(message) => Some(message),
-                    Err(e) => {
-                        warn!(error = ?e, user = ?user, "Failed to build SMS message for user");
-                        None
-                    }
-                },
-            )
-            .collect();
+                .into_iter()
+                .filter(|user| user.phone_number.is_some() && user.phone_number_verified)
+                .filter_map(
+                    |user| match Self::build_sms_message(&notification, &user, &org) {
+                        Ok(message) => Some(message),
+                        Err(e) => {
+                            warn!(error = ?e, user = ?user, "Failed to build SMS message for user");
+                            None
+                        }
+                    },
+                )
+                .collect();
             self.sms_notificaton_server.send_batch(messages).await?;
         }
 
         // Send push notification, if push notifications are enabled
         if notification.send_push_notification {
-            let devices_tokens = self.fetch_organization_devices_token(
-                user_devices_cache,
-                org_id,
-            )
-            .await?;
+            let devices_tokens = self
+                .fetch_organization_devices_token(user_devices_cache, org_id)
+                .await?;
 
             match Self::build_push_notification(&notification) {
                 Ok(push_notification) => {
@@ -246,6 +246,12 @@ where
                     body: t!("newHttpMonitorIncidentPushNotificationBody", url = url).to_string(),
                 })
             }
+            IncidentCause::ScheduledTaskIncidentCause { .. } => {
+                todo!("Scheduled task incident cause notification content")
+            }
+            IncidentCause::TaskRunIncidentCause { .. } => {
+                todo!("Task run incident cause notification content")
+            }
         }
     }
 
@@ -274,7 +280,19 @@ where
             IncidentCause::HttpMonitorIncidentCause { .. } => {
                 let url = notification.notification_payload.incident_http_monitor_url.as_ref().context("Cannot build e-mail message, cause is HttpMonitorIncidentCause but HTTP monitor URL is not set")?;
                 subject = t!("newHttpMonitorIncidentEmailSubject", url = url).to_string();
-                body = t!("newHttpMonitorIncidentEmailBody", url = url, userName = user.first_name, org = user_org.name).to_string();
+                body = t!(
+                    "newHttpMonitorIncidentEmailBody",
+                    url = url,
+                    userName = user.first_name,
+                    org = user_org.name
+                )
+                .to_string();
+            }
+            IncidentCause::ScheduledTaskIncidentCause { .. } => {
+                todo!("Scheduled task incident cause notification content")
+            }
+            IncidentCause::TaskRunIncidentCause { .. } => {
+                todo!("Task run incident cause notification content")
             }
         }
 
@@ -294,9 +312,19 @@ where
             IncidentCause::HttpMonitorIncidentCause { .. } => {
                 let url = notification.notification_payload.incident_http_monitor_url.as_ref().context("Cannot build push notification, cause is HttpMonitorIncidentCause but HTTP monitor URL is not set")?;
                 Ok(Sms {
-                    phone_number: user.phone_number.clone().context("Cannot build SMS message, user has no phone number")?,
-                    message: t!("newHttpMonitorIncidentPushNotificationBody", url = url).to_string(),
+                    phone_number: user
+                        .phone_number
+                        .clone()
+                        .context("Cannot build SMS message, user has no phone number")?,
+                    message: t!("newHttpMonitorIncidentPushNotificationBody", url = url)
+                        .to_string(),
                 })
+            }
+            IncidentCause::ScheduledTaskIncidentCause { .. } => {
+                todo!("Scheduled task incident cause notification content")
+            }
+            IncidentCause::TaskRunIncidentCause { .. } => {
+                todo!("Task run incident cause notification content")
             }
         }
     }
@@ -321,14 +349,16 @@ where
             return Ok(cached_data.clone());
         }
         let mut users = Vec::new();
-        let organization = self.organization_repository
+        let organization = self
+            .organization_repository
             .get_organization(org_id)
             .await
             .with_context(|| format!("Failed to fetch organization with id: {}", org_id))?;
 
         loop {
             let page_size = 100;
-            let page_results = self.organization_repository
+            let page_results = self
+                .organization_repository
                 .list_organization_members(org_id, 0, page_size as u32)
                 .await
                 .with_context(|| {
@@ -371,7 +401,8 @@ where
         let org_user_devices = match user_devices_cache.get(&org_id) {
             Some(devices) => devices,
             None => {
-                let devices = self.user_devices_repository
+                let devices = self
+                    .user_devices_repository
                     .list_organization_devices(org_id)
                     .await?;
                 user_devices_cache.entry(org_id).or_insert(devices)

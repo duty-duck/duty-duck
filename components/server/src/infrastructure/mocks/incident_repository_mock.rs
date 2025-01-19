@@ -66,6 +66,8 @@ impl IncidentRepository for IncidentRepositoryMock {
         let id = Uuid::new_v4();
         let (incident_source_type, incident_source_id) = match incident.source {
             IncidentSource::HttpMonitor { id } => (IncidentSourceType::HttpMonitor, id),
+            IncidentSource::Task { id } => (IncidentSourceType::Task, id),
+            IncidentSource::TaskRun { id } => (IncidentSourceType::TaskRun, id),
         };
         let incident = Incident {
             organization_id: incident.organization_id,
@@ -95,16 +97,9 @@ impl IncidentRepository for IncidentRepositoryMock {
     ) -> anyhow::Result<ListIncidentsOutput> {
         let state = self.state.lock().await;
 
-
-        // right now the filter map is unnecessary, but it will change when we have more incident sources
-        #[allow(clippy::unnecessary_filter_map)]
-        let include_http_monitors_ids = opts
-            .include_sources
-            .iter()
-            .filter_map(|s| match s {
-                IncidentSource::HttpMonitor { id } => Some(*id),
-            })
-            .collect::<Vec<_>>();
+        let include_http_monitors_ids = opts.include_http_monitor_ids();
+        let include_task_ids = opts.include_task_ids();
+        let include_task_run_ids = opts.include_task_run_ids();
 
         let filtered_incidents: Vec<Incident> = state
             .iter()
@@ -116,9 +111,20 @@ impl IncidentRepository for IncidentRepositoryMock {
                 opts.include_priorities.is_empty() || opts.include_priorities.contains(&i.priority)
             })
             .filter(|i| {
-                opts.include_sources.is_empty()
+
+                let matches_http_monitor_ids = opts.include_sources.is_empty()
                     || (i.incident_source_type == IncidentSourceType::HttpMonitor
-                        && include_http_monitors_ids.contains(&i.incident_source_id))
+                        && include_http_monitors_ids.contains(&i.incident_source_id));
+
+                let matches_task_ids = opts.include_sources.is_empty()
+                    || (i.incident_source_type == IncidentSourceType::Task
+                        && include_task_ids.contains(&i.incident_source_id));
+
+                let matches_task_run_ids = opts.include_sources.is_empty()
+                    || (i.incident_source_type == IncidentSourceType::TaskRun
+                        && include_task_run_ids.contains(&i.incident_source_id));
+
+                matches_http_monitor_ids || matches_task_ids || matches_task_run_ids
             })
             .filter(|i| {
                 opts.from_date
@@ -206,7 +212,10 @@ mod tests {
         entities::{
             entity_metadata::{EntityMetadata, MetadataFilter},
             http_monitor::HttpMonitorErrorKind,
-            incident::{HttpMonitorIncidentCause, HttpMonitorIncidentCausePing, IncidentCause, IncidentPriority, IncidentStatus},
+            incident::{
+                HttpMonitorIncidentCause, HttpMonitorIncidentCausePing, IncidentCause,
+                IncidentPriority, IncidentStatus,
+            },
         },
         use_cases::{incidents::OrderIncidentsBy, shared::OrderDirection},
     };
@@ -215,13 +224,15 @@ mod tests {
         NewIncident {
             organization_id: org_id,
             created_by: Some(Uuid::new_v4()),
-            cause: Some(IncidentCause::HttpMonitorIncidentCause(HttpMonitorIncidentCause {
-                last_ping: HttpMonitorIncidentCausePing {
-                    error_kind: HttpMonitorErrorKind::HttpCode,
-                    http_code: Some(500),
+            cause: Some(IncidentCause::HttpMonitorIncidentCause(
+                HttpMonitorIncidentCause {
+                    last_ping: HttpMonitorIncidentCausePing {
+                        error_kind: HttpMonitorErrorKind::HttpCode,
+                        http_code: Some(500),
+                    },
+                    previous_pings: HashSet::new(),
                 },
-                previous_pings: HashSet::new(),
-            })),
+            )),
             status: IncidentStatus::Ongoing,
             priority: IncidentPriority::Critical,
             source: IncidentSource::HttpMonitor { id: Uuid::new_v4() },
@@ -236,6 +247,7 @@ mod tests {
         let incident = create_test_incident(org_id);
         let source_id = match incident.source {
             IncidentSource::HttpMonitor { id } => id,
+            _ => panic!("Invalid incident source"),
         };
 
         let mut tx = repo.begin_transaction().await?;

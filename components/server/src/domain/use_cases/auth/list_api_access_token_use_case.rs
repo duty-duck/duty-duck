@@ -25,7 +25,10 @@ pub async fn list_api_access_tokens(
     repository: &impl ApiAccessTokenRepository,
 ) -> Result<ListApiAccessTokensResponse, ListApiAccessTokensError> {
     let api_tokens = repository
-        .list_api_tokens(auth_context.active_organization_id, auth_context.active_user_id)
+        .list_api_tokens(
+            auth_context.active_organization_id,
+            auth_context.active_user_id,
+        )
         .await?;
     Ok(ListApiAccessTokensResponse { api_tokens })
 }

@@ -46,7 +46,7 @@ pub struct HttpMonitor {
     pub archived_at: Option<DateTime<Utc>>,
     #[sqlx(json)]
     pub request_headers: RequestHeaders,
-    pub request_timeout_ms: i32
+    pub request_timeout_ms: i32,
 }
 
 impl HttpMonitor {
@@ -104,7 +104,20 @@ impl From<i16> for HttpMonitorStatus {
     }
 }
 
-#[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq, ToSchema, Default, Hash)]
+#[derive(
+    sqlx::Type,
+    Serialize,
+    Deserialize,
+    TS,
+    Debug,
+    Clone,
+    Copy,
+    PartialEq,
+    Eq,
+    ToSchema,
+    Default,
+    Hash,
+)]
 #[repr(i16)]
 #[serde(rename_all = "lowercase")]
 #[ts(export)]

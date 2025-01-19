@@ -1,20 +1,20 @@
-
 use std::time::Duration;
 
-use uuid::Uuid;
 use chrono::{DateTime, Utc};
 use getset::Getters;
+use uuid::Uuid;
 
-use crate::domain::entities::task::TaskId;
-use super::{AbortedTaskRun, DeadTaskRun, FailedTaskRun, FinishedTaskRun, TaskRunError};
 use super::super::boundary::{BoundaryTaskRun, TaskRunStatus};
+use super::{AbortedTaskRun, DeadTaskRun, FailedTaskRun, FinishedTaskRun, TaskRunError};
 use crate::domain::entities::entity_metadata::EntityMetadata;
+use crate::domain::entities::task::{TaskBase, TaskId};
 
 #[derive(Getters, Debug, Clone)]
 #[getset(get = "pub")]
 pub struct RunningTaskRun {
     organization_id: Uuid,
-    task_id: TaskId,
+    task_id: Uuid,
+    task_user_id: TaskId,
     started_at: DateTime<Utc>,
     last_heartbeat_at: DateTime<Utc>,
     heartbeat_timeout: Duration,
@@ -22,14 +22,15 @@ pub struct RunningTaskRun {
 }
 
 impl RunningTaskRun {
-    pub fn new(organization_id: Uuid, task_id: TaskId, started_at: DateTime<Utc>, heartbeat_timeout: Duration) -> Self {
+    pub fn new(task_base: &TaskBase, started_at: DateTime<Utc>) -> Self {
         Self {
-            organization_id,
-            task_id,
+            organization_id: *task_base.organization_id(),
+            task_id: *task_base.id(),
+            task_user_id: task_base.user_id().clone(),
             started_at,
             last_heartbeat_at: started_at,
-            heartbeat_timeout,
-            metadata: EntityMetadata::default(),
+            heartbeat_timeout: *task_base.heartbeat_timeout(),
+            metadata: task_base.metadata().clone(),
         }
     }
 
@@ -45,6 +46,7 @@ impl RunningTaskRun {
         Ok(DeadTaskRun {
             organization_id: self.organization_id,
             task_id: self.task_id,
+            task_user_id: self.task_user_id,
             started_at: self.started_at,
             completed_at: now,
             updated_at: now,
@@ -59,6 +61,7 @@ impl RunningTaskRun {
         Ok(AbortedTaskRun {
             organization_id: self.organization_id,
             task_id: self.task_id,
+            task_user_id: self.task_user_id,
             started_at: self.started_at,
             completed_at: now,
             updated_at: now,
@@ -82,6 +85,7 @@ impl RunningTaskRun {
         Ok(FinishedTaskRun {
             organization_id: self.organization_id,
             task_id: self.task_id,
+            task_user_id: self.task_user_id,
             started_at: self.started_at,
             completed_at: now,
             updated_at: now,
@@ -107,6 +111,7 @@ impl RunningTaskRun {
         Ok(FailedTaskRun {
             organization_id: self.organization_id,
             task_id: self.task_id,
+            task_user_id: self.task_user_id,
             started_at: self.started_at,
             completed_at: now,
             updated_at: now,
@@ -122,19 +127,22 @@ impl TryFrom<BoundaryTaskRun> for RunningTaskRun {
 
     fn try_from(boundary: BoundaryTaskRun) -> Result<Self, Self::Error> {
         if boundary.status != TaskRunStatus::Running {
-            return Err(TaskRunError::FailedToBuildFromBoundary { 
-                details: "Task run status is not Running".to_string() 
+            return Err(TaskRunError::FailedToBuildFromBoundary {
+                details: "Task run status is not Running".to_string(),
             });
         }
 
-        let last_heartbeat_at = boundary.last_heartbeat_at.ok_or(
-            TaskRunError::FailedToBuildFromBoundary { 
-                details: "Running task run must have last_heartbeat_at".to_string() 
-            })?;
+        let last_heartbeat_at =
+            boundary
+                .last_heartbeat_at
+                .ok_or(TaskRunError::FailedToBuildFromBoundary {
+                    details: "Running task run must have last_heartbeat_at".to_string(),
+                })?;
 
         Ok(Self {
             organization_id: boundary.organization_id,
             task_id: boundary.task_id,
+            task_user_id: boundary.task_user_id,
             started_at: boundary.started_at,
             last_heartbeat_at,
             heartbeat_timeout: Duration::from_secs(boundary.heartbeat_timeout_seconds as u64),
@@ -149,6 +157,7 @@ impl From<RunningTaskRun> for BoundaryTaskRun {
             status: TaskRunStatus::Running,
             organization_id: running.organization_id,
             task_id: running.task_id,
+            task_user_id: running.task_user_id,
             started_at: running.started_at,
             updated_at: running.last_heartbeat_at,
             completed_at: None,

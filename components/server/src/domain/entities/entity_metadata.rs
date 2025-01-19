@@ -2,9 +2,9 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
+use tracing::error;
 use ts_rs::TS;
 use utoipa::ToSchema;
-use tracing::error;
 
 /// Key-value pairs of data that can be attached to monitors, incidents, etc. to add context
 /// and filter entities
@@ -34,14 +34,14 @@ impl From<Option<Value>> for EntityMetadata {
 pub struct FilterableMetadataItem {
     pub key: String,
     pub distinct_values: Vec<FilterableMetadataValue>,
-    pub key_cardinality: u64
+    pub key_cardinality: u64,
 }
 
 #[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]
 #[ts(export)]
 pub struct FilterableMetadataValue {
     pub value: String,
-    pub value_count: u64
+    pub value_count: u64,
 }
 
 #[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]

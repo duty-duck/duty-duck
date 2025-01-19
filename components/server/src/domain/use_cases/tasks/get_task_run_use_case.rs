@@ -1,6 +1,6 @@
 use anyhow::Context;
-use serde::Serialize;
 use chrono::{DateTime, Utc};
+use serde::Serialize;
 use thiserror::Error;
 use ts_rs::TS;
 use utoipa::ToSchema;
@@ -8,9 +8,10 @@ use utoipa::ToSchema;
 use crate::domain::{
     entities::{
         authorization::{AuthContext, Permission},
-        task::TaskId, task_run::BoundaryTaskRun
+        task::TaskId,
+        task_run::BoundaryTaskRun,
     },
-    ports::task_run_repository::TaskRunRepository,
+    ports::{task_repository::TaskRepository, task_run_repository::TaskRunRepository},
 };
 
 #[derive(Serialize, TS, Debug, ToSchema)]
@@ -26,13 +27,17 @@ pub enum GetTaskRunError {
     TechnicalFailure(#[from] anyhow::Error),
     #[error("Current user doesn't have the privilege to read task runs")]
     Forbidden,
-    #[error("Task run not found")]
+    #[error("Task or task run not found")]
     NotFound,
 }
 
-pub async fn get_task_run(
+pub async fn get_task_run<
+    TR: TaskRepository,
+    TRR: TaskRunRepository<Transaction = TR::Transaction>,
+>(
     auth_context: &AuthContext,
-    repository: &impl TaskRunRepository,
+    task_repository: &TR,
+    task_run_repository: &TRR,
     task_id: TaskId,
     task_run_started_at: DateTime<Utc>,
 ) -> Result<GetTaskRunResponse, GetTaskRunError> {
@@ -40,16 +45,22 @@ pub async fn get_task_run(
         return Err(GetTaskRunError::Forbidden);
     }
 
-    let mut tx = repository
+    let mut tx = task_repository
         .begin_transaction()
         .await
         .context("Failed to begin transaction")?;
 
-    let task_run = repository
+    let task = task_repository
+        .get_task_by_user_id(&mut tx, auth_context.active_organization_id, &task_id)
+        .await
+        .context("Failed to get task from repository")?
+        .ok_or(GetTaskRunError::NotFound)?;
+
+    let task_run = task_run_repository
         .get_task_run(
             &mut tx,
             auth_context.active_organization_id,
-            &task_id,
+            task.id,
             task_run_started_at,
         )
         .await
@@ -57,4 +68,4 @@ pub async fn get_task_run(
         .ok_or(GetTaskRunError::NotFound)?;
 
     Ok(GetTaskRunResponse { task_run })
-} 
+}

@@ -34,7 +34,13 @@ impl SmsNotificationServer for SmsNotificationServerAdapter {
             .publish()
             .phone_number(phone_number)
             .message(message)
-            .message_attributes("AWS.SNS.SMS.SMSType", MessageAttributeValue::builder().data_type("String").string_value("Transactional").build()?)
+            .message_attributes(
+                "AWS.SNS.SMS.SMSType",
+                MessageAttributeValue::builder()
+                    .data_type("String")
+                    .string_value("Transactional")
+                    .build()?,
+            )
             .send()
             .await?;
 

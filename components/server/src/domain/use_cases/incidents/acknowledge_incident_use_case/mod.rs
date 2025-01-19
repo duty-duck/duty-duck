@@ -10,7 +10,9 @@ use crate::domain::{
         },
     },
     ports::{
-        incident_event_repository::IncidentEventRepository, incident_notification_repository::IncidentNotificationRepository, incident_repository::IncidentRepository
+        incident_event_repository::IncidentEventRepository,
+        incident_notification_repository::IncidentNotificationRepository,
+        incident_repository::IncidentRepository,
     },
 };
 
@@ -77,8 +79,16 @@ pub async fn acknowledge_incident<
                 )
                 .await?;
 
-            incident_event_repo.create_incident_event(&mut tx, event).await?;
-            incident_notification_repo.cancel_all_notifications_for_incident(&mut tx, auth_context.active_organization_id, incident_id).await?;
+            incident_event_repo
+                .create_incident_event(&mut tx, event)
+                .await?;
+            incident_notification_repo
+                .cancel_all_notifications_for_incident(
+                    &mut tx,
+                    auth_context.active_organization_id,
+                    incident_id,
+                )
+                .await?;
             incident_event_repo.commit_transaction(tx).await?;
             Ok(())
         }

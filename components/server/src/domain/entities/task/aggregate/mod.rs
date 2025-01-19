@@ -15,10 +15,7 @@ pub use running::*;
 
 use crate::domain::{
     entities::{task::*, task_run::*},
-    ports::{
-        task_repository::TaskRepository,
-        task_run_repository::TaskRunRepository,
-    },
+    ports::{task_repository::TaskRepository, task_run_repository::TaskRunRepository},
 };
 use thiserror::Error;
 use uuid::Uuid;
@@ -72,7 +69,7 @@ where
     TRR: TaskRunRepository<Transaction = TR::Transaction>,
 {
     match task_repository
-        .get_task(tx, organization_id, task_id)
+        .get_task_by_user_id(tx, organization_id, task_id)
         .await?
     {
         Some(task) => {
@@ -82,7 +79,7 @@ where
                         .get_latest_task_run(
                             tx,
                             organization_id,
-                            task_id,
+                            task.id,
                             &[TaskRunStatus::Running],
                         )
                         .await?;
@@ -94,7 +91,7 @@ where
                         .get_latest_task_run(
                             tx,
                             organization_id,
-                            task_id,
+                            task.id,
                             &[TaskRunStatus::Failed, TaskRunStatus::Dead],
                         )
                         .await?;
@@ -109,7 +106,7 @@ where
                         .get_latest_task_run(
                             tx,
                             organization_id,
-                            task_id,
+                            task.id,
                             &[TaskRunStatus::Aborted, TaskRunStatus::Finished],
                         )
                         .await?;
@@ -157,10 +154,14 @@ pub fn from_boundary(
     Ok(match boundary_task.status {
         TaskStatus::Healthy => TaskAggregate::Healthy(HealthyTaskAggregate {
             last_task_run: match boundary_task_run {
-                Some(r) if r.status == TaskRunStatus::Finished => Some(HealthyTaskRun::Finished(r.try_into()?)),
-                Some(r) if r.status == TaskRunStatus::Aborted => Some(HealthyTaskRun::Aborted(r.try_into()?)),
+                Some(r) if r.status == TaskRunStatus::Finished => {
+                    Some(HealthyTaskRun::Finished(r.try_into()?))
+                }
+                Some(r) if r.status == TaskRunStatus::Aborted => {
+                    Some(HealthyTaskRun::Aborted(r.try_into()?))
+                }
                 Some(r) => anyhow::bail!(TaskAggregateError::InconsistentTaskRunState {
-                    task_id: boundary_task.id.clone(),
+                    task_id: boundary_task.user_id.clone(),
                     task_run_status: r.status,
                     details: "invalid task run status for healthy task".to_string(),
                 }),
@@ -170,10 +171,12 @@ pub fn from_boundary(
         }),
         TaskStatus::Failing => TaskAggregate::Failing(FailingTaskAggregate {
             task_run: match boundary_task_run {
-                Some(r) if r.status == TaskRunStatus::Failed => FailingTaskRun::Failed(r.try_into()?),
+                Some(r) if r.status == TaskRunStatus::Failed => {
+                    FailingTaskRun::Failed(r.try_into()?)
+                }
                 Some(r) if r.status == TaskRunStatus::Dead => FailingTaskRun::Dead(r.try_into()?),
                 Some(r) => anyhow::bail!(TaskAggregateError::InconsistentTaskRunState {
-                    task_id: boundary_task.id.clone(),
+                    task_id: boundary_task.user_id.clone(),
                     task_run_status: r.status,
                     details: "invalid task run status for failing task".to_string(),
                 }),
@@ -183,7 +186,9 @@ pub fn from_boundary(
         }),
         TaskStatus::Running => TaskAggregate::Running(RunningTaskAggregate {
             task: boundary_task.try_into()?,
-            task_run: boundary_task_run.ok_or_else(|| anyhow::anyhow!("Missing task run for running task"))?.try_into()?,
+            task_run: boundary_task_run
+                .ok_or_else(|| anyhow::anyhow!("Missing task run for running task"))?
+                .try_into()?,
         }),
         TaskStatus::Due => TaskAggregate::Due(DueTaskAggregate {
             task: boundary_task.try_into()?,
@@ -205,10 +210,7 @@ pub fn to_boundary(
         TaskAggregate::Late(l) => (l.task.try_into()?, None),
         TaskAggregate::Running(r) => (r.task.try_into()?, Some(r.task_run.into())),
         TaskAggregate::Failing(f) => (f.task.try_into()?, Some(f.task_run.into())),
-        TaskAggregate::Healthy(h) => (
-            h.task.try_into()?,
-            h.last_task_run.map(|lr| lr.into()),
-        ),
+        TaskAggregate::Healthy(h) => (h.task.try_into()?, h.last_task_run.map(|lr| lr.into())),
         TaskAggregate::Absent(a) => (a.task.try_into()?, None),
     })
 }

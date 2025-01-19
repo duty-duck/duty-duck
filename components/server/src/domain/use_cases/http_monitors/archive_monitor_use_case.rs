@@ -2,7 +2,20 @@ use chrono::Utc;
 use thiserror::Error;
 use uuid::Uuid;
 
-use crate::domain::{entities::{authorization::{AuthContext, Permission}, http_monitor::HttpMonitorStatus, incident::{IncidentPriority, IncidentSource, IncidentStatus}}, ports::{http_monitor_repository::{HttpMonitorRepository, UpdateHttpMonitorStatusCommand}, incident_event_repository::IncidentEventRepository, incident_notification_repository::IncidentNotificationRepository, incident_repository::{IncidentRepository, ListIncidentsOpts}}, use_cases::incidents::resolve_incident};
+use crate::domain::{
+    entities::{
+        authorization::{AuthContext, Permission},
+        http_monitor::HttpMonitorStatus,
+        incident::{IncidentPriority, IncidentSource, IncidentStatus},
+    },
+    ports::{
+        http_monitor_repository::{HttpMonitorRepository, UpdateHttpMonitorStatusCommand},
+        incident_event_repository::IncidentEventRepository,
+        incident_notification_repository::IncidentNotificationRepository,
+        incident_repository::{IncidentRepository, ListIncidentsOpts},
+    },
+    use_cases::incidents::resolve_incident,
+};
 
 #[derive(Error, Debug)]
 pub enum ArchiveMonitorError {
@@ -96,4 +109,3 @@ where
     incident_repository.commit_transaction(tx).await?;
     Ok(())
 }
-

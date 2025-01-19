@@ -38,11 +38,7 @@ impl ApiAccessTokenRepository for ApiAccessTokenRepositoryAdapter {
                 label: r.label,
                 // Erase the secret key
                 secret_key: vec![],
-                scopes: r
-                    .scopes
-                    .into_iter()
-                    .map(Permission::from)
-                    .collect(),
+                scopes: r.scopes.into_iter().map(Permission::from).collect(),
                 expires_at: r.expires_at,
                 created_at: r.created_at,
             })
@@ -73,10 +69,7 @@ impl ApiAccessTokenRepository for ApiAccessTokenRepositoryAdapter {
         Ok(id)
     }
 
-    async fn get_api_token(
-        &self,
-        token_id: Uuid,
-    ) -> anyhow::Result<Option<ApiAccessToken>> {
+    async fn get_api_token(&self, token_id: Uuid) -> anyhow::Result<Option<ApiAccessToken>> {
         let record = sqlx::query!(
             r#"
             SELECT 
@@ -96,11 +89,7 @@ impl ApiAccessTokenRepository for ApiAccessTokenRepositoryAdapter {
             user_id: r.user_id,
             label: r.label,
             secret_key: r.secret_key,
-            scopes: r
-                .scopes
-                .into_iter()
-                .map(Permission::from)
-                .collect(),
+            scopes: r.scopes.into_iter().map(Permission::from).collect(),
             expires_at: r.expires_at,
             created_at: r.created_at,
         }))

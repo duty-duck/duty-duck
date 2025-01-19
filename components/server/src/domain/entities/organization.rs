@@ -208,5 +208,5 @@ pub struct UserInvitation {
     pub email: String,
     pub inviter_id: Uuid,
     pub organization_id: Uuid,
-    pub roles: Vec<OrganizationUserRole>
+    pub roles: Vec<OrganizationUserRole>,
 }

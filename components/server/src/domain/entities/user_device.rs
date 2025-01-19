@@ -1,8 +1,8 @@
-use serde::{Serialize, Deserialize};
+use chrono::{DateTime, Utc};
+use serde::{Deserialize, Serialize};
 use sqlx::prelude::FromRow;
 use ts_rs::TS;
 use uuid::Uuid;
-use chrono::{DateTime, Utc};
 
 use super::push_notification::OptionalPushNotificationToken;
 
@@ -16,7 +16,7 @@ pub struct UserDevice {
     pub created_at: DateTime<Utc>,
     pub label: String,
     pub push_notification_token: OptionalPushNotificationToken,
-    pub device_type: UserDeviceType
+    pub device_type: UserDeviceType,
 }
 
 #[derive(sqlx::Type, Serialize, Deserialize, TS, Debug, Clone, Copy, PartialEq, Eq)]
@@ -31,11 +31,7 @@ pub enum UserDeviceType {
 
 impl UserDeviceType {
     #[allow(unused)]
-    pub const ALL: [Self; 3] = [
-        Self::Unknown,
-        Self::Desktop,
-        Self::Mobile,
-    ];
+    pub const ALL: [Self; 3] = [Self::Unknown, Self::Desktop, Self::Mobile];
 }
 
 impl From<i16> for UserDeviceType {

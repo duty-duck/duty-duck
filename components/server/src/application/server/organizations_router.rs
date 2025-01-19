@@ -191,12 +191,21 @@ async fn get_invitation_handler(
             | organizations::ReceiveInvitationError::InviterUserNotFound
             | organizations::ReceiveInvitationError::InvitationNotFound,
         ) => {
-            warn!(?organization_id, ?invitation_id, "Organization invitation not found");
+            warn!(
+                ?organization_id,
+                ?invitation_id,
+                "Organization invitation not found"
+            );
             StatusCode::NOT_FOUND.into_response()
-        },
+        }
 
         Err(organizations::ReceiveInvitationError::TechnicalFailure(error)) => {
-            warn!(?error, ?organization_id, ?invitation_id, "Technical failure occured while getting organization invitation from the database");
+            warn!(
+                ?error,
+                ?organization_id,
+                ?invitation_id,
+                "Technical failure occured while getting organization invitation from the database"
+            );
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }

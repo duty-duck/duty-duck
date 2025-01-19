@@ -1,5 +1,6 @@
 use std::collections::HashSet;
 
+use chrono::Utc;
 use uuid::Uuid;
 
 use crate::domain::{
@@ -7,7 +8,8 @@ use crate::domain::{
         entity_metadata::EntityMetadata,
         http_monitor::HttpMonitorErrorKind,
         incident::{
-            HttpMonitorIncidentCause, HttpMonitorIncidentCausePing, IncidentCause, IncidentPriority, IncidentSource, IncidentStatus, NewIncident
+            HttpMonitorIncidentCause, HttpMonitorIncidentCausePing, IncidentCause,
+            IncidentPriority, IncidentSource, IncidentStatus, NewIncident,
         },
         incident_event::IncidentEventType,
         incident_notification::{IncidentNotificationPayload, IncidentNotificationType},
@@ -29,13 +31,15 @@ fn create_test_new_incident(org_id: Uuid) -> NewIncident {
         status: IncidentStatus::Ongoing,
         priority: IncidentPriority::Critical,
         source: IncidentSource::HttpMonitor { id: Uuid::new_v4() },
-        cause: Some(IncidentCause::HttpMonitorIncidentCause(HttpMonitorIncidentCause {
-            last_ping: HttpMonitorIncidentCausePing {
-                error_kind: HttpMonitorErrorKind::Timeout,
-                http_code: None,
+        cause: Some(IncidentCause::HttpMonitorIncidentCause(
+            HttpMonitorIncidentCause {
+                last_ping: HttpMonitorIncidentCausePing {
+                    error_kind: HttpMonitorErrorKind::Timeout,
+                    http_code: None,
+                },
+                previous_pings: HashSet::new(),
             },
-            previous_pings: HashSet::new(),
-        })),
+        )),
         metadata: EntityMetadata::default(),
     }
 }
@@ -63,6 +67,7 @@ async fn test_create_incident_success() -> anyhow::Result<()> {
                 previous_pings: HashSet::new(),
             }),
             incident_http_monitor_url: None,
+            incident_task_id: None,
         },
     };
 
@@ -71,6 +76,7 @@ async fn test_create_incident_success() -> anyhow::Result<()> {
         &incident_repo,
         &incident_event_repo,
         &incident_notification_repo,
+        Utc::now(),
         new_incident.clone(),
         Some(notification_opts),
     )
@@ -106,6 +112,7 @@ async fn test_create_incident_success() -> anyhow::Result<()> {
         IncidentNotificationPayload {
             incident_cause: IncidentCause::HttpMonitorIncidentCause { .. },
             incident_http_monitor_url: None,
+            incident_task_id: None,
         }
     ));
 
@@ -122,11 +129,12 @@ async fn test_create_incident_without_notifications() -> anyhow::Result<()> {
     let new_incident = create_test_new_incident(org_id);
     let mut tx = incident_repo.begin_transaction().await?;
 
-   create_incident(
+    create_incident(
         &mut tx,
         &incident_repo,
         &incident_event_repo,
         &incident_notification_repo,
+        Utc::now(),
         new_incident.clone(),
         None,
     )

@@ -3,7 +3,10 @@ use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::domain::{
-    entities::{entity_metadata::{FilterableMetadata, MetadataFilter}, incident::{Incident, IncidentPriority, IncidentSource, IncidentStatus, NewIncident}},
+    entities::{
+        entity_metadata::{FilterableMetadata, MetadataFilter},
+        incident::{Incident, IncidentPriority, IncidentSource, IncidentStatus, NewIncident},
+    },
     use_cases::{incidents::OrderIncidentsBy, shared::OrderDirection},
 };
 
@@ -114,4 +117,36 @@ pub struct ListIncidentsOpts<'a> {
     pub to_date: Option<DateTime<Utc>>,
     pub order_by: OrderIncidentsBy,
     pub order_direction: OrderDirection,
+}
+
+impl ListIncidentsOpts<'_> {
+    pub fn include_task_ids(&self) -> Vec<Uuid> {
+        self.include_sources
+            .iter()
+            .filter_map(|s| match s {
+                IncidentSource::Task { id } => Some(*id),
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+    }
+
+    pub fn include_task_run_ids(&self) -> Vec<Uuid> {
+        self.include_sources
+            .iter()
+            .filter_map(|s| match s {
+                IncidentSource::TaskRun { id } => Some(*id),
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+    }
+
+    pub fn include_http_monitor_ids(&self) -> Vec<Uuid> {
+        self.include_sources
+            .iter()
+            .filter_map(|s| match s {
+                IncidentSource::HttpMonitor { id } => Some(*id),
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+    }
 }

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT *, COUNT(*) OVER () as \"filtered_count!\"\n            FROM task_runs \n            WHERE organization_id = $1\n            AND task_id = $2\n            AND ($3::smallint[] = '{}' OR status = ANY($3))\n            ORDER BY started_at DESC\n            LIMIT $4 OFFSET $5\n            ",
+  "query": "\n            SELECT *, COUNT(*) OVER () as \"filtered_count!\"\n            FROM task_runs \n            WHERE \n                organization_id = $1\n                AND task_id = $2\n                AND ($3::smallint[] = '{}' OR status = ANY($3))\n            ORDER BY started_at DESC\n            LIMIT $4 OFFSET $5\n            ",
   "describe": {
     "columns": [
       {
@@ -10,7 +10,7 @@
       },
       {
         "ordinal": 1,
-        "name": "task_id",
+        "name": "task_user_id",
         "type_info": "Text"
       },
       {
@@ -55,6 +55,16 @@
       },
       {
         "ordinal": 10,
+        "name": "metadata",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 11,
+        "name": "task_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 12,
         "name": "filtered_count!",
         "type_info": "Int8"
       }
@@ -62,7 +72,7 @@
     "parameters": {
       "Left": [
         "Uuid",
-        "Text",
+        "Uuid",
         "Int2Array",
         "Int8",
         "Int8"
@@ -79,8 +89,10 @@
       true,
       false,
       false,
+      true,
+      false,
       null
     ]
   },
-  "hash": "bb71058432b36bc9d8a07cd86a617532c92cc524ec7fca55573a848e7d997524"
+  "hash": "11eee334addded348c0bd9d68e558864c2c5c08913c3e77438793c3767586d30"
 }

@@ -2,15 +2,15 @@
 extern crate rust_i18n;
 
 use application::{background_tasks::BackgroundTask, migrations::MigrationsCommand};
+use clap::*;
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
-use clap::*;
 
 mod application;
 mod domain;
 mod infrastructure;
-mod shared;
 mod protos;
+mod shared;
 
 // Initialize i18n
 rust_i18n::i18n!("locales", fallback = "en");
@@ -28,8 +28,8 @@ enum Commands {
     Serve,
     /// Run a background task manually
     Run {
-       #[command(subcommand)]
-       task: BackgroundTask,
+        #[command(subcommand)]
+        task: BackgroundTask,
     },
     /// Run migrations against the database
     Migrations {
@@ -45,11 +45,14 @@ async fn main() -> anyhow::Result<()> {
     let subscriber = FmtSubscriber::builder()
         .pretty()
         .with_ansi(true)
-        .with_env_filter(EnvFilter::builder().with_default_directive(LevelFilter::INFO.into()).from_env_lossy())
+        .with_env_filter(
+            EnvFilter::builder()
+                .with_default_directive(LevelFilter::INFO.into())
+                .from_env_lossy(),
+        )
         .finish();
 
     tracing::subscriber::set_global_default(subscriber).expect("failed to set tracing subscriber");
-
 
     let cli = Cli::parse();
     let command = cli.command.unwrap_or(Commands::Serve);
@@ -64,6 +67,6 @@ async fn main() -> anyhow::Result<()> {
             crate::application::migrations::run_migrations(command).await?;
         }
     }
-    
+
     Ok(())
 }

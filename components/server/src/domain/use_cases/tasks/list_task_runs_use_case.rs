@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 use ts_rs::TS;
-use utoipa::ToSchema;
+use utoipa::{IntoParams, ToSchema};
 
 use crate::domain::{
     entities::{
@@ -9,10 +9,13 @@ use crate::domain::{
         task::TaskId,
         task_run::{BoundaryTaskRun, TaskRunStatus},
     },
-    ports::task_run_repository::{ListTaskRunsOpts, ListTaskRunsOutput, TaskRunRepository},
+    ports::{
+        task_repository::TaskRepository,
+        task_run_repository::{ListTaskRunsOpts, ListTaskRunsOutput, TaskRunRepository},
+    },
 };
 
-#[derive(Deserialize, TS)]
+#[derive(Deserialize, TS, IntoParams)]
 #[ts(export)]
 #[serde(rename_all = "camelCase")]
 pub struct ListTaskRunsParams {
@@ -35,15 +38,21 @@ pub struct ListTaskRunsResponse {
 
 #[derive(Error, Debug)]
 pub enum ListTaskRunsError {
+    #[error("Task not found")]
+    TaskNotFound,
     #[error("User is not allowed to list task runs")]
     Forbidden,
     #[error("Technical failure occured while listing task runs")]
     TechnicalFailure(#[from] anyhow::Error),
 }
 
-pub async fn list_task_runs_use_case(
+pub async fn list_task_runs_use_case<
+    TR: TaskRepository,
+    TRR: TaskRunRepository<Transaction = TR::Transaction>,
+>(
     auth_context: &AuthContext,
-    task_run_repository: &impl TaskRunRepository,
+    task_repository: &TR,
+    task_run_repository: &TRR,
     task_id: TaskId,
     params: ListTaskRunsParams,
 ) -> Result<ListTaskRunsResponse, ListTaskRunsError> {
@@ -54,12 +63,26 @@ pub async fn list_task_runs_use_case(
     let mut transaction = task_run_repository.begin_transaction().await?;
     let items_per_page = params.items_per_page.unwrap_or(15).min(50);
     let page_number = params.page_number.unwrap_or(1);
-    let ListTaskRunsOutput { runs, total_runs, total_filtered_runs } = task_run_repository
+
+    let task = task_repository
+        .get_task_by_user_id(
+            &mut transaction,
+            auth_context.active_organization_id,
+            &task_id,
+        )
+        .await?
+        .ok_or(ListTaskRunsError::TaskNotFound)?;
+
+    let ListTaskRunsOutput {
+        runs,
+        total_runs,
+        total_filtered_runs,
+    } = task_run_repository
         .list_task_runs(
             &mut transaction,
             auth_context.active_organization_id,
             ListTaskRunsOpts {
-                task_id: &task_id,
+                task_id: task.id,
                 include_statuses: &params.include_statuses.unwrap_or_default(),
                 limit: items_per_page,
                 offset: (page_number - 1) * items_per_page,
@@ -67,5 +90,9 @@ pub async fn list_task_runs_use_case(
         )
         .await?;
 
-    Ok(ListTaskRunsResponse { runs, total_runs, total_filtered_runs })
+    Ok(ListTaskRunsResponse {
+        runs,
+        total_runs,
+        total_filtered_runs,
+    })
 }

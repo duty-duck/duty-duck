@@ -6,14 +6,18 @@ pub struct DueTask {
     pub(super) base: TaskBase,
     pub(super) next_due_at: DateTime<Utc>,
     // due tasks have a cron schedule
-    pub(super) cron_schedule: cron::Schedule
+    pub(super) cron_schedule: cron::Schedule,
 }
 
 impl DueTask {
     pub fn start(self, now: DateTime<Utc>) -> Result<RunningTask, TaskError> {
         Ok(RunningTask {
             // When a task starts, its next_due_at field is updated to the next time the task is due to run
-            next_due_at: calculate_next_due_at(self.base.cron_schedule.as_ref(), self.base.schedule_timezone.as_ref(), now)?,
+            next_due_at: calculate_next_due_at(
+                self.base.cron_schedule.as_ref(),
+                self.base.schedule_timezone.as_ref(),
+                now,
+            )?,
             base: TaskBase {
                 previous_status: Some(TaskStatus::Due),
                 last_status_change_at: Some(now),
@@ -70,18 +74,18 @@ impl TryFrom<BoundaryTask> for DueTask {
             });
         }
 
-        let next_due_at = boundary  
+        let next_due_at = boundary
             .next_due_at
             .ok_or(TaskError::FailedToBuildFromBoundary {
                 details: "Next due at is required for due task".to_string(),
             })?;
         let base: TaskBase = boundary.try_into()?;
-        let cron_schedule = base
-            .cron_schedule
-            .clone()
-            .ok_or(TaskError::FailedToBuildFromBoundary {
-                details: "Cron schedule is required for due task".to_string(),
-            })?;
+        let cron_schedule =
+            base.cron_schedule
+                .clone()
+                .ok_or(TaskError::FailedToBuildFromBoundary {
+                    details: "Cron schedule is required for due task".to_string(),
+                })?;
         Ok(DueTask {
             next_due_at,
             cron_schedule,
@@ -89,5 +93,3 @@ impl TryFrom<BoundaryTask> for DueTask {
         })
     }
 }
-
-

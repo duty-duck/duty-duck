@@ -5,9 +5,12 @@ use utoipa::{IntoParams, ToSchema};
 
 use crate::domain::{
     entities::{
-        authorization::{AuthContext, Permission}, entity_metadata::MetadataFilter, task::{BoundaryTask, TaskStatus}
+        authorization::{AuthContext, Permission},
+        entity_metadata::MetadataFilter,
+        task::{BoundaryTask, TaskStatus},
     },
-    ports::task_repository::{ListTasksOpts, ListTasksOutput, TaskRepository}, use_cases::shared::OrderDirection,
+    ports::task_repository::{ListTasksOpts, ListTasksOutput, TaskRepository},
+    use_cases::shared::OrderDirection,
 };
 
 #[derive(Serialize, Deserialize, TS, Clone, Debug, IntoParams)]
@@ -46,7 +49,7 @@ pub enum OrderTasksBy {
     #[default]
     CreatedAt,
     LastStatusChangeAt,
-    Name
+    Name,
 }
 
 #[derive(Serialize, TS, Debug, ToSchema)]
@@ -103,4 +106,4 @@ pub async fn list_tasks(
         total_number_of_results: total_tasks,
         total_number_of_filtered_results: total_filtered_tasks,
     })
-} 
+}

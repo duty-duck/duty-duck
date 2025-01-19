@@ -98,7 +98,6 @@ pub async fn send_phone_number_verification_code(
         .await
         .context("Failed to update user")?;
 
-
     info!(user_id = ?auth_context.active_user_id, sms = ?sms, "Sending phone number verification code");
 
     sms_notifications_server

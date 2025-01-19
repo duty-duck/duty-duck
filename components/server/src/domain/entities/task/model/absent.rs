@@ -16,7 +16,11 @@ impl AbsentTask {
     /// State transition: Absent -> Running
     pub fn start(self, now: DateTime<Utc>) -> Result<RunningTask, TaskError> {
         Ok(RunningTask {
-            next_due_at: calculate_next_due_at(self.base.cron_schedule.as_ref(), self.base.schedule_timezone.as_ref(), now)?,
+            next_due_at: calculate_next_due_at(
+                self.base.cron_schedule.as_ref(),
+                self.base.schedule_timezone.as_ref(),
+                now,
+            )?,
             base: self.base,
         })
     }
@@ -52,12 +56,12 @@ impl TryFrom<BoundaryTask> for AbsentTask {
             })?;
 
         let base: TaskBase = boundary.try_into()?;
-        let cron_schedule = base
-            .cron_schedule
-            .clone()
-            .ok_or(TaskError::FailedToBuildFromBoundary {
-                details: "Cron schedule is required for absent task".to_string(),
-            })?;
+        let cron_schedule =
+            base.cron_schedule
+                .clone()
+                .ok_or(TaskError::FailedToBuildFromBoundary {
+                    details: "Cron schedule is required for absent task".to_string(),
+                })?;
 
         Ok(AbsentTask {
             next_due_at,

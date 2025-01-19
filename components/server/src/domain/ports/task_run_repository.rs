@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::domain::entities::{
-    task::{BoundaryTask, TaskId},
+    task::BoundaryTask,
     task_run::{BoundaryTaskRun, TaskRunStatus},
 };
 
@@ -23,7 +23,7 @@ pub trait TaskRunRepository: TransactionalRepository + Clone + Send + Sync + 'st
         &self,
         transaction: &mut Self::Transaction,
         organization_id: Uuid,
-        task_id: &TaskId,
+        task_id: Uuid,
         statuses: &[TaskRunStatus],
     ) -> anyhow::Result<Option<BoundaryTaskRun>> {
         Ok(self
@@ -48,7 +48,7 @@ pub trait TaskRunRepository: TransactionalRepository + Clone + Send + Sync + 'st
         &self,
         transaction: &mut Self::Transaction,
         organization_id: Uuid,
-        task_id: &TaskId,
+        task_id: Uuid,
         started_at: DateTime<Utc>,
     ) -> anyhow::Result<Option<BoundaryTaskRun>>;
 
@@ -70,7 +70,7 @@ pub trait TaskRunRepository: TransactionalRepository + Clone + Send + Sync + 'st
 
 #[derive(Clone, Debug)]
 pub struct ListTaskRunsOpts<'a> {
-    pub task_id: &'a TaskId,
+    pub task_id: Uuid,
     pub include_statuses: &'a [TaskRunStatus],
     pub limit: u32,
     pub offset: u32,

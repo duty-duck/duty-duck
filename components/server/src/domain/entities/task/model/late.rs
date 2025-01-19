@@ -3,12 +3,17 @@ use chrono::{DateTime, Utc};
 
 /// A task that was scheduled to run, but ran late.
 /// The task has not yet started running, but is still inside the lateness window
-#[derive(getset::Getters)]
+#[derive(getset::CopyGetters, getset::Getters)]
 pub struct LateTask {
+    #[getset(get = "pub")]
     pub(super) base: TaskBase,
+    /// In the context of a late task, the "next due at" field is the time at which the task was due to run
+    /// BEFORE it transitioned to late (i.e. when it was in the due state)
+    #[getset(get_copy = "pub")]
     pub(super) next_due_at: DateTime<Utc>,
     // late tasks have a cron schedule
-    pub(super) cron_schedule: cron::Schedule
+    #[getset(get = "pub")]
+    pub(super) cron_schedule: cron::Schedule,
 }
 
 impl LateTask {
@@ -27,7 +32,7 @@ impl LateTask {
                 details: "this task is not absent".to_string(),
             });
         }
-        
+
         Ok(AbsentTask {
             next_due_at: self.next_due_at,
             cron_schedule: self.cron_schedule,
@@ -43,7 +48,11 @@ impl LateTask {
     pub fn start(self, now: DateTime<Utc>) -> Result<RunningTask, TaskError> {
         Ok(RunningTask {
             // When a task starts, its next_due_at field is updated to the next time the task is due to run
-            next_due_at: calculate_next_due_at(self.base.cron_schedule.as_ref(), self.base.schedule_timezone.as_ref(), now)?,
+            next_due_at: calculate_next_due_at(
+                self.base.cron_schedule.as_ref(),
+                self.base.schedule_timezone.as_ref(),
+                now,
+            )?,
             base: TaskBase {
                 previous_status: Some(TaskStatus::Due),
                 last_status_change_at: Some(now),
@@ -52,7 +61,6 @@ impl LateTask {
         })
     }
 }
-
 
 impl TryFrom<LateTask> for BoundaryTask {
     type Error = TaskError;
@@ -78,17 +86,17 @@ impl TryFrom<BoundaryTask> for LateTask {
             });
         }
         let next_due_at = boundary
-                .next_due_at
-                .ok_or(TaskError::FailedToBuildFromBoundary {
+            .next_due_at
+            .ok_or(TaskError::FailedToBuildFromBoundary {
                 details: "Next due at is required for late task".to_string(),
             })?;
         let base: TaskBase = boundary.try_into()?;
-        let cron_schedule = base
-            .cron_schedule
-            .clone()
-            .ok_or(TaskError::FailedToBuildFromBoundary {
-                details: "Cron schedule is required for late task".to_string(),
-            })?;
+        let cron_schedule =
+            base.cron_schedule
+                .clone()
+                .ok_or(TaskError::FailedToBuildFromBoundary {
+                    details: "Cron schedule is required for late task".to_string(),
+                })?;
         Ok(LateTask {
             next_due_at,
             cron_schedule,

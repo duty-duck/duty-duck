@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT *\n            FROM task_runs\n            WHERE organization_id = $1\n            AND task_id = $2\n            AND started_at = $3\n            ",
+  "query": "\n            SELECT *\n            FROM task_runs\n            WHERE \n                organization_id = $1\n                AND task_id = $2\n                AND started_at = $3\n            ",
   "describe": {
     "columns": [
       {
@@ -10,7 +10,7 @@
       },
       {
         "ordinal": 1,
-        "name": "task_id",
+        "name": "task_user_id",
         "type_info": "Text"
       },
       {
@@ -52,12 +52,22 @@
         "ordinal": 9,
         "name": "updated_at",
         "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 10,
+        "name": "metadata",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 11,
+        "name": "task_id",
+        "type_info": "Uuid"
       }
     ],
     "parameters": {
       "Left": [
         "Uuid",
-        "Text",
+        "Uuid",
         "Timestamptz"
       ]
     },
@@ -71,8 +81,10 @@
       true,
       true,
       false,
+      false,
+      true,
       false
     ]
   },
-  "hash": "baac0ce754b6ac0635cd7728d93529c2b93d445aa2768f2bd1b54e2fa67dd43a"
+  "hash": "8907fc1cf0632658cf6615861bac18bf6436fd41afcac051a346763a9bebd1ed"
 }

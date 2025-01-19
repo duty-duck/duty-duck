@@ -22,18 +22,15 @@ pub struct FailingTaskAggregate {
     pub(super) task_run: FailingTaskRun,
 }
 
-
 impl FailingTaskAggregate {
     /// State transition: Failing -> Running
     /// Returns the new running task aggregate and the task run that was in the failing state
-    pub fn start(self, now: DateTime<Utc>) -> Result<(RunningTaskAggregate, FailingTaskRun), TaskAggregateError> {
+    pub fn start(
+        self,
+        now: DateTime<Utc>,
+    ) -> Result<(RunningTaskAggregate, FailingTaskRun), TaskAggregateError> {
         let task = self.task.start(now)?;
-        let task_run = RunningTaskRun::new(
-            *task.base().organization_id(),
-            task.base().id().clone(),
-            now,
-            *task.base().heartbeat_timeout(),
-        );
+        let task_run = RunningTaskRun::new(task.base(), now);
         Ok((RunningTaskAggregate { task, task_run }, self.task_run))
     }
 

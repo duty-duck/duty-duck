@@ -1,5 +1,5 @@
 use anyhow::Context;
-use chrono::Utc;
+use chrono::{DateTime, Utc};
 use uuid::Uuid;
 
 use crate::domain::{
@@ -34,6 +34,7 @@ pub async fn create_incident<IR, IER, INR>(
     incident_repo: &IR,
     incident_event_repo: &IER,
     incident_notification_repo: &INR,
+    now: DateTime<Utc>,
     new_incident: NewIncident,
     notification_opts: Option<NotificationOpts>,
 ) -> anyhow::Result<Uuid>
@@ -51,7 +52,7 @@ where
         incident_id,
         organization_id: new_incident.organization_id,
         user_id: None,
-        created_at: Utc::now(),
+        created_at: now,
         event_type: IncidentEventType::Creation,
         event_payload: None,
     };
@@ -72,7 +73,7 @@ where
             organization_id: new_incident.organization_id,
             escalation_level: 0,
             notification_type: IncidentNotificationType::IncidentCreation,
-            notification_due_at: Utc::now(),
+            notification_due_at: now,
             notification_payload,
             send_sms,
             send_push_notification,
