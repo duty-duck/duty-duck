@@ -16,6 +16,7 @@ mod tests;
 
 use anyhow::Context;
 use chrono::{DateTime, Utc};
+use uuid::Uuid;
 use std::time::Duration;
 use tokio::task::JoinSet;
 use tracing::{debug, error, info};
@@ -142,7 +143,9 @@ where
             aggregate,
             task_ran_late_at,
         })
-        .await
+        .await?;
+
+        Ok(())
     }
 }
 
@@ -168,7 +171,7 @@ pub struct CreateIncidentForLateTaskOpts<'a, TX, IR, IER, INR> {
 /// and also, from other use cases that may need to create a lateness incident, which is why this function is public.
 pub async fn create_incident_for_late_aggregate<IR, IER, INR>(
     opts: CreateIncidentForLateTaskOpts<'_, IR::Transaction, IR, IER, INR>,
-) -> anyhow::Result<()>
+) -> anyhow::Result<Uuid>
 where
     IR: IncidentRepository,
     IER: IncidentEventRepository<Transaction = IR::Transaction>,
@@ -259,5 +262,5 @@ where
         .create_incident_event(transaction, task_switched_to_late_event)
         .await?;
 
-    Ok(())
+    Ok(incident_id)
 }
