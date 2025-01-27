@@ -111,15 +111,8 @@ impl TaskRepository for TaskRepositoryMock {
             .iter_mut()
             .find(|t| t.user_id == task.user_id && t.organization_id == task.organization_id)
         {
-            existing.name = task.name;
-            existing.description = task.description;
-            existing.status = task.status;
-            existing.cron_schedule = task.cron_schedule;
-            existing.next_due_at = task.next_due_at;
-            existing.start_window_seconds = task.start_window_seconds;
-            existing.lateness_window_seconds = task.lateness_window_seconds;
-            existing.heartbeat_timeout_seconds = task.heartbeat_timeout_seconds;
-            Ok(task.user_id)
+            *existing = task;
+            Ok(existing.user_id.clone())
         } else {
             let id = task.user_id.clone();
             state.push(task);

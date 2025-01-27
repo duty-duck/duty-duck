@@ -21,7 +21,11 @@ impl AbsentTask {
                 self.base.schedule_timezone.as_ref(),
                 now,
             )?,
-            base: self.base,
+            base: TaskBase {
+                previous_status: Some(TaskStatus::Absent),
+                last_status_change_at: Some(now),
+                ..self.base
+            },
         })
     }
 }

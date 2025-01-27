@@ -23,13 +23,19 @@ pub struct IncidentEvent {
     pub event_payload: Option<IncidentEventPayload>,
 }
 
+/// A payload for an incident event
+/// The nature of the payload is determined by the event type, and not all events have a payload
 #[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]
 #[serde(rename_all_fields = "camelCase")]
 #[ts(export)]
 pub enum IncidentEventPayload {
+    /// This payload is bound to the event [IncidentEventType::Comment]
     Comment(CommentPayload),
+    /// This payload is bound to the event [IncidentEventType::Notification]
     Notification(NotificationEventPayload),
+    /// This payload is bound to the event [IncidentEventType::Acknowledged]
     Acknowledged(AcknowledgedEventPayload),
+    /// This payload is bound to the event [IncidentEventType::MonitorPinged]
     MonitorPing(PingEventPayload),
 }
 
@@ -76,43 +82,79 @@ pub struct PingEventPayload {
 #[serde(rename_all = "lowercase")]
 #[ts(export)]
 pub enum IncidentEventType {
+    // Generic events for any incident
+
+    /// This event is created when the incident is created
     Creation = 0,
+    /// This event is created when notifications are sent for an incident (initial notification or escalation)
     Notification = 1,
+    /// This event is created when the incident is resolved
     Resolution = 2,
+    /// This event is created when a comment is added to an incident
     Comment = 3,
+    /// This event is created when an incident is acknowledged by a user
     Acknowledged = 4,
+    /// This event is created when an incident is confirmed (by a user or automatically)
     Confirmation = 5,
-    MonitorPinged = 6,
-    MonitorSwitchedToRecovering = 7,
-    MonitorSwitchedToSuspicious = 8,
-    MonitorSwitchedToDown = 9,
-    TaskSwitchedToDue = 10,
-    TaskSwitchedToLate = 11,
-    TaskSwitchedToAbsent = 12,
-    TaskRunStarted = 14,
-    TaskRunIsDead = 15,
-    TaskRunFailed = 16,
+
+    // Monitor events (range 100-199)
+    /// This event is created when a monitor is pinged
+    MonitorPinged = 100,
+    /// This event is created when a monitor is switched to recovering
+    MonitorSwitchedToRecovering = 101,
+    /// This event is created when a monitor is switched to suspicious
+    MonitorSwitchedToSuspicious = 102,
+    /// This event is created when a monitor is switched to down
+    MonitorSwitchedToDown = 103,
+
+    // Task events (range 200-299)
+    /// This event is created when a scheduled task is switched to due
+    TaskSwitchedToDue = 200,
+    /// This event is created when a scheduled task is switched to late
+    TaskSwitchedToLate = 201,
+    /// This event is created when a scheduled task is switched to absent
+    TaskSwitchedToAbsent = 202,
+
+    /// This event is created on task-related incidents when a the task is started
+    /// Although similar, it is distinct from [IncidentEventType::TaskRunStarted], which is created on task **run**-related incidents.
+    /// We make a distinction between task-related incidents (a scheduled task is late, a scheduled task is absent) and task run-related incidents (a task run failed)
+    TaskSwitchedToRunning = 203,
+
+    // Task run events (range 300-399)
+    /// This event is created when a task run is started
+    TaskRunStarted = 300,
+    /// This event is created when a task run is dead
+    TaskRunIsDead = 301,
+    /// This event is created when a task run is failed
+    TaskRunFailed = 302,
 }
 
 impl From<i16> for IncidentEventType {
     fn from(value: i16) -> Self {
         match value {
+            // generic events
             0 => Self::Creation,
             1 => Self::Notification,
             2 => Self::Resolution,
             3 => Self::Comment,
             4 => Self::Acknowledged,
             5 => Self::Confirmation,
-            6 => Self::MonitorPinged,
-            7 => Self::MonitorSwitchedToRecovering,
-            8 => Self::MonitorSwitchedToSuspicious,
-            9 => Self::MonitorSwitchedToDown,
-            10 => Self::TaskSwitchedToDue,
-            11 => Self::TaskSwitchedToLate,
-            12 => Self::TaskSwitchedToAbsent,
-            14 => Self::TaskRunStarted,
-            15 => Self::TaskRunIsDead,
-            16 => Self::TaskRunFailed,
+
+            // monitor events
+            100 => Self::MonitorPinged,
+            101 => Self::MonitorSwitchedToRecovering,
+            102 => Self::MonitorSwitchedToSuspicious,
+            103 => Self::MonitorSwitchedToDown,
+
+            // task events
+            200 => Self::TaskSwitchedToDue,
+            201 => Self::TaskSwitchedToLate,
+            202 => Self::TaskSwitchedToAbsent,
+
+            // task run events
+            300 => Self::TaskRunStarted,
+            301 => Self::TaskRunIsDead,
+            302 => Self::TaskRunFailed,
             _ => panic!("invalid IncidentEventType discriminant: {value}"),
         }
     }

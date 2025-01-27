@@ -195,10 +195,15 @@ async fn start_task_handler(
 ) -> impl IntoResponse {
     match start_task_use_case(
         &auth_context,
-        &app_state.adapters.task_repository,
-        &app_state.adapters.task_run_repository,
-        task_id,
-        command,
+        StartTaskUseCaseOpts {
+            task_repository: &app_state.adapters.task_repository,
+            task_run_repository: &app_state.adapters.task_run_repository,
+            incident_repository: &app_state.adapters.incident_repository,
+            incident_event_repository: &app_state.adapters.incident_event_repository,
+            incident_notification_repository: &app_state.adapters.incident_notification_repository,
+            task_id,
+            command,
+        },
     )
     .await
     {

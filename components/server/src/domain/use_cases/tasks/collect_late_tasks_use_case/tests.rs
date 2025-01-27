@@ -78,7 +78,6 @@ async fn test_collect_late_tasks_creates_incident_with_events() -> anyhow::Resul
     // Add the task to the repository
     let mut tx = use_case.task_repository.begin_transaction().await?;
     use_case.task_repository.upsert_task(&mut tx, task).await?;
-    use_case.task_repository.commit_transaction(tx).await?;
 
     // Run the use case
     let late_tasks = use_case.collect_late_tasks(now).await?;

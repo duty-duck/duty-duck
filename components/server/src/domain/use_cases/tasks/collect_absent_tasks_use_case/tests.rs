@@ -145,7 +145,6 @@ async fn test_collect_absent_tasks_updates_existing_incident() -> anyhow::Result
         .incident_event_repository
         .create_incident_event(&mut tx, late_event)
         .await?;
-    use_case.task_repository.commit_transaction(tx).await?;
 
     // Run the use case
     let absent_tasks = use_case.collect_absent_tasks(now).await?;

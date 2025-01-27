@@ -54,7 +54,7 @@ impl LateTask {
                 now,
             )?,
             base: TaskBase {
-                previous_status: Some(TaskStatus::Due),
+                previous_status: Some(TaskStatus::Late),
                 last_status_change_at: Some(now),
                 ..self.base
             },

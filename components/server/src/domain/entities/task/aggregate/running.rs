@@ -6,7 +6,8 @@ use chrono::{DateTime, Utc};
 
 /// A task that is currently running
 /// This task has an associated running task run
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, getset::Getters)]
+#[getset(get = "pub")]
 pub struct RunningTaskAggregate {
     pub(super) task: RunningTask,
     pub(super) task_run: RunningTaskRun,
