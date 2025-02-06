@@ -302,6 +302,9 @@ async fn finish_task_handler(
         &auth_context,
         &app_state.adapters.task_repository,
         &app_state.adapters.task_run_repository,
+        &app_state.adapters.incident_repository,
+        &app_state.adapters.incident_event_repository,
+        &app_state.adapters.incident_notification_repository,
         user_id,
         command,
     )

@@ -31,7 +31,7 @@ mod tests;
 
 use super::CreateTaskCommand;
 
-/// An optional command that can be used to create a task on-the-fly when starting a task run
+/// A command to start a task
 #[derive(Debug, Clone, Deserialize, TS, ToSchema)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
@@ -44,17 +44,31 @@ pub struct StartTaskCommand {
     pub abort_previous_running_task: bool,
 }
 
+/// An optional command that can be used to create a task on-the-fly when starting a task run
 #[derive(Debug, Clone, Deserialize, TS, ToSchema)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct NewTask {
+    /// A human-readable name for the task
     pub name: Option<String>,
+    /// A description of the task
     pub description: Option<String>,
+    /// A cron schedule for the task, to make it a scheduled task
     pub cron_schedule: Option<String>,
+    /// A number of seconds to wait, once this scheduled task is due, before the task is considered late
     pub start_window_seconds: Option<u32>,
+    /// A number of seconds to wait, once this scheduled task is late, before the task is considered late
     pub lateness_window_seconds: Option<u32>,
+    /// A number of seconds to wait, after the last heartbeat was received, if any, before the task is considered failed
     pub heartbeat_timeout_seconds: Option<u32>,
+    /// The timezone to use for the task's schedule (defaults to UTC)
     pub schedule_timezone: Option<String>,
+    /// Whether to send an email notification when an incident occurs for this task
+    pub email_notification_enabled: Option<bool>,
+    /// Whether to send a push notification when an incident occurs for this task
+    pub push_notification_enabled: Option<bool>,
+    /// Whether to send a SMS notification when an incident occurs for this task
+    pub sms_notification_enabled: Option<bool>,
 }
 
 #[derive(Error, Debug)]
@@ -79,6 +93,7 @@ pub struct StartTaskUseCaseOpts<'a, TR, TRR, IR, IER, INR> {
     pub command: Option<StartTaskCommand>,
 }
 
+#[tracing::instrument(skip(opts))]
 pub async fn start_task_use_case<TR, TRR, IR, IER, INR>(
     auth_context: &AuthContext,
     opts: StartTaskUseCaseOpts<'_, TR, TRR, IR, IER, INR>,
@@ -130,6 +145,9 @@ where
                 lateness_window_seconds: new_task.lateness_window_seconds,
                 heartbeat_timeout_seconds: new_task.heartbeat_timeout_seconds,
                 schedule_timezone: new_task.schedule_timezone,
+                email_notification_enabled: new_task.email_notification_enabled,
+                push_notification_enabled: new_task.push_notification_enabled,
+                sms_notification_enabled: new_task.sms_notification_enabled,
                 metadata: None,
             };
             let new_task = HealthyTaskAggregate::new(auth_context.active_organization_id, new_task)
@@ -212,6 +230,12 @@ where
 
 /// Checks if there is an ongoing incident for the given task and resolves it
 /// This function is called when the just-started task was previously late or absent
+#[tracing::instrument(skip(
+    incident_repository,
+    incident_event_repository,
+    incident_notification_repository,
+    transaction
+))]
 async fn resolve_lateness_or_absence<IR, IER, INR>(
     incident_repository: &IR,
     incident_event_repository: &IER,

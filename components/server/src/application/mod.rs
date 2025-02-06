@@ -98,6 +98,12 @@ pub async fn start_server() -> anyhow::Result<()> {
     let dead_task_runs_collector = CollectDeadTaskRunsUseCase {
         task_repository: application_state.adapters.task_repository.clone(),
         task_run_repository: application_state.adapters.task_run_repository.clone(),
+        incident_repository: application_state.adapters.incident_repository.clone(),
+        incident_event_repository: application_state.adapters.incident_event_repository.clone(),
+        incident_notification_repository: application_state
+            .adapters
+            .incident_notification_repository
+            .clone(),
         select_limit: config.dead_task_runs_collector.select_limit,
     };
     let dead_task_runs_collector_tasks = dead_task_runs_collector.spawn_tasks(

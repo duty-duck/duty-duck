@@ -10,7 +10,7 @@ use veil::Redact;
 
 use super::organization::{OrganizationRoleSet, OrganizationUserRole};
 
-#[derive(Serialize)]
+#[derive(Serialize, Debug)]
 pub struct AuthContext {
     pub active_organization_id: Uuid,
     pub active_user_id: Uuid,

@@ -89,8 +89,8 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
             .into_iter()
             .map(|r| BoundaryTaskRun {
                 organization_id: r.organization_id,
+                id: r.id,
                 task_id: r.task_id,
-                task_user_id: r.task_user_id.into(),
                 status: r.status.into(),
                 started_at: r.started_at,
                 updated_at: r.updated_at,
@@ -145,8 +145,8 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
             r#"
             INSERT INTO task_runs (
                 organization_id,
+                id,
                 task_id,
-                task_user_id,
                 status,
                 started_at,
                 completed_at,
@@ -165,8 +165,8 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
                 heartbeat_timeout_seconds = $10
             "#,
             task_run.organization_id,           // $1
-            task_run.task_id,                   // $2
-            task_run.task_user_id.as_str(),     // $3
+            task_run.id,                        // $2
+            task_run.task_id,                   // $3
             task_run.status as i16,             // $4
             task_run.started_at,                // $5
             task_run.completed_at,              // $6
@@ -194,6 +194,7 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
             SELECT 
                 tasks.status as "task_status!",
                 tasks.name as "task_name!",
+                tasks.user_id as "task_user_id!",
                 tasks.description as "task_description",
                 tasks.previous_status as "task_previous_status",
                 tasks.last_status_change_at as "task_last_status_change_at",
@@ -205,6 +206,9 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
                 tasks.heartbeat_timeout_seconds as "task_heartbeat_timeout_seconds",
                 tasks.created_at as "task_created_at",
                 tasks.metadata as "task_metadata",
+                tasks.email_notification_enabled as "task_email_notification_enabled",
+                tasks.push_notification_enabled as "task_push_notification_enabled",
+                tasks.sms_notification_enabled as "task_sms_notification_enabled",
                 task_runs.*
             FROM task_runs
             INNER JOIN tasks ON task_runs.organization_id = tasks.organization_id AND task_runs.task_id = tasks.id
@@ -227,7 +231,7 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
             .map(|r| {
                 let task = BoundaryTask {
                     id: r.task_id,
-                    user_id: r.task_user_id.clone().into(),
+                    user_id: r.task_user_id.into(),
                     status: r.task_status.into(),
                     organization_id: r.organization_id,
                     name: r.task_name,
@@ -242,12 +246,15 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
                     created_at: r.task_created_at,
                     metadata: r.task_metadata.into(),
                     schedule_timezone: r.task_schedule_timezone,
+                    email_notification_enabled: r.task_email_notification_enabled,
+                    push_notification_enabled: r.task_push_notification_enabled,
+                    sms_notification_enabled: r.task_sms_notification_enabled,
                 };
 
                 let task_run = BoundaryTaskRun {
                     organization_id: r.organization_id,
+                    id: r.id,
                     task_id: r.task_id,
-                    task_user_id: r.task_user_id.into(),
                     status: r.status.into(),
                     started_at: r.started_at,
                     updated_at: r.updated_at,

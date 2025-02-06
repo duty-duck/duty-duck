@@ -3,6 +3,7 @@ use chrono::{DateTime, Utc};
 use super::*;
 
 /// These are the only states a task run can be in for the related task to be failing
+#[derive(Debug)]
 pub enum FailingTaskRun {
     Failed(FailedTaskRun),
     Dead(DeadTaskRun),
@@ -17,6 +18,8 @@ impl From<FailingTaskRun> for BoundaryTaskRun {
     }
 }
 
+#[derive(getset::Getters, Debug)]
+#[getset(get = "pub")]
 pub struct FailingTaskAggregate {
     pub(super) task: FailingTask,
     pub(super) task_run: FailingTaskRun,

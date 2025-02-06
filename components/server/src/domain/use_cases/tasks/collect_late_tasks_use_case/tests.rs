@@ -73,6 +73,9 @@ async fn test_collect_late_tasks_creates_incident_with_events() -> anyhow::Resul
         created_at: now - Duration::hours(1),
         metadata: EntityMetadata::default(),
         schedule_timezone: None,
+        email_notification_enabled: true,
+        push_notification_enabled: true,
+        sms_notification_enabled: false,
     };
 
     // Add the task to the repository

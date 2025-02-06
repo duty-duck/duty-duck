@@ -62,6 +62,9 @@ impl HealthyTask {
                 created_at: now,
                 previous_status: None,
                 last_status_change_at: Some(now),
+                email_notification_enabled: command.email_notification_enabled.unwrap_or(true),
+                push_notification_enabled: command.push_notification_enabled.unwrap_or(true),
+                sms_notification_enabled: command.sms_notification_enabled.unwrap_or(false),
             },
         })
     }

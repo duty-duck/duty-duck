@@ -120,6 +120,7 @@ where
         Ok(task_aggregates_len)
     }
 
+    #[tracing::instrument(skip(self, transaction))]
     async fn process_late_aggregate(
         &self,
         transaction: &mut TR::Transaction,
@@ -164,7 +165,6 @@ where
         let mut related_incident = match ongoing_related_incident_from_db {
             Some(incident) => incident,
             None => {
-
                 let id = create_incident_for_late_aggregate(CreateIncidentForLateTaskOpts {
                     incident_repository: &self.incident_repository,
                     incident_event_repository: &self.incident_event_repository,

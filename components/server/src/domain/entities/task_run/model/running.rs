@@ -7,14 +7,14 @@ use uuid::Uuid;
 use super::super::boundary::{BoundaryTaskRun, TaskRunStatus};
 use super::{AbortedTaskRun, DeadTaskRun, FailedTaskRun, FinishedTaskRun, TaskRunError};
 use crate::domain::entities::entity_metadata::EntityMetadata;
-use crate::domain::entities::task::{TaskBase, TaskId};
+use crate::domain::entities::task::TaskBase;
 
 #[derive(Getters, Debug, Clone)]
 #[getset(get = "pub")]
 pub struct RunningTaskRun {
     organization_id: Uuid,
+    id: Uuid,
     task_id: Uuid,
-    task_user_id: TaskId,
     started_at: DateTime<Utc>,
     last_heartbeat_at: DateTime<Utc>,
     heartbeat_timeout: Duration,
@@ -25,8 +25,8 @@ impl RunningTaskRun {
     pub fn new(task_base: &TaskBase, started_at: DateTime<Utc>) -> Self {
         Self {
             organization_id: *task_base.organization_id(),
+            id: Uuid::new_v4(),
             task_id: *task_base.id(),
-            task_user_id: task_base.user_id().clone(),
             started_at,
             last_heartbeat_at: started_at,
             heartbeat_timeout: *task_base.heartbeat_timeout(),
@@ -45,8 +45,8 @@ impl RunningTaskRun {
     pub fn mark_dead(self, now: DateTime<Utc>) -> Result<DeadTaskRun, TaskRunError> {
         Ok(DeadTaskRun {
             organization_id: self.organization_id,
+            id: self.id,
             task_id: self.task_id,
-            task_user_id: self.task_user_id,
             started_at: self.started_at,
             completed_at: now,
             updated_at: now,
@@ -60,8 +60,8 @@ impl RunningTaskRun {
     pub fn mark_aborted(self, now: DateTime<Utc>) -> Result<AbortedTaskRun, TaskRunError> {
         Ok(AbortedTaskRun {
             organization_id: self.organization_id,
+            id: self.id,
             task_id: self.task_id,
-            task_user_id: self.task_user_id,
             started_at: self.started_at,
             completed_at: now,
             updated_at: now,
@@ -84,8 +84,8 @@ impl RunningTaskRun {
         }
         Ok(FinishedTaskRun {
             organization_id: self.organization_id,
+            id: self.id,
             task_id: self.task_id,
-            task_user_id: self.task_user_id,
             started_at: self.started_at,
             completed_at: now,
             updated_at: now,
@@ -110,8 +110,8 @@ impl RunningTaskRun {
         }
         Ok(FailedTaskRun {
             organization_id: self.organization_id,
+            id: self.id,
             task_id: self.task_id,
-            task_user_id: self.task_user_id,
             started_at: self.started_at,
             completed_at: now,
             updated_at: now,
@@ -141,8 +141,8 @@ impl TryFrom<BoundaryTaskRun> for RunningTaskRun {
 
         Ok(Self {
             organization_id: boundary.organization_id,
+            id: boundary.id,
             task_id: boundary.task_id,
-            task_user_id: boundary.task_user_id,
             started_at: boundary.started_at,
             last_heartbeat_at,
             heartbeat_timeout: Duration::from_secs(boundary.heartbeat_timeout_seconds as u64),
@@ -156,8 +156,8 @@ impl From<RunningTaskRun> for BoundaryTaskRun {
         Self {
             status: TaskRunStatus::Running,
             organization_id: running.organization_id,
+            id: running.id,
             task_id: running.task_id,
-            task_user_id: running.task_user_id,
             started_at: running.started_at,
             updated_at: running.last_heartbeat_at,
             completed_at: None,

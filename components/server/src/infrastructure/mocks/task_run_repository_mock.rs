@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::domain::{
     entities::{
-        task::{BoundaryTask, TaskId},
+        task::BoundaryTask,
         task_run::{BoundaryTaskRun, TaskRunStatus},
     },
     ports::{
@@ -132,16 +132,11 @@ mod tests {
 
     use super::*;
 
-    fn create_test_task_run(
-        org_id: Uuid,
-        task_id: Uuid,
-        task_user_id: &str,
-        status: TaskRunStatus,
-    ) -> BoundaryTaskRun {
+    fn create_test_task_run(org_id: Uuid, task_id: Uuid, status: TaskRunStatus) -> BoundaryTaskRun {
         BoundaryTaskRun {
             organization_id: org_id,
+            id: Uuid::new_v4(),
             task_id,
-            task_user_id: TaskId::new(task_user_id.to_string()).expect("Valid test task ID"),
             status,
             started_at: Utc::now(),
             updated_at: Utc::now(),
@@ -161,13 +156,13 @@ mod tests {
         let task_id = Uuid::new_v4();
         let mut tx = repo.begin_transaction().await?;
 
-        let task_run = create_test_task_run(org_id, task_id, "test-task", TaskRunStatus::Running);
+        let task_run = create_test_task_run(org_id, task_id, TaskRunStatus::Running);
         repo.upsert_task_run(&mut tx, task_run.clone()).await?;
 
         let state = repo.state.lock().await;
         assert_eq!(state.len(), 1);
         assert_eq!(state[0].organization_id, org_id);
-        assert_eq!(state[0].task_user_id.as_str(), "test-task");
+        assert_eq!(state[0].id, task_run.id);
         assert_eq!(state[0].status, TaskRunStatus::Running);
 
         Ok(())
@@ -182,9 +177,9 @@ mod tests {
 
         // Create task runs with different statuses
         let task_runs = vec![
-            create_test_task_run(org_id, task_id, "test-task", TaskRunStatus::Running),
-            create_test_task_run(org_id, task_id, "test-task", TaskRunStatus::Finished),
-            create_test_task_run(org_id, task_id, "test-task", TaskRunStatus::Failed),
+            create_test_task_run(org_id, task_id, TaskRunStatus::Running),
+            create_test_task_run(org_id, task_id, TaskRunStatus::Finished),
+            create_test_task_run(org_id, task_id, TaskRunStatus::Failed),
         ];
 
         for task_run in task_runs {
@@ -217,8 +212,7 @@ mod tests {
         let task_id = Uuid::new_v4();
         let mut tx = repo.begin_transaction().await?;
 
-        let mut task_run =
-            create_test_task_run(org_id, task_id, "test-task", TaskRunStatus::Running);
+        let mut task_run = create_test_task_run(org_id, task_id, TaskRunStatus::Running);
         repo.upsert_task_run(&mut tx, task_run.clone()).await?;
 
         task_run.status = TaskRunStatus::Finished;

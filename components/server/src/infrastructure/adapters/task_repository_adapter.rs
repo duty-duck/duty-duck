@@ -57,6 +57,9 @@ impl TaskRepository for TaskRepositoryAdapter {
             created_at: row.created_at,
             metadata: row.metadata.into(),
             schedule_timezone: row.schedule_timezone,
+            email_notification_enabled: row.email_notification_enabled,
+            push_notification_enabled: row.push_notification_enabled,
+            sms_notification_enabled: row.sms_notification_enabled,
         });
 
         Ok(task)
@@ -174,6 +177,9 @@ impl TaskRepository for TaskRepositoryAdapter {
                 created_at: row.get("created_at"),
                 metadata: row.get::<Option<serde_json::Value>, _>("metadata").into(),
                 schedule_timezone: row.get("schedule_timezone"),
+                email_notification_enabled: row.get("email_notification_enabled"),
+                push_notification_enabled: row.get("push_notification_enabled"),
+                sms_notification_enabled: row.get("sms_notification_enabled"),
             })
             .collect();
 
@@ -290,6 +296,9 @@ impl TaskRepository for TaskRepositoryAdapter {
                 created_at: row.created_at,
                 metadata: row.metadata.into(),
                 schedule_timezone: row.schedule_timezone,
+                email_notification_enabled: row.email_notification_enabled,
+                push_notification_enabled: row.push_notification_enabled,
+                sms_notification_enabled: row.sms_notification_enabled,
             })
             .collect();
 
@@ -337,6 +346,9 @@ impl TaskRepository for TaskRepositoryAdapter {
                 created_at: row.created_at,
                 metadata: row.metadata.into(),
                 schedule_timezone: row.schedule_timezone,
+                email_notification_enabled: row.email_notification_enabled,
+                push_notification_enabled: row.push_notification_enabled,
+                sms_notification_enabled: row.sms_notification_enabled,
             })
             .collect();
 
@@ -384,6 +396,9 @@ impl TaskRepository for TaskRepositoryAdapter {
                 created_at: row.created_at,
                 metadata: row.metadata.into(),
                 schedule_timezone: row.schedule_timezone,
+                email_notification_enabled: row.email_notification_enabled,
+                push_notification_enabled: row.push_notification_enabled,
+                sms_notification_enabled: row.sms_notification_enabled,
             })
             .collect();
 

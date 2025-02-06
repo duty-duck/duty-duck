@@ -78,6 +78,9 @@ async fn test_collect_absent_tasks_updates_existing_incident() -> anyhow::Result
         created_at: task_created_at,
         metadata: EntityMetadata::default(),
         schedule_timezone: None,
+        email_notification_enabled: true,
+        push_notification_enabled: true,
+        sms_notification_enabled: false,
     };
 
     // Create existing incident for the late task
@@ -203,6 +206,9 @@ async fn test_collect_absent_tasks_creates_new_incident() -> anyhow::Result<()> 
         created_at: task_created_at,
         metadata: EntityMetadata::default(),
         schedule_timezone: None,
+        email_notification_enabled: true,
+        push_notification_enabled: true,
+        sms_notification_enabled: false,
     };
 
     // Setup initial state

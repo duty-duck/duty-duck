@@ -6,12 +6,13 @@ use uuid::Uuid;
 use super::super::boundary::{BoundaryTaskRun, TaskRunStatus};
 use super::TaskRunError;
 use crate::domain::entities::entity_metadata::EntityMetadata;
-use crate::domain::entities::task::TaskId;
 
+#[derive(getset::Getters, Debug)]
+#[getset(get = "pub")]
 pub struct DeadTaskRun {
     pub(super) organization_id: Uuid,
     pub(super) task_id: Uuid,
-    pub(super) task_user_id: TaskId,
+    pub(super) id: Uuid,
     pub(super) started_at: DateTime<Utc>,
     pub(super) completed_at: DateTime<Utc>,
     pub(super) updated_at: DateTime<Utc>,
@@ -47,7 +48,7 @@ impl TryFrom<BoundaryTaskRun> for DeadTaskRun {
         Ok(Self {
             organization_id: boundary.organization_id,
             task_id: boundary.task_id,
-            task_user_id: boundary.task_user_id,
+            id: boundary.id,
             started_at: boundary.started_at,
             completed_at,
             updated_at: boundary.updated_at,
@@ -64,7 +65,7 @@ impl From<DeadTaskRun> for BoundaryTaskRun {
             status: TaskRunStatus::Dead,
             organization_id: dead.organization_id,
             task_id: dead.task_id,
-            task_user_id: dead.task_user_id,
+            id: dead.id,
             started_at: dead.started_at,
             updated_at: dead.updated_at,
             completed_at: Some(dead.completed_at),

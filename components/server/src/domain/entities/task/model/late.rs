@@ -3,7 +3,7 @@ use chrono::{DateTime, Utc};
 
 /// A task that was scheduled to run, but ran late.
 /// The task has not yet started running, but is still inside the lateness window
-#[derive(getset::CopyGetters, getset::Getters)]
+#[derive(getset::CopyGetters, getset::Getters, Debug)]
 pub struct LateTask {
     #[getset(get = "pub")]
     pub(super) base: TaskBase,

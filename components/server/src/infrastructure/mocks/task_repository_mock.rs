@@ -207,6 +207,9 @@ mod tests {
             created_at: Utc::now(),
             metadata: EntityMetadata::default(),
             schedule_timezone: None,
+            email_notification_enabled: true,
+            push_notification_enabled: true,
+            sms_notification_enabled: false,
         }
     }
 

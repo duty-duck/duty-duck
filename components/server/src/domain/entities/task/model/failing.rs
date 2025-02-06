@@ -1,6 +1,8 @@
 use super::*;
 
 /// A task that was running, and finished unsuccessfully
+#[derive(getset::Getters, Debug)]
+#[getset(get = "pub")]
 pub struct FailingTask {
     /// The next time the task is due to run
     pub(super) next_due_at: Option<DateTime<Utc>>,

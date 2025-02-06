@@ -223,11 +223,10 @@ where
         incident_notification_repository,
         task_ran_late_at,
         new_incident,
-        // TODO: let users configure this
         Some(NotificationOpts {
-            send_sms: false,
-            send_push_notification: false,
-            send_email: false,
+            send_sms: *task_base.sms_notification_enabled(),
+            send_push_notification: *task_base.push_notification_enabled(),
+            send_email: *task_base.email_notification_enabled(),
             notification_payload: IncidentNotificationPayload {
                 incident_cause: cause,
                 incident_task_id: Some(task_base.user_id().clone()),

@@ -247,10 +247,36 @@ where
                 })
             }
             IncidentCause::ScheduledTaskIncidentCause { .. } => {
-                todo!("Scheduled task incident cause notification content")
+                let task_name = notification.notification_payload.incident_task_id.as_ref().context("Cannot build push notification, cause is ScheduledTaskIncidentCause but task ID is not set")?;
+                let task_name = task_name.to_string();
+                Ok(PushNotification {
+                    title: t!(
+                        "newScheduledTaskIncidentPushNotificationTitle",
+                        taskName = task_name
+                    )
+                    .to_string(),
+                    body: t!(
+                        "newScheduledTaskIncidentPushNotificationBody",
+                        taskName = task_name
+                    )
+                    .to_string(),
+                })
             }
             IncidentCause::TaskRunIncidentCause { .. } => {
-                todo!("Task run incident cause notification content")
+                let task_name = notification.notification_payload.incident_task_id.as_ref().context("Cannot build push notification, cause is TaskRunIncidentCause but task ID is not set")?;
+                let task_name = task_name.to_string();
+                Ok(PushNotification {
+                    title: t!(
+                        "newTaskRunIncidentPushNotificationTitle",
+                        taskName = task_name
+                    )
+                    .to_string(),
+                    body: t!(
+                        "newTaskRunIncidentPushNotificationBody",
+                        taskName = task_name
+                    )
+                    .to_string(),
+                })
             }
         }
     }
@@ -289,10 +315,29 @@ where
                 .to_string();
             }
             IncidentCause::ScheduledTaskIncidentCause { .. } => {
-                todo!("Scheduled task incident cause notification content")
+                let task_name = notification.notification_payload.incident_task_id.as_ref().context("Cannot build e-mail message, cause is ScheduledTaskIncidentCause but task ID is not set")?;
+                let task_name = task_name.to_string();
+                subject =
+                    t!("newScheduledTaskIncidentEmailSubject", taskName = task_name).to_string();
+                body = t!(
+                    "newScheduledTaskIncidentEmailBody",
+                    taskName = task_name,
+                    userName = user.first_name,
+                    org = user_org.name
+                )
+                .to_string();
             }
             IncidentCause::TaskRunIncidentCause { .. } => {
-                todo!("Task run incident cause notification content")
+                let task_name = notification.notification_payload.incident_task_id.as_ref().context("Cannot build e-mail message, cause is TaskRunIncidentCause but task ID is not set")?;
+                let task_name = task_name.to_string();
+                subject = t!("newTaskRunIncidentEmailSubject", taskName = task_name).to_string();
+                body = t!(
+                    "newTaskRunIncidentEmailBody",
+                    taskName = task_name,
+                    userName = user.first_name,
+                    org = user_org.name
+                )
+                .to_string();
             }
         }
 
@@ -303,6 +348,19 @@ where
             .with_context(|| "Failed to build message")
     }
 
+    /// Builds an SMS message for an incident.
+    ///
+    /// This function creates an `Sms` struct based on the details of the given incident.
+    /// It customizes the SMS message based on the incident's source type.
+    ///
+    /// # Arguments
+    ///
+    /// * `notification` - A reference to an `IncidentNotification` containing information about the incident.
+    /// * `user` - A reference to a `User` containing information about the user.
+    ///
+    /// # Returns
+    ///
+    /// Returns an `Sms` struct with a phone number and message.
     fn build_sms_message(
         notification: &IncidentNotification,
         user: &User,
@@ -316,15 +374,41 @@ where
                         .phone_number
                         .clone()
                         .context("Cannot build SMS message, user has no phone number")?,
+                    // reuse the push notification body
                     message: t!("newHttpMonitorIncidentPushNotificationBody", url = url)
                         .to_string(),
                 })
             }
             IncidentCause::ScheduledTaskIncidentCause { .. } => {
-                todo!("Scheduled task incident cause notification content")
+                let task_name = notification.notification_payload.incident_task_id.as_ref().context("Cannot build SMS message, cause is ScheduledTaskIncidentCause but task ID is not set")?.to_string();
+                Ok(Sms {
+                    phone_number: user
+                        .phone_number
+                        .clone()
+                        .context("Cannot build SMS message, user has no phone number")?,
+                    // reuse the push notification body
+                    message: t!(
+                        "newScheduledTaskIncidentPushNotificationBody",
+                        taskName = task_name
+                    )
+                    .to_string(),
+                })
             }
             IncidentCause::TaskRunIncidentCause { .. } => {
-                todo!("Task run incident cause notification content")
+                let task_name = notification.notification_payload.incident_task_id.as_ref().context("Cannot build SMS message, cause is TaskRunIncidentCause but task ID is not set")?;
+                let task_name = task_name.to_string();
+                Ok(Sms {
+                    phone_number: user
+                        .phone_number
+                        .clone()
+                        .context("Cannot build SMS message, user has no phone number")?,
+                    // reuse the push notification body
+                    message: t!(
+                        "newTaskRunIncidentPushNotificationBody",
+                        taskName = task_name
+                    )
+                    .to_string(),
+                })
             }
         }
     }

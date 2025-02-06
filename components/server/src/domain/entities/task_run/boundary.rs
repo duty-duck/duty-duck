@@ -5,7 +5,7 @@ use ts_rs::TS;
 use utoipa::ToSchema;
 use uuid::Uuid;
 
-use crate::domain::entities::{entity_metadata::EntityMetadata, task::TaskId};
+use crate::domain::entities::entity_metadata::EntityMetadata;
 
 /// A unspecialized representation of a task run, used at API and database boundaries
 /// We have a set of conversions to/from this type to the specific task run types.
@@ -16,9 +16,8 @@ use crate::domain::entities::{entity_metadata::EntityMetadata, task::TaskId};
 #[schema(as = TaskRun)]
 pub struct BoundaryTaskRun {
     pub organization_id: Uuid,
+    pub id: Uuid,
     pub task_id: Uuid,
-    #[ts(type = "string")]
-    pub task_user_id: TaskId,
     pub status: TaskRunStatus,
     pub started_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,

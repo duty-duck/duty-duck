@@ -58,6 +58,9 @@ async fn test_start_task_use_case_with_late_task() -> anyhow::Result<()> {
         created_at: now - Duration::hours(1),
         metadata: EntityMetadata::default(),
         schedule_timezone: None,
+        email_notification_enabled: true,
+        push_notification_enabled: true,
+        sms_notification_enabled: false,
     };
 
     // Setup: Add the task to the repository

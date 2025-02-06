@@ -15,20 +15,31 @@ use crate::domain::{
     ports::http_monitor_repository::{HttpMonitorRepository, NewHttpMonitor},
 };
 
+/// A command to create a new HTTP monitor
 #[derive(Deserialize, TS, Debug, ToSchema)]
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct CreateHttpMonitorCommand {
+    /// The URL to monitor
     pub url: String,
+    /// The interval in seconds between pings
     pub interval_seconds: u32,
+    /// How many consecutive successful pings are required before the monitor is considered healthy after a failure
     pub recovery_confirmation_threshold: u32,
+    /// How many consecutive failed pings are required before the monitor is considered down
     pub downtime_confirmation_threshold: u32,
+    /// Whether the url is actively monitored (or paused)
     pub is_active: bool,
     pub metadata: EntityMetadata,
+    /// Whether to send an email notification when an incident occurs for this monitor
     pub email_notification_enabled: bool,
+    /// Whether to send a push notification when an incident occurs for this monitor
     pub push_notification_enabled: bool,
+    /// Whether to send a SMS notification when an incident occurs for this monitor
     pub sms_notification_enabled: bool,
+    /// The headers to send with the request
     pub request_headers: RequestHeaders,
+    /// The timeout for the request in milliseconds
     pub request_timeout_ms: i32,
 }
 

@@ -1,7 +1,7 @@
 use super::*;
 use chrono::{DateTime, Utc};
 
-#[derive(getset::Getters)]
+#[derive(getset::Getters, Debug)]
 pub struct LateTaskAggregate {
     #[getset(get = "pub")]
     pub(super) task: LateTask,

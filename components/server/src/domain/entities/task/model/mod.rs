@@ -63,6 +63,9 @@ pub struct TaskBase {
     pub(super) previous_status: Option<TaskStatus>,
     pub(super) last_status_change_at: Option<DateTime<Utc>>,
     pub(super) metadata: EntityMetadata,
+    pub(super) email_notification_enabled: bool,
+    pub(super) push_notification_enabled: bool,
+    pub(super) sms_notification_enabled: bool,
 }
 
 #[derive(Error, Debug)]
@@ -155,6 +158,9 @@ impl TryFrom<BoundaryTask> for TaskBase {
             previous_status: boundary.previous_status,
             last_status_change_at: boundary.last_status_change_at,
             metadata: boundary.metadata,
+            email_notification_enabled: boundary.email_notification_enabled,
+            push_notification_enabled: boundary.push_notification_enabled,
+            sms_notification_enabled: boundary.sms_notification_enabled,
         })
     }
 }
@@ -178,6 +184,9 @@ impl From<TaskBase> for BoundaryTask {
             heartbeat_timeout_seconds: base.heartbeat_timeout.as_secs() as i32,
             created_at: base.created_at,
             metadata: base.metadata,
+            email_notification_enabled: base.email_notification_enabled,
+            push_notification_enabled: base.push_notification_enabled,
+            sms_notification_enabled: base.sms_notification_enabled,
         }
     }
 }

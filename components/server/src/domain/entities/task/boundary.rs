@@ -32,6 +32,9 @@ pub struct BoundaryTask {
     pub start_window_seconds: i32,
     pub lateness_window_seconds: i32,
     pub heartbeat_timeout_seconds: i32,
+    pub email_notification_enabled: bool,
+    pub push_notification_enabled: bool,
+    pub sms_notification_enabled: bool,
     pub created_at: DateTime<Utc>,
     #[sqlx(json)]
     pub metadata: EntityMetadata,

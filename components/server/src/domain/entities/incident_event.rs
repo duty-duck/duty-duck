@@ -114,7 +114,6 @@ pub enum IncidentEventType {
     TaskSwitchedToLate = 201,
     /// This event is created when a scheduled task is switched to absent
     TaskSwitchedToAbsent = 202,
-
     /// This event is created on task-related incidents when a the task is started
     /// Although similar, it is distinct from [IncidentEventType::TaskRunStarted], which is created on task **run**-related incidents.
     /// We make a distinction between task-related incidents (a scheduled task is late, a scheduled task is absent) and task run-related incidents (a task run failed)
@@ -127,6 +126,8 @@ pub enum IncidentEventType {
     TaskRunIsDead = 301,
     /// This event is created when a task run is failed
     TaskRunFailed = 302,
+    /// This event indicates when a dead task run received its last heartbeat
+    TaskRunReceivedLastHeartbeat = 303,
 }
 
 impl From<i16> for IncidentEventType {

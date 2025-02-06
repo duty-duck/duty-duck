@@ -55,7 +55,6 @@ impl HttpClient for HttpClientAdapter {
                 Ok(response) => {
                     let response = response.into_inner();
 
-                    // TODO: handle screenshots and other data
                     return PingResponse {
                         http_code: response.http_code.map(|code| code as u16),
                         error_kind: response
