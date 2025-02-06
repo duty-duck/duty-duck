@@ -5,7 +5,7 @@ use tokio::sync::Mutex;
 use uuid::Uuid;
 
 use crate::domain::{
-    entities::task::{BoundaryTask, TaskId, TaskStatus},
+    entities::task::{BoundaryTask, TaskStatus, TaskUserId},
     ports::{
         task_repository::{ListTasksOpts, ListTasksOutput, TaskRepository},
         transactional_repository::{TransactionMock, TransactionalRepository},
@@ -44,16 +44,33 @@ impl TransactionalRepository for TaskRepositoryMock {
 
 #[async_trait]
 impl TaskRepository for TaskRepositoryMock {
-    async fn get_task_by_user_id(
+    async fn get_task_by_uuid(
         &self,
         _transaction: &mut Self::Transaction,
         organization_id: Uuid,
-        task_id: &TaskId,
+        task_id: Uuid,
     ) -> anyhow::Result<Option<BoundaryTask>> {
         let state = self.state.lock().await;
         Ok(state
             .iter()
-            .find(|t| t.user_id == *task_id && t.organization_id == organization_id)
+            .find(|t| t.id == task_id && t.organization_id == organization_id)
+            .cloned())
+    }
+
+    async fn get_task_by_user_id(
+        &self,
+        _transaction: &mut Self::Transaction,
+        organization_id: Uuid,
+        task_id: &TaskUserId,
+    ) -> anyhow::Result<Option<BoundaryTask>> {
+        let state = self.state.lock().await;
+        Ok(state
+            .iter()
+            .find(|t| {
+                t.user_id == *task_id
+                    && t.organization_id == organization_id
+                    && t.status != TaskStatus::Archived
+            })
             .cloned())
     }
 
@@ -104,7 +121,7 @@ impl TaskRepository for TaskRepositoryMock {
         &self,
         _transaction: &mut Self::Transaction,
         task: BoundaryTask,
-    ) -> anyhow::Result<TaskId> {
+    ) -> anyhow::Result<TaskUserId> {
         let mut state = self.state.lock().await;
 
         if let Some(existing) = state
@@ -193,7 +210,7 @@ mod tests {
         BoundaryTask {
             organization_id: org_id,
             id: Uuid::new_v4(),
-            user_id: TaskId::new(name.to_string()).expect("Invalid task ID"),
+            user_id: TaskUserId::new(name.to_string()).expect("Invalid task ID"),
             name: name.to_string(),
             description: None,
             status,

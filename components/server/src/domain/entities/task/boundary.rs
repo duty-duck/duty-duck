@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::domain::entities::entity_metadata::EntityMetadata;
 
-use super::id::TaskId;
+use super::id::TaskUserId;
 
 #[derive(Debug, Serialize, Deserialize, TS, ToSchema, Clone, FromRow)]
 #[ts(export)]
@@ -19,7 +19,7 @@ pub struct BoundaryTask {
     pub id: Uuid,
     /// A unique, user-friendly identifier for the task.
     #[ts(type = "string")]
-    pub user_id: TaskId,
+    pub user_id: TaskUserId,
     pub organization_id: Uuid,
     pub name: String,
     pub description: Option<String>,
@@ -58,6 +58,8 @@ pub enum TaskStatus {
     Late = 4,
     /// The task was expected to start but has not started and the lateness window has passed
     Absent = 5,
+    /// The task is archived
+    Archived = 6,
 }
 
 impl From<i16> for TaskStatus {
@@ -69,6 +71,7 @@ impl From<i16> for TaskStatus {
             3 => Self::Due,
             4 => Self::Late,
             5 => Self::Absent,
+            6 => Self::Archived,
             _ => panic!("invalid TaskStatus discriminant: {value}"),
         }
     }

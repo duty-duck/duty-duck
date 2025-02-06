@@ -1,7 +1,7 @@
 -- Add up migration script here
 CREATE TABLE tasks (
     id uuid not null default gen_random_uuid(),
-    user_id TEXT NOT NULL UNIQUE CHECK (
+    user_id TEXT NOT NULL CHECK (
         user_id <> ''
         AND user_id !~ '\s'
     ),
@@ -30,6 +30,12 @@ CREATE TABLE tasks (
     metadata JSONB,
     PRIMARY KEY (organization_id, id)
 );
+
+-- Add a unique constraint on the user_id and organization_id columns,
+-- but only for tasks that are not archived
+-- Archived tasks are allowed to have the same user_id and organization_id
+CREATE UNIQUE INDEX tasks_user_id_org_id_idx ON tasks(user_id, organization_id) WHERE status != 6;
+
 CREATE TABLE task_runs (
     organization_id UUID NOT NULL,
     id uuid not null default gen_random_uuid(),

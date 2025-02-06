@@ -141,10 +141,7 @@ pub async fn start_server() -> anyhow::Result<()> {
         task_repository: application_state.adapters.task_repository.clone(),
         task_run_repository: application_state.adapters.task_run_repository.clone(),
         incident_repository: application_state.adapters.incident_repository.clone(),
-        incident_event_repository: application_state
-            .adapters
-            .incident_event_repository
-            .clone(),
+        incident_event_repository: application_state.adapters.incident_event_repository.clone(),
         incident_notification_repository: application_state
             .adapters
             .incident_notification_repository

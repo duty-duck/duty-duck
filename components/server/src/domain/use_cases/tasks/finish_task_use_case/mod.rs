@@ -7,13 +7,18 @@ use utoipa::ToSchema;
 
 use crate::domain::{
     entities::{
-        authorization::{AuthContext, Permission}, incident::{
+        authorization::{AuthContext, Permission},
+        incident::{
             IncidentCause, IncidentPriority, IncidentSource, IncidentStatus, NewIncident,
             TaskRunIncidentCause,
-        }, incident_event::{IncidentEvent, IncidentEventType}, incident_notification::IncidentNotificationPayload, task::{
+        },
+        incident_event::{IncidentEvent, IncidentEventType},
+        incident_notification::IncidentNotificationPayload,
+        task::{
             get_task_aggregate, save_task_aggregate, FailingTaskAggregate, FailingTaskRun,
             TaskAggregate, TaskId,
-        }, task_run::TaskRunStatus
+        },
+        task_run::TaskRunStatus,
     },
     ports::{
         incident_event_repository::IncidentEventRepository,
@@ -234,4 +239,3 @@ where
 
     Ok(())
 }
-

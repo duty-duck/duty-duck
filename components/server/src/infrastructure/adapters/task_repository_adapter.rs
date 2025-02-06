@@ -4,7 +4,7 @@ use sqlx::{PgPool, Row};
 use uuid::Uuid;
 
 use crate::domain::{
-    entities::task::{BoundaryTask, TaskId, TaskStatus},
+    entities::task::{BoundaryTask, TaskStatus, TaskUserId},
     ports::{
         task_repository::{ListTasksOpts, ListTasksOutput, TaskRepository},
         transactional_repository::TransactionalRepository,
@@ -22,19 +22,19 @@ crate::postgres_transactional_repo!(TaskRepositoryAdapter);
 
 #[async_trait]
 impl TaskRepository for TaskRepositoryAdapter {
-    async fn get_task_by_user_id(
+    async fn get_task_by_uuid(
         &self,
         transaction: &mut Self::Transaction,
         organization_id: Uuid,
-        task_id: &TaskId,
+        task_id: Uuid,
     ) -> anyhow::Result<Option<BoundaryTask>> {
         let record = sqlx::query!(
             "SELECT *
             FROM tasks 
             WHERE 
-                organization_id = $1 AND user_id = $2",
+                organization_id = $1 AND id = $2",
             organization_id,
-            task_id.as_str(),
+            task_id,
         )
         .fetch_optional(transaction.as_mut())
         .await
@@ -43,7 +43,53 @@ impl TaskRepository for TaskRepositoryAdapter {
         let task = record.map(|row| BoundaryTask {
             organization_id: row.organization_id,
             id: row.id,
-            user_id: TaskId::new(row.user_id).expect("Invalid task ID in database"),
+            user_id: TaskUserId::new(row.user_id).expect("Invalid task ID in database"),
+            name: row.name,
+            description: row.description,
+            status: TaskStatus::from(row.status),
+            previous_status: row.previous_status.map(TaskStatus::from),
+            last_status_change_at: row.last_status_change_at,
+            cron_schedule: row.cron_schedule,
+            next_due_at: row.next_due_at,
+            start_window_seconds: row.start_window_seconds,
+            lateness_window_seconds: row.lateness_window_seconds,
+            heartbeat_timeout_seconds: row.heartbeat_timeout_seconds,
+            created_at: row.created_at,
+            metadata: row.metadata.into(),
+            schedule_timezone: row.schedule_timezone,
+            email_notification_enabled: row.email_notification_enabled,
+            push_notification_enabled: row.push_notification_enabled,
+            sms_notification_enabled: row.sms_notification_enabled,
+        });
+
+        Ok(task)
+    }
+
+    async fn get_task_by_user_id(
+        &self,
+        transaction: &mut Self::Transaction,
+        organization_id: Uuid,
+        task_id: &TaskUserId,
+    ) -> anyhow::Result<Option<BoundaryTask>> {
+        let record = sqlx::query!(
+            "SELECT *
+            FROM tasks 
+            WHERE 
+                organization_id = $1 AND user_id = $2 AND status != $3",
+            organization_id,
+            task_id.as_str(),
+            // This function should only be used to get active tasks, so we filter out archived tasks
+            // This restriction also ensures that we take advantage of the partial index in the database to speed up the query
+            TaskStatus::Archived as i16,
+        )
+        .fetch_optional(transaction.as_mut())
+        .await
+        .with_context(|| "Failed to get task from database")?;
+
+        let task = record.map(|row| BoundaryTask {
+            organization_id: row.organization_id,
+            id: row.id,
+            user_id: TaskUserId::new(row.user_id).expect("Invalid task ID in database"),
             name: row.name,
             description: row.description,
             status: TaskStatus::from(row.status),
@@ -161,7 +207,7 @@ impl TaskRepository for TaskRepositoryAdapter {
             .map(|row| BoundaryTask {
                 organization_id: row.get("organization_id"),
                 id: row.get("id"),
-                user_id: TaskId::new(row.get("id")).expect("Invalid task ID in database"),
+                user_id: TaskUserId::new(row.get("id")).expect("Invalid task ID in database"),
                 name: row.get("name"),
                 description: row.get("description"),
                 status: row.get::<i16, _>("status").into(),
@@ -194,7 +240,7 @@ impl TaskRepository for TaskRepositoryAdapter {
         &self,
         transaction: &mut Self::Transaction,
         task: BoundaryTask,
-    ) -> anyhow::Result<TaskId> {
+    ) -> anyhow::Result<TaskUserId> {
         sqlx::query!(
             r#"
             INSERT INTO tasks (
@@ -282,7 +328,7 @@ impl TaskRepository for TaskRepositoryAdapter {
             .map(|row| BoundaryTask {
                 organization_id: row.organization_id,
                 id: row.id,
-                user_id: TaskId::new(row.user_id).expect("Invalid task ID in database"),
+                user_id: TaskUserId::new(row.user_id).expect("Invalid task ID in database"),
                 name: row.name,
                 description: row.description,
                 status: TaskStatus::from(row.status),
@@ -332,7 +378,7 @@ impl TaskRepository for TaskRepositoryAdapter {
             .map(|row| BoundaryTask {
                 organization_id: row.organization_id,
                 id: row.id,
-                user_id: TaskId::new(row.user_id).expect("Invalid task ID in database"),
+                user_id: TaskUserId::new(row.user_id).expect("Invalid task ID in database"),
                 name: row.name,
                 description: row.description,
                 status: TaskStatus::from(row.status),
@@ -382,7 +428,7 @@ impl TaskRepository for TaskRepositoryAdapter {
             .map(|row| BoundaryTask {
                 organization_id: row.organization_id,
                 id: row.id,
-                user_id: TaskId::new(row.user_id).expect("Invalid task ID in database"),
+                user_id: TaskUserId::new(row.user_id).expect("Invalid task ID in database"),
                 name: row.name,
                 description: row.description,
                 status: TaskStatus::from(row.status),

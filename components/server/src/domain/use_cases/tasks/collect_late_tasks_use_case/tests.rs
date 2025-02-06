@@ -4,7 +4,7 @@ use crate::{
             entity_metadata::{EntityMetadata, MetadataFilter},
             incident::{IncidentCause, IncidentSourceType},
             incident_event::IncidentEventType,
-            task::{BoundaryTask, TaskId, TaskStatus},
+            task::{BoundaryTask, TaskStatus, TaskUserId},
         },
         ports::{
             incident_event_repository::IncidentEventRepository,
@@ -49,7 +49,8 @@ async fn test_collect_late_tasks_creates_incident_with_events() -> anyhow::Resul
     let use_case = build_use_case();
     let org_id = Uuid::new_v4();
     let task_id = Uuid::new_v4();
-    let task_user_id = TaskId::new("test-task".to_string()).context("Failed to create task id")?;
+    let task_user_id =
+        TaskUserId::new("test-task".to_string()).context("Failed to create task id")?;
 
     let task_created_at = Utc.with_ymd_and_hms(2025, 1, 1, 10, 0, 0).unwrap(); // task was created at 10:00
     let task_was_due_at = Utc.with_ymd_and_hms(2025, 1, 1, 10, 30, 0).unwrap(); // task was due to run at 10:30

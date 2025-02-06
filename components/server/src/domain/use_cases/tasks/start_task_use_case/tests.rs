@@ -5,13 +5,22 @@ use uuid::Uuid;
 use crate::{
     domain::{
         entities::{
-            authorization::AuthContext, entity_metadata::EntityMetadata, incident::{
+            authorization::AuthContext,
+            entity_metadata::EntityMetadata,
+            incident::{
                 IncidentCause, IncidentPriority, IncidentSource, IncidentStatus, NewIncident,
                 ScheduledTaskIncidentCause,
-            }, incident_event::{IncidentEvent, IncidentEventType}, organization::OrganizationUserRole, task::{BoundaryTask, TaskId, TaskStatus}, task_run::TaskRunStatus
+            },
+            incident_event::{IncidentEvent, IncidentEventType},
+            organization::OrganizationUserRole,
+            task::{BoundaryTask, TaskId, TaskStatus, TaskUserId},
+            task_run::TaskRunStatus,
         },
         ports::{
-            incident_event_repository::IncidentEventRepository, incident_repository::IncidentRepository, task_repository::TaskRepository, task_run_repository::TaskRunRepository, transactional_repository::TransactionalRepository
+            incident_event_repository::IncidentEventRepository,
+            incident_repository::IncidentRepository, task_repository::TaskRepository,
+            task_run_repository::TaskRunRepository,
+            transactional_repository::TransactionalRepository,
         },
     },
     infrastructure::mocks::{
@@ -27,7 +36,8 @@ async fn test_start_task_use_case_with_late_task() -> anyhow::Result<()> {
     let organization_id = Uuid::new_v4();
     let user_id = Uuid::new_v4();
     let task_id = Uuid::new_v4();
-    let task_user_id = TaskId::new("test-task".to_string()).context("Failed to create task id")?;
+    let task_user_id =
+        TaskUserId::new("test-task".to_string()).context("Failed to create task id")?;
 
     let now = Utc::now();
     let task_was_due_at = now - Duration::minutes(10);
@@ -105,16 +115,25 @@ async fn test_start_task_use_case_with_late_task() -> anyhow::Result<()> {
         .await?;
 
     // Run the use case
-    let auth_context = AuthContext::test_context(organization_id, user_id, &[OrganizationUserRole::Owner], &[]);
-    super::start_task_use_case(&auth_context, super::StartTaskUseCaseOpts {
-        task_repository: &task_repository,
-        task_run_repository: &task_run_repository,
-        incident_repository: &incident_repository,
-        incident_event_repository: &incident_event_repository,
-        incident_notification_repository: &incident_notification_repository,
-        task_id: task_user_id.clone(),
-        command: None
-    }).await?;
+    let auth_context = AuthContext::test_context(
+        organization_id,
+        user_id,
+        &[OrganizationUserRole::Owner],
+        &[],
+    );
+    super::start_task_use_case(
+        &auth_context,
+        super::StartTaskUseCaseOpts {
+            task_repository: &task_repository,
+            task_run_repository: &task_run_repository,
+            incident_repository: &incident_repository,
+            incident_event_repository: &incident_event_repository,
+            incident_notification_repository: &incident_notification_repository,
+            task_id: TaskId::UserId(task_user_id.clone()),
+            command: None,
+        },
+    )
+    .await?;
 
     // Verify task is now running
     let task = task_repository
@@ -140,13 +159,17 @@ async fn test_start_task_use_case_with_late_task() -> anyhow::Result<()> {
 
     assert_eq!(events.len(), 3);
     assert_eq!(events[0].event_type, IncidentEventType::Creation);
-    assert_eq!(events[1].event_type, IncidentEventType::TaskSwitchedToRunning);
+    assert_eq!(
+        events[1].event_type,
+        IncidentEventType::TaskSwitchedToRunning
+    );
     assert_eq!(events[2].event_type, IncidentEventType::Resolution);
 
     // Verify incident is resolved
     let incident = incident_repository
         .get_incident(&mut tx, organization_id, incident_id)
-        .await?.context("Incident not found")?;
+        .await?
+        .context("Incident not found")?;
 
     assert_eq!(incident.status, IncidentStatus::Resolved);
 

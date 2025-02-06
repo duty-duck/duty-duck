@@ -102,8 +102,9 @@ async fn create_task_handler(
     }
 }
 
-/// Get a task by its user-provided id
-/// The id to use is the `user-id` field of the task, not the `id` field, which is the server-generated UUID
+/// Get a single task by its id. The provided id can be either the user-defined id (the `user-id` field) or the technical UUID (the `id` field)
+/// Note that if you use the user-defined id, you may only retrieve tasks that are not archived. If want to retrieve archived tasks, use the UUID instead.
+/// A user-defiend id can only be used for a single active task within your organization.
 #[utoipa::path(
     get,
     path = "/tasks/:user_id",
@@ -134,7 +135,7 @@ async fn get_task_handler(
 /// List all runs for a task
 ///
 /// This endpoint can be used to get a paginated list of task runs for a task.
-/// The task id to use is the `user-id` field of the task, not the `id` field, which is the server-generated UUID
+/// The provided task id can be either the user-defined id (the `user-id` field) or the technical UUID (the `id` field).
 #[utoipa::path(
     get,
     path = "/tasks/:user_id/runs",
@@ -148,14 +149,14 @@ async fn get_task_handler(
 async fn list_task_runs_handler(
     State(app_state): ExtractAppState,
     auth_context: AuthContext,
-    Path(user_id): Path<TaskId>,
+    Path(task_id): Path<TaskId>,
     Query(params): Query<ListTaskRunsParams>,
 ) -> impl IntoResponse {
     match list_task_runs_use_case(
         &auth_context,
         &app_state.adapters.task_repository,
         &app_state.adapters.task_run_repository,
-        user_id,
+        task_id,
         params,
     )
     .await
@@ -229,10 +230,10 @@ async fn start_task_handler(
 /// Send a heartbeat for a running task, to indicate that it is still running
 /// Without a regular heartbeat, a running task will eventually be considered failed and retried.
 ///
-/// The task id to use is the `user-id` field of the task, not the `id` field, which is the server-generated UUID
+/// The provided task id can be either the user-defined id (the `user-id` field) or the technical UUID (the `id` field).
 #[utoipa::path(
     post,
-    path = "/tasks/:user_id/heartbeat",
+    path = "/tasks/:task_id/heartbeat",
     responses(
         (status = 200, description = "Heartbeat sent successfully"),
         (status = 403, description = "User is not authorized to send a heartbeat for this task"),
@@ -244,13 +245,13 @@ async fn start_task_handler(
 async fn send_task_heartbeat_handler(
     State(app_state): ExtractAppState,
     auth_context: AuthContext,
-    Path(user_id): Path<TaskId>,
+    Path(task_id): Path<TaskId>,
 ) -> impl IntoResponse {
     match send_task_heartbeat_use_case(
         &auth_context,
         &app_state.adapters.task_repository,
         &app_state.adapters.task_run_repository,
-        user_id,
+        task_id,
     )
     .await
     {
@@ -276,11 +277,10 @@ async fn send_task_heartbeat_handler(
 /// Finish a running task
 ///
 /// This will mark the task as finished, and record the exit code and error message if the task failed.
-///
-/// The task id to use is the `user-id` field of the task, not the `id` field, which is the server-generated UUID
+/// The provided task id can be either the user-defined id (the `user-id` field) or the technical UUID (the `id` field).
 #[utoipa::path(
     post,
-    path = "/tasks/:user_id/finish",
+    path = "/tasks/:task_id/finish",
     request_body(
         content = FinishTaskCommand,
         description = "The command to finish a task",
@@ -295,7 +295,7 @@ async fn send_task_heartbeat_handler(
 async fn finish_task_handler(
     State(app_state): ExtractAppState,
     auth_context: AuthContext,
-    Path(user_id): Path<TaskId>,
+    Path(task_id): Path<TaskId>,
     Json(command): Json<FinishTaskCommand>,
 ) -> impl IntoResponse {
     match finish_task_use_case(
@@ -305,7 +305,7 @@ async fn finish_task_handler(
         &app_state.adapters.incident_repository,
         &app_state.adapters.incident_event_repository,
         &app_state.adapters.incident_notification_repository,
-        user_id,
+        task_id,
         command,
     )
     .await
@@ -330,10 +330,10 @@ async fn finish_task_handler(
 /// Get a single task run
 ///
 /// A single task run is identified by the id of the task and the timestamp of when it started.
-/// The task id to use is the `user-id` field of the task, not the `id` field, which is the server-generated UUID
+/// The provided task id can be either the user-defined id (the `user-id` field) or the technical UUID (the `id` field).
 #[utoipa::path(
     get,
-    path = "/tasks/:user_id/runs/:started_at",
+    path = "/tasks/:task_id/runs/:started_at",
     responses(
         (status = 200, body = GetTaskRunResponse),
         (status = 403, description = "User is not authorized to get a task run"),
@@ -343,13 +343,13 @@ async fn finish_task_handler(
 async fn get_task_run_handler(
     State(app_state): ExtractAppState,
     auth_context: AuthContext,
-    Path((user_id, started_at)): Path<(TaskId, DateTime<Utc>)>,
+    Path((task_id, started_at)): Path<(TaskId, DateTime<Utc>)>,
 ) -> impl IntoResponse {
     match get_task_run(
         &auth_context,
         &app_state.adapters.task_repository,
         &app_state.adapters.task_run_repository,
-        user_id,
+        task_id,
         started_at,
     )
     .await

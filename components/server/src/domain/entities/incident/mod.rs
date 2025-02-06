@@ -8,7 +8,7 @@ use utoipa::ToSchema;
 use uuid::Uuid;
 
 use super::{
-    entity_metadata::EntityMetadata, http_monitor::HttpMonitorErrorKind, task::TaskId,
+    entity_metadata::EntityMetadata, http_monitor::HttpMonitorErrorKind, task::TaskUserId,
     task_run::TaskRunStatus, user::UserNameInfo,
 };
 
@@ -77,7 +77,7 @@ pub struct HttpMonitorIncidentCausePing {
 pub struct ScheduledTaskIncidentCause {
     pub task_id: Uuid,
     #[ts(type = "string")]
-    pub task_user_id: TaskId,
+    pub task_user_id: TaskUserId,
     pub task_was_due_at: DateTime<Utc>,
     pub task_ran_late_at: Option<DateTime<Utc>>,
     pub task_switched_to_absent_at: Option<DateTime<Utc>>,
@@ -88,7 +88,7 @@ pub struct ScheduledTaskIncidentCause {
 #[ts(export)]
 pub struct TaskRunIncidentCause {
     #[ts(type = "string")]
-    pub task_id: TaskId,
+    pub task_id: TaskUserId,
     pub task_run_id: Uuid,
     pub task_run_started_at: DateTime<Utc>,
     pub task_run_finished_at: Option<DateTime<Utc>>,

@@ -167,8 +167,14 @@ where
             },
             Some(NotificationOpts {
                 send_sms: *dead_task_aggregate.task().base().sms_notification_enabled(),
-                send_push_notification: *dead_task_aggregate.task().base().push_notification_enabled(),
-                send_email: *dead_task_aggregate.task().base().email_notification_enabled(),
+                send_push_notification: *dead_task_aggregate
+                    .task()
+                    .base()
+                    .push_notification_enabled(),
+                send_email: *dead_task_aggregate
+                    .task()
+                    .base()
+                    .email_notification_enabled(),
                 notification_payload: IncidentNotificationPayload {
                     incident_cause,
                     incident_task_id: Some(dead_task_aggregate.task().base().user_id().clone()),

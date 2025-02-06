@@ -7,7 +7,7 @@ use crate::domain::{
     entities::{
         authorization::{AuthContext, Permission},
         entity_metadata::EntityMetadata,
-        task::{BoundaryTask, HealthyTask, TaskError, TaskId},
+        task::{BoundaryTask, HealthyTask, TaskError, TaskUserId},
     },
     ports::task_repository::TaskRepository,
 };
@@ -17,7 +17,7 @@ pub enum CreateTaskError {
     #[error("User is not allowed to create a task")]
     Forbidden,
     #[error("Task with id {0} already exists")]
-    TaskAlreadyExists(TaskId),
+    TaskAlreadyExists(TaskUserId),
     #[error("Technical failure occured while creating a task")]
     TechnicalFailure(#[from] anyhow::Error),
     #[error("Invalid cron schedule: {details}")]
@@ -33,7 +33,7 @@ pub enum CreateTaskError {
 pub struct CreateTaskCommand {
     #[ts(type = "string")]
     /// A unique, human-readable identifier for the task
-    pub id: TaskId,
+    pub id: TaskUserId,
     /// A human-readable name for the task
     pub name: Option<String>,
     /// A description of the task

@@ -65,7 +65,7 @@ pub async fn list_task_runs_use_case<
     let page_number = params.page_number.unwrap_or(1);
 
     let task = task_repository
-        .get_task_by_user_id(
+        .get_task_by_id(
             &mut transaction,
             auth_context.active_organization_id,
             &task_id,

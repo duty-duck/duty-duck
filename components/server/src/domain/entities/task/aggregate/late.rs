@@ -8,7 +8,7 @@ pub struct LateTaskAggregate {
 }
 
 impl LateTaskAggregate {
-    pub fn user_id(&self) -> &TaskId {
+    pub fn user_id(&self) -> &TaskUserId {
         self.task.base().user_id()
     }
 

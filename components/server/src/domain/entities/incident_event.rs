@@ -83,7 +83,6 @@ pub struct PingEventPayload {
 #[ts(export)]
 pub enum IncidentEventType {
     // Generic events for any incident
-
     /// This event is created when the incident is created
     Creation = 0,
     /// This event is created when notifications are sent for an incident (initial notification or escalation)

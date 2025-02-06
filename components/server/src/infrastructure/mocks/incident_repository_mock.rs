@@ -111,7 +111,6 @@ impl IncidentRepository for IncidentRepositoryMock {
                 opts.include_priorities.is_empty() || opts.include_priorities.contains(&i.priority)
             })
             .filter(|i| {
-
                 let matches_http_monitor_ids = opts.include_sources.is_empty()
                     || (i.incident_source_type == IncidentSourceType::HttpMonitor
                         && include_http_monitors_ids.contains(&i.incident_source_id));

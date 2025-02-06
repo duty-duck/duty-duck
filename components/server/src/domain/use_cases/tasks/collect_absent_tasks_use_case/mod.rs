@@ -154,10 +154,10 @@ where
             .into_iter()
             .next();
 
-            let task_was_due_at = late_aggregate.task().next_due_at();
-            let task_ran_late_at = task_was_due_at
-                + *late_aggregate.task_base().start_window()
-                + *late_aggregate.task_base().lateness_window();
+        let task_was_due_at = late_aggregate.task().next_due_at();
+        let task_ran_late_at = task_was_due_at
+            + *late_aggregate.task_base().start_window()
+            + *late_aggregate.task_base().lateness_window();
 
         // retrieve the the related incident or create it if it doesn't exist
         // absent tasks will usually have an existing incident, created when the task switched to late; however, incidents
@@ -182,7 +182,8 @@ where
         };
 
         // Update the incident cause
-        if let Some(IncidentCause::ScheduledTaskIncidentCause(cause)) = &mut related_incident.cause {
+        if let Some(IncidentCause::ScheduledTaskIncidentCause(cause)) = &mut related_incident.cause
+        {
             cause.task_switched_to_absent_at = Some(now);
             cause.task_was_due_at = task_was_due_at;
             cause.task_ran_late_at = Some(task_ran_late_at);
@@ -204,7 +205,9 @@ where
             .await?;
 
         // save the incident
-        self.incident_repository.update_incident(transaction, related_incident).await?;
+        self.incident_repository
+            .update_incident(transaction, related_incident)
+            .await?;
 
         // mark the task as absent and save it
         let absent_aggregate = late_aggregate.mark_absent(now).context("Failed to mark task aggregate as absent. This is likely a bug in the SQL query used to retrieve aggregates")?;

@@ -24,7 +24,7 @@ use uuid::Uuid;
 pub enum TaskAggregateError {
     #[error("Inconsistent task run state: {task_id:?} {task_run_status:?} {details}")]
     InconsistentTaskRunState {
-        task_id: TaskId,
+        task_id: TaskUserId,
         task_run_status: TaskRunStatus,
         details: String,
     },
@@ -56,7 +56,7 @@ pub enum TaskAggregate {
     Absent(AbsentTaskAggregate),
 }
 
-/// Retrieve a task aggregate from the database by its id
+/// Retrieve a task aggregate from the database by its id (user-defined or UUID)
 pub async fn get_task_aggregate<TR, TRR>(
     task_repository: &TR,
     task_run_repository: &TRR,
@@ -69,7 +69,7 @@ where
     TRR: TaskRunRepository<Transaction = TR::Transaction>,
 {
     match task_repository
-        .get_task_by_user_id(tx, organization_id, task_id)
+        .get_task_by_id(tx, organization_id, task_id)
         .await?
     {
         Some(task) => {
@@ -112,6 +112,10 @@ where
                         .await?;
 
                     from_boundary(task, last_task_run)?
+                }
+                TaskStatus::Archived => {
+                    // TODO: implement archived tasks and archived task aggregates
+                    todo!()
                 }
             };
 
@@ -199,6 +203,10 @@ pub fn from_boundary(
         TaskStatus::Absent => TaskAggregate::Absent(AbsentTaskAggregate {
             task: boundary_task.try_into()?,
         }),
+        TaskStatus::Archived => {
+            // TODO: implement archived tasks and archived task aggregates
+            todo!()
+        }
     })
 }
 

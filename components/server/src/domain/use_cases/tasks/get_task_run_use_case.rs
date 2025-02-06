@@ -51,7 +51,7 @@ pub async fn get_task_run<
         .context("Failed to begin transaction")?;
 
     let task = task_repository
-        .get_task_by_user_id(&mut tx, auth_context.active_organization_id, &task_id)
+        .get_task_by_id(&mut tx, auth_context.active_organization_id, &task_id)
         .await
         .context("Failed to get task from repository")?
         .ok_or(GetTaskRunError::NotFound)?;

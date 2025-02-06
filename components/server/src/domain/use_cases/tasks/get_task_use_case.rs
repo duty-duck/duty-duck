@@ -28,6 +28,8 @@ pub enum GetTaskError {
     NotFound,
 }
 
+/// Get a task by its ID (user-defined or UUID)
+#[tracing::instrument(skip(repository))]
 pub async fn get_task(
     auth_context: &AuthContext,
     repository: &impl TaskRepository,
@@ -43,7 +45,7 @@ pub async fn get_task(
         .map_err(GetTaskError::TechnicalFailure)?;
 
     let task = repository
-        .get_task_by_user_id(&mut tx, auth_context.active_organization_id, &task_id)
+        .get_task_by_id(&mut tx, auth_context.active_organization_id, &task_id)
         .await
         .map_err(GetTaskError::TechnicalFailure)?
         .ok_or(GetTaskError::NotFound)?;

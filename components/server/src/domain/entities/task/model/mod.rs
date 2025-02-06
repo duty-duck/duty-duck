@@ -27,7 +27,7 @@ use uuid::Uuid;
 
 use crate::domain::entities::entity_metadata::EntityMetadata;
 
-use super::{BoundaryTask, TaskId, TaskStatus};
+use super::{BoundaryTask, TaskStatus, TaskUserId};
 
 mod absent;
 mod due;
@@ -50,7 +50,7 @@ pub struct TaskBase {
     /// A random, unique identifier for the task.
     pub(super) id: Uuid,
     /// A unique, user-friendly identifier for the task.
-    pub(super) user_id: TaskId,
+    pub(super) user_id: TaskUserId,
     pub(super) organization_id: Uuid,
     pub(super) name: String,
     pub(super) description: Option<String>,

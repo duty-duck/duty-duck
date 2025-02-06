@@ -2,9 +2,12 @@ use crate::{
     domain::{
         entities::{
             entity_metadata::{EntityMetadata, MetadataFilter},
-            incident::{IncidentCause, IncidentPriority, IncidentSource, IncidentStatus, NewIncident, ScheduledTaskIncidentCause},
+            incident::{
+                IncidentCause, IncidentPriority, IncidentSource, IncidentStatus, NewIncident,
+                ScheduledTaskIncidentCause,
+            },
             incident_event::{IncidentEvent, IncidentEventType},
-            task::{BoundaryTask, TaskId, TaskStatus},
+            task::{BoundaryTask, TaskStatus, TaskUserId},
         },
         ports::{
             incident_event_repository::IncidentEventRepository,
@@ -44,7 +47,6 @@ fn build_use_case() -> CollectAbsentTasksUseCase<
     }
 }
 
-
 /// A test for when a task runs from late to absent and has no existing incident
 /// This test verifies that the task is updated to Absent and a new incident is created with all the events
 /// from a task running late (incident creation, task switched to due, task switched to late) and an additional event for task switched to absent
@@ -53,7 +55,8 @@ async fn test_collect_absent_tasks_updates_existing_incident() -> anyhow::Result
     let use_case = build_use_case();
     let org_id = Uuid::new_v4();
     let task_id = Uuid::new_v4();
-    let task_user_id = TaskId::new("test-task".to_string()).context("Failed to create task id")?;
+    let task_user_id =
+        TaskUserId::new("test-task".to_string()).context("Failed to create task id")?;
 
     let task_created_at = Utc.with_ymd_and_hms(2025, 1, 1, 10, 0, 0).unwrap(); // task was created at 10:00
     let task_was_due_at = Utc.with_ymd_and_hms(2025, 1, 1, 10, 30, 0).unwrap(); // task was due to run at 10:30
@@ -72,8 +75,8 @@ async fn test_collect_absent_tasks_updates_existing_incident() -> anyhow::Result
         last_status_change_at: Some(task_ran_late_at),
         cron_schedule: Some("*/30 * * * *".to_string()),
         next_due_at: Some(task_was_due_at),
-        start_window_seconds: 300,     // 5 minutes
-        lateness_window_seconds: 600,  // 10 minutes
+        start_window_seconds: 300,    // 5 minutes
+        lateness_window_seconds: 600, // 10 minutes
         heartbeat_timeout_seconds: 60,
         created_at: task_created_at,
         metadata: EntityMetadata::default(),
@@ -182,7 +185,8 @@ async fn test_collect_absent_tasks_creates_new_incident() -> anyhow::Result<()> 
     let use_case = build_use_case();
     let org_id = Uuid::new_v4();
     let task_id = Uuid::new_v4();
-    let task_user_id = TaskId::new("test-task".to_string()).context("Failed to create task id")?;
+    let task_user_id =
+        TaskUserId::new("test-task".to_string()).context("Failed to create task id")?;
 
     let task_created_at = Utc.with_ymd_and_hms(2025, 1, 1, 10, 0, 0).unwrap(); // task was created at 10:00
     let task_was_due_at = Utc.with_ymd_and_hms(2025, 1, 1, 10, 30, 0).unwrap(); // task was due to run at 10:30
@@ -200,8 +204,8 @@ async fn test_collect_absent_tasks_creates_new_incident() -> anyhow::Result<()> 
         last_status_change_at: Some(task_was_due_at),
         cron_schedule: Some("*/30 * * * *".to_string()),
         next_due_at: Some(task_was_due_at),
-        start_window_seconds: 300,     // 5 minutes
-        lateness_window_seconds: 600,  // 10 minutes
+        start_window_seconds: 300,    // 5 minutes
+        lateness_window_seconds: 600, // 10 minutes
         heartbeat_timeout_seconds: 60,
         created_at: task_created_at,
         metadata: EntityMetadata::default(),

@@ -13,7 +13,7 @@ use crate::domain::{
         incident_event::{IncidentEvent, IncidentEventType},
         task::{
             get_task_aggregate, save_task_aggregate, HealthyTaskAggregate, RunningTaskAggregate,
-            TaskAggregate, TaskId,
+            TaskAggregate, TaskId, TaskUserId,
         },
     },
     ports::{
@@ -137,7 +137,10 @@ where
             let command = command.ok_or(StartTaskError::TaskNotFound)?;
             let new_task = command.new_task.ok_or(StartTaskError::TaskNotFound)?;
             let new_task = CreateTaskCommand {
-                id: task_id,
+                id: match task_id {
+                    TaskId::UserId(user_id) => user_id,
+                    TaskId::Uuid(uuid) => TaskUserId::from_uuid(uuid),
+                },
                 name: new_task.name,
                 description: new_task.description,
                 cron_schedule: new_task.cron_schedule,

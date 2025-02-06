@@ -16,10 +16,10 @@ mod tests;
 
 use anyhow::Context;
 use chrono::{DateTime, Utc};
-use uuid::Uuid;
 use std::time::Duration;
 use tokio::task::JoinSet;
 use tracing::{debug, error, info};
+use uuid::Uuid;
 
 #[derive(Clone)]
 pub struct CollectLateTasksUseCase<TR, TRR, IR, IER, INR> {
