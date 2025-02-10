@@ -310,7 +310,7 @@ where
                     "newHttpMonitorIncidentEmailBody",
                     url = url,
                     userName = user.first_name,
-                    org = user_org.name
+                    org = user_org.display_name
                 )
                 .to_string();
             }
@@ -323,7 +323,7 @@ where
                     "newScheduledTaskIncidentEmailBody",
                     taskName = task_name,
                     userName = user.first_name,
-                    org = user_org.name
+                    org = user_org.display_name
                 )
                 .to_string();
             }
@@ -335,7 +335,7 @@ where
                     "newTaskRunIncidentEmailBody",
                     taskName = task_name,
                     userName = user.first_name,
-                    org = user_org.name
+                    org = user_org.display_name
                 )
                 .to_string();
             }
