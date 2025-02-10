@@ -10,6 +10,7 @@ pub struct DueTask {
 }
 
 impl DueTask {
+    /// State transition: Due -> Running
     pub fn start(self, now: DateTime<Utc>) -> Result<RunningTask, TaskError> {
         Ok(RunningTask {
             // When a task starts, its next_due_at field is updated to the next time the task is due to run
@@ -30,6 +31,7 @@ impl DueTask {
         now >= self.next_due_at + self.base.start_window
     }
 
+    /// State transition: Due -> Late
     pub fn mark_late(self, now: DateTime<Utc>) -> Result<LateTask, TaskError> {
         if !self.is_late(now) {
             return Err(TaskError::InvalidStateTransition {
@@ -47,6 +49,17 @@ impl DueTask {
             next_due_at: self.next_due_at,
             cron_schedule: self.cron_schedule,
         })
+    }
+
+    /// State transition: Due -> Archived
+    pub fn archive(self, now: DateTime<Utc>) -> ArchivedTask {
+        ArchivedTask {
+            base: TaskBase {
+                previous_status: Some(TaskStatus::Due),
+                last_status_change_at: Some(now),
+                ..self.base
+            },
+        }
     }
 }
 

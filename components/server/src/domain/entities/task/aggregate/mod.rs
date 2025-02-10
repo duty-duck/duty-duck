@@ -1,4 +1,5 @@
 mod absent;
+mod archived;
 mod due;
 mod failing;
 mod healthy;
@@ -7,6 +8,7 @@ mod running;
 
 pub use absent::*;
 use anyhow::Context;
+pub use archived::*;
 pub use due::*;
 pub use failing::*;
 pub use healthy::*;
@@ -54,6 +56,8 @@ pub enum TaskAggregate {
     Healthy(HealthyTaskAggregate),
     /// A task that is absent, i.e. scheduled to run but did not start within the lateness window
     Absent(AbsentTaskAggregate),
+    /// An archived task, that can no longer be interacted with but can still be read
+    Archived(ArchivedTaskAggregate),
 }
 
 /// Retrieve a task aggregate from the database by its id (user-defined or UUID)
@@ -113,10 +117,7 @@ where
 
                     from_boundary(task, last_task_run)?
                 }
-                TaskStatus::Archived => {
-                    // TODO: implement archived tasks and archived task aggregates
-                    todo!()
-                }
+                TaskStatus::Archived => from_boundary(task, None)?,
             };
 
             Ok(Some(aggregate))
@@ -203,10 +204,9 @@ pub fn from_boundary(
         TaskStatus::Absent => TaskAggregate::Absent(AbsentTaskAggregate {
             task: boundary_task.try_into()?,
         }),
-        TaskStatus::Archived => {
-            // TODO: implement archived tasks and archived task aggregates
-            todo!()
-        }
+        TaskStatus::Archived => TaskAggregate::Archived(ArchivedTaskAggregate {
+            task: boundary_task.try_into()?,
+        }),
     })
 }
 
@@ -220,5 +220,6 @@ pub fn to_boundary(
         TaskAggregate::Failing(f) => (f.task.try_into()?, Some(f.task_run.into())),
         TaskAggregate::Healthy(h) => (h.task.try_into()?, h.last_task_run.map(|lr| lr.into())),
         TaskAggregate::Absent(a) => (a.task.try_into()?, None),
+        TaskAggregate::Archived(a) => (a.task.try_into()?, None),
     })
 }

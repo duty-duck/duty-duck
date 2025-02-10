@@ -45,4 +45,11 @@ impl LateTaskAggregate {
             task: self.task.mark_absent(now)?,
         })
     }
+
+    /// State transition to Archived
+    pub fn archive(self, now: DateTime<Utc>) -> ArchivedTaskAggregate {
+        ArchivedTaskAggregate {
+            task: self.task.archive(now),
+        }
+    }
 }

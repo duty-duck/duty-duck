@@ -114,8 +114,7 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
         &self,
         transaction: &mut Self::Transaction,
         organization_id: Uuid,
-        task_id: Uuid,
-        started_at: DateTime<Utc>,
+        task_run_id: Uuid,
     ) -> anyhow::Result<Option<BoundaryTaskRun>> {
         sqlx::query_as!(
             BoundaryTaskRun,
@@ -124,12 +123,10 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
             FROM task_runs
             WHERE 
                 organization_id = $1
-                AND task_id = $2
-                AND started_at = $3
+                AND id = $2
             "#,
             organization_id,
-            task_id,
-            started_at,
+            task_run_id,
         )
         .fetch_optional(transaction.as_mut())
         .await

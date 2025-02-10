@@ -1,9 +1,9 @@
 use anyhow::Context;
-use chrono::{DateTime, Utc};
 use serde::Serialize;
 use thiserror::Error;
 use ts_rs::TS;
 use utoipa::ToSchema;
+use uuid::Uuid;
 
 use crate::domain::{
     entities::{
@@ -39,7 +39,7 @@ pub async fn get_task_run<
     task_repository: &TR,
     task_run_repository: &TRR,
     task_id: TaskId,
-    task_run_started_at: DateTime<Utc>,
+    task_run_id: Uuid,
 ) -> Result<GetTaskRunResponse, GetTaskRunError> {
     if !auth_context.can(Permission::ReadTaskRuns) {
         return Err(GetTaskRunError::Forbidden);
@@ -57,15 +57,14 @@ pub async fn get_task_run<
         .ok_or(GetTaskRunError::NotFound)?;
 
     let task_run = task_run_repository
-        .get_task_run(
-            &mut tx,
-            auth_context.active_organization_id,
-            task.id,
-            task_run_started_at,
-        )
+        .get_task_run(&mut tx, auth_context.active_organization_id, task_run_id)
         .await
         .context("Failed to get task run from repository")?
         .ok_or(GetTaskRunError::NotFound)?;
+
+    if task_run.task_id != task.id {
+        return Err(GetTaskRunError::NotFound);
+    }
 
     Ok(GetTaskRunResponse { task_run })
 }

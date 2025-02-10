@@ -118,6 +118,17 @@ impl HealthyTask {
             },
         })
     }
+
+    /// State transition: Healthy -> Archived
+    pub fn archive(self, now: DateTime<Utc>) -> ArchivedTask {
+        ArchivedTask {
+            base: TaskBase {
+                previous_status: Some(TaskStatus::Healthy),
+                last_status_change_at: Some(now),
+                ..self.base
+            },
+        }
+    }
 }
 
 impl TryFrom<HealthyTask> for BoundaryTask {

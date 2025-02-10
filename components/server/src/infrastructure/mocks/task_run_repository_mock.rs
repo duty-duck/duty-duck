@@ -79,17 +79,12 @@ impl TaskRunRepository for TaskRunRepositoryMock {
         &self,
         _transaction: &mut Self::Transaction,
         organization_id: Uuid,
-        task_id: Uuid,
-        started_at: DateTime<Utc>,
+        task_run_id: Uuid,
     ) -> anyhow::Result<Option<BoundaryTaskRun>> {
         let state = self.state.lock().await;
         Ok(state
             .iter()
-            .find(|r| {
-                r.organization_id == organization_id
-                    && r.task_id == task_id
-                    && r.started_at == started_at
-            })
+            .find(|r| r.organization_id == organization_id && r.id == task_run_id)
             .cloned())
     }
 

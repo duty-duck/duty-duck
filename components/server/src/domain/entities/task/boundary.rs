@@ -16,8 +16,11 @@ use super::id::TaskUserId;
 #[schema(as = Task)]
 pub struct BoundaryTask {
     /// A random, unique identifier for the task.
+    /// This identifier is immutable. It will remain the same even after the task is archived.
     pub id: Uuid,
     /// A unique, user-friendly identifier for the task.
+    /// This identiifer must be unique across all active tasks in your organization, however, once you archive
+    /// a task, you may reuse its `userId` for a new task.
     #[ts(type = "string")]
     pub user_id: TaskUserId,
     pub organization_id: Uuid,

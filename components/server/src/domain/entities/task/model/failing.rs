@@ -59,6 +59,17 @@ impl FailingTask {
             },
         })
     }
+
+    /// State transition: Failing -> Archived
+    pub fn archive(self, now: DateTime<Utc>) -> ArchivedTask {
+        ArchivedTask {
+            base: TaskBase {
+                previous_status: Some(TaskStatus::Failing),
+                last_status_change_at: Some(now),
+                ..self.base
+            },
+        }
+    }
 }
 
 impl TryFrom<FailingTask> for BoundaryTask {

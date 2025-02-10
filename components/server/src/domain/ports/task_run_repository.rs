@@ -48,8 +48,7 @@ pub trait TaskRunRepository: TransactionalRepository + Clone + Send + Sync + 'st
         &self,
         transaction: &mut Self::Transaction,
         organization_id: Uuid,
-        task_id: Uuid,
-        started_at: DateTime<Utc>,
+        task_run_id: Uuid,
     ) -> anyhow::Result<Option<BoundaryTaskRun>>;
 
     /// Creates or updates an existing task run

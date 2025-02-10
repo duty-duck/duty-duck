@@ -30,6 +30,7 @@ use crate::domain::entities::entity_metadata::EntityMetadata;
 use super::{BoundaryTask, TaskStatus, TaskUserId};
 
 mod absent;
+mod archived;
 mod due;
 mod failing;
 mod healthy;
@@ -37,6 +38,7 @@ mod late;
 mod running;
 
 pub use absent::*;
+pub use archived::*;
 pub use due::*;
 pub use failing::*;
 pub use healthy::*;

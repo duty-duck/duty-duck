@@ -60,6 +60,17 @@ impl LateTask {
             },
         })
     }
+
+    /// State transition: Late -> Archived
+    pub fn archive(self, now: DateTime<Utc>) -> ArchivedTask {
+        ArchivedTask {
+            base: TaskBase {
+                previous_status: Some(TaskStatus::Late),
+                last_status_change_at: Some(now),
+                ..self.base
+            },
+        }
+    }
 }
 
 impl TryFrom<LateTask> for BoundaryTask {

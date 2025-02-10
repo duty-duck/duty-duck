@@ -13,8 +13,8 @@ use axum::{
     Json, Router,
 };
 use axum_extra::extract::Query;
-use chrono::{DateTime, Utc};
 use tracing::warn;
+use uuid::Uuid;
 
 pub(crate) fn tasks_router() -> Router<ApplicationState> {
     Router::new()
@@ -24,6 +24,7 @@ pub(crate) fn tasks_router() -> Router<ApplicationState> {
             Router::new()
                 .route("/", get(get_task_handler))
                 .route("/start", post(start_task_handler))
+                .route("/archive", post(archive_task_handler))
                 .route("/finish", post(finish_task_handler))
                 .route("/heartbeat", post(send_task_heartbeat_handler))
                 .route("/runs/{started_at}", get(get_task_run_handler))
@@ -172,6 +173,10 @@ async fn list_task_runs_handler(
 }
 
 /// Start a new run for a task
+///
+/// This will mark the task as running and create a new task run. A task cannot be started if it is already running or if it is archived.
+///
+/// The provided task id can be either the user-defined id (the `user-id` field) or the technical UUID (the `id` field).
 #[utoipa::path(
     post,
     path = "/tasks/:task_id/start",
@@ -220,6 +225,11 @@ async fn start_task_handler(
         Err(StartTaskError::TaskAlreadyStarted) => {
             (StatusCode::CONFLICT, "Task already started").into_response()
         }
+        Err(StartTaskError::TaskIsArchived) => (
+            StatusCode::CONFLICT,
+            "Task has been archived and can no longer be updated.",
+        )
+            .into_response(),
         Err(StartTaskError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while starting a task");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
@@ -229,6 +239,7 @@ async fn start_task_handler(
 
 /// Send a heartbeat for a running task, to indicate that it is still running
 /// Without a regular heartbeat, a running task will eventually be considered failed and retried.
+/// This endpoint can only be used on running tasks.
 ///
 /// The provided task id can be either the user-defined id (the `user-id` field) or the technical UUID (the `id` field).
 #[utoipa::path(
@@ -327,13 +338,12 @@ async fn finish_task_handler(
     }
 }
 
-/// Get a single task run
+/// Get a single task run of a task
 ///
-/// A single task run is identified by the id of the task and the timestamp of when it started.
 /// The provided task id can be either the user-defined id (the `user-id` field) or the technical UUID (the `id` field).
 #[utoipa::path(
     get,
-    path = "/tasks/:task_id/runs/:started_at",
+    path = "/tasks/:task_id/runs/:task_run_id",
     responses(
         (status = 200, body = GetTaskRunResponse),
         (status = 403, description = "User is not authorized to get a task run"),
@@ -343,14 +353,14 @@ async fn finish_task_handler(
 async fn get_task_run_handler(
     State(app_state): ExtractAppState,
     auth_context: AuthContext,
-    Path((task_id, started_at)): Path<(TaskId, DateTime<Utc>)>,
+    Path((task_id, task_run_id)): Path<(TaskId, Uuid)>,
 ) -> impl IntoResponse {
     match get_task_run(
         &auth_context,
         &app_state.adapters.task_repository,
         &app_state.adapters.task_run_repository,
         task_id,
-        started_at,
+        task_run_id,
     )
     .await
     {
@@ -359,6 +369,58 @@ async fn get_task_run_handler(
         Err(GetTaskRunError::NotFound) => StatusCode::NOT_FOUND.into_response(),
         Err(GetTaskRunError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while getting a task run");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
+}
+
+/// Archive a task
+///
+/// After a task has been archived, it can no longer be ran or updated. The task cannot be archived while it is running.
+/// Once the task is archived, the user-friendly of this task can be repurposed for another task.
+#[utoipa::path(
+    post,
+    path = "/tasks/:task_id/archive",
+    responses(
+        (status = 200, description = "Task run archived successfully"),
+        (status = 403, description = "User is not authorized to archive a task"),
+        (status = 404, description = "Task not found"),
+        (status = 409, description = "Task is running or already-archived"),
+        (status = 500, description = "Technical failure occured while starting a task")
+    )
+)]
+async fn archive_task_handler(
+    State(app_state): ExtractAppState,
+    auth_context: AuthContext,
+    Path(task_id): Path<TaskId>,
+) -> impl IntoResponse {
+    match archive_task(
+        &app_state.adapters.task_repository,
+        &app_state.adapters.task_run_repository,
+        &auth_context,
+        task_id,
+    )
+    .await
+    {
+        Ok(_) => StatusCode::OK.into_response(),
+        Err(ArchiveTaskError::Forbidden) => (
+            StatusCode::FORBIDDEN,
+            "User is not allowed to start this task",
+        )
+            .into_response(),
+        Err(ArchiveTaskError::TaskNotFound) => {
+            (StatusCode::NOT_FOUND, "Task not found").into_response()
+        }
+        Err(ArchiveTaskError::CannotArchiveRunningTask) => (
+            StatusCode::CONFLICT,
+            "Cannot archive a task while it is running",
+        )
+            .into_response(),
+        Err(ArchiveTaskError::AlreadyArchived) => {
+            (StatusCode::CONFLICT, "The task is already archived").into_response()
+        }
+        Err(ArchiveTaskError::TechnicalFailure(e)) => {
+            warn!(error = ?e, "Technical failure occured while starting a task");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }

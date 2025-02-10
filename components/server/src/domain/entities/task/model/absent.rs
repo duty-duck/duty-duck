@@ -28,6 +28,17 @@ impl AbsentTask {
             },
         })
     }
+
+    /// State transition: Absent -> Archived
+    pub fn archive(self, now: DateTime<Utc>) -> ArchivedTask {
+        ArchivedTask {
+            base: TaskBase {
+                previous_status: Some(TaskStatus::Absent),
+                last_status_change_at: Some(now),
+                ..self.base
+            },
+        }
+    }
 }
 
 impl TryFrom<AbsentTask> for BoundaryTask {

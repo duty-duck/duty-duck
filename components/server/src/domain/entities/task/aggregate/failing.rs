@@ -42,4 +42,11 @@ impl FailingTaskAggregate {
         let task = self.task.mark_due(now)?;
         Ok(DueTaskAggregate { task })
     }
+
+    /// State transition to Archived
+    pub fn archive(self, now: DateTime<Utc>) -> ArchivedTaskAggregate {
+        ArchivedTaskAggregate {
+            task: self.task.archive(now),
+        }
+    }
 }

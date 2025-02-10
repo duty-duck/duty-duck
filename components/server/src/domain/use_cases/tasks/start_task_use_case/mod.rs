@@ -77,6 +77,8 @@ pub enum StartTaskError {
     TaskNotFound,
     #[error("Task already started")]
     TaskAlreadyStarted,
+    #[error("Task is archived")]
+    TaskIsArchived,
     #[error("User is not allowed to start this task")]
     Forbidden,
     #[error("Technical error")]
@@ -133,6 +135,7 @@ where
     let now = Utc::now();
 
     let (running_aggregate, was_late_or_absent): (RunningTaskAggregate, bool) = match aggregate {
+        Some(TaskAggregate::Archived(_)) => return Err(StartTaskError::TaskIsArchived),
         None => {
             let command = command.ok_or(StartTaskError::TaskNotFound)?;
             let new_task = command.new_task.ok_or(StartTaskError::TaskNotFound)?;

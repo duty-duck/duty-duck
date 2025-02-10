@@ -1,3 +1,4 @@
+mod archive_task_use_case;
 mod collect_absent_tasks_use_case;
 mod collect_dead_task_runs_use_case;
 mod collect_due_tasks_use_case;
@@ -11,6 +12,7 @@ mod list_tasks_use_case;
 mod send_task_heartbeat_use_case;
 mod start_task_use_case;
 
+pub use archive_task_use_case::*;
 pub use collect_absent_tasks_use_case::*;
 pub use collect_dead_task_runs_use_case::*;
 pub use collect_due_tasks_use_case::*;

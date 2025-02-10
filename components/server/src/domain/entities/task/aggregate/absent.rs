@@ -12,4 +12,11 @@ impl AbsentTaskAggregate {
         let task_run = RunningTaskRun::new(task.base(), now);
         Ok(RunningTaskAggregate { task, task_run })
     }
+
+    /// State transition to Archived
+    pub fn archive(self, now: DateTime<Utc>) -> ArchivedTaskAggregate {
+        ArchivedTaskAggregate {
+            task: self.task.archive(now),
+        }
+    }
 }
