@@ -2,12 +2,9 @@ use crate::domain::use_cases::tasks::CreateTaskCommand;
 
 use super::*;
 
-pub const DEFAULT_START_WINDOW: Duration = Duration::from_secs(120);
-pub const DEFAULT_LATENESS_WINDOW: Duration = Duration::from_secs(240);
-pub const DEFAULT_HEARTBEAT_TIMEOUT: Duration = Duration::from_secs(30);
-
 /// A task that is in a healthy state (not failed, not late, not failing)
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, getset::Getters)]
+#[getset(get = "pub")]
 pub struct HealthyTask {
     pub(super) base: TaskBase,
     pub(super) next_due_at: Option<DateTime<Utc>>,
@@ -128,6 +125,18 @@ impl HealthyTask {
                 ..self.base
             },
         }
+    }
+
+    /// Creates a healthy task from a task base and a current time.
+    /// The current time is used to calculate the next due time for the task.
+    /// This task does not take care of verifying if the task is actually healthy, so it should be used with caution.
+    pub fn from_task_base(base: TaskBase, now: DateTime<Utc>) -> Result<Self, TaskError> {
+        let next_due_at = calculate_next_due_at(
+            base.cron_schedule.as_ref(),
+            base.schedule_timezone.as_ref(),
+            now,
+        )?;
+        Ok(Self { base, next_due_at })
     }
 }
 

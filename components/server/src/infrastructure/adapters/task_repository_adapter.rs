@@ -207,7 +207,8 @@ impl TaskRepository for TaskRepositoryAdapter {
             .map(|row| BoundaryTask {
                 organization_id: row.get("organization_id"),
                 id: row.get("id"),
-                user_id: TaskUserId::new(row.get("id")).expect("Invalid task ID in database"),
+                user_id: TaskUserId::new(row.get::<String, _>("id"))
+                    .expect("Invalid task ID in database"),
                 name: row.get("name"),
                 description: row.get("description"),
                 status: row.get::<i16, _>("status").into(),

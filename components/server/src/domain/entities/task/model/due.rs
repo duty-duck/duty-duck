@@ -2,6 +2,7 @@ use super::*;
 
 /// A task that whose scheduled time has come and is expected to run soon
 #[derive(getset::Getters)]
+#[getset(get = "pub")]
 pub struct DueTask {
     pub(super) base: TaskBase,
     pub(super) next_due_at: DateTime<Utc>,

@@ -2,4 +2,47 @@
 import type { EntityMetadata } from "./EntityMetadata";
 import type { RequestHeaders } from "./RequestHeaders";
 
-export type CreateHttpMonitorCommand = { url: string, intervalSeconds: number, recoveryConfirmationThreshold: number, downtimeConfirmationThreshold: number, isActive: boolean, metadata: EntityMetadata, emailNotificationEnabled: boolean, pushNotificationEnabled: boolean, smsNotificationEnabled: boolean, requestHeaders: RequestHeaders, requestTimeoutMs: number, };
+/**
+ * A command to create a new HTTP monitor
+ */
+export type CreateHttpMonitorCommand = { 
+/**
+ * The URL to monitor
+ */
+url: string, 
+/**
+ * The interval in seconds between pings
+ */
+intervalSeconds: number, 
+/**
+ * How many consecutive successful pings are required before the monitor is considered healthy after a failure
+ */
+recoveryConfirmationThreshold: number, 
+/**
+ * How many consecutive failed pings are required before the monitor is considered down
+ */
+downtimeConfirmationThreshold: number, 
+/**
+ * Whether the url is actively monitored (or paused)
+ */
+isActive: boolean, metadata: EntityMetadata, 
+/**
+ * Whether to send an email notification when an incident occurs for this monitor
+ */
+emailNotificationEnabled: boolean, 
+/**
+ * Whether to send a push notification when an incident occurs for this monitor
+ */
+pushNotificationEnabled: boolean, 
+/**
+ * Whether to send a SMS notification when an incident occurs for this monitor
+ */
+smsNotificationEnabled: boolean, 
+/**
+ * The headers to send with the request
+ */
+requestHeaders: RequestHeaders, 
+/**
+ * The timeout for the request in milliseconds
+ */
+requestTimeoutMs: number, };

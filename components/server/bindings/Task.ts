@@ -5,9 +5,12 @@ import type { TaskStatus } from "./TaskStatus";
 export type Task = { 
 /**
  * A random, unique identifier for the task.
+ * This identifier is immutable. It will remain the same even after the task is archived.
  */
 id: string, 
 /**
  * A unique, user-friendly identifier for the task.
+ * This identiifer must be unique across all active tasks in your organization, however, once you archive
+ * a task, you may reuse its `userId` for a new task.
  */
-userId: string, organizationId: string, name: string, description: string | null, status: TaskStatus, previousStatus: TaskStatus | null, lastStatusChangeAt: string | null, cronSchedule: string | null, scheduleTimezone: string | null, nextDueAt: string | null, startWindowSeconds: number, latenessWindowSeconds: number, heartbeatTimeoutSeconds: number, createdAt: string, metadata: EntityMetadata, };
+userId: string, organizationId: string, name: string, description: string | null, status: TaskStatus, previousStatus: TaskStatus | null, lastStatusChangeAt: string | null, cronSchedule: string | null, scheduleTimezone: string | null, nextDueAt: string | null, startWindowSeconds: number, latenessWindowSeconds: number, heartbeatTimeoutSeconds: number, emailNotificationEnabled: boolean, pushNotificationEnabled: boolean, smsNotificationEnabled: boolean, createdAt: string, metadata: EntityMetadata, };

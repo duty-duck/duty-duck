@@ -20,8 +20,6 @@ pub enum CreateTaskError {
     TaskAlreadyExists(TaskUserId),
     #[error("Technical failure occured while creating a task")]
     TechnicalFailure(#[from] anyhow::Error),
-    #[error("Invalid cron schedule: {details}")]
-    InvalidCronSchedule { details: cron::error::Error },
     #[error("Technical failure occured while creating a task")]
     TaskError(#[from] TaskError),
 }
@@ -82,12 +80,7 @@ pub async fn create_task_use_case(
     }
 
     let new_task = HealthyTask::new(auth_context.active_organization_id, command)?;
-    let new_task: BoundaryTask = new_task.try_into().map_err(|e| match e {
-        TaskError::InvalidCronSchedule { details } => {
-            CreateTaskError::InvalidCronSchedule { details }
-        }
-        _ => CreateTaskError::TechnicalFailure(e.into()),
-    })?;
+    let new_task: BoundaryTask = new_task.try_into()?;
     task_repository.upsert_task(&mut tx, new_task).await?;
     task_repository.commit_transaction(tx).await?;
 

@@ -1,7 +1,10 @@
 use crate::{
     application::application_state::{ApplicationState, ExtractAppState},
     domain::{
-        entities::{authorization::AuthContext, task::TaskId},
+        entities::{
+            authorization::AuthContext,
+            task::{TaskError, TaskId},
+        },
         use_cases::tasks::*,
     },
 };
@@ -22,7 +25,7 @@ pub(crate) fn tasks_router() -> Router<ApplicationState> {
         .nest(
             "/{task_id}",
             Router::new()
-                .route("/", get(get_task_handler))
+                .route("/", get(get_task_handler).patch(update_task_handler))
                 .route("/start", post(start_task_handler))
                 .route("/archive", post(archive_task_handler))
                 .route("/finish", post(finish_task_handler))
@@ -86,9 +89,14 @@ async fn create_task_handler(
     match create_task_use_case(&auth_context, &app_state.adapters.task_repository, command).await {
         Ok(_) => StatusCode::CREATED.into_response(),
         Err(CreateTaskError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
-        Err(CreateTaskError::InvalidCronSchedule { details }) => (
+        Err(CreateTaskError::TaskError(TaskError::InvalidCronSchedule { details })) => (
             StatusCode::BAD_REQUEST,
             format!("Invalid cron schedule: {details}"),
+        )
+            .into_response(),
+        Err(CreateTaskError::TaskError(TaskError::InvalidScheduleTimezone { details })) => (
+            StatusCode::BAD_REQUEST,
+            format!("Invalid schedule timezone: {details}"),
         )
             .into_response(),
         Err(CreateTaskError::TaskAlreadyExists(task_id)) => (
@@ -382,7 +390,7 @@ async fn get_task_run_handler(
     post,
     path = "/tasks/:task_id/archive",
     responses(
-        (status = 200, description = "Task run archived successfully"),
+        (status = 200, description = "Task archived successfully"),
         (status = 403, description = "User is not authorized to archive a task"),
         (status = 404, description = "Task not found"),
         (status = 409, description = "Task is running or already-archived"),
@@ -405,7 +413,7 @@ async fn archive_task_handler(
         Ok(_) => StatusCode::OK.into_response(),
         Err(ArchiveTaskError::Forbidden) => (
             StatusCode::FORBIDDEN,
-            "User is not allowed to start this task",
+            "User is not allowed to archive this task",
         )
             .into_response(),
         Err(ArchiveTaskError::TaskNotFound) => {
@@ -420,6 +428,65 @@ async fn archive_task_handler(
             (StatusCode::CONFLICT, "The task is already archived").into_response()
         }
         Err(ArchiveTaskError::TechnicalFailure(e)) => {
+            warn!(error = ?e, "Technical failure occured while starting a task");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
+}
+
+/// Update a task
+#[utoipa::path(
+    patch,
+    path = "/tasks/:task_id",
+    request_body(
+        content = UpdateTaskCommand,
+        description = "The command to update a task",
+        content_type = "application/json"
+    ),
+    responses(
+        (status = 200, description = "Task updated successfully"),
+        (status = 403, description = "User is not authorized to update a task"),
+        (status = 404, description = "Task not found"),
+        (status = 409, description = "New task is already used"),
+        (status = 500, description = "Technical failure occured while starting a task")
+    )
+)]
+async fn update_task_handler(
+    State(app_state): ExtractAppState,
+    auth_context: AuthContext,
+    Path(task_id): Path<TaskId>,
+    Json(command): Json<UpdateTaskCommand>,
+) -> impl IntoResponse {
+    match update_task(
+        &auth_context,
+        &app_state.adapters.task_repository,
+        &app_state.adapters.task_run_repository,
+        task_id,
+        command,
+    )
+    .await
+    {
+        Ok(_) => StatusCode::OK.into_response(),
+        Err(UpdateTaskError::Forbidden) => (
+            StatusCode::FORBIDDEN,
+            "User is not allowed to update this task",
+        )
+            .into_response(),
+        Err(UpdateTaskError::TaskNotFound) => {
+            (StatusCode::NOT_FOUND, "Task not found").into_response()
+        }
+        Err(UpdateTaskError::UserIdConflict) => (
+            StatusCode::CONFLICT,
+            "Cannot update the task's id because the new id is already used by another task",
+        )
+            .into_response(),
+        Err(UpdateTaskError::TaskError(e)) => {
+            (StatusCode::BAD_REQUEST, e.to_string()).into_response()
+        }
+        Err(UpdateTaskError::TaskArchived) => {
+            (StatusCode::CONFLICT, "The task is archived").into_response()
+        }
+        Err(UpdateTaskError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while starting a task");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }

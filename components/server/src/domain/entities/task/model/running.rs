@@ -64,6 +64,18 @@ impl RunningTask {
     pub fn heartbeat_timeout(&self) -> Duration {
         self.base.heartbeat_timeout
     }
+
+    /// Creates a running task from a task base and a current time.
+    /// The current time is used to calculate the next due time for the task.
+    /// This function does not take care of ensuring the task is actually runing. Fetching the running task run is left to the caller.
+    pub fn from_task_base(base: TaskBase, now: DateTime<Utc>) -> Result<Self, TaskError> {
+        let next_due_at = calculate_next_due_at(
+            base.cron_schedule.as_ref(),
+            base.schedule_timezone.as_ref(),
+            now,
+        )?;
+        Ok(Self { base, next_due_at })
+    }
 }
 
 impl TryFrom<RunningTask> for BoundaryTask {

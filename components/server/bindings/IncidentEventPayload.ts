@@ -4,4 +4,8 @@ import type { CommentPayload } from "./CommentPayload";
 import type { NotificationEventPayload } from "./NotificationEventPayload";
 import type { PingEventPayload } from "./PingEventPayload";
 
+/**
+ * A payload for an incident event
+ * The nature of the payload is determined by the event type, and not all events have a payload
+ */
 export type IncidentEventPayload = { "Comment": CommentPayload } | { "Notification": NotificationEventPayload } | { "Acknowledged": AcknowledgedEventPayload } | { "MonitorPing": PingEventPayload };

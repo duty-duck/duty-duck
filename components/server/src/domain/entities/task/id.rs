@@ -21,7 +21,8 @@ pub enum TaskId {
 pub struct TaskUserId(String);
 
 impl TaskUserId {
-    pub fn new(id: String) -> Option<Self> {
+    pub fn new(id: impl Into<String>) -> Option<Self> {
+        let id: String = id.into();
         if id.is_empty() || id.contains(' ') {
             return None;
         }

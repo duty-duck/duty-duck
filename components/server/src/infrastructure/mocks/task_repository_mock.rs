@@ -126,7 +126,7 @@ impl TaskRepository for TaskRepositoryMock {
 
         if let Some(existing) = state
             .iter_mut()
-            .find(|t| t.user_id == task.user_id && t.organization_id == task.organization_id)
+            .find(|t| t.id == task.id && t.organization_id == task.organization_id)
         {
             *existing = task;
             Ok(existing.user_id.clone())

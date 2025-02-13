@@ -1,6 +1,8 @@
 use super::*;
 
 /// A task that was scheduled to run, ran late, and eventually did not run at all
+#[derive(getset::Getters)]
+#[getset(get = "pub")]
 pub struct AbsentTask {
     pub(super) base: TaskBase,
     #[allow(unused)]

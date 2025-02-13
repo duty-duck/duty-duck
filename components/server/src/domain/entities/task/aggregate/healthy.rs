@@ -19,7 +19,8 @@ impl From<HealthyTaskRun> for BoundaryTaskRun {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, getset::Getters)]
+#[getset(get = "pub")]
 pub struct HealthyTaskAggregate {
     pub(super) task: HealthyTask,
     pub(super) last_task_run: Option<HealthyTaskRun>,

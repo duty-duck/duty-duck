@@ -2,7 +2,7 @@
 import type { NewTask } from "./NewTask";
 
 /**
- * An optional command that can be used to create a task on-the-fly when starting a task run
+ * A command to start a task
  */
 export type StartTaskCommand = { 
 /**

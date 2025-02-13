@@ -3,4 +3,4 @@
 /**
  * An enum that represents the status of a task run
  */
-export type TaskStatus = "healthy" | "failing" | "running" | "due" | "late" | "absent";
+export type TaskStatus = "healthy" | "failing" | "running" | "due" | "late" | "absent" | "archived";

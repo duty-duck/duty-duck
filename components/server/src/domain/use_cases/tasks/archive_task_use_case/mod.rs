@@ -2,6 +2,9 @@ use anyhow::Context;
 use chrono::Utc;
 use thiserror::Error;
 
+#[cfg(test)]
+mod tests;
+
 use crate::domain::{
     entities::{
         authorization::{AuthContext, Permission},

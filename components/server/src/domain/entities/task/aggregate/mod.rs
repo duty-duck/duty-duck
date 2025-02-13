@@ -9,6 +9,7 @@ mod running;
 pub use absent::*;
 use anyhow::Context;
 pub use archived::*;
+use chrono::{DateTime, Utc};
 pub use due::*;
 pub use failing::*;
 pub use healthy::*;
@@ -18,6 +19,7 @@ pub use running::*;
 use crate::domain::{
     entities::{task::*, task_run::*},
     ports::{task_repository::TaskRepository, task_run_repository::TaskRunRepository},
+    use_cases::tasks::{UpdateTaskCommand, UpdateTaskError},
 };
 use thiserror::Error;
 use uuid::Uuid;
@@ -126,6 +128,8 @@ where
     }
 }
 
+/// Saves the task aggregate to the database.
+/// Persist changes made to the task aggregate to the database.
 pub async fn save_task_aggregate<TR, TRR>(
     task_repository: &TR,
     task_run_repository: &TRR,
@@ -152,6 +156,122 @@ where
     Ok(())
 }
 
+/// Applies user modifications to the task aggregate.
+/// Note that the aggregate may change its type as a result of the modifications; for instance, a late task
+/// may become a healthy task as a result of the user changeing its schedule. For this reason, this function operators
+/// on the [TaskAggregate] enum and returns a new [TaskAggregate], not on a specific variant.
+///
+/// The changes won't be fully persisted until [save_task_aggregate] is called and the transaction is committed.
+#[tracing::instrument(skip(task_repository, task_run_repository, aggregate, tx))]
+pub async fn update_task_aggregate<TR, TRR>(
+    task_repository: &TR,
+    task_run_repository: &TRR,
+    tx: &mut TR::Transaction,
+    aggregate: TaskAggregate,
+    command: UpdateTaskCommand,
+    now: DateTime<Utc>,
+) -> Result<TaskAggregate, UpdateTaskError>
+where
+    TR: TaskRepository,
+    TRR: TaskRunRepository<Transaction = TR::Transaction>,
+{
+    // Retrieve the task base
+    let task_base = match &aggregate {
+        TaskAggregate::Archived(_) => return Err(UpdateTaskError::TaskArchived),
+        TaskAggregate::Healthy(agg) => agg.task().base(),
+        TaskAggregate::Late(agg) => agg.task().base(),
+        TaskAggregate::Absent(agg) => agg.task().base(),
+        TaskAggregate::Failing(agg) => agg.task().base(),
+        TaskAggregate::Due(agg) => agg.task().base(),
+        TaskAggregate::Running(agg) => agg.task().base(),
+    };
+
+    // Check the new id (if the id changes) is available
+    if let Some(new_id) = &command.user_id {
+        if new_id != &task_base.user_id {
+            let existing_task = task_repository
+                .get_task_by_user_id(tx, task_base.organization_id, new_id)
+                .await?;
+            if existing_task.is_some() {
+                return Err(UpdateTaskError::UserIdConflict);
+            }
+        }
+    }
+
+    // Update the task base with new information from the user
+    let updated_task_base = task_base.update(command)?;
+
+    // Retrieve the last task run of the task
+    let last_task_run = task_run_repository
+        .get_latest_task_run(tx, updated_task_base.id, updated_task_base.id, &[])
+        .await?;
+
+    // Create a new task aggregate from the updated task base. The type of the aggregate will depend on the status
+    // of the last task run (if any). The type of the resulting aggregate will be "healthy", "failing" or "running".
+    // The "due", "late" and "absent" states are handles by the background tasks in charge of collecting due/late/absent tasks.
+    // The "archived" state is simply not possible to update.
+    let agg = match last_task_run {
+        None => {
+            let task = HealthyTask::from_task_base(updated_task_base, now)?;
+            TaskAggregate::Healthy(HealthyTaskAggregate {
+                task,
+                last_task_run: None,
+            })
+        }
+        Some(r) => match r.status {
+            TaskRunStatus::Running => {
+                let task = RunningTask::from_task_base(updated_task_base, now)?;
+                let task_run =
+                    RunningTaskRun::try_from(r).context("failed to create running task run")?;
+                TaskAggregate::Running(RunningTaskAggregate { task, task_run })
+            }
+            TaskRunStatus::Failed => {
+                let task = FailingTask::from_task_base(updated_task_base, now)?;
+                let last_task_run =
+                    FailedTaskRun::try_from(r).context("failed to create failed task run")?;
+                TaskAggregate::Failing(FailingTaskAggregate {
+                    task,
+                    task_run: FailingTaskRun::Failed(last_task_run),
+                })
+            }
+            TaskRunStatus::Dead => {
+                let task = FailingTask::from_task_base(updated_task_base, now)?;
+                let last_task_run =
+                    DeadTaskRun::try_from(r).context("failed to create dead task run")?;
+                TaskAggregate::Failing(FailingTaskAggregate {
+                    task,
+                    task_run: FailingTaskRun::Dead(last_task_run),
+                })
+            }
+            TaskRunStatus::Aborted => {
+                let task = HealthyTask::from_task_base(updated_task_base, now)?;
+                let task_run =
+                    AbortedTaskRun::try_from(r).context("failed to create aborted task run")?;
+                TaskAggregate::Healthy(HealthyTaskAggregate {
+                    task,
+                    last_task_run: Some(HealthyTaskRun::Aborted(task_run)),
+                })
+            }
+            TaskRunStatus::Finished => {
+                let task = HealthyTask::from_task_base(updated_task_base, now)?;
+                let task_run =
+                    FinishedTaskRun::try_from(r).context("failed to create finished task run")?;
+                TaskAggregate::Healthy(HealthyTaskAggregate {
+                    task,
+                    last_task_run: Some(HealthyTaskRun::Finished(task_run)),
+                })
+            }
+        },
+    };
+
+    Ok(agg)
+}
+
+/// Converts a boundary task and its last task run into a task aggregate.
+///
+/// Arguments:
+/// * `boundary_task`: The boundary task to convert.
+/// * `boundary_task_run`: The last task run of the boundary task.
 pub fn from_boundary(
     boundary_task: BoundaryTask,
     boundary_task_run: Option<BoundaryTaskRun>,
@@ -210,6 +330,11 @@ pub fn from_boundary(
     })
 }
 
+/// Convert a `TaskAggregate` to a `BoundaryTask` and an optional `BoundaryTaskRun`.
+/// This conversion, in turn, lets us serve the aggregate from the API, or save it to the database.
+///
+/// # Arguments
+/// * `aggregate` - The `TaskAggregate` to convert.
 pub fn to_boundary(
     aggregate: TaskAggregate,
 ) -> anyhow::Result<(BoundaryTask, Option<BoundaryTaskRun>)> {

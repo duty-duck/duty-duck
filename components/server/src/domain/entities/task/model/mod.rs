@@ -25,7 +25,9 @@ use chrono::{DateTime, Utc};
 use thiserror::Error;
 use uuid::Uuid;
 
-use crate::domain::entities::entity_metadata::EntityMetadata;
+use crate::domain::{
+    entities::entity_metadata::EntityMetadata, use_cases::tasks::UpdateTaskCommand,
+};
 
 use super::{BoundaryTask, TaskStatus, TaskUserId};
 
@@ -44,6 +46,10 @@ pub use failing::*;
 pub use healthy::*;
 pub use late::*;
 pub use running::*;
+
+pub const DEFAULT_START_WINDOW: Duration = Duration::from_secs(120);
+pub const DEFAULT_LATENESS_WINDOW: Duration = Duration::from_secs(240);
+pub const DEFAULT_HEARTBEAT_TIMEOUT: Duration = Duration::from_secs(30);
 
 /// Base struct with common fields shared by all task states
 #[derive(getset::Getters, Debug, Clone)]
@@ -68,6 +74,71 @@ pub struct TaskBase {
     pub(super) email_notification_enabled: bool,
     pub(super) push_notification_enabled: bool,
     pub(super) sms_notification_enabled: bool,
+}
+
+impl TaskBase {
+    /// Updates a [TaskBase] with the data of the given [UpdateTaskCommand]. Returns the updated [TaskBase].
+    /// Warning: This low-level function should *not* be used exposed to the end-user in any way.
+    ///
+    /// The task base does not bear any information about the current status of the task (health, due, etc.), so this function
+    /// cannot evaluate status transitions.
+    /// For instance, a late task could have its sheculed removed, and thus no longer be late.
+    /// Since we are using types to model tasks as state machines, the type of a task may change as as result of an update.
+    /// Such transitions need to be addressed at the aggregate level.
+    pub fn update(&self, command: UpdateTaskCommand) -> Result<Self, TaskError> {
+        let mut updated_task = self.clone();
+
+        let cron_schedule = command
+            .cron_schedule
+            .as_deref()
+            .map(parse_cron_schedule)
+            .transpose()?;
+        let schedule_timezone = command
+            .schedule_timezone
+            .as_deref()
+            .map(parse_schedule_timezone)
+            .transpose()?;
+
+        if let Some(name) = command.name {
+            updated_task.name = name;
+        }
+
+        updated_task.description = command.description;
+        updated_task.cron_schedule = cron_schedule;
+        updated_task.schedule_timezone = schedule_timezone;
+
+        updated_task.start_window = command
+            .start_window_seconds
+            .map_or(DEFAULT_START_WINDOW, |secs| {
+                Duration::from_secs(secs.clamp(5, 3600) as u64)
+            });
+
+        updated_task.lateness_window = command
+            .lateness_window_seconds
+            .map_or(DEFAULT_LATENESS_WINDOW, |secs| {
+                Duration::from_secs(secs.clamp(5, 3600) as u64)
+            });
+        updated_task.heartbeat_timeout = command
+            .heartbeat_timeout_seconds
+            .map_or(DEFAULT_HEARTBEAT_TIMEOUT, |secs| {
+                Duration::from_secs(secs.clamp(10, 3600) as u64)
+            });
+
+        if let Some(email_notification_enabled) = command.email_notification_enabled {
+            updated_task.email_notification_enabled = email_notification_enabled;
+        }
+        if let Some(push_notification_enabled) = command.push_notification_enabled {
+            updated_task.push_notification_enabled = push_notification_enabled;
+        }
+        if let Some(sms_notification_enabled) = command.sms_notification_enabled {
+            updated_task.sms_notification_enabled = sms_notification_enabled;
+        }
+        if let Some(metadata) = command.metadata {
+            updated_task.metadata = metadata;
+        }
+
+        Ok(updated_task)
+    }
 }
 
 #[derive(Error, Debug)]

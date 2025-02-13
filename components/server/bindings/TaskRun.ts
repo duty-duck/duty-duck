@@ -6,4 +6,4 @@ import type { TaskRunStatus } from "./TaskRunStatus";
  * A unspecialized representation of a task run, used at API and database boundaries
  * We have a set of conversions to/from this type to the specific task run types.
  */
-export type TaskRun = { organizationId: string, taskId: string, taskUserId: string, status: TaskRunStatus, startedAt: string, updatedAt: string, completedAt: string | null, exitCode: number | null, errorMessage: string | null, lastHeartbeatAt: string | null, heartbeatTimeoutSeconds: number, metadata: EntityMetadata, };
+export type TaskRun = { organizationId: string, id: string, taskId: string, status: TaskRunStatus, startedAt: string, updatedAt: string, completedAt: string | null, exitCode: number | null, errorMessage: string | null, lastHeartbeatAt: string | null, heartbeatTimeoutSeconds: number, metadata: EntityMetadata, };

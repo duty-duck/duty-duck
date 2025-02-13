@@ -70,6 +70,18 @@ impl FailingTask {
             },
         }
     }
+
+    /// Creates a failing task from a task base and a current time.
+    /// The current time is used to calculate the next due time for the task.
+    /// This task does not take care of verifying if the task is actually failing, so it should be used with caution.
+    pub fn from_task_base(base: TaskBase, now: DateTime<Utc>) -> Result<Self, TaskError> {
+        let next_due_at = calculate_next_due_at(
+            base.cron_schedule.as_ref(),
+            base.schedule_timezone.as_ref(),
+            now,
+        )?;
+        Ok(Self { base, next_due_at })
+    }
 }
 
 impl TryFrom<FailingTask> for BoundaryTask {

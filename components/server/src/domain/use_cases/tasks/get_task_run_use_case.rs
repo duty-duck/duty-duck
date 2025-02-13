@@ -31,6 +31,9 @@ pub enum GetTaskRunError {
     NotFound,
 }
 
+/// Get a task run by its ID.
+/// Returns a [`GetTaskRunResponse`] containing the task run.
+/// Returns a [GetTaskRunError] if the task run could not be found or the user is not authorized to read it.
 pub async fn get_task_run<
     TR: TaskRepository,
     TRR: TaskRunRepository<Transaction = TR::Transaction>,
