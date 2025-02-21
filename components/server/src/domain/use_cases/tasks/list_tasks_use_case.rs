@@ -29,7 +29,7 @@ pub struct ListTasksParams {
     pub order_by: Option<OrderTasksBy>,
     #[serde(default)]
     pub order_direction: Option<OrderDirection>,
-    #[ts(type = "Option<MetadataFilter>")]
+    #[ts(type = "MetadataFilter | null")]
     pub metadata_filter: Option<String>,
 }
 

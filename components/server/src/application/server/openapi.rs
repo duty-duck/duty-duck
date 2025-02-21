@@ -13,15 +13,7 @@ use crate::domain::{
         task_run::{BoundaryTaskRun, TaskRunStatus},
         user::UserNameInfo,
     },
-    use_cases::{
-        http_monitors::*,
-        incidents::*,
-        shared::OrderDirection,
-        tasks::{
-            FinishTaskCommand, GetTaskResponse, ListTaskRunsResponse, ListTasksResponse, NewTask,
-            StartTaskCommand,
-        },
-    },
+    use_cases::{http_monitors::*, incidents::*, shared::OrderDirection, tasks::*},
 };
 
 #[derive(OpenApi)]
@@ -38,11 +30,13 @@ use crate::domain::{
         http_monitors_router::toggle_http_monitor_handler,
         tasks_router::list_tasks_handler,
         tasks_router::create_task_handler,
+        tasks_router::update_task_handler,
         tasks_router::get_task_handler,
         tasks_router::start_task_handler,
         tasks_router::finish_task_handler,
         tasks_router::list_task_runs_handler,
-        tasks_router::send_task_heartbeat_handler
+        tasks_router::send_task_heartbeat_handler,
+        tasks_router::archive_task_handler,
     ),
     components(schemas(
         ListIncidentsResponse,
@@ -85,6 +79,7 @@ use crate::domain::{
         FinishTaskCommand,
         StartTaskCommand,
         ListTaskRunsResponse,
+        UpdateTaskCommand,
         NewTask,
     ))
 )]

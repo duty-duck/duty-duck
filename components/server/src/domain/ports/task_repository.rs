@@ -5,7 +5,7 @@ use uuid::Uuid;
 use super::transactional_repository::TransactionalRepository;
 use crate::domain::{
     entities::{
-        entity_metadata::MetadataFilter,
+        entity_metadata::{FilterableMetadata, MetadataFilter},
         task::{BoundaryTask, TaskId, TaskStatus, TaskUserId},
     },
     use_cases::{shared::OrderDirection, tasks::OrderTasksBy},
@@ -87,6 +87,11 @@ pub trait TaskRepository: TransactionalRepository + Clone + Send + Sync + 'stati
         now: DateTime<Utc>,
         limit: u32,
     ) -> anyhow::Result<Vec<BoundaryTask>>;
+    /// Get the filterable metadata for all the tasks of an organization
+    async fn get_filterable_metadata(
+        &self,
+        organization_id: Uuid,
+    ) -> anyhow::Result<FilterableMetadata>;
 }
 
 #[derive(Clone, Debug, Default)]

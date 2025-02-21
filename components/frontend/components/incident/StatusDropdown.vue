@@ -15,7 +15,7 @@ const model = defineModel<IncidentStatus[]>();
         <template #button-content>
             <Icon name="ph:funnel" size="1.3rem" />
             {{ $t('dashboard.incidents.status') }}
-            <span v-if="model!.length < allStatuses.length">({{ model?.length }})</span>
+            <span v-if="model!.length && model!.length < allStatuses.length">({{ model?.length }})</span>
         </template>
         <BDropdownItem v-for="s in allStatuses">
             <input :id="`${s}-checkbox`" :key="s" type="checkbox" v-model="model" :value="s" />

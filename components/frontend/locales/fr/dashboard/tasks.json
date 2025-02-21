@@ -1,10 +1,12 @@
 {
     "tasks": {
+        "scheduledTask": "Tâche planifiée",
         "pageTitle": "Tâches",
         "totalTaskCount": "Aucune tâche | 1 tâche totale | {count} tâches totales",
         "filteredTaskCount": "{count} tâches cachées par les filtres | {count} tâches cachées par les filtres",
         "itemsPerPage": "{count} tâches par page",
         "lastRuns": "Dernières exécutions",
+        "metadata": "Métadonnées",
         "taskStatus": "Statut",
         "search": "Recherche",
         "lastRunOn": "Dernière exécution le {date}",
@@ -14,6 +16,7 @@
         "schedule": "Planification",
         "nextDueOn": "Prochaine éxécution prévue le",
         "notAScheduledTask": "Cette tâche n'est pas planifiée",
+        "taskIsArchived": "Cette tâche est archivée",
         "cliCommandLabel": "Vous pouvez créer une tâche directement en utilisant l'utilitaire DutyDuck",
         "createTaskButton": "Nouvelle tâche",
         "createTaskTitle": "Créer une tâche",
@@ -23,10 +26,16 @@
         "startRunCommand": "dutyduck tasks run --task-id {taskId} your-command arg1 arg2",
         "initiallyDueOn": "Initialement prévue le",
         "description": "Description",
+        "edit": "Modifier la tâche",
         "card": {
             "cronSchedule": "Planification (Cron): {schedule}",
             "noRuns": "Jamais exécutée"
         },
+        "noResults": {
+            "title": "Aucune tâches ne correspond à ces filtres",
+            "text": "Des tâches existent mais ils sont masqués par les filtres sélectionnés. Retirez les filtres pour voir toutes les tâches."
+        },
+        "clearFilters": "Retirer les filtres",
         "form": {
             "id": "Id de la tâche",
             "idDescription": "L'id de la tâche est utilisé pour lancer la tâche à l'aide de l'utilitaire ou via l'API. Il doit être unique et ne contenir que des caractères alphanumériques et des tirets. Par défaut, il est généré à partir du nom de la tâche.",
@@ -42,12 +51,27 @@
             "startWindowDescription": "La fenêtre de début est la fenêtre de temps durant laquelle la tâche est attendue. Si la tâche ne démarre pas dans cette fenêtre, elle sera considérée comme en retard et un incident sera créé.",
             "latenessWindow": "Fenêtre de fin de retard",
             "latenessWindowDescription": "La fenêtre de fin de retard est la fenêtre de temps, commençant après la fenêtre de début, durant laquelle une tâche en retard peut encore s'éxécuter. Si la tâche en retard ne démarre pas dans cette fenêtre, elle sera considérée comme échouée.",
+            "heartbeats": "Battements de coeur",
             "heartbeatTimeout": "Timeout pour le battement de coeur (heartbeat)",
+            "metadata": "Métadonnées",
+            "metadataDescription": "Les métadonnées sont optionnelles. Elles vous permettent d'organiser vos tâches et vos incidents associés.",
             "heartbeatTimeoutDescription": "Une fois une tâche démarrée, elle est attendue à envoyer un signal périodique à DutyDuck pour confirmer qu'elle est toujours en cours d'exécution. Si nous ne recevons pas de signal de la tâche dans cette fenêtre, elle sera considérée comme échouée. Si vous utilisez l'utilitaire DutyDuck pour lancer la tâche, vous n'avez rien à faire de plus pour envoyer ce signal.",
             "advancedSettings": "Paramètres avancés",
             "saveTaskButton": "Enregistrer la tâche",
             "taskIdNotAvailable": "L'id de la tâche n'est pas disponible. Une tâche avec cet id existe déjà.",
-            "description": "Description"
+            "notificationSettings": "Notifications",
+            "notificationSettingsDescription": "Détermine les notifications qui seront envoyées en cas de retard ou d'échec de la tâche",
+            "description": "Description",
+            "scheduleTimezone": "Fuseau horaire",
+            "scheduleTimezoneDescription": "Fuseau horaire utilisé pour calculer l'heure d'éxécution prévue de la tâche"
+        },
+        "archive": {
+            "button": "Archiver",
+            "modal": {
+                "title": "Archiver la tâche",
+                "message": "Voulez-vous vraiment archiver cette tâche ? Cette action est irréversible.",
+                "confirm": "Archiver"
+            }
         }
     },
     "taskRuns": {
@@ -65,7 +89,8 @@
         "healthy": "En bonne santé",
         "late": "En retard",
         "running": "En cours d'exécution",
-        "absent": "Absente"
+        "absent": "Absente",
+        "archived": "Archivée"
     },
     "taskRunStatus": {
         "finished": "Terminée",

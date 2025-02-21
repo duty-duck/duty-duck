@@ -6,7 +6,7 @@ const { t } = useI18n();
 const repository = await useOrganizationRepository();
 const user = defineModel<ListOrganizationMembersItem | null>();
 const emit = defineEmits<{
-    (e: 'ok'): void
+    ok: []
 }>();
 
 const options: { text: string, value: OrganizationUserRole, disabled?: boolean }[] = [

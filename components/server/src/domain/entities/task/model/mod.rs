@@ -22,6 +22,7 @@
 use std::{str::FromStr, time::Duration};
 
 use chrono::{DateTime, Utc};
+use itertools::Itertools;
 use thiserror::Error;
 use uuid::Uuid;
 
@@ -180,6 +181,16 @@ fn calculate_next_due_at(
     }
 }
 
+fn format_cron_schedule(cron_schedule: &cron::Schedule) -> String {
+    #[allow(unstable_name_collisions)]
+    cron_schedule
+        .to_string()
+        .split_ascii_whitespace()
+        .skip(1)
+        .intersperse(" ")
+        .collect()
+}
+
 fn parse_cron_schedule(cron_schedule: &str) -> Result<cron::Schedule, TaskError> {
     let components_len = cron_schedule.split_ascii_whitespace().count();
 
@@ -249,7 +260,7 @@ impl From<TaskBase> for BoundaryTask {
             status: TaskStatus::Healthy, // Overridden by specific implementations
             previous_status: base.previous_status,
             last_status_change_at: base.last_status_change_at,
-            cron_schedule: base.cron_schedule.map(|c| c.to_string()),
+            cron_schedule: base.cron_schedule.as_ref().map(format_cron_schedule),
             schedule_timezone: base.schedule_timezone.map(|tz| tz.to_string()),
             next_due_at: None, // Overridden by specific implementations
             start_window_seconds: base.start_window.as_secs() as i32,

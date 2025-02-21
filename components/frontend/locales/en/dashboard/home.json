@@ -14,6 +14,9 @@
         "configurePushNotifications": "Configure push notifications",
         "greeting": "Good day, {name}!",
         "greetingDescription": "Here's a quick overview of how things are running.",
-        "suggestedActions": "Suggested actions"
+        "suggestedActions": "Suggested actions",
+        "inviteMembersToOrgActionTitle": "Invite members to your organization",
+        "inviteMembersToOrgActionDescription": "You can invite members to your organization to send them alerts and collaborate on incidents",
+        "inviteMembersToOrgActionCtaButton": "Manage members"
     }
 }

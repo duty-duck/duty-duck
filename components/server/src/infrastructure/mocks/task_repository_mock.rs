@@ -5,7 +5,10 @@ use tokio::sync::Mutex;
 use uuid::Uuid;
 
 use crate::domain::{
-    entities::task::{BoundaryTask, TaskStatus, TaskUserId},
+    entities::{
+        entity_metadata::FilterableMetadata,
+        task::{BoundaryTask, TaskStatus, TaskUserId},
+    },
     ports::{
         task_repository::{ListTasksOpts, ListTasksOutput, TaskRepository},
         transactional_repository::{TransactionMock, TransactionalRepository},
@@ -197,6 +200,13 @@ impl TaskRepository for TaskRepositoryMock {
             .take(limit as usize)
             .cloned()
             .collect())
+    }
+
+    async fn get_filterable_metadata(
+        &self,
+        _organization_id: Uuid,
+    ) -> anyhow::Result<FilterableMetadata> {
+        Ok(FilterableMetadata { items: vec![] })
     }
 }
 

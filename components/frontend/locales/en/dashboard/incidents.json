@@ -41,6 +41,7 @@
             "addCommentPlaceholder": "Add a comment to this incident or write a post-mortem...",
             "comment": "{firstName} {lastName} has commented on the incident",
             "monitorStatusSwitched": "The monitor switched to {status}",
+            "taskStatusSwitched": "The task switched to {status}",
             "pingEvent": {
                 "tabs": {
                     "summary": "Summary",
@@ -75,5 +76,10 @@
         "requestError": "Request error",
         "unknownError": "Unknown error",
         "otherCauses": "No other cause | Another cause | {count} other causes"
+    },
+    "scheduledTasksIncidents": {
+        "taskRunningLate": "The scheduled task is running late",
+        "taskIsAbsent": "The scheduled task didn't start",
+        "taskWasDueAt": "(It was due to run on {date})"
     }
 }

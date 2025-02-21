@@ -62,8 +62,7 @@ const { incidents, showColumns = ["date", "acknowledgedBy", "status", "source", 
           <!-- Status -->
           <div class="col-lg" :class="{ 'text-danger': incident.status == 'ongoing' }"
             v-if="showColumns.includes('status')">
-            <label class="d-lg-none mt-2 text-secondary d-block">{{ $t('dashboard.incidents.status') }}</label>
-            {{ $t(`dashboard.incidentStatus.${incident.status}`) }}
+            <IncidentStatusPill :status="incident.status" size="sm" />
           </div>
 
           <!-- Source -->

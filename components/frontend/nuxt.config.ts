@@ -71,6 +71,10 @@ export default defineNuxtConfig({
     "bindings": resolve(__dirname, "../server/bindings"),
   },
 
+  build: {
+    transpile: ['@vuepic/vue-datepicker']
+  },
+
   content: {
     highlight: {
       theme: 'github-light',
@@ -83,6 +87,7 @@ export default defineNuxtConfig({
   },
 
   i18n: {
+    vueI18n: './i18n.config.ts',
     strategy: 'prefix_except_default',
     defaultLocale: 'fr',
     detectBrowserLanguage: {

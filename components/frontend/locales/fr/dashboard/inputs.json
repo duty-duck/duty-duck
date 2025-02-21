@@ -12,16 +12,12 @@
         "hoursShort": "{count}h"
     },
     "timeRangeInput": {
-        "noRange": "Aucune plage de temps",
-        "ranges": {
-            "-10m": "10 dernières minutes",
-            "-1h": "Dernière heure",
-            "-6h": "6 dernières heures",
-            "-12h": "12 dernières heures",
-            "-24h": "24 dernières heures",
-            "-7d": "7 derniers jours",
-            "-30d": "30 derniers jours"
-        }
+        "label": "Plage de temps",
+        "noTimeRange": "Sans plage de temps",
+        "today": "Aujourd'hui",
+        "thisWeek": "Cette semaine",
+        "thisMonth": "Ce mois-ci",
+        "select": "Sélectionner"
     },
     "requestHeadersInput": {
         "noHeaders": "Aucune entête",
@@ -58,5 +54,9 @@
         "day": "Jour (1-31)",
         "month": "Mois (1-12)",
         "dayOfWeek": "Jour de la semaine (0-6)"
+    },
+    "timezoneSelect": {
+        "utcTimezoneLabel": "UTC (Fuseau horaire par défaut)",
+        "localTimezoneLabel": "{timezone} (Fuseau horaire de ce navigateur)"
     }
 }

@@ -37,6 +37,15 @@ where
     match incident.status {
         IncidentStatus::Resolved => Err(anyhow::anyhow!("Incident is already resolved")),
         IncidentStatus::ToBeConfirmed => {
+            incident_notification_repo
+                .cancel_all_notifications_for_incident(
+                    transaction,
+                    incident.organization_id,
+                    incident.id,
+                )
+                .await
+                .context("Failed to cancel pending notifications for incident")?;
+
             incident_repo
                 .delete_incident(transaction, incident.organization_id, incident.id)
                 .await

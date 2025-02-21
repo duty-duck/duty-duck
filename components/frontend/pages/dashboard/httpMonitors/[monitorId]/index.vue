@@ -61,12 +61,8 @@ useIntervalFn(() => refreshMonitorResponse(), 5000);
       </BBreadcrumbItem>
     </BBreadcrumb>
     <div class="d-flex flex-wrap align-items-center my-5 py-3 row-gap-5 column-gap-3">
-      <HttpMonitorStatusIcon
-        :status="monitorResponse.monitor.status"
-        class="mx-auto mx-md-5"
-        :animated="monitorResponse.monitor.status != 'inactive'"
-        big
-      />
+      <HttpMonitorStatusIcon :status="monitorResponse.monitor.status" class="mx-auto mx-md-5"
+        :animated="monitorResponse.monitor.status != 'inactive'" big />
       <div>
         <h2 class="h4 url">
           {{ monitorResponse.monitor.url }}
@@ -124,10 +120,15 @@ useIntervalFn(() => refreshMonitorResponse(), 5000);
         </div>
       </div>
     </section>
-    <div class="mb-5">
-      <h5>{{ $t("dashboard.monitors.metadata") }}</h5>
-      <DashboardMetadataInput read-only v-model="monitorResponse.monitor.metadata" />
-    </div>
+    <!-- Metadata section -->
+    <section class="mb-5">
+      <h5>
+        <Icon name="ph:database" />
+        {{ $t("dashboard.monitors.metadata") }}
+      </h5>
+
+      <DashboardMetadataInput v-model="monitorResponse.monitor.metadata" read-only />
+    </section>
     <Suspense>
       <template #fallback>
         <BSpinner />

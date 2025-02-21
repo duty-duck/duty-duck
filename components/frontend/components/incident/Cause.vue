@@ -21,4 +21,16 @@ const otherCausesTooltip = computed(() => {
             </span>
         </div>
     </template>
+    <template v-else-if="incident.cause?.causeType == 'ScheduledTaskIncidentCause'">
+        <span v-if="incident.cause.taskRanLateAt">{{ $t('dashboard.scheduledTasksIncidents.taskIsAbsent') }}</span>
+        <span v-else-if="incident.cause.taskSwitchedToAbsentAt">{{
+            $t('dashboard.scheduledTasksIncidents.taskRunningLate') }}</span>
+        <div class="text-secondary fw-normal mt-1" v-if="incident.cause.taskWasDueAt && !concise">
+
+            {{ $t('dashboard.scheduledTasksIncidents.taskWasDueAt', {
+                date: $d(new Date(incident.cause.taskWasDueAt),
+                    'long')
+            }) }}
+        </div>
+    </template>
 </template>

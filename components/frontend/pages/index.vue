@@ -67,143 +67,90 @@ onUnmounted(() => {
 
         <!-- Sections content -->
         <div id="sections" ref="sectionsRef">
-            <ShowcaseFeatureSection 
-                id="uptime" 
-                :title="t('homepage.mainSections.uptime.title')"
+            <ShowcaseFeatureSection id="uptime" :title="t('homepage.mainSections.uptime.title')"
                 :description="t('homepage.mainSections.uptime.description')">
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.uptime.features.checkInterval.title')"
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.uptime.features.checkInterval.title')"
                     :description="t('homepage.mainSections.uptime.features.checkInterval.description')"
-                    icon="ph:clock-duotone" 
-                    size="small" />
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.uptime.features.realBrowser.title')"
+                    icon="ph:clock-duotone" size="small" />
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.uptime.features.realBrowser.title')"
                     :description="t('homepage.mainSections.uptime.features.realBrowser.description')"
-                    icon="ph:google-chrome-logo-duotone" 
-                    size="small" />
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.uptime.features.assertions.title')"
+                    icon="ph:google-chrome-logo-duotone" size="small" />
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.uptime.features.assertions.title')"
                     :description="t('homepage.mainSections.uptime.features.assertions.description')"
-                    icon="ph:check-duotone" 
-                    size="large" />
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.uptime.features.screenshots.title')"
+                    icon="ph:check-duotone" size="large" />
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.uptime.features.screenshots.title')"
                     :description="t('homepage.mainSections.uptime.features.screenshots.description')"
-                    icon="ph:camera-duotone" 
-                    size="medium" />
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.uptime.features.httpDetails.title')"
+                    icon="ph:camera-duotone" size="medium" />
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.uptime.features.httpDetails.title')"
                     :description="t('homepage.mainSections.uptime.features.httpDetails.description')"
-                    icon="ph:code-duotone" 
-                    size="small" />
+                    icon="ph:code-duotone" size="small" />
             </ShowcaseFeatureSection>
 
-            <ShowcaseFeatureSection 
-                id="tasks" 
-                :title="t('homepage.mainSections.tasks.title')"
+            <ShowcaseFeatureSection id="tasks" :title="t('homepage.mainSections.tasks.title')"
                 :description="t('homepage.mainSections.tasks.description')">
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.tasks.features.cronJobs.title')"
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.tasks.features.cronJobs.title')"
                     :description="t('homepage.mainSections.tasks.features.cronJobs.description')"
-                    icon="ph:clock-duotone" 
-                    size="large" />
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.tasks.features.lateNotification.title')"
+                    icon="ph:clock-duotone" size="large" />
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.tasks.features.lateNotification.title')"
                     :description="t('homepage.mainSections.tasks.features.lateNotification.description')"
-                    icon="ph:person-simple-run-duotone" 
-                    size="small" />
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.tasks.features.integration.title')"
+                    icon="ph:person-simple-run-duotone" size="small" />
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.tasks.features.integration.title')"
                     :description="t('homepage.mainSections.tasks.features.integration.description')"
-                    icon="ph:download-duotone" 
-                    size="medium" />
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.tasks.features.api.title')"
-                    :description="t('homepage.mainSections.tasks.features.api.description')"
-                    icon="ph:code-duotone" 
+                    icon="ph:download-duotone" size="medium" />
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.tasks.features.api.title')"
+                    :description="t('homepage.mainSections.tasks.features.api.description')" icon="ph:code-duotone"
                     size="small" />
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.tasks.features.history.title')"
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.tasks.features.history.title')"
                     :description="t('homepage.mainSections.tasks.features.history.description')"
-                    icon="ph:clock-counter-clockwise-duotone" 
-                    size="large" />
+                    icon="ph:clock-counter-clockwise-duotone" size="large" />
             </ShowcaseFeatureSection>
 
-            <ShowcaseFeatureSection 
-                id="incidents" 
-                :title="t('homepage.mainSections.incidents.title')"
+            <ShowcaseFeatureSection id="incidents" :title="t('homepage.mainSections.incidents.title')"
                 :description="t('homepage.mainSections.incidents.description')">
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.incidents.features.timeline.title')"
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.incidents.features.timeline.title')"
                     :description="t('homepage.mainSections.incidents.features.timeline.description')"
-                    icon="ph:clock-duotone" 
-                    size="medium" />
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.incidents.features.collaboration.title')"
+                    icon="ph:clock-duotone" size="medium" />
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.incidents.features.collaboration.title')"
                     :description="t('homepage.mainSections.incidents.features.collaboration.description')"
-                    icon="ph:users-duotone" 
-                    size="small" />
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.incidents.features.learning.title')"
+                    icon="ph:users-duotone" size="small" />
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.incidents.features.learning.title')"
                     :description="t('homepage.mainSections.incidents.features.learning.description')"
-                    icon="ph:lightning-duotone" 
-                    size="small" />
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.incidents.features.organization.title')"
+                    icon="ph:lightning-duotone" size="small" />
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.incidents.features.organization.title')"
                     :description="t('homepage.mainSections.incidents.features.organization.description')"
-                    icon="ph:tag-duotone" 
-                    size="small" />
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.incidents.features.visualization.title')"
+                    icon="ph:tag-duotone" size="small" />
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.incidents.features.visualization.title')"
                     :description="t('homepage.mainSections.incidents.features.visualization.description')"
-                    icon="ph:eye-duotone" 
-                    size="large" />
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.incidents.features.integration.title')"
+                    icon="ph:eye-duotone" size="large" />
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.incidents.features.integration.title')"
                     :description="t('homepage.mainSections.incidents.features.integration.description')"
-                    icon="ph:code-duotone" 
-                    size="medium" />
-                <ShowcaseFeatureBlock 
+                    icon="ph:code-duotone" size="medium" />
+                <ShowcaseFeatureBlock
                     :title="t('homepage.mainSections.incidents.features.similarIncidentsAndSuggestions.title')"
                     :description="t('homepage.mainSections.incidents.features.similarIncidentsAndSuggestions.description')"
-                    icon="ph:lightning-duotone" 
-                    size="large" />
+                    icon="ph:lightning-duotone" size="large" />
             </ShowcaseFeatureSection>
 
-            <ShowcaseFeatureSection 
-                id="alerts" 
-                :title="t('homepage.mainSections.alerts.title')"
+            <ShowcaseFeatureSection id="alerts" :title="t('homepage.mainSections.alerts.title')"
                 :description="t('homepage.mainSections.alerts.description')">
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.alerts.features.unlimitedEmails.title')"
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.alerts.features.unlimitedEmails.title')"
                     :description="t('homepage.mainSections.alerts.features.unlimitedEmails.description')"
-                    icon="ph:bell-duotone" 
+                    icon="ph:bell-duotone" size="small" />
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.alerts.features.sms.title')"
+                    :description="t('homepage.mainSections.alerts.features.sms.description')" icon="ph:phone-duotone"
                     size="small" />
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.alerts.features.sms.title')"
-                    :description="t('homepage.mainSections.alerts.features.sms.description')"
-                    icon="ph:phone-duotone" 
-                    size="small" />
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.alerts.features.escalation.title')"
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.alerts.features.escalation.title')"
                     :description="t('homepage.mainSections.alerts.features.escalation.description')"
-                    icon="ph:arrow-up-duotone" 
-                    size="large" />
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.alerts.features.webhooks.title')"
+                    icon="ph:arrow-up-duotone" size="large" />
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.alerts.features.webhooks.title')"
                     :description="t('homepage.mainSections.alerts.features.webhooks.description')"
-                    icon="ph:code-duotone" 
-                    size="medium" />
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.alerts.features.weeklyReports.title')"
+                    icon="ph:code-duotone" size="medium" />
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.alerts.features.weeklyReports.title')"
                     :description="t('homepage.mainSections.alerts.features.weeklyReports.description')"
-                    icon="ph:calendar-duotone" 
-                    size="small" />
-                <ShowcaseFeatureBlock 
-                    :title="t('homepage.mainSections.alerts.features.vacation.title')"
+                    icon="ph:calendar-duotone" size="small" />
+                <ShowcaseFeatureBlock :title="t('homepage.mainSections.alerts.features.vacation.title')"
                     :description="t('homepage.mainSections.alerts.features.vacation.description')"
-                    icon="ph:island-duotone" 
-                    size="medium" />
+                    icon="ph:island-duotone" size="medium" />
             </ShowcaseFeatureSection>
 
             <!-- Final section (removes the primary color highlight on the sections navigation when intersecting)-->
@@ -217,7 +164,8 @@ onUnmounted(() => {
                     <h2 class="text-center fs-5">{{ $t('homepage.completeFeatureList.title') }}</h2>
                 </div>
                 <div class="row mb-5">
-                    <div class="col-sm-2 col-md-4 col-xl-3" v-for="group in completeFeatureListGroups" :key="group.title">
+                    <div class="col-sm-2 col-md-4 col-xl-3" v-for="group in completeFeatureListGroups"
+                        :key="group.title">
                         <ul class="list-unstyled">
                             <li class="fw-bold mb-2 text-secondary">{{ group.title }}</li>
                             <ul>

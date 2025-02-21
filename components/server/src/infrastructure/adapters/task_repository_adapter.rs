@@ -1,10 +1,14 @@
 use async_trait::async_trait;
 use chrono::{DateTime, Utc};
+use itertools::Itertools;
 use sqlx::{PgPool, Row};
 use uuid::Uuid;
 
 use crate::domain::{
-    entities::task::{BoundaryTask, TaskStatus, TaskUserId},
+    entities::{
+        entity_metadata::{FilterableMetadata, FilterableMetadataItem, FilterableMetadataValue},
+        task::{BoundaryTask, TaskStatus, TaskUserId},
+    },
     ports::{
         task_repository::{ListTasksOpts, ListTasksOutput, TaskRepository},
         transactional_repository::TransactionalRepository,
@@ -134,7 +138,7 @@ impl TaskRepository for TaskRepositoryAdapter {
                 FROM jsonb_each($6::jsonb) -- Replace with your filter object
             )
 
-            SELECT *, COUNT(*) OVER() as "filtered_count!" 
+            SELECT *, COUNT(*) OVER() as "filtered_count" 
             FROM tasks t
             WHERE organization_id = $1
 
@@ -207,7 +211,7 @@ impl TaskRepository for TaskRepositoryAdapter {
             .map(|row| BoundaryTask {
                 organization_id: row.get("organization_id"),
                 id: row.get("id"),
-                user_id: TaskUserId::new(row.get::<String, _>("id"))
+                user_id: TaskUserId::new(row.get::<String, _>("user_id"))
                     .expect("Invalid task ID in database"),
                 name: row.get("name"),
                 description: row.get("description"),
@@ -259,9 +263,12 @@ impl TaskRepository for TaskRepositoryAdapter {
                 lateness_window_seconds,
                 heartbeat_timeout_seconds,
                 last_status_change_at,
-                metadata
+                metadata,
+                email_notification_enabled,
+                push_notification_enabled,
+                sms_notification_enabled
             )
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
             ON CONFLICT (organization_id, id) DO UPDATE SET
                 name = $4,
                 description = $5,
@@ -291,6 +298,9 @@ impl TaskRepository for TaskRepositoryAdapter {
             task.heartbeat_timeout_seconds,         // $13
             task.last_status_change_at,             // $14
             serde_json::to_value(task.metadata)?,   // $15
+            task.email_notification_enabled,        // $16
+            task.push_notification_enabled,         // $17
+            task.sms_notification_enabled,          // $18
         )
         .execute(transaction.as_mut())
         .await?;
@@ -450,5 +460,55 @@ impl TaskRepository for TaskRepositoryAdapter {
             .collect();
 
         Ok(tasks)
+    }
+
+    /// Get the filterable metadata for all the tasks of an organization
+    async fn get_filterable_metadata(
+        &self,
+        organization_id: Uuid,
+    ) -> anyhow::Result<FilterableMetadata> {
+        let records = sqlx::query!(
+            r#"
+                    WITH RECURSIVE 
+                    json_keys AS (
+                        SELECT DISTINCT
+                            key,
+                            value #>> '{}' as value_str
+                        FROM tasks,
+                        jsonb_each(metadata -> 'records') as fields(key, value)
+                        WHERE tasks.organization_id = $1
+                    )
+                    SELECT 
+                    key as "key!",
+                    value_str as "value!",
+                    COUNT(*) OVER (PARTITION BY key, value_str) as "value_occurrence_count!"
+                    FROM json_keys
+                    ORDER BY key, value_str;
+                    "#,
+            organization_id,
+        )
+        .fetch_all(&self.pool)
+        .await?;
+
+        let items = records
+            .into_iter()
+            .chunk_by(|r| r.key.clone())
+            .into_iter()
+            .map(|(key, chunk)| {
+                let distinct_values: Vec<FilterableMetadataValue> = chunk
+                    .map(|r| FilterableMetadataValue {
+                        value: r.value,
+                        value_count: r.value_occurrence_count as u64,
+                    })
+                    .collect();
+                FilterableMetadataItem {
+                    key,
+                    key_cardinality: distinct_values.len() as u64,
+                    distinct_values,
+                }
+            })
+            .collect();
+
+        Ok(FilterableMetadata { items })
     }
 }

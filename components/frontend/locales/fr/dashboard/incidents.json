@@ -41,6 +41,7 @@
             "addComment": "Ajouter un commentaire",
             "comment": "{firstName} {lastName} a commenté l'incident",
             "monitorStatusSwitched": "Le statut du moniteur est devenu {status}",
+            "taskStatusSwitched": "Le statut de la tâche est devenu {status}",
             "pingEvent": {
                 "tabs": {
                     "summary": "Résumé",
@@ -75,5 +76,10 @@
         "requestError": "Erreur lors de la requête",
         "unknownError": "Erreur inconnue",
         "otherCauses": "Aucune autre cause | Une autre cause | {count} autres causes"
+    },
+    "scheduledTasksIncidents": {
+        "taskRunningLate": "Cette tâche planifiée est en retard",
+        "taskIsAbsent": "Cette tâche planifiée n'a pas été éxécutée",
+        "taskWasDueAt": "(Elle devait démarrer le {date})"
     }
 }

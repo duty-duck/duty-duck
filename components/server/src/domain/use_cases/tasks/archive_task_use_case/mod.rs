@@ -8,9 +8,17 @@ mod tests;
 use crate::domain::{
     entities::{
         authorization::{AuthContext, Permission},
+        incident::{IncidentPriority, IncidentSource, IncidentStatus},
         task::{get_task_aggregate, save_task_aggregate, TaskAggregate, TaskId},
     },
-    ports::{task_repository::TaskRepository, task_run_repository::TaskRunRepository},
+    ports::{
+        incident_event_repository::IncidentEventRepository,
+        incident_notification_repository::IncidentNotificationRepository,
+        incident_repository::{IncidentRepository, ListIncidentsOpts},
+        task_repository::TaskRepository,
+        task_run_repository::TaskRunRepository,
+    },
+    use_cases::incidents::resolve_incident,
 };
 
 #[derive(Debug, Error)]
@@ -27,15 +35,21 @@ pub enum ArchiveTaskError {
     TechnicalFailure(#[from] anyhow::Error),
 }
 
-pub async fn archive_task<TR, TRR>(
+pub async fn archive_task<TR, TRR, IR, IER, INR>(
     task_repository: &TR,
     task_run_repository: &TRR,
+    incident_repository: &IR,
+    incident_event_repository: &IER,
+    incident_notification_repository: &INR,
     auth_context: &AuthContext,
     task_id: TaskId,
 ) -> Result<(), ArchiveTaskError>
 where
     TR: TaskRepository,
     TRR: TaskRunRepository<Transaction = TR::Transaction>,
+    IR: IncidentRepository<Transaction = TR::Transaction>,
+    IER: IncidentEventRepository<Transaction = TR::Transaction>,
+    INR: IncidentNotificationRepository<Transaction = TR::Transaction>,
 {
     // Check permission
     if !auth_context.can(Permission::WriteTasks) {
@@ -66,6 +80,8 @@ where
         Some(TaskAggregate::Failing(agg)) => agg.archive(now),
     };
 
+    let task_id = *archived_aggregate.task().base().id();
+
     save_task_aggregate(
         task_repository,
         task_run_repository,
@@ -74,6 +90,33 @@ where
     )
     .await
     .context("Failed to save archived task")?;
+
+    // Retrieve all ongoing incidents for this task
+    let ongoing_incidents = incident_repository
+        .list_incidents(
+            &mut tx,
+            auth_context.active_organization_id,
+            ListIncidentsOpts {
+                include_statuses: &[IncidentStatus::Ongoing, IncidentStatus::ToBeConfirmed],
+                include_priorities: &IncidentPriority::ALL,
+                include_sources: &[IncidentSource::Task { id: task_id }],
+                limit: 1,
+                ..Default::default()
+            },
+        )
+        .await?
+        .incidents;
+
+    for incident in ongoing_incidents {
+        resolve_incident(
+            &mut tx,
+            incident_repository,
+            incident_event_repository,
+            incident_notification_repository,
+            &incident,
+        )
+        .await?;
+    }
 
     task_repository
         .commit_transaction(tx)

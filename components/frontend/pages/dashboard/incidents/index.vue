@@ -7,10 +7,15 @@ import type { OrderDirection } from "bindings/OrderDirection";
 import type { OrderIncidentsBy } from "bindings/OrderIncidentsBy";
 import { allStatuses } from "~/components/incident/StatusDropdown.vue";
 
+const oneWeekAgo = new Date(new Date().getTime() - 3600 * 1000 * 24 * 7);
+
 const itemsPerPage = 10;
 const localePath = useLocalePath();
 const pageNumber = useRouteQuery("pageNumber", 1, { transform: Number });
-const timeRange = useTimeRangeQuery();
+
+
+const dateRange = useDateRangeQuery();
+
 const includeStatuses = useRouteQuery<IncidentStatus[]>("statuses", ["ongoing"]);
 const orderBy = useRouteQuery<OrderIncidentsBy>("orderBy", "createdAt");
 const orderDirection = useRouteQuery<OrderDirection>("orderDirection", "desc");
@@ -20,23 +25,15 @@ const showFacetsOffcanvas = ref(false);
 
 // @ts-ignore
 const fetchParams = computed<ListIncidentsParams>(() => {
-  let fromDate = timeRange.value ? {
-    "-10m": new Date(Date.now() - 10 * 60 * 1000),
-    "-1h": new Date(Date.now() - 3600 * 1000),
-    "-6h": new Date(Date.now() - 6 * 3600 * 1000),
-    "-12h": new Date(Date.now() - 12 * 3600 * 1000),
-    "-24h": new Date(Date.now() - 24 * 3600 * 1000),
-    "-7d": new Date(Date.now() - 7 * 24 * 3600 * 1000),
-    "-30d": new Date(Date.now() - 30 * 24 * 3600 * 1000),
-  }[timeRange.value] : null;
+
 
   return {
     pageNumber: pageNumber.value,
     status: includeStatuses.value,
     priority: null,
     itemsPerPage,
-    toDate: null,
-    fromDate: fromDate ? fromDate.toISOString() : null,
+    toDate: dateRange.value?.end.toISOString(),
+    fromDate: dateRange.value?.start.toISOString(),
     orderBy: orderBy.value,
     orderDirection: orderDirection.value,
     metadataFilter: metadataFilter.value,
@@ -50,7 +47,7 @@ const { data: filterableMetadataFields } = await repository.useFilterableMetadat
 const onClearFilters = () => {
   clearMetadataFilter();
   navigateTo({
-    query: { pageNumber: pageNumber.value, statuses: allStatuses, timeRange: "null" },
+    query: { pageNumber: pageNumber.value, statuses: allStatuses },
   });
 };
 
@@ -77,10 +74,10 @@ useIntervalFn(() => {
     <BBreadcrumb>
       <BBreadcrumbItem :to="localePath('/dashboard')">{{
         $t("dashboard.mainSidebar.home")
-        }}</BBreadcrumbItem>
+      }}</BBreadcrumbItem>
       <BBreadcrumbItem active>{{
         $t("dashboard.mainSidebar.incidents")
-        }}</BBreadcrumbItem>
+      }}</BBreadcrumbItem>
     </BBreadcrumb>
     <h2>{{ $t("dashboard.incidents.pageTitle") }}</h2>
     <div class="small text-secondary mb-2">
@@ -101,16 +98,10 @@ useIntervalFn(() => {
       </span>
     </div>
 
-    <IncidentFilteringBar v-model:includeStatuses="includeStatuses" v-model:timeRange="timeRange"
-      v-model:orderBy="orderBy" v-model:orderDirection="orderDirection" v-model:metadataFilter="metadataFilter"
-      :filterableMetadataFields="filterableMetadataFields!" @clearFilters="onClearFilters">
-      <template #default>
-        <BButton variant="outline-secondary" class="d-flex align-items-center gap-1"
-          @click="showFacetsOffcanvas = true">
-          <Icon name="ph:funnel" aria-hidden size="1.3rem" />
-          {{ $t('dashboard.facets.title') }}
-        </BButton>
-      </template>
+    <IncidentFilteringBar v-model:includeStatuses="includeStatuses" v-model:date-range="dateRange"
+      v-model:orderBy="orderBy" v-model:orderDirection="orderDirection" :metadata-filter="metadataFilter"
+      @clearFilters="onClearFilters" @toggle-metadata="showFacetsOffcanvas = true"
+      :shown-filters="['statuses', 'metadata', 'orderBy', 'timeRange']">
     </IncidentFilteringBar>
 
     <div>

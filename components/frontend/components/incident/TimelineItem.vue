@@ -24,6 +24,7 @@ const { item } = defineProps<{
             <template v-if="!$slots.default && item">
                 <span class="text-secondary">{{ $d(new Date(item.event.createdAt), 'long') }}</span>
                 <div>
+                    <!-- Standard events -->
                     <i18n-t v-if="item.event.eventType === 'creation'"
                         keypath="dashboard.incidents.timeline.incidentCreated" tag="span" />
                     <i18n-t v-else-if="item.event.eventType === 'confirmation'"
@@ -32,11 +33,27 @@ const { item } = defineProps<{
                         keypath="dashboard.incidents.timeline.notificationSent" tag="span" />
                     <i18n-t v-else-if="item.event.eventType === 'resolution'"
                         keypath="dashboard.incidents.timeline.incidentResolved" tag="span" />
+                    <div v-else-if="item.event.eventType === 'comment' && item.event.eventPayload">
+                        <div class="mb-2">{{ $t("dashboard.incidents.timeline.comment", {
+                            firstName: item.user?.firstName, lastName:
+                                item.user?.lastName
+                        }) }}</div>
+                        <DashboardCommentViewer :comment="(item.event.eventPayload as any).Comment" />
+                    </div>
+                    <i18n-t v-else-if="item.event.eventType === 'acknowledged'"
+                        keypath="dashboard.incidents.timeline.incidentAcknowledged" tag="span">
+                        <template #firstName>{{ item.user?.firstName }}</template>
+                        <template #lastName>{{ item.user?.lastName }}</template>
+                    </i18n-t>
+                    <!-- End of standard events-->
+
+                    <!-- Http monitor events -->
                     <i18n-t v-else-if="item.event.eventType === 'monitorswitchedtorecovering'"
                         keypath="dashboard.incidents.timeline.monitorStatusSwitched" tag="span"
                         class="d-flex align-items-center gap-2">
                         <template #status>
-                            <BBadge pill variant="info" class="text-white">{{ $t("dashboard.monitorStatus.recovering") }}</BBadge>
+                            <BBadge pill variant="info" class="text-white">{{ $t("dashboard.monitorStatus.recovering")
+                            }}</BBadge>
                         </template>
                     </i18n-t>
                     <i18n-t v-else-if="item.event.eventType === 'monitorswitchedtosuspicious'"
@@ -53,21 +70,28 @@ const { item } = defineProps<{
                             <BBadge pill variant="danger">{{ $t("dashboard.monitorStatus.down") }}</BBadge>
                         </template>
                     </i18n-t>
-                    <i18n-t v-else-if="item.event.eventType === 'acknowledged'"
-                        keypath="dashboard.incidents.timeline.incidentAcknowledged" tag="span">
-                        <template #firstName>{{ item.user?.firstName }}</template>
-                        <template #lastName>{{ item.user?.lastName }}</template>
-                    </i18n-t>
-                    <div v-else-if="item.event.eventType === 'comment' && item.event.eventPayload">
-                        <div class="mb-2">{{ $t("dashboard.incidents.timeline.comment", {
-                            firstName: item.user?.firstName, lastName:
-                                item.user?.lastName
-                        }) }}</div>
-                        <DashboardCommentViewer :comment="(item.event.eventPayload as any).Comment" />
-                    </div>
                     <div v-else-if="item.event.eventType === 'monitorpinged' && item.event.eventPayload">
                         <IncidentPingEvent :event="(item.event.eventPayload as any).MonitorPing" />
                     </div>
+                    <!-- End of Http monitor events -->
+
+                    <!-- Task events -->
+                    <i18n-t v-else-if="item.event.eventType === 'taskswitchedtoabsent'"
+                        keypath="dashboard.incidents.timeline.taskStatusSwitched" tag="span"
+                        class="d-flex align-items-center gap-2">
+                        <template #status>
+                            <TaskStatusLabel status="absent" />
+                        </template>
+                    </i18n-t>
+                    <i18n-t v-else-if="item.event.eventType === 'taskswitchedtolate'"
+                        keypath="dashboard.incidents.timeline.taskStatusSwitched" tag="span"
+                        class="d-flex align-items-center gap-2">
+                        <template #status>
+                            <TaskStatusLabel status="late" />
+                        </template>
+                    </i18n-t>
+                    <!-- Enf of Task events -->
+
                 </div>
             </template>
         </div>

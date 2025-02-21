@@ -10,6 +10,7 @@ const tasksRepository = useTasksRepository();
 const onSubmit = async (data: TaskFormData) => {
     await tasksRepository.createTask({
         ...data,
+        ...data.notificationSettings,
     });
     navigateTo(localePath("/dashboard/tasks"));
 };
@@ -19,10 +20,10 @@ const onSubmit = async (data: TaskFormData) => {
         <BBreadcrumb>
             <BBreadcrumbItem :to="localePath('/dashboard')">{{
                 $t("dashboard.mainSidebar.home")
-                }}</BBreadcrumbItem>
+            }}</BBreadcrumbItem>
             <BBreadcrumbItem :to="localePath('/dashboard/tasks')">{{
                 $t("dashboard.mainSidebar.tasks")
-                }}</BBreadcrumbItem>
+            }}</BBreadcrumbItem>
             <BBreadcrumbItem active>
                 {{ $t("dashboard.tasks.createTaskTitle") }}
             </BBreadcrumbItem>

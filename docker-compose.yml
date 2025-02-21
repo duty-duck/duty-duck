@@ -2,7 +2,7 @@ services:
   dev-container:
     depends_on: []
       # - fake-internet
-    image: mcr.microsoft.com/devcontainers/base:bullseye
+    image: mcr.microsoft.com/devcontainers/base:bookworm
     command: ["sleep", "infinity"]
     ports:
       - 5173:5173

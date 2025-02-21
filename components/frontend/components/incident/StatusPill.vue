@@ -2,8 +2,9 @@
 import type { IncidentStatus } from 'bindings/IncidentStatus';
 import type { BaseColorVariant } from 'bootstrap-vue-next';
 
-const { status } = defineProps<{
-    status: IncidentStatus
+const { status, size = 'lg' } = defineProps<{
+    status: IncidentStatus,
+    size?: 'sm' | 'lg'
 }>();
 
 const variants: Record<IncidentStatus, [keyof BaseColorVariant, string]> = {
@@ -11,18 +12,24 @@ const variants: Record<IncidentStatus, [keyof BaseColorVariant, string]> = {
     resolved: ['success', 'ph:check-circle-fill']
 }
 
+const fontSize = computed(() => {
+    return { 'lg': '1rem', 'sm': '.75rem' }[size]
+});
+const iconSize = computed(() => {
+    return { 'lg': '1.5rem', 'sm': '1rem' }[size]
+})
+
 </script>
 
 <template>
-    <BBadge :variant="variants[status][0]" class="rounded-pill pill text-white">
-        <Icon :name="variants[status][1]" size="1.5rem" />
+    <BBadge :variant="variants[status][0]" class="rounded-pill pill text-white" :style="{ 'font-size': fontSize }">
+        <Icon :name="variants[status][1]" :size="iconSize" />
         {{ $t(`dashboard.incidentStatus.${status}`) }}
     </BBadge>
 </template>
 
 <style scoped lang="scss">
 .pill {
-    font-size: 1rem;
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;

@@ -1,11 +1,21 @@
 <script lang="ts" setup>
+import type { MetadataFilter } from 'bindings/MetadataFilter';
 import type { TaskStatus } from 'bindings/TaskStatus';
+
+const { metadataFilter } = defineProps<{
+  metadataFilter?: MetadataFilter
+}>();
 
 const includeStatuses = defineModel<TaskStatus[]>("includeStatuses", { required: true });
 const query = defineModel<string>("query", { required: true });
 
+const metadataFilterCount = computed(() => {
+  return Object.values(metadataFilter?.items ?? {}).filter(f => f?.length! > 0).length;
+});
+
 const emit = defineEmits<{
-  (e: 'clearFilters'): void;
+  clearFilters: [],
+  toggleMetadata: []
 }>();
 </script>
 <template>
@@ -14,8 +24,13 @@ const emit = defineEmits<{
       <Icon size="1.3rem" name="ph:funnel-simple-x-bold" />
     </BButton>
     <TaskStatusDropdown v-model="includeStatuses" />
-    <BInput class="border border-secondary bg-transparent" v-model="query"
-      :placeholder="$t('dashboard.tasks.search')" style="width: 300px;" />
+    <BButton variant="outline-secondary" class="d-flex align-items-center gap-1" @click="emit('toggleMetadata')">
+      <Icon name="ph:funnel" aria-hidden size="1.3rem" />
+      {{ $t('dashboard.facets.title') }}
+      <span v-if="metadataFilterCount">({{ metadataFilterCount }})</span>
+    </BButton>
+    <BInput class="border border-secondary bg-transparent" v-model="query" :placeholder="$t('dashboard.tasks.search')"
+      style="width: 300px; flex-grow: 1;" />
     <slot />
   </nav>
 </template>

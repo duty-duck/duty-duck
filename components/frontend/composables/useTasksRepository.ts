@@ -1,16 +1,21 @@
 import type { UseFetchOptions } from "#app"
 import type { CreateTaskCommand } from "bindings/CreateTaskCommand"
+import type { FilterableMetadata } from "bindings/FilterableMetadata"
 import type { GetTaskResponse } from "bindings/GetTaskResponse"
 import type { ListTaskRunsParams } from "bindings/ListTaskRunsParams"
 import type { ListTaskRunsResponse } from "bindings/ListTaskRunsResponse"
 import type { ListTasksParams } from "bindings/ListTasksParams"
 import type { ListTasksResponse } from "bindings/ListTasksResponse"
+import type { UpdateTaskCommand } from "bindings/UpdateTaskCommand"
 import { FetchError } from "ofetch"
 
 export const useTasksRepository = () => {
     return {
         async useTasks(params: ListTasksParams | Ref<ListTasksParams>, opts?: UseFetchOptions<ListTasksResponse>) {
             return useServerFetch<ListTasksResponse>("/tasks", { query: params, retry: 3, dedupe: "cancel", ...(opts || {}) })
+        },
+        async useFilterableMetadataFields() {
+            return await useServerFetch<FilterableMetadata>("/tasks/filterable-metadata");
         },
         async useTaskRuns(taskId: string, params?: ListTaskRunsParams | Ref<ListTaskRunsParams>, opts?: UseFetchOptions<ListTaskRunsResponse>) {
             return useServerFetch<ListTaskRunsResponse>(`/tasks/${taskId}/runs`, { query: params, retry: 3, dedupe: "cancel", ...(opts || {}) })
@@ -22,10 +27,18 @@ export const useTasksRepository = () => {
             const $fetch = await useServer$fetch();
             return await $fetch<void>("/tasks", { method: "post", body: task })
         },
+        async archiveTask(taskId: string) {
+            const $fetch = await useServer$fetch();
+            return await $fetch<void>(`/tasks/${taskId}/archive`, { method: "post" })
+        },
+        async updateTask(taskId: string, command: UpdateTaskCommand) {
+            const $fetch = await useServer$fetch();
+            return await $fetch<void>(`/tasks/${taskId}`, { method: "patch", body: command })
+        },
         async checkTaskIdIsAvailable(taskId: string) {
             const $fetch = await useServer$fetch();
             try {
-                await $fetch<void>(`/tasks/${taskId}`, { method: "head"  })
+                await $fetch<void>(`/tasks/${taskId}`, { method: "head" })
                 return false;
             } catch (error) {
                 if (error instanceof FetchError && error.status === 404) {

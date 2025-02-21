@@ -39,7 +39,6 @@ use crate::{
 
 pub mod application_config;
 pub mod application_state;
-pub mod background_tasks;
 pub mod built_info;
 pub mod migrations;
 pub mod server;
@@ -47,6 +46,20 @@ pub mod server;
 pub async fn start_server() -> anyhow::Result<()> {
     let config = Arc::new(AppConfig::load()?);
     let application_state = build_app_state(Arc::clone(&config)).await?;
+
+    // Create monthly partitions
+    application_state
+        .adapters
+        .task_run_repository
+        .create_task_run_partition_for_month()
+        .await
+        .context("Failed to create monthly partition for task runs")?;
+    application_state
+        .adapters
+        .incident_event_repository
+        .create_incident_timeline_partition_for_month()
+        .await
+        .context("Failed to create monthly partition for incident events")?;
 
     let http_monitors_use_case = ExecuteHttpMonitorsUseCase {
         http_monitor_repository: application_state.adapters.http_monitors_repository.clone(),
@@ -153,6 +166,35 @@ pub async fn start_server() -> anyhow::Result<()> {
         Duration::from_secs(config.absent_tasks_collector.interval_seconds),
     );
 
+    // Spawn a background task to create monthly partitions
+    let partitions_task = tokio::task::spawn({
+        let task_run_repo = application_state.adapters.task_run_repository.clone();
+        let incident_event_repo = application_state.adapters.incident_event_repository.clone();
+        async move {
+            loop {
+                tokio::select! {
+                    _ = tokio::time::sleep(Duration::from_secs(24*3600)) => {
+                        if let Err(e) = task_run_repo.create_task_run_partition_for_month().await {
+                            tracing::error!(error = ?e, "Failed to create monthly partiitons for task runs!");
+                            std::process::exit(1);
+                        };
+                        if let Err(e) = incident_event_repo
+                            .create_incident_timeline_partition_for_month()
+                            .await
+                        {
+                            tracing::error!(error = ?e, "Failed to create monthly partiitons for incident events!");
+                            std::process::exit(1);
+                        }
+                    },
+                    _ = tokio::signal::ctrl_c() => {
+                        tracing::info!("Shutting down monthly partitions creation task");
+                        break;
+                    }
+                }
+            }
+        }
+    });
+
     let server_task = tokio::spawn(server::start_server(application_state, config.server_port));
 
     // Wait for all tasks to finish
@@ -163,6 +205,7 @@ pub async fn start_server() -> anyhow::Result<()> {
         due_tasks_collector_tasks.join_all(),
         late_tasks_collector_tasks.join_all(),
         absent_tasks_collector_tasks.join_all(),
+        partitions_task,
         server_task
     );
 

@@ -20,7 +20,6 @@ export const getIncidentLabel = (cause: HttpMonitorIncidentCausePing, t: ReturnT
 </script>
 
 <script lang="ts" setup>
-import type { HttpMonitorIncidentCause } from "bindings/HttpMonitorIncidentCause";
 import type { HttpMonitorIncidentCausePing } from "bindings/HttpMonitorIncidentCausePing";
 import { useI18n } from "vue-i18n";
 

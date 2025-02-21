@@ -14,9 +14,9 @@ const now = useNow();
 const pageNumber = useRouteQuery("pageNumber", 1, { transform: Number });
 const taskRunsParams = computed(() => ({ itemsPerPage: 10, pageNumber: pageNumber.value, includeStatuses: null }));
 
-const { data: taskResponse } = await taskRepo.useTask(taskId as string);
-const { data: lastTaskRunResponse } = await taskRepo.useTaskRuns(taskId as string, { itemsPerPage: 1, pageNumber: 1, includeStatuses: null });
-const { data: taskRunsResponse } = await taskRepo.useTaskRuns(taskId as string, taskRunsParams);
+const { data: taskResponse, refresh: refreshTaskResponse } = await taskRepo.useTask(taskId as string);
+const { data: lastTaskRunResponse, refresh: refreshLastTaskRun } = await taskRepo.useTaskRuns(taskId as string, { itemsPerPage: 1, pageNumber: 1, includeStatuses: null });
+const { data: taskRunsResponse, refresh: refreshTaskRuns } = await taskRepo.useTaskRuns(taskId as string, taskRunsParams);
 
 const lastTaskRun = computed(() => lastTaskRunResponse.value?.runs?.[0]);
 const humanReadableCron = computed(() => {
@@ -33,6 +33,12 @@ const lastStatusChange = computed(() => {
 
   return formatDuration(duration, locale.value);
 });
+
+const refreshEverything = () => {
+  refreshTaskResponse();
+  refreshLastTaskRun();
+  refreshTaskRuns();
+}
 </script>
 
 <template>
@@ -55,6 +61,17 @@ const lastStatusChange = computed(() => {
         {{ $t("dashboard.tasks.lastRunOn", { date: $d(new Date(lastTaskRun.startedAt!), "long") }) }}
       </span>
     </div>
+
+    <!-- Task actions -->
+    <section v-if="taskResponse.task.status != 'archived'">
+      <div class="mb-3 d-flex gap-2">
+        <BButton class="icon-link" variant="outline-secondary" :to="localePath(`/dashboard/tasks/${taskId}/edit`)">
+          <Icon name="ph:pencil" />
+          {{ $t('dashboard.tasks.edit') }}
+        </BButton>
+        <TaskArchiveButton :task-id="taskId as string" @archived="refreshEverything" />
+      </div>
+    </section>
 
     <!-- Task overview -->
     <div class="row mb-5 row-gap-3 r">
@@ -87,13 +104,17 @@ const lastStatusChange = computed(() => {
       </div>
       <!-- Next due at column -->
       <div class="col-md-4">
-        <BCard class="h-100" :class="{ 'bg-light': !taskResponse.task.cronSchedule }">
+        <BCard class="h-100"
+          :class="{ 'bg-light': !taskResponse.task.cronSchedule || taskResponse.task.status == 'archived' }">
           <template v-if="taskResponse.task.cronSchedule">
             <template v-if="taskResponse.task.status === 'late' || taskResponse.task.status === 'absent'">
               <p>{{ $t("dashboard.tasks.initiallyDueOn") }}</p>
               <p class="h4" v-if="taskResponse.task.nextDueAt">
                 {{ $d(new Date(taskResponse.task.nextDueAt), "long") }}
               </p>
+            </template>
+            <template v-else-if="taskResponse.task.status == 'archived'">
+              <p>{{ $t("dashboard.tasks.taskIsArchived") }}</p>
             </template>
             <template v-else>
               <p>{{ $t("dashboard.tasks.nextDueOn") }}</p>
@@ -127,6 +148,16 @@ const lastStatusChange = computed(() => {
       <p class="text-muted">
         {{ taskResponse.task.description }}
       </p>
+    </section>
+
+    <!-- Metadata section -->
+    <section class="mb-5">
+      <h5>
+        <Icon name="ph:database" />
+        {{ $t("dashboard.tasks.metadata") }}
+      </h5>
+
+      <DashboardMetadataInput v-model="taskResponse.task.metadata" read-only />
     </section>
 
     <!-- Task runs -->

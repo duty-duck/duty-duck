@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import type { HttpMonitorFormData } from "~/components/httpMonitor/Form.vue";
-import { usePermissionGrant } from "~/composables/authComposables";
 
 await usePermissionGrant("writeHttpMonitors");
 

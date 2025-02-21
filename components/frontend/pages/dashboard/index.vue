@@ -4,6 +4,7 @@ const incidentRepo = useIncidentRepository();
 const auth = await useAuth();
 const localePath = useLocalePath();
 const thisDevice = await useThisDevice();
+const suggestedActions = await useSuggestedActions();
 const { refresh: refreshIncidentCount, data: incidentCount } = await incidentRepo.useOngoingIncidentsCount();
 const { refresh: refreshDownMonitorsCount, data: downMonitorsCount } = await httpMonitorRepo.useDownMonitorsCount();
 </script>
@@ -52,34 +53,19 @@ const { refresh: refreshDownMonitorsCount, data: downMonitorsCount } = await htt
     </section>
 
     <!-- Suggested actions-->
-    <section class="mb-4">
+    <section class="mb-4" v-if="suggestedActions.length">
       <h3 class="mb-4 fs-4">{{ $t('dashboard.home.suggestedActions') }}</h3>
       <div class="row">
-        <div class="col-md">
+        <div class="col-md-6 col-lg-4" v-for="action in suggestedActions">
           <!-- Phone number verification -->
-          <BAlert variant="info" class="mb-3"
-            :model-value="auth.userProfile && (!auth.userProfile.user.phoneNumber || !auth.userProfile.user.phoneNumberVerified)">
-            <h5>{{ $t('dashboard.home.phoneNumberVerificationRequired') }}</h5>
-            <p>
-              {{ $t('dashboard.home.phoneNumberVerificationRequiredDescription') }}
+          <BAlert variant="info" class="mb-3" :model-value="true">
+            <h5 v-if="action.title">{{ action.title }}</h5>
+            <p v-for="p in action.description ?? []">
+              {{ p }}
             </p>
-            <BButton :to="localePath('/dashboard/myAccount')" variant="outline-info" class="icon-link">
-              <Icon name="ph:phone-call-fill" />
-              {{ $t('dashboard.home.verifyPhoneNumber') }}
-            </BButton>
-          </BAlert>
-        </div>
-
-        <div class="col-md">
-          <!-- Push notifications -->
-          <BAlert variant="info" class="mb-push-notifications-alert" :model-value="!thisDevice">
-            <h5>{{ $t('dashboard.home.pushNotificationsRequired') }}</h5>
-            <p>
-              {{ $t('dashboard.home.pushNotificationsRequiredDescription') }}
-            </p>
-            <BButton :to="localePath('/dashboard/myAccount')" variant="outline-info" class="icon-link">
-              <Icon name="ph:bell-duotone" />
-              {{ $t('dashboard.home.configurePushNotifications') }}
+            <BButton v-for="cta in action.cta ?? []" :to="cta.link" variant="outline-info" class="icon-link">
+              <Icon v-if="cta.icon" :name="cta.icon" />
+              {{ cta.label }}
             </BButton>
           </BAlert>
         </div>

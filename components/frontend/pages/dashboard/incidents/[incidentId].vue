@@ -107,15 +107,15 @@ useIntervalFn(() => refresh(), 10000);
 
         </h5>
         <div v-if="incidentRes!.incident.acknowledgedBy.length === 0"
-          class="text-secondary mb-3 d-flex align-items-center justify-content-between">
+          class="text-secondary mb-3 d-flex align-items-center justify-content-between gap-2">
           <template v-if="incidentRes!.incident.acknowledgedBy.length === 0">
             {{ $t("dashboard.incidents.notAcknowledged") }}
           </template>
           <template v-else>
             {{ $t("dashboard.incidents.acknowledgedBy", { count: incidentRes!.incident.acknowledgedBy.length }) }}
           </template>
-          <BButton v-if="!acknowledgedByCurrentUser" class="icon-link" variant="primary" @click="acknowledgeIncident"
-            :disabled="acknowledgeIncidentLoading" pill>
+          <BButton v-if="!acknowledgedByCurrentUser" class="icon-link flex-shrink-0" variant="primary"
+            @click="acknowledgeIncident" :disabled="acknowledgeIncidentLoading" pill>
             <BSpinner v-if="acknowledgeIncidentLoading" small label="Small spinner" />
             <Icon v-else name="ph:check-bold" />
             {{ $t("dashboard.incidents.acknowledge") }}

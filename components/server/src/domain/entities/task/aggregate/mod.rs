@@ -176,14 +176,14 @@ where
     TRR: TaskRunRepository<Transaction = TR::Transaction>,
 {
     // Retrieve the task base
-    let task_base = match &aggregate {
+    let (task_base, initial_task_status) = match &aggregate {
         TaskAggregate::Archived(_) => return Err(UpdateTaskError::TaskArchived),
-        TaskAggregate::Healthy(agg) => agg.task().base(),
-        TaskAggregate::Late(agg) => agg.task().base(),
-        TaskAggregate::Absent(agg) => agg.task().base(),
-        TaskAggregate::Failing(agg) => agg.task().base(),
-        TaskAggregate::Due(agg) => agg.task().base(),
-        TaskAggregate::Running(agg) => agg.task().base(),
+        TaskAggregate::Healthy(agg) => (agg.task().base(), TaskStatus::Healthy),
+        TaskAggregate::Late(agg) => (agg.task().base(), TaskStatus::Late),
+        TaskAggregate::Absent(agg) => (agg.task().base(), TaskStatus::Absent),
+        TaskAggregate::Failing(agg) => (agg.task().base(), TaskStatus::Failing),
+        TaskAggregate::Due(agg) => (agg.task().base(), TaskStatus::Due),
+        TaskAggregate::Running(agg) => (agg.task().base(), TaskStatus::Running),
     };
 
     // Check the new id (if the id changes) is available
@@ -199,7 +199,7 @@ where
     }
 
     // Update the task base with new information from the user
-    let updated_task_base = task_base.update(command)?;
+    let mut updated_task_base = task_base.update(command)?;
 
     // Retrieve the last task run of the task
     let last_task_run = task_run_repository
@@ -212,7 +212,12 @@ where
     // The "archived" state is simply not possible to update.
     let agg = match last_task_run {
         None => {
+            if initial_task_status != TaskStatus::Healthy {
+                updated_task_base.last_status_change_at = Some(now);
+                updated_task_base.previous_status = Some(initial_task_status);
+            }
             let task = HealthyTask::from_task_base(updated_task_base, now)?;
+
             TaskAggregate::Healthy(HealthyTaskAggregate {
                 task,
                 last_task_run: None,

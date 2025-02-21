@@ -1,6 +1,6 @@
 <template>
     <BCard class="ping-event-card" no-body>
-        <BTabs card small>
+        <BTabs card small content-class="overflow-auto">
             <template #tabs-end>
                 <li class="nav-item" v-if="event.screenshotFileId">
                     <a class="nav-link icon-link" @click.prevent="redirectToFile(event.screenshotFileId)" href="#">

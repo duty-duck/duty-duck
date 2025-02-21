@@ -18,7 +18,10 @@ use crate::{
         },
     },
     infrastructure::mocks::{
-        task_repository_mock::TaskRepositoryMock, task_run_repository_mock::TaskRunRepositoryMock,
+        incident_event_repository_mock::IncidentEventRepositoryMock,
+        incident_notification_repository_mock::IncidentNotificationRepositoryMock,
+        incident_repository_mock::IncidentRepositoryMock, task_repository_mock::TaskRepositoryMock,
+        task_run_repository_mock::TaskRunRepositoryMock,
     },
 };
 
@@ -31,6 +34,9 @@ async fn test_archive_task_successful() -> anyhow::Result<()> {
 
     let task_repository = TaskRepositoryMock::new();
     let task_run_repository = TaskRunRepositoryMock::new();
+    let incident_repository = IncidentRepositoryMock::new();
+    let incident_event_repository = IncidentEventRepositoryMock::new();
+    let incident_notification_repository = IncidentNotificationRepositoryMock::new();
     let now = Utc::now();
 
     let task = BoundaryTask {
@@ -68,6 +74,9 @@ async fn test_archive_task_successful() -> anyhow::Result<()> {
     super::archive_task(
         &task_repository,
         &task_run_repository,
+        &incident_repository,
+        &incident_event_repository,
+        &incident_notification_repository,
         &auth_context,
         TaskId::UserId(task_user_id.clone()),
     )
@@ -100,6 +109,9 @@ async fn test_archive_task_already_archived_by_its_user_id() -> anyhow::Result<(
 
     let task_repository = TaskRepositoryMock::new();
     let task_run_repository = TaskRunRepositoryMock::new();
+    let incident_repository = IncidentRepositoryMock::new();
+    let incident_event_repository = IncidentEventRepositoryMock::new();
+    let incident_notification_repository = IncidentNotificationRepositoryMock::new();
     let now = Utc::now();
 
     let task = BoundaryTask {
@@ -138,6 +150,9 @@ async fn test_archive_task_already_archived_by_its_user_id() -> anyhow::Result<(
     let result = super::archive_task(
         &task_repository,
         &task_run_repository,
+        &incident_repository,
+        &incident_event_repository,
+        &incident_notification_repository,
         &auth_context,
         TaskId::UserId(task_user_id),
     )
@@ -162,6 +177,9 @@ async fn test_archive_task_already_archived_by_its_uuid() -> anyhow::Result<()> 
 
     let task_repository = TaskRepositoryMock::new();
     let task_run_repository = TaskRunRepositoryMock::new();
+    let incident_repository = IncidentRepositoryMock::new();
+    let incident_event_repository = IncidentEventRepositoryMock::new();
+    let incident_notification_repository = IncidentNotificationRepositoryMock::new();
     let now = Utc::now();
 
     let task = BoundaryTask {
@@ -200,6 +218,9 @@ async fn test_archive_task_already_archived_by_its_uuid() -> anyhow::Result<()> 
     let result = super::archive_task(
         &task_repository,
         &task_run_repository,
+        &incident_repository,
+        &incident_event_repository,
+        &incident_notification_repository,
         &auth_context,
         TaskId::Uuid(task_id),
     )
@@ -224,6 +245,9 @@ async fn test_archive_task_running() -> anyhow::Result<()> {
 
     let task_repository = TaskRepositoryMock::new();
     let task_run_repository = TaskRunRepositoryMock::new();
+    let incident_repository = IncidentRepositoryMock::new();
+    let incident_event_repository = IncidentEventRepositoryMock::new();
+    let incident_notification_repository = IncidentNotificationRepositoryMock::new();
     let now = Utc::now();
 
     let task = BoundaryTask {
@@ -281,6 +305,9 @@ async fn test_archive_task_running() -> anyhow::Result<()> {
     let result = super::archive_task(
         &task_repository,
         &task_run_repository,
+        &incident_repository,
+        &incident_event_repository,
+        &incident_notification_repository,
         &auth_context,
         TaskId::UserId(task_user_id),
     )

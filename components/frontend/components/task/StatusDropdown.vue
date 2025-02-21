@@ -7,6 +7,7 @@ export const allStatuses: TaskStatus[] = [
     "late",
     "running",
     "absent",
+    "archived"
 ];
 </script>
 

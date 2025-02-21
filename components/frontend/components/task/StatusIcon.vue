@@ -17,6 +17,9 @@ const icon = computed(() => {
     if (props.status == "running") {
         return "ph:play-circle-duotone"
     }
+    if (props.status == "archived") {
+        return "ph:archive-duotone"
+    }
 
     return "ph:check-circle-duotone"
 });
@@ -30,9 +33,9 @@ const icon = computed(() => {
         'text-success': props.status == 'healthy',
         'text-info': props.status == 'running' || props.status == 'due',
     }">
-            <Icon name="ph:circle-fill" :size="big ? '6rem' : '4rem'" class="secondary" v-show="animated" />
-            <Icon name="ph:circle-fill" :size="big ? '6rem' : '4rem'" class="tertiary" v-show="animated" />
-            <Icon :name="icon" :size="big ? '3rem' : '2rem'" />
+        <Icon name="ph:circle-fill" :size="big ? '6rem' : '4rem'" class="secondary" v-show="animated" />
+        <Icon name="ph:circle-fill" :size="big ? '6rem' : '4rem'" class="tertiary" v-show="animated" />
+        <Icon :name="icon" :size="big ? '3rem' : '2rem'" />
     </span>
 
 </template>

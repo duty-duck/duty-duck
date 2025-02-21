@@ -20,7 +20,10 @@
 				"mtxr.sqltools",
 				"mtxr.sqltools-driver-pg",
 				"zxh404.vscode-proto3"
-			]
+			],
+			"settings": {
+				"editor.formatOnSave": true
+			}
 		}
 	},
 	"features": {
@@ -33,7 +36,7 @@
 		"ghcr.io/devcontainers/features/node:1": {
 			"nodeGypDependencies": true,
 			"installYarnUsingApt": true,
-			"version": "18",
+			"version": "23",
 			"nvmVersion": "latest"
 		},
 		"ghcr.io/devcontainers/features/rust:1": {

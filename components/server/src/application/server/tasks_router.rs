@@ -5,7 +5,7 @@ use crate::{
             authorization::AuthContext,
             task::{TaskError, TaskId},
         },
-        use_cases::tasks::*,
+        use_cases::tasks::{self, *},
     },
 };
 use axum::{
@@ -22,6 +22,10 @@ use uuid::Uuid;
 pub(crate) fn tasks_router() -> Router<ApplicationState> {
     Router::new()
         .route("/", get(list_tasks_handler).post(create_task_handler))
+        .route(
+            "/filterable-metadata",
+            get(get_filterable_task_metadata_handler),
+        )
         .nest(
             "/{task_id}",
             Router::new()
@@ -405,6 +409,9 @@ async fn archive_task_handler(
     match archive_task(
         &app_state.adapters.task_repository,
         &app_state.adapters.task_run_repository,
+        &app_state.adapters.incident_repository,
+        &app_state.adapters.incident_event_repository,
+        &app_state.adapters.incident_notification_repository,
         &auth_context,
         task_id,
     )
@@ -488,6 +495,21 @@ async fn update_task_handler(
         }
         Err(UpdateTaskError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while starting a task");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
+}
+
+async fn get_filterable_task_metadata_handler(
+    auth_context: AuthContext,
+    State(app_state): ExtractAppState,
+) -> impl IntoResponse {
+    match tasks::get_filterable_task_metadata(&auth_context, &app_state.adapters.task_repository)
+        .await
+    {
+        Ok(res) => Json(res).into_response(),
+        Err(e) => {
+            warn!(error = ?e, "Technical failure occured while getting filterable incident metadata");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }

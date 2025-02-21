@@ -1,6 +1,8 @@
 {
     "tasks": {
+        "scheduledTask": "Scheduled task",
         "pageTitle": "Tasks",
+        "metadata": "Metadata",
         "totalTaskCount": "No tasks | 1 total task | {count} total tasks",
         "filteredTaskCount": "{count} tasks hidden by filters | {count} tasks hidden by filters",
         "itemsPerPage": "{count} tasks per page",
@@ -14,6 +16,7 @@
         "schedule": "Schedule",
         "nextDueOn": "Next due on",
         "notAScheduledTask": "This task is not scheduled",
+        "taskIsArchived": "This task is archived",
         "cliCommandLabel": "You can create a task directly using the DutyDuck command line tool",
         "createTaskButton": "New task",
         "createTaskTitle": "Create task",
@@ -23,10 +26,16 @@
         "startRunCommand": "dutyduck tasks run --task-id {taskId} your-command arg1 arg2",
         "description": "Description",
         "initiallyDueOn": "Initially due on",
+        "edit": "Edit the task",
         "card": {
             "cronSchedule": "Cron schedule: {schedule}",
             "noRuns": "Never run yet"
         },
+        "noResults": {
+            "title": "No task matches these filters",
+            "text": "Tasks exist but are hidden by the selected filters. Remove the filters to see all tasks."
+        },
+        "clearFilters": "Clear filters",
         "form": {
             "id": "Task ID",
             "idDescription": "The task ID is used to run the task using the command line tool or via the API. It must be unique and contain only alphanumeric characters and dashes. By default, it is generated from the task name.",
@@ -42,12 +51,27 @@
             "startWindowDescription": "The start window is the time window during which the task is expected to run. If the task does not start in this window, it will be considered late and an incident will be created.",
             "latenessWindow": "Lateness window",
             "latenessWindowDescription": "The lateness window is the time window, beginning after the start window, during which a late task is still expected to run. If the late task does not start in this window, it will be considered failed.",
+            "heartbeats": "Heartbeats",
             "heartbeatTimeout": "Heartbeat timeout",
+            "metadata": "Metadata",
+            "metadataDescription": "Metadata is optional. It allows you to organize your tasks and related incidents.",
             "heartbeatTimeoutDescription": "Once a task is started, it is expected to send a periodic heartbeat to DutyDuck to confirm it is still running. If the task does not send a heartbeat in this window, it will be considered dead and an incident will be created. If you use the DutyDuck command line tool to start the task, the heartbeat is sent automatically.",
             "advancedSettings": "Advanced settings",
             "saveTaskButton": "Save task",
             "taskIdNotAvailable": "Task id is not available, a task with this id already exists.",
-            "description": "Description"
+            "notificationSettings": "Notifications",
+            "notificationSettingsDescription": "Determines the notifications that will be sent in case of task failure",
+            "description": "Description",
+            "scheduleTimezone": "Time zone",
+            "scheduleTimezoneDescription": "Time zone used to compute the scheduled execution time for the task"
+        },
+        "archive": {
+            "button": "Archive",
+            "modal": {
+                "title": "Archive task",
+                "message": "Are you sure you want to archive this task? This action cannot be undone.",
+                "confirm": "Archive"
+            }
         }
     },
     "taskRuns": {
@@ -65,7 +89,8 @@
         "healthy": "Healthy",
         "late": "Late",
         "running": "Running",
-        "absent": "Absent"
+        "absent": "Absent",
+        "archived": "Archived"
     },
     "taskRunStatus": {
         "finished": "Finished",

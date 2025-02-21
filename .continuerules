@@ -1,0 +1,13 @@
+Be concise in your answers. Do not output general setup instructions instead asked explicitly. For instance, when asked to generate a UI component, do not output instructions to install libraries or use the component in a page, unless I ask you.
+
+Whenever you are writing Vue code:
+  - Keep in mind that this project uses Vue 3 and Typescript
+  - Use the composition API, not the options API, unless asked explicitly
+  - Use single file components and <script setup> blocks. Do not use the `defineComponent` function.
+  - You may use composables from the vue-use library
+  - Use bootstrap-vue components for the UI and classes from Bootstrap (V5)
+  - In templates, use the "pascal case" syntax for Vue components, and the standard loweercase syntax for standard HTML elements. For instance, you will write `<strong>Foo</strong>` and
+  `<BLabel>Foo<BLabel>`
+  - Whenever you write custom CSS classes, prefer the SCSS syntax
+  - This project uses vue-i18n for internationalization and supports two languages: french and english
+  - When generating a Vue component which contains text elements, replace the text by text by translation keys using the $t macro from vue-i18n and generate translation files in the JSON format (`{"translationKey": "text"}`)
