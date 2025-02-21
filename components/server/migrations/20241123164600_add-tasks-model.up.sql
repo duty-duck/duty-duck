@@ -30,12 +30,11 @@ CREATE TABLE tasks (
     metadata JSONB,
     PRIMARY KEY (organization_id, id)
 );
-
 -- Add a unique constraint on the user_id and organization_id columns,
 -- but only for tasks that are not archived
 -- Archived tasks are allowed to have the same user_id and organization_id
-CREATE UNIQUE INDEX tasks_user_id_org_id_idx ON tasks(user_id, organization_id) WHERE status != 6;
-
+CREATE UNIQUE INDEX tasks_user_id_org_id_idx ON tasks(user_id, organization_id)
+WHERE status != 6;
 CREATE TABLE task_runs (
     organization_id UUID NOT NULL,
     id uuid not null default gen_random_uuid(),
@@ -53,15 +52,12 @@ CREATE TABLE task_runs (
     metadata JSONB,
     FOREIGN KEY (organization_id, task_id) REFERENCES tasks (organization_id, id) on delete cascade
 ) PARTITION BY RANGE (started_at);
-
 -- Add an index to retrieve a specific task run
 -- Note that we cannot make it a unique index because the table is partitioned by the started_at column.
 -- In practice through, since we use random UUIDs, we should not have any collisions.
 CREATE INDEX task_runs_org_id_idx ON task_runs(organization_id, id);
 -- Add an index to retrieve task runs for a given task efficiently
 CREATE INDEX task_runs_org_task_idx ON task_runs(organization_id, task_id);
-
-
 -- used to store events related to a single task run
 CREATE TABLE task_run_events (
     organization_id UUID NOT NULL,
@@ -78,90 +74,68 @@ CREATE TABLE task_run_events (
         created_at
     )
 ) PARTITION BY RANGE (created_at);
-
 -- Add an index to retrieve task run events for a given task run efficiently
 -- Note that sadly we cannot add a foreign key to the task_run_events table, becasue it would require a unique constraint
 -- on task runs ids, which would make it impossible to partition the table.
 CREATE INDEX task_run_events_org_task_run_idx ON task_run_events(organization_id, task_run_id);
-
 -- Function to create future partitions automatically
-CREATE OR REPLACE FUNCTION create_task_runs_partition_for_month()
-RETURNS void AS $$
-DECLARE
-    current_month_start date;
-    current_month_end date;
-    next_month_start date;
-    next_month_end date;
-    current_partition_name text;
-    next_partition_name text;
-BEGIN
-    current_month_start := date_trunc('month', now());
-    current_month_end := current_month_start + interval '1 month';
-    next_month_start := current_month_end;
-    next_month_end := next_month_start + interval '1 month';
-
-    current_partition_name := 'task_runs_y' || 
-                     to_char(current_month_start, 'YYYY') ||
-                     'm' || to_char(current_month_start, 'MM');
-    
-    next_partition_name := 'task_runs_y' || 
-                     to_char(next_month_start, 'YYYY') ||
-                     'm' || to_char(next_month_start, 'MM');
-    
-    EXECUTE format(
-        'CREATE TABLE IF NOT EXISTS %I PARTITION OF task_runs
+CREATE OR REPLACE FUNCTION create_task_runs_partition_for_month() RETURNS void AS $$
+DECLARE current_month_start date;
+current_month_end date;
+next_month_start date;
+next_month_end date;
+current_partition_name text;
+next_partition_name text;
+BEGIN current_month_start := date_trunc('month', now());
+current_month_end := current_month_start + interval '1 month';
+next_month_start := current_month_end;
+next_month_end := next_month_start + interval '1 month';
+current_partition_name := 'task_runs_y' || to_char(current_month_start, 'YYYY') || 'm' || to_char(current_month_start, 'MM');
+next_partition_name := 'task_runs_y' || to_char(next_month_start, 'YYYY') || 'm' || to_char(next_month_start, 'MM');
+EXECUTE format(
+    'CREATE TABLE IF NOT EXISTS %I PARTITION OF task_runs
          FOR VALUES FROM (%L) TO (%L)',
-        current_partition_name,
-        current_month_start,
-        current_month_end
-    );
-    EXECUTE format(
-        'CREATE TABLE IF NOT EXISTS %I PARTITION OF task_runs
+    current_partition_name,
+    current_month_start,
+    current_month_end
+);
+EXECUTE format(
+    'CREATE TABLE IF NOT EXISTS %I PARTITION OF task_runs
          FOR VALUES FROM (%L) TO (%L)',
-        next_partition_name,
-        next_month_start,
-        next_month_end
-    );
+    next_partition_name,
+    next_month_start,
+    next_month_end
+);
 END;
 $$ LANGUAGE plpgsql;
 -- Function to create future partitions automatically
-CREATE OR REPLACE FUNCTION create_task_run_events_partition_for_month()
-RETURNS void AS $$
-DECLARE
-    current_month_start date;
-    current_month_end date;
-    next_month_start date;
-    next_month_end date;
-    current_partition_name text;
-    next_partition_name text;
-BEGIN
-    current_month_start := date_trunc('month', now());
-    current_month_end := current_month_start + interval '1 month';
-    next_month_start := current_month_end;
-    next_month_end := next_month_start + interval '1 month';
-
-    current_partition_name := 'task_run_events_y' || 
-                     to_char(current_month_start, 'YYYY') ||
-                     'm' || to_char(current_month_start, 'MM');
-    
-    next_partition_name := 'task_run_events_y' || 
-                     to_char(next_month_start, 'YYYY') ||
-                     'm' || to_char(next_month_start, 'MM');
-    
-    EXECUTE format(
-        'CREATE TABLE IF NOT EXISTS %I PARTITION OF task_run_events
+CREATE OR REPLACE FUNCTION create_task_run_events_partition_for_month() RETURNS void AS $$
+DECLARE current_month_start date;
+current_month_end date;
+next_month_start date;
+next_month_end date;
+current_partition_name text;
+next_partition_name text;
+BEGIN current_month_start := date_trunc('month', now());
+current_month_end := current_month_start + interval '1 month';
+next_month_start := current_month_end;
+next_month_end := next_month_start + interval '1 month';
+current_partition_name := 'task_run_events_y' || to_char(current_month_start, 'YYYY') || 'm' || to_char(current_month_start, 'MM');
+next_partition_name := 'task_run_events_y' || to_char(next_month_start, 'YYYY') || 'm' || to_char(next_month_start, 'MM');
+EXECUTE format(
+    'CREATE TABLE IF NOT EXISTS %I PARTITION OF task_run_events
          FOR VALUES FROM (%L) TO (%L)',
-        current_partition_name,
-        current_month_start,
-        current_month_end
-    );
-    EXECUTE format(
-        'CREATE TABLE IF NOT EXISTS %I PARTITION OF task_run_events
+    current_partition_name,
+    current_month_start,
+    current_month_end
+);
+EXECUTE format(
+    'CREATE TABLE IF NOT EXISTS %I PARTITION OF task_run_events
          FOR VALUES FROM (%L) TO (%L)',
-        next_partition_name,
-        next_month_start,
-        next_month_end
-    );
+    next_partition_name,
+    next_month_start,
+    next_month_end
+);
 END;
 $$ LANGUAGE plpgsql;
 -- create the first partition

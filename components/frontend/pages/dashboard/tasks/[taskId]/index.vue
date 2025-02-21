@@ -56,6 +56,16 @@ const lastStatusChange = computed(() => {
       </span>
     </div>
 
+    <!-- Task actions -->
+    <section>
+      <div class="mb-3 d-flex gap-2">
+        <BButton class="icon-link" variant="outline-secondary" :to="localePath(`/dashboard/tasks/${taskId}/edit`)">
+          <Icon name="ph:pencil" />
+          {{ $t('dashboard.tasks.edit') }}
+        </BButton>
+      </div>
+    </section>
+
     <!-- Task overview -->
     <div class="row mb-5 row-gap-3 r">
       <!-- Last status change column -->

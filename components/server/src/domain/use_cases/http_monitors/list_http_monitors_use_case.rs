@@ -20,7 +20,7 @@ pub struct ListHttpMonitorsParams {
     pub items_per_page: Option<u32>,
     pub include: Option<Vec<HttpMonitorStatus>>,
     pub query: Option<String>,
-    #[ts(type = "Option<MetadataFilter>")]
+    #[ts(type = "MetadataFilter | null")]
     pub metadata_filter: Option<String>,
 }
 

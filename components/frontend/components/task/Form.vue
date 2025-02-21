@@ -2,6 +2,8 @@
 import { ProseP } from '#build/components';
 import useVuelidate from '@vuelidate/core';
 import { integer, minValue, required, requiredIf } from '@vuelidate/validators';
+import type { EntityMetadata } from 'bindings/EntityMetadata';
+import type { NotificationSettings } from '../NotificationSettingsForm.vue';
 
 /**
  * A type that represents the data for a task form, used as both
@@ -12,9 +14,12 @@ export type TaskFormData = {
   name: string;
   description: string | null
   cronSchedule: string | null;
+  sheduleTimezone: string | null;
   startWindowSeconds: number | null;
   latenessWindowSeconds: number | null;
   heartbeatTimeoutSeconds: number;
+  notificationSettings: NotificationSettings;
+  metadata: EntityMetadata,
 }
 
 type TaskFormProps = {
@@ -27,10 +32,17 @@ const { data = {
   id: "",
   name: "",
   description: "",
+  sheduleTimezone: null,
   cronSchedule: null,
   startWindowSeconds: 30,
   latenessWindowSeconds: 120,
   heartbeatTimeoutSeconds: 20,
+  notificationSettings: {
+    pushNotificationEnabled: true,
+    smsNotificationEnabled: false,
+    emailNotificationEnabled: true,
+  },
+  metadata: { records: {} }
 }
 } = defineProps<TaskFormProps>();
 
@@ -159,20 +171,27 @@ watch(() => form.name, (name) => {
     </section>
 
 
-    <!-- Advanced settings section -->
-    <section>
-      <h5>{{ $t('dashboard.tasks.form.advancedSettings') }}</h5>
+    <!-- Advanced settings accordion -->
+    <h5 class="mb-3">{{ $t('dashboard.tasks.form.advancedSettings') }}</h5>
+    <BAccordion flush class="mb-3">
       <!-- ID Group -->
-      <div class="mb-3">
+      <BAccordionItem :title="$t('dashboard.tasks.form.id')">
         <BFormGroup :invalid-feedback="v$.id.$errors[0]?.$message.toString()">
           <label for="idInput">{{ $t('dashboard.tasks.form.id') }}</label>
           <BInput id="idInput" type="text" v-model="v$.id.$model" :state="v$.id.$dirty ? !v$.id.$invalid : null"
             size="sm" />
         </BFormGroup>
         <FormHelp :text="$t('dashboard.tasks.form.idDescription')" />
-      </div>
-
-      <div class="mb-5">
+      </BAccordionItem>
+      <!-- Notification Settings -->
+      <BAccordionItem :title="$t('dashboard.tasks.form.notificationSettings')">
+        <BFormGroup class="mb-5">
+          <NotificationSettingsForm v-model="form.notificationSettings" />
+          <FormHelp :text="$t('dashboard.tasks.form.notificationSettingsDescription')" />
+        </BFormGroup>
+      </BAccordionItem>
+      <!-- Heartbeats group -->
+      <BAccordionItem :title="$t('dashboard.tasks.form.heartbeats')">
         <BFormGroup>
           <label for="idInput">{{ $t('dashboard.tasks.form.heartbeatTimeout') }}</label>
           <div class="d-flex align-items-center gap-1">
@@ -183,8 +202,14 @@ watch(() => form.name, (name) => {
           </div>
         </BFormGroup>
         <FormHelp :text="$t('dashboard.tasks.form.heartbeatTimeoutDescription')" />
-      </div>
-    </section>
+      </BAccordionItem>
+      <BAccordionItem :title="$t('dashboard.tasks.form.metadata')">
+        <BFormGroup>
+          <DashboardMetadataInput class="mb-3" id="metadata-input" v-model="form.metadata" />
+        </BFormGroup>
+        <FormHelp :text="$t('dashboard.tasks.form.metadataDescription')" />
+      </BAccordionItem>
+    </BAccordion>
 
     <BButton type="submit" class="icon-link" :disabled="v$.$invalid || v$.$pending">
       <Icon name="ph:floppy-disk-back-duotone" aria-hidden />

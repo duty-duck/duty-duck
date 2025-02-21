@@ -5,6 +5,7 @@ import type { ListTaskRunsParams } from "bindings/ListTaskRunsParams"
 import type { ListTaskRunsResponse } from "bindings/ListTaskRunsResponse"
 import type { ListTasksParams } from "bindings/ListTasksParams"
 import type { ListTasksResponse } from "bindings/ListTasksResponse"
+import type { UpdateTaskCommand } from "bindings/UpdateTaskCommand"
 import { FetchError } from "ofetch"
 
 export const useTasksRepository = () => {
@@ -22,10 +23,14 @@ export const useTasksRepository = () => {
             const $fetch = await useServer$fetch();
             return await $fetch<void>("/tasks", { method: "post", body: task })
         },
+        async updateTask(taskId: string, command: UpdateTaskCommand) {
+            const $fetch = await useServer$fetch();
+            return await $fetch<void>(`/tasks/${taskId}`, { method: "patch", body: command })
+        },
         async checkTaskIdIsAvailable(taskId: string) {
             const $fetch = await useServer$fetch();
             try {
-                await $fetch<void>(`/tasks/${taskId}`, { method: "head"  })
+                await $fetch<void>(`/tasks/${taskId}`, { method: "head" })
                 return false;
             } catch (error) {
                 if (error instanceof FetchError && error.status === 404) {

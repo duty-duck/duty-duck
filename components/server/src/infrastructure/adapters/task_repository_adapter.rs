@@ -134,7 +134,7 @@ impl TaskRepository for TaskRepositoryAdapter {
                 FROM jsonb_each($6::jsonb) -- Replace with your filter object
             )
 
-            SELECT *, COUNT(*) OVER() as "filtered_count!" 
+            SELECT *, COUNT(*) OVER() as "filtered_count" 
             FROM tasks t
             WHERE organization_id = $1
 
@@ -207,7 +207,7 @@ impl TaskRepository for TaskRepositoryAdapter {
             .map(|row| BoundaryTask {
                 organization_id: row.get("organization_id"),
                 id: row.get("id"),
-                user_id: TaskUserId::new(row.get::<String, _>("id"))
+                user_id: TaskUserId::new(row.get::<String, _>("user_id"))
                     .expect("Invalid task ID in database"),
                 name: row.get("name"),
                 description: row.get("description"),

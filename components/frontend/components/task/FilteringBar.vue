@@ -14,8 +14,8 @@ const emit = defineEmits<{
       <Icon size="1.3rem" name="ph:funnel-simple-x-bold" />
     </BButton>
     <TaskStatusDropdown v-model="includeStatuses" />
-    <BInput class="border border-secondary bg-transparent" v-model="query"
-      :placeholder="$t('dashboard.tasks.search')" style="width: 300px;" />
+    <BInput class="border border-secondary bg-transparent" v-model="query" :placeholder="$t('dashboard.tasks.search')"
+      style="width: 300px; flex-grow: 1;" />
     <slot />
   </nav>
 </template>

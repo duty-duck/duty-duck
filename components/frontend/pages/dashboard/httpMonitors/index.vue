@@ -1,37 +1,16 @@
 <script lang="ts" setup>
-import { refDebounced, useIntervalFn } from "@vueuse/core";
-import { useRouteQuery } from "@vueuse/router";
-import { allStatuses } from "~/components/httpMonitor/StatusDropdown.vue";
+import { useIntervalFn } from "@vueuse/core";
 import { usePermissionGrant } from "~/composables/authComposables";
 
 await usePermissionGrant("readHttpMonitors");
 
 const localePath = useLocalePath();
-const query = useRouteQuery("query", "");
-const queryDebounced = refDebounced(query, 250);
-const pageNumber = useRouteQuery("pageNumber", 1, { transform: Number });
-const includeStatuses = useRouteQuery("statuses", ['up', 'down', 'suspicious', 'recovering']);
 const showFacetsOffcanvas = ref(false);
-const { data: metadataFilter, clear: clearMetadataFilter } = useMetadataFilterQuery();
-
-const fetchParams = computed(() => ({
-  pageNumber: pageNumber.value,
-  include: includeStatuses.value,
-  query: queryDebounced.value,
-  itemsPerPage: 10,
-  metadataFilter: metadataFilter.value,
-}));
+const { clearFilters, listMonitorsParams, query, metadataFilter, includeStatuses, pageNumber } = await useHttpMonitorsFilters();
 
 const repository = useHttpMonitorRepository();
-const { status, data, refresh } = await repository.useHttpMonitors(fetchParams);
+const { data, refresh } = await repository.useHttpMonitors(listMonitorsParams);
 const { data: filterableMetadataFields } = await repository.useFilterableMetadataFields();
-
-const onClearFilters = () => {
-  clearMetadataFilter();
-  navigateTo({
-    query: { pageNumber: pageNumber.value, query: "", statuses: [] },
-  });
-};
 
 const hiddenMonitorsCount = computed(() => {
   if (!data.value) {
@@ -42,9 +21,11 @@ const hiddenMonitorsCount = computed(() => {
   );
 });
 
-if (data.value?.items.length == 0 && pageNumber.value > 1) {
-  navigateTo({ query: { pageNumber: 1 } });
-}
+watchEffect(() => {
+  if (data.value?.items.length == 0 && pageNumber.value > 1) {
+    clearFilters()
+  }
+})
 
 useIntervalFn(() => {
   refresh();
@@ -56,10 +37,10 @@ useIntervalFn(() => {
     <BBreadcrumb>
       <BBreadcrumbItem :to="localePath('/dashboard')">{{
         $t("dashboard.mainSidebar.home")
-      }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
       <BBreadcrumbItem active>{{
         $t("dashboard.mainSidebar.monitors")
-      }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
     </BBreadcrumb>
     <div class="d-flex align-items-center justify-content-between">
       <h2>{{ $t("dashboard.monitors.pageTitle") }}</h2>
@@ -79,17 +60,10 @@ useIntervalFn(() => {
         }}
       </span>
     </div>
+
     <HttpMonitorFilteringBar v-model:includeStatuses="includeStatuses" v-model:query="query"
-      v-model:metadataFilter="metadataFilter" :filterableMetadataFields="filterableMetadataFields!"
-      @clear-filters="onClearFilters">
-      <template #default>
-        <BButton variant="outline-secondary" class="d-flex align-items-center gap-1"
-          @click="showFacetsOffcanvas = true">
-          <Icon name="ph:funnel" aria-hidden size="1.3rem" />
-          {{ $t('dashboard.facets.title') }}
-        </BButton>
-      </template>
-    </HttpMonitorFilteringBar>
+      @clear-filters="clearFilters" @toggle-metadata="showFacetsOffcanvas = true" :metadata-filter="metadataFilter" />
+
     <div v-if="data?.totalNumberOfResults == 0" class="text-secondary text-center my-5">
       <Icon name="ph:globe-duotone" size="120px" />
       <h3>{{ $t("dashboard.monitors.emptyPage.title") }}</h3>
@@ -99,12 +73,12 @@ useIntervalFn(() => {
       <HttpMonitorAddButton class="m-3" />
     </div>
     <div v-else-if="data?.totalNumberOfFilteredResults == 0" class="text-secondary text-center my-5">
-      <Icon name="ph:seal-check-duotone" size="120px" />
+      <Icon name="ph:globe-duotone" size="120px" />
       <h3>{{ $t("dashboard.monitors.noResults.title") }}</h3>
       <p class="lead">
         {{ $t("dashboard.monitors.noResults.text") }}
       </p>
-      <BButton variant="outline-secondary" @click="onClearFilters">{{ $t("dashboard.monitors.clearFilters") }}
+      <BButton variant="outline-secondary" @click="clearFilters">{{ $t("dashboard.monitors.clearFilters") }}
       </BButton>
     </div>
     <div v-else class="d-grid row-gap-3 mt-3">

@@ -12,16 +12,12 @@
         "hoursShort": "{count}h"
     },
     "timeRangeInput": {
-        "noRange": "No time range",
-        "ranges": {
-            "-10m": "Last 10 minutes",
-            "-1h": "Last hour",
-            "-6h": "Last 6 hours",
-            "-12h": "Last 12 hours",
-            "-24h": "Last 24 hours",
-            "-7d": "Last 7 days",
-            "-30d": "Last 30 days"
-        }
+        "label": "Date range",
+        "noTimeRange": "No time range",
+        "today": "Today",
+        "thisWeek": "This week",
+        "thisMonth": "This month",
+        "select": "Select"
     },
     "requestHeadersInput": {
         "noHeaders": "No headers",

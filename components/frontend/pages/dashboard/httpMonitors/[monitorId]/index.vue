@@ -52,21 +52,17 @@ useIntervalFn(() => refreshMonitorResponse(), 5000);
     <BBreadcrumb>
       <BBreadcrumbItem :to="localePath('/dashboard')">{{
         $t("dashboard.mainSidebar.home")
-      }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
       <BBreadcrumbItem :to="localePath('/dashboard/httpMonitors')">{{
         $t("dashboard.mainSidebar.monitors")
-      }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
       <BBreadcrumbItem active>
         {{ $t("dashboard.monitors.details") }}
       </BBreadcrumbItem>
     </BBreadcrumb>
     <div class="d-flex flex-wrap align-items-center my-5 py-3 row-gap-5 column-gap-3">
-      <HttpMonitorStatusIcon
-        :status="monitorResponse.monitor.status"
-        class="mx-auto mx-md-5"
-        :animated="monitorResponse.monitor.status != 'inactive'"
-        big
-      />
+      <HttpMonitorStatusIcon :status="monitorResponse.monitor.status" class="mx-auto mx-md-5"
+        :animated="monitorResponse.monitor.status != 'inactive'" big />
       <div>
         <h2 class="h4 url">
           {{ monitorResponse.monitor.url }}

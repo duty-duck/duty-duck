@@ -127,23 +127,19 @@ impl IncidentRepository for IncidentRepositoryAdapter {
 
             -- Filter by sources (any of the sources)
             AND (
-                -- Filter by http monitor ids
+                -- No sources filter
                 (
-                    $7::uuid[] = '{{}}' OR
-                    (i.incident_source_type = $6 AND i.incident_source_id = ANY($7::uuid[]))
+                    $7::uuid[] = '{{}}' AND
+                    $12::uuid[] = '{{}}' AND
+                    $14::uuid[] = '{{}}'
                 )
-                
+                 
+                -- Filter by http monitor ids
+                OR (i.incident_source_type = $6 AND i.incident_source_id = ANY($7::uuid[]))
                 -- Filter by task ids
-                OR (
-                    $12::uuid[] = '{{}}' OR
-                    (i.incident_source_type = $11 AND i.incident_source_id = ANY($12::uuid[]))
-                )
-
+                OR (i.incident_source_type = $11 AND i.incident_source_id = ANY($12::uuid[]))
                 -- Filter by task run ids
-                OR (
-                    $14::uuid[] = '{{}}' OR
-                    (i.incident_source_type = $13 AND i.incident_source_id = ANY($14::uuid[]))
-                )
+                OR (i.incident_source_type = $13 AND i.incident_source_id = ANY($14::uuid[]))
             )
             -- [end of filter by sources]
 

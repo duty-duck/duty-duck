@@ -33,7 +33,7 @@ pub struct ListIncidentsParams {
     pub to_date: Option<DateTime<Utc>>,
     pub order_by: Option<OrderIncidentsBy>,
     pub order_direction: Option<OrderDirection>,
-    #[ts(type = "Option<MetadataFilter>")]
+    #[ts(type = "MetadataFilter | null")]
     pub metadata_filter: Option<String>,
 }
 

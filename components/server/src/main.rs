@@ -1,7 +1,7 @@
 #[macro_use]
 extern crate rust_i18n;
 
-use application::{background_tasks::BackgroundTask, migrations::MigrationsCommand};
+use application::migrations::MigrationsCommand;
 use clap::*;
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
@@ -26,11 +26,6 @@ struct Cli {
 enum Commands {
     /// Start the server
     Serve,
-    /// Run a background task manually
-    Run {
-        #[command(subcommand)]
-        task: BackgroundTask,
-    },
     /// Run migrations against the database
     Migrations {
         #[command(subcommand)]
@@ -59,10 +54,6 @@ async fn main() -> anyhow::Result<()> {
 
     match command {
         Commands::Serve => application::start_server().await?,
-        Commands::Run { task } => {
-            tracing::info!("Running background task: {:?}", task);
-            crate::application::background_tasks::run_background_task(task).await?;
-        }
         Commands::Migrations { command } => {
             crate::application::migrations::run_migrations(command).await?;
         }

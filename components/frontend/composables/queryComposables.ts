@@ -1,17 +1,27 @@
 import { useUrlSearchParams } from "@vueuse/core";
+import { useRouteQuery } from "@vueuse/router";
 import type { MetadataFilter } from "bindings/MetadataFilter";
-import type { TimeRange } from "~/components/dashboard/TimeRangePicker.vue";
 
-export const useTimeRangeQuery = () => {
-    const route = useRoute();
-    return computed<TimeRange | null>({
-        get() {
-            // no filtering if the timeRange query param is explicitly set to null
-            // keep only the last 7 days as default
-            return route.query.timeRange == "null" ? null : (route.query.timeRange as TimeRange ?? "-7d");
+export const useDateRangeQuery = () => {
+    const dateStart = useRouteQuery<string, Date | null>("dateStart", undefined, { transform: (dateStr?: string) => dateStr ? new Date(dateStr) : null });
+    const dateEnd = useRouteQuery<string, Date | null>("dateEnd", undefined, { transform: (dateStr?: string) => dateStr ? new Date(dateStr) : null });
+
+    return computed<{ start: Date, end: Date } | null>({
+        get: () => {
+            if (dateStart.value && dateEnd.value) {
+                return { start: dateStart.value, end: dateEnd.value }
+            } else {
+                return null
+            }
         },
-        set(value: TimeRange) {
-            navigateTo({ query: { ...route.query, timeRange: value ?? "null" } });
+        set: (range: { start: Date, end: Date } | null) => {
+            if (range) {
+                dateStart.value = range.start;
+                dateEnd.value = range.end;
+            } else {
+                dateStart.value = null;
+                dateEnd.value = null;
+            }
         }
     })
 }

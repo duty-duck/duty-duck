@@ -42,11 +42,16 @@
             "startWindowDescription": "The start window is the time window during which the task is expected to run. If the task does not start in this window, it will be considered late and an incident will be created.",
             "latenessWindow": "Lateness window",
             "latenessWindowDescription": "The lateness window is the time window, beginning after the start window, during which a late task is still expected to run. If the late task does not start in this window, it will be considered failed.",
+            "heartbeats": "Heartbeats",
             "heartbeatTimeout": "Heartbeat timeout",
+            "metadata": "Metadata",
+            "metadataDescription": "Metadata is optional. It allows you to organize your tasks and related incidents.",
             "heartbeatTimeoutDescription": "Once a task is started, it is expected to send a periodic heartbeat to DutyDuck to confirm it is still running. If the task does not send a heartbeat in this window, it will be considered dead and an incident will be created. If you use the DutyDuck command line tool to start the task, the heartbeat is sent automatically.",
             "advancedSettings": "Advanced settings",
             "saveTaskButton": "Save task",
             "taskIdNotAvailable": "Task id is not available, a task with this id already exists.",
+            "notificationSettings": "Notifications",
+            "notificationSettingsDescription": "Determines the notifications that will be sent in case of task failure",
             "description": "Description"
         }
     },

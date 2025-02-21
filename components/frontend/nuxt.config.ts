@@ -71,6 +71,10 @@ export default defineNuxtConfig({
     "bindings": resolve(__dirname, "../server/bindings"),
   },
 
+  build: {
+    transpile: ['@vuepic/vue-datepicker']
+  },
+
   content: {
     highlight: {
       theme: 'github-light',

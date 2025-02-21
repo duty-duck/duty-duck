@@ -60,7 +60,7 @@ useIntervalFn(() => {
     </BBreadcrumb>
     <div class="d-flex align-items-center justify-content-between">
       <h2>{{ $t("dashboard.tasks.pageTitle") }}</h2>
-      <BButton variant="primary" size="sm" :to="localePath('/dashboard/tasks/new')">{{ $t("dashboard.tasks.createTaskButton") }}</BButton>
+      <TaskAddButton />
     </div>
     <div class="small text-secondary mb-2">
       {{

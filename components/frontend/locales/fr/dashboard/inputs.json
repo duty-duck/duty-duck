@@ -12,16 +12,12 @@
         "hoursShort": "{count}h"
     },
     "timeRangeInput": {
-        "noRange": "Aucune plage de temps",
-        "ranges": {
-            "-10m": "10 dernières minutes",
-            "-1h": "Dernière heure",
-            "-6h": "6 dernières heures",
-            "-12h": "12 dernières heures",
-            "-24h": "24 dernières heures",
-            "-7d": "7 derniers jours",
-            "-30d": "30 derniers jours"
-        }
+        "label": "Plage de temps",
+        "noTimeRange": "Sans plage de temps",
+        "today": "Aujourd'hui",
+        "thisWeek": "Cette semaine",
+        "thisMonth": "Ce mois-ci",
+        "select": "Sélectionner"
     },
     "requestHeadersInput": {
         "noHeaders": "Aucune entête",

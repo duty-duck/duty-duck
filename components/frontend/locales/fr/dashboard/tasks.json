@@ -42,11 +42,16 @@
             "startWindowDescription": "La fenêtre de début est la fenêtre de temps durant laquelle la tâche est attendue. Si la tâche ne démarre pas dans cette fenêtre, elle sera considérée comme en retard et un incident sera créé.",
             "latenessWindow": "Fenêtre de fin de retard",
             "latenessWindowDescription": "La fenêtre de fin de retard est la fenêtre de temps, commençant après la fenêtre de début, durant laquelle une tâche en retard peut encore s'éxécuter. Si la tâche en retard ne démarre pas dans cette fenêtre, elle sera considérée comme échouée.",
+            "heartbeats": "Battements de coeur",
             "heartbeatTimeout": "Timeout pour le battement de coeur (heartbeat)",
+            "metadata": "Métadonnées",
+            "metadataDescription": "Les métadonnées sont optionnelles. Elles vous permettent d'organiser vos tâches et vos incidents associés.",
             "heartbeatTimeoutDescription": "Une fois une tâche démarrée, elle est attendue à envoyer un signal périodique à DutyDuck pour confirmer qu'elle est toujours en cours d'exécution. Si nous ne recevons pas de signal de la tâche dans cette fenêtre, elle sera considérée comme échouée. Si vous utilisez l'utilitaire DutyDuck pour lancer la tâche, vous n'avez rien à faire de plus pour envoyer ce signal.",
             "advancedSettings": "Paramètres avancés",
             "saveTaskButton": "Enregistrer la tâche",
             "taskIdNotAvailable": "L'id de la tâche n'est pas disponible. Une tâche avec cet id existe déjà.",
+            "notificationSettings": "Notifications",
+            "notificationSettingsDescription": "Détermine les notifications qui seront envoyées en cas de retard ou d'échec de la tâche",
             "description": "Description"
         }
     },
