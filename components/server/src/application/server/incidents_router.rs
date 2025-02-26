@@ -17,7 +17,7 @@ use crate::{
             self, AcknowledgeIncidentError, CommentIncidentError, CommentIncidentRequest,
             GetIncidentError, GetIncidentResponse, GetIncidentTimelineError,
             GetIncidentTimelineParams, GetIncidentTimelineResponse, ListIncidentsError,
-            ListIncidentsParams, ListIncidentsResponse,
+            ListIncidentsParams, ListIncidentsResponse, ResolveIncidentError,
         },
     },
 };
@@ -29,13 +29,15 @@ pub fn incidents_router() -> Router<ApplicationState> {
             "/filterable-metadata",
             get(get_filterable_incident_metadata_handler),
         )
-        .route("/{incident_id}", get(get_incident_handler))
-        .route(
-            "/{incident_id}/acknowledge",
-            post(acknowledge_incident_handler),
+        .nest(
+            "/{incident_id}",
+            Router::new()
+                .route("/", get(get_incident_handler))
+                .route("/acknowledge", post(acknowledge_incident_handler))
+                .route("/events", get(get_incident_timeline_handler))
+                .route("/comment", post(comment_incident_handler))
+                .route("/resolve", post(resolve_incident_handler)),
         )
-        .route("/{incident_id}/events", get(get_incident_timeline_handler))
-        .route("/{incident_id}/comment", post(comment_incident_handler))
 }
 
 /// List incidents
@@ -147,6 +149,22 @@ async fn get_incident_timeline_handler(
     }
 }
 
+/// Comment an incident
+#[utoipa::path(
+    post,
+    path = "/incidents/{incident_id}/comment",
+    responses(
+        (status = 200, description = "Comment posted successfully"),
+        (status = 404, description = "Incident not found"),
+        (status = 403, description = "User is not authorized to comment incidents"),
+        (status = 500, description = "Technical failure occured while saving the comment")
+    ),
+    request_body(
+        content = CommentIncidentRequest,
+        description = "The command to comment an incident",
+        content_type = "application/json"
+    ),
+)]
 async fn comment_incident_handler(
     auth_context: AuthContext,
     State(app_state): ExtractAppState,
@@ -172,6 +190,19 @@ async fn comment_incident_handler(
     }
 }
 
+/// Acknowledge an incident
+///
+/// Acknowledging an incident lets anyone know you are working on a resolution
+#[utoipa::path(
+    post,
+    path = "/incidents/{incident_id}/acknowledge",
+    responses(
+        (status = 200, description = "Incident acknowledged succesfully"),
+        (status = 404, description = "Incident not found"),
+        (status = 403, description = "User is not authorized to acknowledge incidents"),
+        (status = 500, description = "Technical failure occured while saving the incident")
+    ),
+)]
 async fn acknowledge_incident_handler(
     auth_context: AuthContext,
     State(app_state): ExtractAppState,
@@ -190,6 +221,50 @@ async fn acknowledge_incident_handler(
         Err(AcknowledgeIncidentError::IncidentNotFound) => StatusCode::NOT_FOUND.into_response(),
         Err(AcknowledgeIncidentError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
         Err(AcknowledgeIncidentError::TechnicalFailure(e)) => {
+            warn!(error = ?e, "Technical failure occured while acknowledging incident");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
+}
+
+/// Resolve an incident manually
+///
+/// Marks an incident as resolved and cancels future notifications.
+/// While you can manually resolve any incident, some incidents are automatically resolved when the root problem is resolved.
+/// For example, when a monitor becomes helthy again, any related incident is resolved.
+#[utoipa::path(
+    post,
+    path = "/incidents/{incident_id}/resolve",
+    responses(
+        (status = 200, description = "Incident resolved succesfully"),
+        (status = 404, description = "Incident not found"),
+        (status = 403, description = "User is not authorized to resolve incidents"),
+        (status = 500, description = "Technical failure occured while saving the incident")
+    ),
+)]
+async fn resolve_incident_handler(
+    auth_context: AuthContext,
+    State(app_state): ExtractAppState,
+    Path(incident_id): Path<Uuid>,
+) -> impl IntoResponse {
+    match incidents::resolve_incident_manually(
+        &app_state.adapters.incident_repository,
+        &app_state.adapters.incident_event_repository,
+        &app_state.adapters.incident_notification_repository,
+        &auth_context,
+        incident_id,
+    )
+    .await
+    {
+        Ok(res) => Json(res).into_response(),
+        Err(ResolveIncidentError::IncidentNotFound) => {
+            (StatusCode::NOT_FOUND, "Incident not found").into_response()
+        }
+        Err(ResolveIncidentError::IncidentAlreadyResolved) => {
+            (StatusCode::CONFLICT, "Incident already resolved").into_response()
+        }
+        Err(ResolveIncidentError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
+        Err(ResolveIncidentError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while acknowledging incident");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }

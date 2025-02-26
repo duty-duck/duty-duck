@@ -2,6 +2,7 @@ use chrono::Utc;
 use serde::Deserialize;
 use thiserror::Error;
 use ts_rs::TS;
+use utoipa::ToSchema;
 use uuid::Uuid;
 
 use crate::domain::{
@@ -14,7 +15,7 @@ use crate::domain::{
     },
 };
 
-#[derive(Debug, Deserialize, TS)]
+#[derive(Debug, Deserialize, TS, ToSchema)]
 #[ts(export)]
 pub struct CommentIncidentRequest {
     payload: CommentPayload,

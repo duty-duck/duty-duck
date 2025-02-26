@@ -39,7 +39,9 @@ pub(crate) fn tasks_router() -> Router<ApplicationState> {
         )
 }
 
-/// List all tasks for the current organization
+/// List tasks
+
+/// List all tasks for the current organization. The list can optionally be filtered using query parameters
 #[utoipa::path(
     get,
     path = "/tasks",
@@ -115,7 +117,9 @@ async fn create_task_handler(
     }
 }
 
-/// Get a single task by its id. The provided id can be either the user-defined id (the `user-id` field) or the technical UUID (the `id` field)
+/// Get a single task by its id.
+///
+/// The provided id can be either the user-defined id (the `user-id` field) or the technical UUID (the `id` field)
 /// Note that if you use the user-defined id, you may only retrieve tasks that are not archived. If want to retrieve archived tasks, use the UUID instead.
 /// A user-defiend id can only be used for a single active task within your organization.
 #[utoipa::path(
@@ -249,7 +253,10 @@ async fn start_task_handler(
     }
 }
 
+/// Send a heartbeat
+
 /// Send a heartbeat for a running task, to indicate that it is still running
+///
 /// Without a regular heartbeat, a running task will eventually be considered failed and retried.
 /// This endpoint can only be used on running tasks.
 ///

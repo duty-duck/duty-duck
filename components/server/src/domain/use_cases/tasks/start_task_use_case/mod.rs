@@ -299,8 +299,10 @@ where
         incident_event_repository,
         incident_notification_repository,
         &incident,
+        None,
     )
-    .await?;
+    .await
+    .context("Failed to resolve incident")?;
 
     Ok(())
 }

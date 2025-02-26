@@ -114,8 +114,10 @@ where
             incident_event_repository,
             incident_notification_repository,
             &incident,
+            Some(auth_context.active_user_id),
         )
-        .await?;
+        .await
+        .context("Failed to resolve incident")?;
     }
 
     task_repository

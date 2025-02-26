@@ -156,8 +156,10 @@ where
                     &self.incident_event_repository,
                     &self.incident_notification_repository,
                     &incident,
+                    None,
                 )
-                .await?;
+                .await
+                .context("Failed to resolve incident")?;
             }
             // if the monitor transitions to recovering for the first time, we create a ping event
             (HttpMonitorStatus::Recovering, Some(incident)) => {

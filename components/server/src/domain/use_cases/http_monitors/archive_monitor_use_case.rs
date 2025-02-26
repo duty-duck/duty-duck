@@ -1,3 +1,4 @@
+use anyhow::Context;
 use chrono::Utc;
 use thiserror::Error;
 use uuid::Uuid;
@@ -102,8 +103,10 @@ where
             incident_event_repository,
             incident_notification_repository,
             &incident,
+            Some(auth_context.active_user_id),
         )
-        .await?;
+        .await
+        .context("Failed to resolve incident")?;
     }
 
     incident_repository.commit_transaction(tx).await?;
