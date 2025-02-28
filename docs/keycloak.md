@@ -6,6 +6,7 @@ every time you install keycloak with a fresh database.
 - Create a `dutyduck-server` client with
     - Correct Redirect URIs
     - Client credentials grant type
+    - Service account roles
     - The `realm_admin` role
 - Create a `dutyduck-dashboard` client with
     - Correct Redirect URIs

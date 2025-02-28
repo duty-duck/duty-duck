@@ -1,0 +1,192 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT \n                tasks.status as \"task_status!\",\n                tasks.name as \"task_name!\",\n                tasks.user_id as \"task_user_id!\",\n                tasks.description as \"task_description\",\n                tasks.previous_status as \"task_previous_status\",\n                tasks.last_status_change_at as \"task_last_status_change_at\",\n                tasks.cron_schedule as \"task_cron_schedule\",\n                tasks.schedule_timezone as \"task_schedule_timezone\",\n                tasks.next_due_at as \"task_next_due_at\",\n                tasks.start_window_seconds as \"task_start_window_seconds\",\n                tasks.lateness_window_seconds as \"task_lateness_window_seconds\",\n                tasks.heartbeat_timeout_seconds as \"task_heartbeat_timeout_seconds\",\n                tasks.created_at as \"task_created_at\",\n                tasks.metadata as \"task_metadata\",\n                tasks.email_notification_enabled as \"task_email_notification_enabled\",\n                tasks.push_notification_enabled as \"task_push_notification_enabled\",\n                tasks.sms_notification_enabled as \"task_sms_notification_enabled\",\n                task_runs.*\n            FROM task_runs\n            INNER JOIN tasks ON task_runs.organization_id = tasks.organization_id AND task_runs.task_id = tasks.id\n            WHERE \n                (task_runs.last_heartbeat_at < ($1::timestamptz - INTERVAL '1 second' * task_runs.heartbeat_timeout_seconds)) \n                AND task_runs.status = $2\n            ORDER BY task_runs.last_heartbeat_at ASC\n            LIMIT $3\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "task_status!",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 1,
+        "name": "task_name!",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 2,
+        "name": "task_user_id!",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 3,
+        "name": "task_description",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 4,
+        "name": "task_previous_status",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 5,
+        "name": "task_last_status_change_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 6,
+        "name": "task_cron_schedule",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 7,
+        "name": "task_schedule_timezone",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 8,
+        "name": "task_next_due_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 9,
+        "name": "task_start_window_seconds",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 10,
+        "name": "task_lateness_window_seconds",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 11,
+        "name": "task_heartbeat_timeout_seconds",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 12,
+        "name": "task_created_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 13,
+        "name": "task_metadata",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 14,
+        "name": "task_email_notification_enabled",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 15,
+        "name": "task_push_notification_enabled",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 16,
+        "name": "task_sms_notification_enabled",
+        "type_info": "Bool"
+      },
+      {
+        "ordinal": 17,
+        "name": "organization_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 18,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 19,
+        "name": "task_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 20,
+        "name": "status",
+        "type_info": "Int2"
+      },
+      {
+        "ordinal": 21,
+        "name": "started_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 22,
+        "name": "completed_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 23,
+        "name": "exit_code",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 24,
+        "name": "error_message",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 25,
+        "name": "last_heartbeat_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 26,
+        "name": "heartbeat_timeout_seconds",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 27,
+        "name": "updated_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 28,
+        "name": "metadata",
+        "type_info": "Jsonb"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz",
+        "Int2",
+        "Int8"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      false,
+      false,
+      true,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      false,
+      true,
+      true,
+      true,
+      true,
+      false,
+      false,
+      true
+    ]
+  },
+  "hash": "564910bf26f41df9b7d9e784c79533f076c98817bb055b279ead7a6239f98eea"
+}

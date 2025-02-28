@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n                SELECT * FROM tasks\n                WHERE \n                    cron_schedule IS NOT NULL\n                    AND $1::timestamptz >= next_due_at + (start_window_seconds || ' seconds')::interval\n                    AND status = $2 -- status is due\n                LIMIT $3",
+  "query": "SELECT *\n            FROM tasks \n            WHERE \n                organization_id = $1 AND user_id = $2 AND status != $3",
   "describe": {
     "columns": [
       {
@@ -101,9 +101,9 @@
     ],
     "parameters": {
       "Left": [
-        "Timestamptz",
-        "Int2",
-        "Int8"
+        "Uuid",
+        "Text",
+        "Int2"
       ]
     },
     "nullable": [
@@ -128,5 +128,5 @@
       true
     ]
   },
-  "hash": "23337ba6c7c356d4e752ff30f89346d0cc895a821d528408537234b0cb91d9b5"
+  "hash": "3f19818515cee01758e6c43dc2f811b42686bf1709172a95b37967d271365fb2"
 }

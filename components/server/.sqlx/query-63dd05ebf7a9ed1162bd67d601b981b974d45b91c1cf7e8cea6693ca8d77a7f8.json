@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n            SELECT *\n            FROM task_runs\n            WHERE \n                organization_id = $1\n                AND task_id = $2\n                AND started_at = $3\n            ",
+  "query": "\n            SELECT *\n            FROM task_runs\n            WHERE \n                organization_id = $1\n                AND id = $2\n            ",
   "describe": {
     "columns": [
       {
@@ -10,65 +10,64 @@
       },
       {
         "ordinal": 1,
-        "name": "task_user_id",
-        "type_info": "Text"
+        "name": "id",
+        "type_info": "Uuid"
       },
       {
         "ordinal": 2,
+        "name": "task_id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 3,
         "name": "status",
         "type_info": "Int2"
       },
       {
-        "ordinal": 3,
+        "ordinal": 4,
         "name": "started_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "completed_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "exit_code",
         "type_info": "Int4"
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "error_message",
         "type_info": "Text"
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "last_heartbeat_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 8,
+        "ordinal": 9,
         "name": "heartbeat_timeout_seconds",
         "type_info": "Int4"
       },
       {
-        "ordinal": 9,
+        "ordinal": 10,
         "name": "updated_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 10,
+        "ordinal": 11,
         "name": "metadata",
         "type_info": "Jsonb"
-      },
-      {
-        "ordinal": 11,
-        "name": "task_id",
-        "type_info": "Uuid"
       }
     ],
     "parameters": {
       "Left": [
         "Uuid",
-        "Uuid",
-        "Timestamptz"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -76,15 +75,15 @@
       false,
       false,
       false,
+      false,
       true,
       true,
       true,
       true,
       false,
       false,
-      true,
-      false
+      true
     ]
   },
-  "hash": "8907fc1cf0632658cf6615861bac18bf6436fd41afcac051a346763a9bebd1ed"
+  "hash": "63dd05ebf7a9ed1162bd67d601b981b974d45b91c1cf7e8cea6693ca8d77a7f8"
 }

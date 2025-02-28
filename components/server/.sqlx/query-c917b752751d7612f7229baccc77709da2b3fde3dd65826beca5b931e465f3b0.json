@@ -1,131 +1,131 @@
 {
   "db_name": "PostgreSQL",
-  "query": "SELECT *\n            FROM tasks \n            WHERE \n                organization_id = $1 AND user_id = $2",
+  "query": "SELECT *\n            FROM tasks \n            WHERE \n                organization_id = $1 AND id = $2",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
         "name": "user_id",
         "type_info": "Text"
       },
       {
-        "ordinal": 1,
+        "ordinal": 2,
         "name": "organization_id",
         "type_info": "Uuid"
       },
       {
-        "ordinal": 2,
+        "ordinal": 3,
         "name": "name",
         "type_info": "Varchar"
       },
       {
-        "ordinal": 3,
+        "ordinal": 4,
         "name": "description",
         "type_info": "Text"
       },
       {
-        "ordinal": 4,
+        "ordinal": 5,
         "name": "status",
         "type_info": "Int2"
       },
       {
-        "ordinal": 5,
+        "ordinal": 6,
         "name": "previous_status",
         "type_info": "Int2"
       },
       {
-        "ordinal": 6,
+        "ordinal": 7,
         "name": "last_status_change_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 7,
+        "ordinal": 8,
         "name": "next_due_at",
         "type_info": "Timestamptz"
       },
       {
-        "ordinal": 8,
+        "ordinal": 9,
         "name": "cron_schedule",
         "type_info": "Text"
       },
       {
-        "ordinal": 9,
-        "name": "start_window_seconds",
-        "type_info": "Int4"
-      },
-      {
         "ordinal": 10,
-        "name": "lateness_window_seconds",
-        "type_info": "Int4"
-      },
-      {
-        "ordinal": 11,
-        "name": "heartbeat_timeout_seconds",
-        "type_info": "Int4"
-      },
-      {
-        "ordinal": 12,
-        "name": "created_at",
-        "type_info": "Timestamptz"
-      },
-      {
-        "ordinal": 13,
         "name": "schedule_timezone",
         "type_info": "Text"
       },
       {
-        "ordinal": 14,
-        "name": "metadata",
-        "type_info": "Jsonb"
+        "ordinal": 11,
+        "name": "start_window_seconds",
+        "type_info": "Int4"
       },
       {
-        "ordinal": 15,
+        "ordinal": 12,
+        "name": "lateness_window_seconds",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 13,
+        "name": "heartbeat_timeout_seconds",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 14,
         "name": "email_notification_enabled",
         "type_info": "Bool"
       },
       {
-        "ordinal": 16,
+        "ordinal": 15,
         "name": "push_notification_enabled",
         "type_info": "Bool"
       },
       {
-        "ordinal": 17,
+        "ordinal": 16,
         "name": "sms_notification_enabled",
         "type_info": "Bool"
       },
       {
+        "ordinal": 17,
+        "name": "created_at",
+        "type_info": "Timestamptz"
+      },
+      {
         "ordinal": 18,
-        "name": "id",
-        "type_info": "Uuid"
+        "name": "metadata",
+        "type_info": "Jsonb"
       }
     ],
     "parameters": {
       "Left": [
         "Uuid",
-        "Text"
+        "Uuid"
       ]
     },
     "nullable": [
       false,
       false,
       false,
+      false,
       true,
       false,
       true,
       true,
       true,
-      true,
-      false,
-      false,
-      false,
-      false,
       true,
       true,
       false,
       false,
       false,
-      false
+      false,
+      false,
+      false,
+      false,
+      true
     ]
   },
-  "hash": "c2fae498048d9f9b32c945f155d8add5ff0af38bf27a35ae97aa2c4fec8723c8"
+  "hash": "c917b752751d7612f7229baccc77709da2b3fde3dd65826beca5b931e465f3b0"
 }
