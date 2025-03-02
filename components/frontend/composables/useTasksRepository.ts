@@ -11,7 +11,7 @@ import { FetchError } from "ofetch"
 
 export const useTasksRepository = () => {
     return {
-        async useTasks(params: ListTasksParams | Ref<ListTasksParams>, opts?: UseFetchOptions<ListTasksResponse>) {
+        async useTasks(params?: ListTasksParams | Ref<ListTasksParams>, opts?: UseFetchOptions<ListTasksResponse>) {
             return useServerFetch<ListTasksResponse>("/tasks", { query: params, retry: 3, dedupe: "cancel", ...(opts || {}) })
         },
         async useFilterableMetadataFields() {

@@ -12,10 +12,27 @@ export const useSuggestedActions = async () => {
     const { t } = useI18n();
     const localePath = useLocalePath();
     const thisDevice = useThisDevice();
+    const monitorRepo = useHttpMonitorRepository();
     const auth = await useAuth();
+
+    const { data: monitorsRes } = await monitorRepo.useHttpMonitors();
 
     return computed(() => {
         const actions: SuggestedAction[] = [];
+
+        if (monitorsRes.value?.totalNumberOfResults == 0) {
+            actions.push({
+                title: t('dashboard.home.createFirstMonitorActionTitle'),
+                description: [t('dashboard.home.createFirstMonitorActionDescription')],
+                cta: [
+                    {
+                        link: localePath('/dashboard/httpMonitors/new'),
+                        label: t('dashboard.home.createFirstMonitorActionCtaButton'),
+                        icon: 'ph:globe-duotone'
+                    }
+                ]
+            })
+        }
 
         if (!auth.userProfile.user.phoneNumber || !auth.userProfile.user.phoneNumberVerified) {
             actions.push({

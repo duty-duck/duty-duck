@@ -7,7 +7,7 @@
         "goToIncidents": "Go to incidents",
         "goToMonitors": "Go to monitors",
         "verifyPhoneNumber": "Verify my number",
-        "phoneNumberVerificationRequired": "You have not yet verified your mobile number",
+        "phoneNumberVerificationRequired": "Veirfy your mobile number",
         "phoneNumberVerificationRequiredDescription": "Don't miss any incident with SMS notifications. To receive SMS notifications, you must verify your mobile number.",
         "pushNotificationsRequired": "You have not yet configured Push notifications",
         "pushNotificationsRequiredDescription": "Don't miss any incident with push notifications. Configure push notifications to receive notifications on your device.",
@@ -17,6 +17,9 @@
         "suggestedActions": "Suggested actions",
         "inviteMembersToOrgActionTitle": "Invite members to your organization",
         "inviteMembersToOrgActionDescription": "You can invite members to your organization to send them alerts and collaborate on incidents",
-        "inviteMembersToOrgActionCtaButton": "Manage members"
+        "inviteMembersToOrgActionCtaButton": "Manage members",
+        "createFirstMonitorActionTitle": "Create your first monitor",
+        "createFirstMonitorActionDescription": "Create a monitor to receive alerts when your website goes down.",
+        "createFirstMonitorActionCtaButton": "New monitor"
     }
 }

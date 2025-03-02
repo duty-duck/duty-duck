@@ -7,7 +7,7 @@
         "goToIncidents": "Voir les incidents",
         "goToMonitors": "Voir les moniteurs",
         "verifyPhoneNumber": "Vérifier mon numéro",
-        "phoneNumberVerificationRequired": "Vous n'avez pas encore vérifié votre numéro de téléphone mobile",
+        "phoneNumberVerificationRequired": "Vérfier votre numéro de mobile",
         "phoneNumberVerificationRequiredDescription": "Ne manquez aucun incident grace aux notifications par SMS. Pour recevoir des notifications par SMS, vous devez vérifier votre numéro de téléphone mobile.",
         "pushNotificationsRequired": "Vous n'avez pas encore configuré les notifications Push",
         "pushNotificationsRequiredDescription": "Ne manquez aucun incident grace aux notifications push. Configurez les notifications push pour recevoir des notifications sur votre appareil.",
@@ -17,6 +17,9 @@
         "suggestedActions": "Actions suggérées",
         "inviteMembersToOrgActionTitle": "Inviter des membres dans votre organisation",
         "inviteMembersToOrgActionDescription": "Vous pouvez inviter des membres à recevoir des alertes et à collaborer sur vos incidents",
-        "inviteMembersToOrgActionCtaButton": "Gestion des membres"
+        "inviteMembersToOrgActionCtaButton": "Gestion des membres",
+        "createFirstMonitorActionTitle": "Créer votre premier moniteur",
+        "createFirstMonitorActionDescription": "Créer un moniteur vous permet de recevoir une alerte lorsque votre site web tombe en panne",
+        "createFirstMonitorActionCtaButton": "Nouveau moniteur"
     }
 }

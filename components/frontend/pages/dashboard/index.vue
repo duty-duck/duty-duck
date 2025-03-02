@@ -58,12 +58,12 @@ const { refresh: refreshDownMonitorsCount, data: downMonitorsCount } = await htt
       <div class="row">
         <div class="col-md-6 col-lg-4" v-for="action in suggestedActions">
           <!-- Phone number verification -->
-          <BAlert variant="info" class="mb-3" :model-value="true">
+          <BAlert variant="light" class="mb-3" :model-value="true">
             <h5 v-if="action.title">{{ action.title }}</h5>
             <p v-for="p in action.description ?? []">
               {{ p }}
             </p>
-            <BButton v-for="cta in action.cta ?? []" :to="cta.link" variant="outline-info" class="icon-link">
+            <BButton v-for="cta in action.cta ?? []" :to="cta.link" variant="outline-primary" class="icon-link">
               <Icon v-if="cta.icon" :name="cta.icon" />
               {{ cta.label }}
             </BButton>

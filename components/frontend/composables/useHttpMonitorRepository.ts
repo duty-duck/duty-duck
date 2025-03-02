@@ -14,7 +14,7 @@ export const useHttpMonitorRepository = () => {
         async useFilterableMetadataFields() {
             return await useServerFetch<FilterableMetadata>("/http-monitors/filterable-metadata");
         },
-        async useHttpMonitors(params: Ref<ListHttpMonitorsParams> | ListHttpMonitorsParams) {
+        async useHttpMonitors(params?: Ref<ListHttpMonitorsParams> | ListHttpMonitorsParams) {
             return await useServerFetch<ListHttpMonitorsResponse>(`/http-monitors`, { retry: 3, retryDelay: 5000, query: params });
         },
         async createHttpMonitor(command: CreateHttpMonitorCommand) {
