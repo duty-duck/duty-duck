@@ -5,6 +5,12 @@
 	"overrideCommand": true,
 	"workspaceFolder": "/home/workspace",
 	"dockerComposeFile": "../docker-compose.yml",
+	"forwardPorts": [
+		8080,
+		3000,
+		4000,
+		5173
+	],
 	"service": "dev-container",
 	"mounts": [
 		"source=${localWorkspaceFolderBasename}-frontend-node_modules,target=${containerWorkspaceFolder}/frontend/node_modules,type=volume",
