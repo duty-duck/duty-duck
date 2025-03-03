@@ -31,8 +31,12 @@
             "cronSchedule": "Planification (Cron): {schedule}",
             "noRuns": "Jamais exécutée"
         },
+        "emptyPage": {
+            "title": "Vous n'avez créé aucune tâche",
+            "text": "Les tâches vous permettent de surveiller le bon fonctionnement de processus critiques tels que les sauvegardes."
+        },
         "noResults": {
-            "title": "Aucune tâches ne correspond à ces filtres",
+            "title": "Aucune tâche ne correspond à ces filtres",
             "text": "Des tâches existent mais ils sont masqués par les filtres sélectionnés. Retirez les filtres pour voir toutes les tâches."
         },
         "clearFilters": "Retirer les filtres",

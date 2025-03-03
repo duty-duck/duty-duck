@@ -35,6 +35,10 @@
             "title": "No task matches these filters",
             "text": "Tasks exist but are hidden by the selected filters. Remove the filters to see all tasks."
         },
+        "emptyPage": {
+            "title": "You haven't defined any task yet",
+            "text": "Tasks can monitor he health of important recurring processes such as periodic backups."
+        },
         "clearFilters": "Clear filters",
         "form": {
             "id": "Task ID",

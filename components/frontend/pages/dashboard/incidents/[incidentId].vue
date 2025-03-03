@@ -46,12 +46,12 @@ useIntervalFn(() => refresh(), 10000);
       <BBreadcrumb>
         <BBreadcrumbItem :to="localePath('/dashboard')">{{
           $t("dashboard.mainSidebar.home")
-          }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
         <BBreadcrumbItem :to="localePath('/dashboard/incidents')">{{
           $t("dashboard.mainSidebar.incidents")
-          }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
         <BBreadcrumbItem active>{{ $t("dashboard.incidents.incidentDetails")
-          }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
       </BBreadcrumb>
       <section class="mb-5">
         <h1 class="mb-4 fs-2">{{ $t("dashboard.incidents.defaultIncidentTitle", {
@@ -144,7 +144,8 @@ useIntervalFn(() => refresh(), 10000);
         <template #fallback>
           <BSpinner />
         </template>
-        <IncidentTimeline :incidentId="incidentId" ref="incidentTimeline" show-comment-editor />
+        <IncidentTimeline :incidentId="incidentId" ref="incidentTimeline" show-comment-editor
+          :show-resolve-incident-button="incidentRes?.incident.status != 'resolved'" @incident-resolved="refresh" />
       </Suspense>
     </BContainer>
   </div>

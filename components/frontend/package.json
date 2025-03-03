@@ -11,6 +11,7 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "test": "vitest",
+    "clean": "npx nuxi cleanup",
     "typecheck": "npx nuxi typecheck"
   },
   "dependencies": {

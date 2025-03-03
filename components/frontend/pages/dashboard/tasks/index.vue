@@ -58,10 +58,10 @@ useIntervalFn(() => {
     <BBreadcrumb>
       <BBreadcrumbItem :to="localePath('/dashboard')">{{
         $t("dashboard.mainSidebar.home")
-        }}</BBreadcrumbItem>
+      }}</BBreadcrumbItem>
       <BBreadcrumbItem active>{{
         $t("dashboard.mainSidebar.tasks")
-        }}</BBreadcrumbItem>
+      }}</BBreadcrumbItem>
     </BBreadcrumb>
     <div class="d-flex align-items-center justify-content-between">
       <h2>{{ $t("dashboard.tasks.pageTitle") }}</h2>
@@ -88,6 +88,13 @@ useIntervalFn(() => {
       <BPagination v-if="tasks?.totalNumberOfFilteredResults! > 10" v-model="pageNumber"
         :prev-text="$t('pagination.prev')" :next-text="$t('pagination.next')"
         :total-rows="tasks?.totalNumberOfFilteredResults" :per-page="10" />
+    </div>
+    <div v-else-if="tasks?.totalNumberOfResults == 0" class="text-secondary text-center my-5">
+      <Icon name="ph:pulse-duotone" size="120px" />
+      <h3>{{ $t("dashboard.tasks.emptyPage.title") }}</h3>
+      <p class="lead">
+        {{ $t("dashboard.tasks.emptyPage.text") }}
+      </p>
     </div>
     <div v-else-if="tasks?.totalNumberOfFilteredResults == 0" class="text-secondary text-center my-5">
       <Icon name="ph:pulse-duotone" size="120px" />

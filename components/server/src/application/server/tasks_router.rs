@@ -40,7 +40,7 @@ pub(crate) fn tasks_router() -> Router<ApplicationState> {
 }
 
 /// List tasks
-
+///
 /// List all tasks for the current organization. The list can optionally be filtered using query parameters
 #[utoipa::path(
     get,
@@ -254,7 +254,7 @@ async fn start_task_handler(
 }
 
 /// Send a heartbeat
-
+///
 /// Send a heartbeat for a running task, to indicate that it is still running
 ///
 /// Without a regular heartbeat, a running task will eventually be considered failed and retried.

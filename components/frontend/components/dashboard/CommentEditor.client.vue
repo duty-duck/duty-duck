@@ -4,7 +4,7 @@ import EditorJS, { type OutputData } from '@editorjs/editorjs';
 // @ts-ignore
 import Paragraph from '@editorjs/paragraph';
 // @ts-ignore
-import Header from '@editorjs/header'; 
+import Header from '@editorjs/header';
 import type { CommentPayload } from 'bindings/CommentPayload';
 import type { JsonValue } from 'bindings/serde_json/JsonValue';
 
@@ -12,9 +12,10 @@ let editorContainer = ref<HTMLDivElement | null>(null);
 let editor: EditorJS | null = null;
 
 const { t } = useI18n();
-const { initialValue } = defineProps<{initialValue?: CommentPayload}>()
+const { initialValue, showResolveIncidentButton } = defineProps<{ initialValue?: CommentPayload, showResolveIncidentButton?: boolean }>()
 const emit = defineEmits<{
-  submit: [payload: CommentPayload];
+    submit: [payload: CommentPayload];
+    resolveIncident: [payload: CommentPayload]
 }>();
 
 onMounted(() => {
@@ -37,7 +38,7 @@ onMounted(() => {
                 inlineToolbar: true
             }
         },
-        placeholder: t('dashboard.incidents.timeline.addCommentPlaceholder')
+        placeholder: t('dashboard.incidents.timeline.addCommentPlaceholder'),
     })
 });
 
@@ -51,6 +52,13 @@ const submit = async () => {
         editorjsData: data as unknown as JsonValue
     });
 }
+
+const resolveIncident = async () => {
+    const data = await editor!.save();
+    emit('resolveIncident', {
+        editorjsData: data as unknown as JsonValue
+    });
+}
 </script>
 
 <template>
@@ -58,8 +66,12 @@ const submit = async () => {
         <BCardBody>
             <div id="editorjs" ref="editorContainer" />
         </BCardBody>
-        <BCardFooter class="d-flex justify-content-end">
-            <BButton size="sm" @click="submit">{{ t('dashboard.incidents.timeline.addCommentButtonLabel') }}</BButton>
+        <BCardFooter class="d-flex justify-content-end gap-2">
+            <IncidentResolveButton v-if="showResolveIncidentButton" @ok="resolveIncident" />
+            <BButton size="sm" @click="submit" variant="outline-primary" class="d-flex align-items-center gap-1">
+                <Icon name="ph:chat" />
+                {{ t('dashboard.incidents.timeline.addCommentButtonLabel') }}
+            </BButton>
         </BCardFooter>
     </BCard>
 </template>
@@ -69,8 +81,8 @@ const submit = async () => {
     max-width: 650px;
 }
 
-.ce-block__content, 
+.ce-block__content,
 .ce-toolbar__content {
- max-width: 90%; 
+    max-width: 90%;
 }
 </style>

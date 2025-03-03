@@ -32,7 +32,6 @@ export const useIncidentRepository = () => {
             return { refresh: res.refresh, data: computed(() => res.data.value?.totalNumberOfFilteredResults) }
         },
         async useIncident(incidentId: string, opts?: UseFetchOptions<GetIncidentResponse>) {
-            const $fetch = await useServer$fetch();
             return await useServerFetch<GetIncidentResponse>(`/incidents/${incidentId}`, { retry: 3, retryDelay: 5000, ...(opts || {}) });
         },
         async getIncidentTimeline(incidentId: string, params: Ref<GetIncidentTimelineParams> | GetIncidentTimelineParams) {
@@ -42,6 +41,10 @@ export const useIncidentRepository = () => {
         async acknowledgeIncident(incidentId: string) {
             const $fetch = await useServer$fetch();
             return await $fetch<void>(`/incidents/${incidentId}/acknowledge`, { method: "POST" });
+        },
+        async resolveIncident(incidentId: string) {
+            const $fetch = await useServer$fetch();
+            return await $fetch<void>(`/incidents/${incidentId}/resolve`, { method: "POST" });
         },
         async commentIncident(incidentId: string, request: CommentIncidentRequest) {
             const $fetch = await useServer$fetch();

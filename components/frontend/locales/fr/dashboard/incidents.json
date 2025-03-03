@@ -56,6 +56,14 @@
                 "response": "Réponse"
             }
         },
+        "resolve": {
+            "buttonLabel": "Résoudre l'incident",
+            "modal": {
+                "title": "Êtes-vous sûr ?",
+                "message": "Cet incident sera marqué comme résolu.",
+                "confirm": "Oui, résoudre l'incident"
+            }
+        },
         "metadata": "Métadonnées"
     },
     "incidentStatus": {

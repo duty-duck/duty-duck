@@ -56,6 +56,14 @@
                 "response": "Response"
             }
         },
+        "resolve": {
+            "buttonLabel": "Resolve Incident",
+            "modal": {
+                "title": "Are you sure?",
+                "message": "This incident will be marked as resolved",
+                "confirm": "Yes, resolve incident"
+            }
+        },
         "metadata": "Metadata"
     },
     "incidentStatus": {
