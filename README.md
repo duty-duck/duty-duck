@@ -63,15 +63,15 @@ Make sure to install:
 - Cargo
 - Node.js >= v18
 - SQLX ClI (`cargo install sqlx-cli`)
-- Node modules (`cd frontend && npm installs`)
+- Node modules (`cd frontend && pnpm installs`)
 
 Start the required services using `docker compose up -d --scale dev-container=0`. 
 The `--scale dev-container=0` flag is used to prevent the devcontainer from starting, since you don't want to use the devcontainer.
 
 Then you can:
 - Start the back-end server (`cd components/server && cargo run`)
-- Start the front-end server (`cd components/frontend && npm start`)
-- Start everything in dev mode and watch changes `npm run dev`
+- Start the front-end server (`cd components/frontend && pnpm start`)
+- Start everything in dev mode and watch changes `pnpm run dev`
 - Create SQL migrations (`cd components/server && sqlx migrate add -r <name>`)
 - Run SQL migrations (`cd components/server && sqlx migrate run`)
 - Rollback SQL migrations (`cd components/server && sqlx migrate revert`)

@@ -1,0 +1,4 @@
+packages:
+  - 'components/frontend'
+  - 'components/fake-internet'
+  - 'components/browser'
