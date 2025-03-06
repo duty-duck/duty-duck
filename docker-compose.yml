@@ -81,6 +81,16 @@ services:
       KEYCLOAK_ADMIN_PASSWORD: admin
       # KC_LOG_LEVEL: DEBUG
 
+  quickwit:
+    image: quickwit/quickwit
+    ports: 
+      - 7280:7280
+      - 7281:7281
+    command: run
+    volumes:
+      - quickwit:/quickwit/qwdata
+
 volumes:
   main-database: {}
   keycloak-database: {}
+  quickwit: {}

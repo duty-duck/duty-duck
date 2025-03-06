@@ -1,0 +1,31 @@
+[package]
+name = "ingestor"
+edition = "2021"
+build = "build.rs"
+publish = false
+
+[dependencies]
+axum.workspace = true
+futures.workspace = true
+futures-util.workspace = true
+anyhow.workspace = true
+tokio.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+tracing.workspace = true
+tracing-subscriber.workspace = true
+thiserror.workspace = true
+clap.workspace = true
+envconfig.workspace = true
+dotenv.workspace = true
+tonic.workspace = true
+
+opentelemetry-proto = { version = "=0.28.0", features = [
+    "gen-tonic",
+    "with-serde",
+    "logs",
+] }
+
+[build-dependencies]
+built = { version = "0.7.3", features = ["chrono", "git2"] }

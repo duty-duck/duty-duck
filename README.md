@@ -119,5 +119,5 @@ See [keycloak.md](docs/keycloak.md) for more information.
 
 ## Releasing the CLI tool
 
-The command line utility is automatically released by a Github Actions workflow when a tag with the prefix `cli/` is pushed to the repository.
-A draft Github release is created, and the CLI binaries are uploaded to the Github release. In addition, the binaries are uploaded to the `dutyduck-releases` S3 bucket.
+The command line utility is automatically released by a GitHub Actions workflow when a tag with the prefix `cli/` is pushed to the repository.
+A draft GitHub release is created, and the CLI binaries are uploaded to the GitHub release. In addition, the binaries are uploaded to the `dutyduck-releases` S3 bucket.

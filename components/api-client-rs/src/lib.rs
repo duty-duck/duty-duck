@@ -15,7 +15,7 @@ pub use tasks_subclient::*;
 #[derive(Clone)]
 pub struct DutyDuckApiClient {
     client: reqwest::Client,
-    base_url: reqwest::Url,
+    base_url: Arc<reqwest::Url>,
     auth_token: Arc<Mutex<ApiToken>>,
 }
 
@@ -35,7 +35,7 @@ impl DutyDuckApiClient {
     pub fn new(base_url: impl IntoUrl) -> Self {
         Self {
             client: reqwest::Client::new(),
-            base_url: base_url.into_url().unwrap(),
+            base_url: Arc::new(base_url.into_url().unwrap()),
             auth_token: Arc::new(Mutex::new(ApiToken::default())),
         }
     }
@@ -162,7 +162,10 @@ impl ResponseExtention for reqwest::Response {
         if status.is_success() {
             Ok(())
         } else {
-            let body = self.text().await.unwrap_or_else(|_| "<no body>".to_string());
+            let body = self
+                .text()
+                .await
+                .unwrap_or_else(|_| "<no body>".to_string());
             Err(ClientError::InvalidStatusCode(status, body))
         }
     }

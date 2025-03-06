@@ -10,5 +10,14 @@
             "username": "admin",
             "password": "password"
         }
+    ],
+    "spellright.language": [
+        "en",
+        "fr"
+    ],
+    "spellright.documentTypes": [
+        "markdown",
+        "latex",
+        "plaintext"
     ]
 }
