@@ -1,8 +1,8 @@
 use std::path::PathBuf;
 
 use anyhow::Context;
-use api_client_rs::DutyDuckApiClient;
 use dirs::config_dir;
+use dutyduck_api_client_rs::DutyDuckApiClient;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -14,13 +14,14 @@ pub struct Config {
 
 impl Config {
     pub fn get_api_client(&self) -> anyhow::Result<DutyDuckApiClient> {
-        let client = DutyDuckApiClient::new(&self.api_url);
-        if let Some(api_token_id) = self.api_token_id.as_ref() {
-            client.set_api_token_id(api_token_id.clone())?;
-        }
-        if let Some(api_token_secret_key) = self.api_token_secret_key.as_ref() {
-            client.set_api_token_secret_key(api_token_secret_key.clone())?;
-        }
+        let api_token_id = self.api_token_id.as_ref().context("missing api token id")?;
+        let secret_key = self
+            .api_token_secret_key
+            .as_ref()
+            .context("missing api token secret key")?;
+        let client = DutyDuckApiClient::new(&self.api_url)
+            .with_api_token(api_token_id.clone(), secret_key.clone());
+
         Ok(client)
     }
 
@@ -44,7 +45,8 @@ impl Config {
         tokio::fs::create_dir_all(config_dir)
             .await
             .context("Failed to create config directory")?;
-        let serialized = serde_json::to_string_pretty(self).context("Failed to serialize config")?;
+        let serialized =
+            serde_json::to_string_pretty(self).context("Failed to serialize config")?;
         tokio::fs::write(config_file, serialized)
             .await
             .context("Failed to save config file")

@@ -4,7 +4,7 @@ resolver = "2"
 members = [
     "components/server",
     "components/cli",
-    "components/api-client-rs",
+    "components/dutyduck-api-client-rs",
     "components/ingestor",
     "components/quickwit-client-rs",
 ]
@@ -16,7 +16,7 @@ opt-level = 1
 opt-level = 3
 
 [workspace.dependencies]
-api-client-rs = { path = "components/api-client-rs" }
+dutyduck-api-client-rs = { path = "components/dutyduck-api-client-rs" }
 
 itertools = "0.13.0"
 axum = "0.8.1"
@@ -40,3 +40,4 @@ clap = { version = "4.5", features = ["derive"] }
 dotenv = "0.15.0"
 tonic = "0.12.3"
 prost = "0.13.3"
+moka = { version = "0.7.1", features = ["future"] }

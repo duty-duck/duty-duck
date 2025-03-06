@@ -8,7 +8,7 @@ name = "dutyduck"
 path = "src/main.rs"
 
 [dependencies]
-api-client-rs.workspace = true
+dutyduck-api-client-rs.workspace = true
 
 chrono.workspace = true
 futures.workspace = true

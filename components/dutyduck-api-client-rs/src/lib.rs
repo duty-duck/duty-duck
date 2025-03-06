@@ -1,7 +1,7 @@
 mod auth_subclient;
 mod tasks_subclient;
 
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use async_trait::async_trait;
 use reqwest::IntoUrl;
@@ -16,13 +16,13 @@ pub use tasks_subclient::*;
 pub struct DutyDuckApiClient {
     client: reqwest::Client,
     base_url: Arc<reqwest::Url>,
-    auth_token: Arc<Mutex<ApiToken>>,
+    auth_token: Arc<Option<ApiToken>>,
 }
 
 #[derive(Default, Clone)]
 struct ApiToken {
-    id: Option<String>,
-    secret_key: Option<String>,
+    id: String,
+    secret_key: String,
 }
 
 impl DutyDuckApiClient {
@@ -36,7 +36,15 @@ impl DutyDuckApiClient {
         Self {
             client: reqwest::Client::new(),
             base_url: Arc::new(base_url.into_url().unwrap()),
-            auth_token: Arc::new(Mutex::new(ApiToken::default())),
+            auth_token: Arc::new(None),
+        }
+    }
+
+    pub fn from_reqwest_client(client: reqwest::Client, base_url: impl IntoUrl) -> Self {
+        Self {
+            client,
+            base_url: Arc::new(base_url.into_url().unwrap()),
+            auth_token: Arc::new(None),
         }
     }
 
@@ -44,46 +52,20 @@ impl DutyDuckApiClient {
     ///
     /// # Arguments
     /// * `token_id` - The API token ID string
+    /// * `secret_key` - The API token secret key
     ///
     /// # Returns
-    /// * `Ok(())` if the token ID was set successfully
-    /// * `Err` if there was an error acquiring the lock
+    /// A new [`DutyDuckApiClient`] whose request are authenticated with this token.
     ///
-    /// # Examples
-    /// ```
-    /// let client = DutyDuckApiClient::new();
-    /// client.set_api_token_id("my-token-id".to_string())?;
-    /// ```
-    pub fn set_api_token_id(&self, token_id: String) -> anyhow::Result<()> {
-        let mut auth_token = self
-            .auth_token
-            .lock()
-            .map_err(|_| anyhow::anyhow!("Failed to lock auth token"))?;
-        auth_token.id = Some(token_id);
-        Ok(())
-    }
-
-    /// Sets the API token secret key for authentication
-    ///
-    /// # Arguments
-    /// * `secret_key` - The API token secret key string
-    ///
-    /// # Returns
-    /// * `Ok(())` if the secret key was set successfully
-    /// * `Err` if there was an error acquiring the lock
-    ///
-    /// # Examples
-    /// ```
-    /// let client = DutyDuckApiClient::new();
-    /// client.set_api_token_secret_key("my-secret-key".to_string())?;
-    /// ```
-    pub fn set_api_token_secret_key(&self, secret_key: String) -> anyhow::Result<()> {
-        let mut auth_token = self
-            .auth_token
-            .lock()
-            .map_err(|_| anyhow::anyhow!("Failed to lock auth token"))?;
-        auth_token.secret_key = Some(secret_key);
-        Ok(())
+    pub fn with_api_token(&self, token_id: String, secret_key: String) -> Self {
+        Self {
+            client: self.client.clone(),
+            base_url: self.base_url.clone(),
+            auth_token: Arc::new(Some(ApiToken {
+                id: token_id,
+                secret_key,
+            })),
+        }
     }
 
     /// Returns an authentication subclient for handling auth-related API operations
@@ -123,27 +105,15 @@ impl DutyDuckApiClient {
         method: reqwest::Method,
         url: impl IntoUrl,
     ) -> ClientResult<reqwest::RequestBuilder> {
-        let auth_token = {
-            let lock = self
-                .auth_token
-                .lock()
-                .map_err(|_| anyhow::anyhow!("Failed to lock auth token"))?;
-            lock.clone()
-        };
+        let auth_token = (*self.auth_token)
+            .as_ref()
+            .ok_or(ClientError::MissingApiToken)?;
 
         let builder = self
             .client
             .request(method, url)
-            .header(
-                "X-Api-Token-Id",
-                auth_token.id.ok_or(ClientError::MissingApiTokenId)?,
-            )
-            .header(
-                "X-Api-Token-Secret-Key",
-                auth_token
-                    .secret_key
-                    .ok_or(ClientError::MissingApiTokenSecretKey)?,
-            );
+            .header("X-Api-Token-Id", &auth_token.id)
+            .header("X-Api-Token-Secret-Key", &auth_token.secret_key);
 
         Ok(builder)
     }
@@ -186,10 +156,8 @@ pub type ClientResult<T> = Result<T, ClientError>;
 #[derive(Debug, Error)]
 
 pub enum ClientError {
-    #[error("API token ID is not set")]
-    MissingApiTokenId,
-    #[error("API token secret key is not set")]
-    MissingApiTokenSecretKey,
+    #[error("API token is not set")]
+    MissingApiToken,
     #[error(transparent)]
     AnyhowError(#[from] anyhow::Error),
     #[error(transparent)]

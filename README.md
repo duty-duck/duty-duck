@@ -23,12 +23,14 @@ Its features (developed or planned) include:
 The platform is composed of:
 - A PostgreSQL database
 - A Keycloak server
+- A Quickwit cluster to store logs and traces
 - A back-end server in Rust 🦀, which is the main component of the platform, providing the API and the business logic
 - A Rust library to interact with the platform
 - A command-line utility to interact with the platform
 - A front-end in Vue.js 3 and Nuxt 🖖
 - A headless browser service, used to ping your services
 - A fake internet service, used to provide testing endpoints during development
+- An ingestor service, to ingest logs and traces, which implements the OpenTelemetry protocol
 
 It also depends on a few external services:
 - An SMTP server, used to send e-mails
@@ -111,6 +113,12 @@ docker build -t ghcr.io/duty-duck/fake-internet:latest -f components/fake-intern
 
 ```shell
 docker build -t ghcr.io/duty-duck/keycloak:latest -f components/keycloak/Dockerfile .
+```
+
+### Building the Ingestor image:
+
+```shell
+docker build -t ghcr.io/duty-duck/ingestor:latest -f components/ingestor/Dockerfile .
 ```
 
 ## Keycloak checklist

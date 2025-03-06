@@ -1,5 +1,9 @@
+use config::IngestorConfig;
 use tracing::level_filters::LevelFilter;
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
+
+mod auth;
+mod config;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -16,6 +20,8 @@ async fn main() -> anyhow::Result<()> {
         .finish();
 
     tracing::subscriber::set_global_default(subscriber).expect("failed to set tracing subscriber");
+
+    let config = IngestorConfig::load()?;
 
     Ok(())
 }

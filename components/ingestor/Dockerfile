@@ -1,5 +1,5 @@
 # This dockerfile is meant to be built from the context of the parent folder
-# e.g.: docker build -t duty-duck-server:latest -f server/Dockerfile .
+# e.g.: docker build -t duty-duck-ingestor:latest -f components/ingestor/Dockerfile .
 FROM lukemathwalker/cargo-chef:latest-rust-1 AS chef
 WORKDIR /app
 
@@ -11,6 +11,7 @@ COPY ./protos ./protos
 COPY ./components/server ./components/server
 COPY ./components/cli ./components/cli
 COPY ./components/dutyduck-api-client-rs ./components/dutyduck-api-client-rs
+COPY ./components/quickwit-client-rs ./components/quickwit-client-rs
 COPY ./components/ingestor ./components/ingestor
 
 RUN cargo chef prepare --recipe-path recipe.json
@@ -31,8 +32,8 @@ COPY ./components/cli ./components/cli
 COPY ./components/dutyduck-api-client-rs ./components/dutyduck-api-client-rs
 COPY ./components/ingestor ./components/ingestor
 
-RUN cargo build --release --bin server
+RUN cargo build --release --bin ingestor
 
 FROM gcr.io/distroless/cc-debian12
-COPY --from=builder /app/target/release/server /app/server
-CMD ["/app/server"]
+COPY --from=builder /app/target/release/ingestor /app/ingestor
+CMD ["/app/ingestor"]

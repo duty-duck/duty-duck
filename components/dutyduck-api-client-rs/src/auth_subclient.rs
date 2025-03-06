@@ -4,7 +4,7 @@ use reqwest::Method;
 use serde::Deserialize;
 use uuid::Uuid;
 
-use crate::{DutyDuckApiClient, ResponseExtention};
+use crate::{ClientError, DutyDuckApiClient, ResponseExtention};
 
 #[derive(Clone)]
 pub struct AuthSubclient {
@@ -12,15 +12,19 @@ pub struct AuthSubclient {
 }
 
 impl AuthSubclient {
-    pub async fn get_current_user(&self) -> anyhow::Result<GetProfileResponse> {
-        let res = self
-            .client
-            .request(Method::GET, self.client.base_url.join("/users/me")?)?
+    pub async fn get_current_user(&self) -> Result<GetProfileResponse, ClientError> {
+        self.client
+            .request(
+                Method::GET,
+                self.client
+                    .base_url
+                    .join("/users/me")
+                    .context("failed to build url")?,
+            )?
             .send()
             .await?
             .json_or_err()
-            .await?;
-        Ok(res)
+            .await
     }
 }
 
@@ -28,6 +32,7 @@ impl AuthSubclient {
 pub struct GetProfileResponse {
     pub user: User,
     pub active_organization: Organization,
+    pub permissions: Vec<String>,
 }
 
 #[derive(Deserialize, Debug)]

@@ -115,20 +115,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4c95c10ba0b00a02636238b814946408b1322d5ac4760326e6fb8ec956d85775"
 
 [[package]]
-name = "api-client-rs"
-version = "0.1.0"
-dependencies = [
- "anyhow",
- "async-trait",
- "chrono",
- "reqwest 0.12.9",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
- "uuid 1.11.0",
-]
-
-[[package]]
 name = "arc-swap"
 version = "1.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1463,14 +1449,28 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1aaf95b3e5c8f23aa320147307562d361db0ae0d51242340f558153b4eb2439b"
 
 [[package]]
+name = "dutyduck-api-client-rs"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "chrono",
+ "reqwest 0.12.9",
+ "serde",
+ "serde_json",
+ "thiserror 1.0.69",
+ "uuid 1.11.0",
+]
+
+[[package]]
 name = "dutyduck_cli"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "api-client-rs",
  "chrono",
  "clap",
  "dirs",
+ "dutyduck-api-client-rs",
  "futures",
  "futures-util",
  "reqwest 0.12.9",
@@ -2588,9 +2588,11 @@ dependencies = [
  "built",
  "clap",
  "dotenv",
+ "dutyduck-api-client-rs",
  "envconfig",
  "futures",
  "futures-util",
+ "moka",
  "opentelemetry-proto",
  "reqwest 0.12.9",
  "serde",
@@ -2600,6 +2602,7 @@ dependencies = [
  "tonic",
  "tracing",
  "tracing-subscriber",
+ "uuid 1.11.0",
 ]
 
 [[package]]

@@ -2,8 +2,8 @@ use std::time::Duration;
 
 use crate::config::Config;
 use anyhow::Context;
-use api_client_rs::{ClientError, DutyDuckApiClient, NewTask};
 use clap::*;
+use dutyduck_api_client_rs::{ClientError, DutyDuckApiClient, NewTask};
 use reqwest::StatusCode;
 use tokio::process::Child;
 
@@ -132,7 +132,7 @@ async fn run_task(client: &DutyDuckApiClient, command: RunCommand) -> anyhow::Re
                     client.finish_task(&command.task_id).failure()
                 }
             };
-        
+
             finish_request
                 .send()
                 .await
@@ -146,20 +146,20 @@ async fn run_task(client: &DutyDuckApiClient, command: RunCommand) -> anyhow::Re
         }
         _ = ctrl_c => {
             eprintln!("Received interrupt signal, gracefully shutting down...");
-            
+
             // Kill the subprocess
             process.start_kill().context("Failed to kill subprocess")?;
-            
+
             // Wait for the process to actually terminate
             process.wait().await.context("Failed to wait for subprocess to terminate")?;
-            
+
             // Send failure status to the API
             client.finish_task(&command.task_id)
                 .aborted()
                 .send()
                 .await
                 .context("Failed to send finish task request")?;
-            
+
             eprintln!("Graceful shutdown complete");
         }
     };
