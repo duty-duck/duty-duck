@@ -25,12 +25,8 @@ dotenv.workspace = true
 tonic.workspace = true
 moka.workspace = true
 uuid.workspace = true
+opentelemetry-proto.workspace = true
 
-opentelemetry-proto = { version = "=0.28.0", features = [
-    "gen-tonic",
-    "with-serde",
-    "logs",
-] }
 crc32fast = "1.4.2"
 hex = "0.4.3"
 

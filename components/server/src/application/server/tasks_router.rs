@@ -34,6 +34,7 @@ pub(crate) fn tasks_router() -> Router<ApplicationState> {
                 .route("/archive", post(archive_task_handler))
                 .route("/finish", post(finish_task_handler))
                 .route("/heartbeat", post(send_task_heartbeat_handler))
+                .route("/logs", post(send_task_logs_handler))
                 .route("/runs/{started_at}", get(get_task_run_handler))
                 .route("/runs", get(list_task_runs_handler)),
         )
@@ -248,6 +249,65 @@ async fn start_task_handler(
             .into_response(),
         Err(StartTaskError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while starting a task");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
+}
+
+/// Send logs for a running task
+///
+/// Send logs for a running task, so that logs can be consulted and searched from the dashboard.
+/// This also serves as a logs for the running task, to indicate that it is still alive and running.
+///
+/// This endpoint can only be used on running tasks.
+///
+/// The provided task id can be either the user-defined id (the `user-id` field) or the technical UUID (the `id` field).
+#[utoipa::path(
+    post,
+    path = "/tasks/:task_id/logs",
+        request_body(
+        content = SendTaskLogsRequest,
+        description = "The log events to sent",
+        content_type = "application/json"
+    ),
+    responses(
+        (status = 200, description = "Logs sent successfully"),
+        (status = 403, description = "User is not authorized to send logs for this task"),
+        (status = 404, description = "Task not found"),
+        (status = 400, description = "Task is not running"),
+        (status = 500, description = "Technical failure occured while sending logs")
+    )
+)]
+async fn send_task_logs_handler(
+    State(app_state): ExtractAppState,
+    auth_context: AuthContext,
+    Path(task_id): Path<TaskId>,
+    Json(command): Json<SendTaskLogsRequest>,
+) -> impl IntoResponse {
+    match send_task_logs_use_case(
+        &auth_context,
+        &app_state.adapters.task_repository,
+        &app_state.adapters.task_run_repository,
+        &app_state.adapters.logs_ingestor,
+        task_id,
+        command,
+    )
+    .await
+    {
+        Ok(_) => StatusCode::OK.into_response(),
+        Err(SendTaskLogsError::Forbidden) => (
+            StatusCode::FORBIDDEN,
+            "User is not allowed to send logs for this task",
+        )
+            .into_response(),
+        Err(SendTaskLogsError::TaskNotFound) => {
+            (StatusCode::NOT_FOUND, "Task not found").into_response()
+        }
+        Err(SendTaskLogsError::TaskIsNotRunning) => {
+            (StatusCode::BAD_REQUEST, "Task is not running").into_response()
+        }
+        Err(SendTaskLogsError::TechnicalFailure(e)) => {
+            warn!(error = ?e, "Technical failure occured while sending a logs");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }

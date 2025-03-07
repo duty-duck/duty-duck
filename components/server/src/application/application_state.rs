@@ -9,7 +9,8 @@ use crate::infrastructure::{
         http_monitor_repository_adapter::HttpMonitorRepositoryAdapter,
         incident_event_repository_adapter::IncidentEventRepositoryAdapter,
         incident_notification_repository_adapter::IncidentNotificationRepositoryAdapter,
-        incident_repository_adapter::IncidentRepositoryAdapter, mailer_adapter::MailerAdapter,
+        incident_repository_adapter::IncidentRepositoryAdapter,
+        logs_ingestor_adapter::LogsIngestorAdapter, mailer_adapter::MailerAdapter,
         organization_repository_adapter::OrganizationRepositoryAdapter,
         push_notification_server_adapter::PushNotificationServerAdapter,
         sms_notification_server_adapter::SmsNotificationServerAdapter,
@@ -50,4 +51,5 @@ pub struct Adapters {
     pub api_token_repository: ApiAccessTokenRepositoryAdapter,
     pub task_repository: TaskRepositoryAdapter,
     pub task_run_repository: TaskRunRepositoryAdapter,
+    pub logs_ingestor: LogsIngestorAdapter,
 }

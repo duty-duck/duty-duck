@@ -29,6 +29,7 @@ axum.workspace = true
 itertools.workspace = true
 moka.workspace = true
 serde_with.workspace = true
+opentelemetry-proto.workspace = true
 
 lettre = { version = "0.11.8", features = ["tokio1", "tokio1-native-tls"] }
 veil = "0.1.7"

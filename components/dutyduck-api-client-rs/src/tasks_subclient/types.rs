@@ -1,64 +1,37 @@
+use chrono::{DateTime, Utc};
 use reqwest::Method;
 use serde::Serialize;
+use serde_json::Value;
 
 use crate::{ClientResult, DutyDuckApiClient, ResponseExtention};
 
-#[derive(Clone)]
-pub struct TasksSubclient {
-    pub(crate) client: DutyDuckApiClient,
+/// A request to store the logs associated with a running task so they can be consulted and searched.
+#[derive(Debug, Serialize, Default)]
+pub struct SendTaskLogsRequest {
+    pub events: Vec<TaskLogEvent>,
 }
 
-impl TasksSubclient {
-    pub async fn create_task(&self, command: CreateTaskCommand) -> ClientResult<()> {
-        let url = self.client.base_url.join("/tasks").unwrap();
-        self.client
-            .request(Method::POST, url)?
-            .json(&command)
-            .send()
-            .await?
-            .ok_or_err()
-            .await
-    }
-
-    pub fn start_task(&self, task_id: impl Into<String>) -> StartTaskBuilder {
-        StartTaskBuilder {
-            client: self.client.clone(),
-            task_id: task_id.into(),
-            new_task: None,
-            abort_previous_running_task: false,
-        }
-    }
-
-    pub async fn send_heartbeat(&self, task_id: &str) -> ClientResult<()> {
-        let url = self
-            .client
-            .base_url
-            .join(&format!("/tasks/{task_id}/heartbeat"))
-            .unwrap();
-        self.client
-            .request(Method::POST, url)?
-            .send()
-            .await?
-            .ok_or_err()
-            .await
-    }
-
-    pub fn finish_task(&self, task_id: impl Into<String>) -> FinishTaskBuilder {
-        FinishTaskBuilder {
-            task_id: task_id.into(),
-            client: self.client.clone(),
-            status: FinishedTaskStatus::Success,
-            exit_code: None,
-            error_message: None,
-        }
-    }
+/// A single log event from a task run. (By default, each new line in the standard output is considered a seperate event)
+#[derive(Debug, Serialize)]
+pub struct TaskLogEvent {
+    /// severity text (also known as log level). This is the original string representation of the severity as it is known at the source, for instance "DEBUG", or "ERROR".
+    pub severity_text: Option<String>,
+    /// SeverityNumber is an integer number. Smaller numerical values correspond to less severe events (such as debug events), larger numerical values correspond to more severe events (such as errors and critical events).
+    /// The meaning of this value is defined by the OpenTelemetry standard.
+    pub severity_number: Option<i32>,
+    /// The body of the log. This can be unstructured data (i.e. a string of text) or a structured map of keys and values
+    /// If structured data is desired, the client is responsible for supplying the structured data.
+    pub body: Value,
+    /// The timestamp at which the log occured, as measured by the orgin clock
+    pub timestamp: DateTime<Utc>,
 }
 
+/// A builder to build and send requests to start a task
 pub struct StartTaskBuilder {
-    new_task: Option<NewTask>,
-    task_id: String,
-    client: DutyDuckApiClient,
-    abort_previous_running_task: bool,
+    pub(super) new_task: Option<NewTask>,
+    pub(super) task_id: String,
+    pub(super) client: DutyDuckApiClient,
+    pub(super) abort_previous_running_task: bool,
 }
 
 impl StartTaskBuilder {
@@ -92,12 +65,13 @@ impl StartTaskBuilder {
     }
 }
 
+/// A builder to build and send requests to finish a task
 pub struct FinishTaskBuilder {
-    task_id: String,
-    client: DutyDuckApiClient,
-    status: FinishedTaskStatus,
-    exit_code: Option<i32>,
-    error_message: Option<String>,
+    pub(super) task_id: String,
+    pub(super) client: DutyDuckApiClient,
+    pub(super) status: FinishedTaskStatus,
+    pub(super) exit_code: Option<i32>,
+    pub(super) error_message: Option<String>,
 }
 
 impl FinishTaskBuilder {
@@ -179,7 +153,7 @@ pub struct NewTask {
 
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
-enum FinishedTaskStatus {
+pub(super) enum FinishedTaskStatus {
     Success,
     Failure,
     Aborted,

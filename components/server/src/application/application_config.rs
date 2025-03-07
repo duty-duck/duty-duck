@@ -1,3 +1,6 @@
+use std::str::FromStr;
+
+use anyhow::anyhow;
 use envconfig::Envconfig;
 
 #[derive(Envconfig)]
@@ -23,6 +26,18 @@ pub struct DbConfig {
     pub database_url: String,
     #[envconfig(from = "DATABASE_MAX_CONNECTIONS", default = "10")]
     pub database_max_connections: u32,
+}
+
+#[derive(Envconfig)]
+pub struct IngestorConfig {
+    #[envconfig(from = "INGESTORS_GRPC_URL")]
+    pub ingestors_grpc_url: CommaSeperated<String>,
+}
+
+#[derive(Envconfig)]
+pub struct QuickwitSearcherConfig {
+    #[envconfig(from = "QUICKWIT_SEARCHERS_URLS")]
+    pub searchers_urls: CommaSeperated<String>,
 }
 
 #[derive(Envconfig)]
@@ -143,8 +158,36 @@ pub struct AppConfig {
 
     #[envconfig(nested = true)]
     pub absent_tasks_collector: AbsentTasksCollectorConfig,
+
     #[envconfig(nested = true)]
     pub smtp: SmtpConfig,
+
+    #[envconfig(nested = true)]
+    pub ingestor: IngestorConfig,
+
+    #[envconfig(nested = true)]
+    pub quickwit_searchers: QuickwitSearcherConfig,
+}
+
+pub struct CommaSeperated<T> {
+    pub values: Vec<T>,
+}
+
+impl<T> FromStr for CommaSeperated<T>
+where
+    T: FromStr,
+    T::Err: std::fmt::Debug,
+{
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let values = s
+            .split(",")
+            .map(|s| T::from_str(s).map_err(|e| anyhow!("Failed to deserialize config: {:?}", e)))
+            .collect::<Result<Vec<_>, _>>()?;
+
+        Ok(Self { values })
+    }
 }
 
 impl AppConfig {

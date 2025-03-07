@@ -5,6 +5,7 @@ pub mod http_monitor_repository;
 pub mod incident_event_repository;
 pub mod incident_notification_repository;
 pub mod incident_repository;
+pub mod logs_ingestor;
 pub mod mailer;
 pub mod organization_repository;
 pub mod push_notification_server;

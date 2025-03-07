@@ -1,11 +1,19 @@
-use std::time::Duration;
+use std::{process::Stdio, time::Duration};
 
 use crate::config::Config;
 use anyhow::Context;
+use chrono::Utc;
 use clap::*;
-use dutyduck_api_client_rs::{ClientError, DutyDuckApiClient, NewTask};
+use dutyduck_api_client_rs::{
+    ClientError, DutyDuckApiClient, NewTask, SendTaskLogsRequest, TaskLogEvent,
+};
+use futures::StreamExt;
 use reqwest::StatusCode;
 use tokio::process::Child;
+use tokio_util::{
+    codec::{FramedRead, LinesCodec},
+    sync::CancellationToken,
+};
 
 #[derive(Subcommand)]
 pub enum TasksCommands {
@@ -61,6 +69,8 @@ async fn run_task(client: &DutyDuckApiClient, command: RunCommand) -> anyhow::Re
     let client = client.tasks();
     let mut process: Child = tokio::process::Command::new(&command.command)
         .args(command.args)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped())
         // kill the process if the child handle is dropped, which allows the task to stop
         // if the platform reports that the task has been aborted
         .kill_on_drop(true)
@@ -87,12 +97,78 @@ async fn run_task(client: &DutyDuckApiClient, command: RunCommand) -> anyhow::Re
         .await
         .context("Failed to send start task request")?;
 
-    let heartbeat_interval = Duration::from_secs(10);
+    // launch a background task to capture the process output
+    let (capture_output_task, capture_output_task_cancellation_token) = {
+        let cancellation_token = CancellationToken::new();
+
+        let task_handle = tokio::spawn({
+            let client = client.clone();
+            let task_id = command.task_id.clone();
+            let cancellation_token = cancellation_token.clone();
+
+            let stdout_events = FramedRead::new(process.stdout.take().unwrap(), LinesCodec::new())
+                .filter_map(|line| async move { line.ok() })
+                .map(|line| log_line_to_event(line, LogLineSeverity::Info));
+            let stderr_events = FramedRead::new(process.stderr.take().unwrap(), LinesCodec::new())
+                .filter_map(|line| async move { line.ok() })
+                .map(|line| log_line_to_event(line, LogLineSeverity::Error));
+
+            let mut merged_stream = futures::stream::select(stdout_events, stderr_events).boxed();
+
+            async move {
+                let mut current_batch = SendTaskLogsRequest::default();
+                let mut send_current_batch_interval = tokio::time::interval(Duration::from_secs(5));
+
+                let last_result = loop {
+                    let result = tokio::select! {
+                        Some(event) = merged_stream.next() => {
+                            current_batch.events.push(event);
+
+                            if current_batch.events.len() >= 100 {
+
+                               Some(client.send_logs(&task_id, &std::mem::take(&mut current_batch)).await)
+                            } else {
+                                None
+                            }
+                        }
+                        _ = send_current_batch_interval.tick() => {
+                            if !current_batch.events.is_empty() {
+                               Some(client.send_logs(&task_id, &std::mem::take(&mut current_batch)).await)
+                            } else {
+                                None
+                            }
+                        }
+                        _ = cancellation_token.cancelled() => {
+                            let result = if !current_batch.events.is_empty() {
+                               Some(client.send_logs(&task_id, &std::mem::take(&mut current_batch)).await)
+                            } else {
+                               None
+                            };
+                            break result
+                        }
+
+                    };
+
+                    if let Some(Err(error)) = result {
+                        tracing::info!(?error, "Failed to send logs to the platform");
+                    }
+                };
+
+                if let Some(Err(error)) = last_result {
+                    tracing::info!(?error, "Failed to send logs to the platform");
+                }
+            }
+        });
+        (task_handle, cancellation_token)
+    };
+
+    // launch a background task to send periodic heartbeats
     let send_heartbeat_task = tokio::spawn({
         let client = client.clone();
         let task_id = command.task_id.clone();
+
         async move {
-            let mut interval = tokio::time::interval(heartbeat_interval);
+            let mut interval = tokio::time::interval(Duration::from_secs(10));
             loop {
                 interval.tick().await;
                 match client.send_heartbeat(&task_id).await {
@@ -114,9 +190,9 @@ async fn run_task(client: &DutyDuckApiClient, command: RunCommand) -> anyhow::Re
     // Add ctrl+c signal handler
     let ctrl_c = tokio::signal::ctrl_c();
 
-    tokio::select! {
+    let finish_task_request = tokio::select! {
         child_exit = process.wait() => {
-            let finish_request = match child_exit {
+            match child_exit {
                 Ok(status) => {
                     let mut request = client.finish_task(&command.task_id);
                     if let Some(exit_code) = status.code() {
@@ -131,18 +207,7 @@ async fn run_task(client: &DutyDuckApiClient, command: RunCommand) -> anyhow::Re
                     eprintln!("Failed to wait for child process: {}", e);
                     client.finish_task(&command.task_id).failure()
                 }
-            };
-
-            finish_request
-                .send()
-                .await
-                .context("Failed to send finish task request")?;
-        }
-        _ = send_heartbeat_task => {
-            // if the heartbeat task completes before the child process, it can only mean that
-            // the task was aborted, so we can kill the local process
-            eprintln!("Task was aborted, killing subprocess");
-            process.start_kill().context("Failed to kill subprocess")?;
+            }
         }
         _ = ctrl_c => {
             eprintln!("Received interrupt signal, gracefully shutting down...");
@@ -156,13 +221,40 @@ async fn run_task(client: &DutyDuckApiClient, command: RunCommand) -> anyhow::Re
             // Send failure status to the API
             client.finish_task(&command.task_id)
                 .aborted()
-                .send()
-                .await
-                .context("Failed to send finish task request")?;
 
-            eprintln!("Graceful shutdown complete");
         }
     };
 
+    // send a signal to the logs task to abort and wait for it to send the last logs
+    capture_output_task_cancellation_token.cancel();
+    capture_output_task.await?;
+
+    // send a request to mark the task as fnished
+    // this has to be done after the last logs have been sent, because we can't send logs once the task has finished
+    finish_task_request.send().await?;
+
+    // abort the send heartbeat task and wait of it to finish
+    send_heartbeat_task.abort();
+    let _ = send_heartbeat_task.await;
+
     Ok(())
+}
+
+enum LogLineSeverity {
+    Info,
+    Error,
+}
+
+// todo: enhance parsing to allow users to exatract structured data from their logs
+fn log_line_to_event(line: String, severity: LogLineSeverity) -> TaskLogEvent {
+    let (sevrity_text, severity_number) = match severity {
+        LogLineSeverity::Error => ("ERROR".to_string(), 17),
+        LogLineSeverity::Info => ("INFO".to_string(), 9),
+    };
+    TaskLogEvent {
+        timestamp: Utc::now(),
+        severity_number: Some(severity_number),
+        severity_text: Some(sevrity_text),
+        body: serde_json::Value::String(line),
+    }
 }

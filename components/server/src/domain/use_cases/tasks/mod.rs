@@ -11,6 +11,7 @@ mod get_task_use_case;
 mod list_task_runs_use_case;
 mod list_tasks_use_case;
 mod send_task_heartbeat_use_case;
+mod send_task_logs_use_case;
 mod start_task_use_case;
 mod update_task_use_case;
 
@@ -27,5 +28,6 @@ pub use get_task_use_case::*;
 pub use list_task_runs_use_case::*;
 pub use list_tasks_use_case::*;
 pub use send_task_heartbeat_use_case::*;
+pub use send_task_logs_use_case::*;
 pub use start_task_use_case::*;
 pub use update_task_use_case::*;

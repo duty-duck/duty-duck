@@ -24,6 +24,7 @@ use crate::{
             incident_event_repository_adapter::IncidentEventRepositoryAdapter,
             incident_notification_repository_adapter::IncidentNotificationRepositoryAdapter,
             incident_repository_adapter::IncidentRepositoryAdapter,
+            logs_ingestor_adapter::LogsIngestorAdapter,
             mailer_adapter::{MailerAdapter, MailerAdapterConfig},
             organization_repository_adapter::OrganizationRepositoryAdapter,
             push_notification_server_adapter::PushNotificationServerAdapter,
@@ -268,7 +269,11 @@ async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationSt
             .context("Failed to create file storage adapter")?,
         task_repository: TaskRepositoryAdapter { pool: pool.clone() },
         task_run_repository: TaskRunRepositoryAdapter { pool: pool.clone() },
+        logs_ingestor: LogsIngestorAdapter::new(config.ingestor.ingestors_grpc_url.values.clone())
+            .await
+            .context("Failed to create logs ingestor adapter")?,
     };
+
     Ok(ApplicationState {
         config: config.clone(),
         adapters,

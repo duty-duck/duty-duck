@@ -152,10 +152,10 @@ fn convert_otel_log(log: ResourceLogs) -> (Vec<OTELLogInput>, Option<OTELResourc
                 .map(|record| OTELLogInput {
                     resource: resource.clone(),
                     scope: scope.clone(),
-                    timestamp_unix: Some(record.time_unix_nano as i64),
+                    timestamp_unix: Some(record.time_unix_nano as i64).filter(|ts| *ts > 0),
                     observed_timestamp_unix: record.observed_time_unix_nano as i64,
-                    severity_text: Some(record.severity_text),
-                    severity_number: Some(record.severity_number),
+                    severity_text: Some(record.severity_text).filter(|t| !t.is_empty()),
+                    severity_number: Some(record.severity_number).filter(|s| *s > 0),
                     body: record.body.and_then(convert_any_value),
                     trace_id_hex: Some(record.trace_id)
                         .filter(|t| !t.is_empty())

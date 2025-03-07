@@ -13,6 +13,7 @@ use uuid::Uuid;
 #[derive(Clone)]
 pub struct AuthenticatedToken {
     pub org_id: Uuid,
+    #[allow(unused)]
     pub org_name: String,
 }
 

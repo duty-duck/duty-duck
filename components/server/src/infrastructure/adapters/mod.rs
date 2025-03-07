@@ -5,6 +5,7 @@ pub mod http_monitor_repository_adapter;
 pub mod incident_event_repository_adapter;
 pub mod incident_notification_repository_adapter;
 pub mod incident_repository_adapter;
+pub mod logs_ingestor_adapter;
 pub mod mailer_adapter;
 pub mod organization_repository_adapter;
 pub mod push_notification_server_adapter;
