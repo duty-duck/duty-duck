@@ -11,6 +11,7 @@ COPY ./protos ./protos
 COPY ./components/server ./components/server
 COPY ./components/cli ./components/cli
 COPY ./components/dutyduck-api-client-rs ./components/dutyduck-api-client-rs
+COPY ./components/quickwit-client-rs ./components/quickwit-client-rs
 COPY ./components/ingestor ./components/ingestor
 
 RUN cargo chef prepare --recipe-path recipe.json
@@ -29,6 +30,7 @@ COPY ./protos ./protos
 COPY ./components/server ./components/server
 COPY ./components/cli ./components/cli
 COPY ./components/dutyduck-api-client-rs ./components/dutyduck-api-client-rs
+COPY ./components/quickwit-client-rs ./components/quickwit-client-rs
 COPY ./components/ingestor ./components/ingestor
 
 RUN cargo build --release --bin server

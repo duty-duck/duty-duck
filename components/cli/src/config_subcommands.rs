@@ -36,7 +36,10 @@ pub async fn handle_config_command(command: ConfigCommands) -> anyhow::Result<()
         }
         ConfigCommands::Print => {
             let config = Config::load().await?;
-            println!("Current configuration: {}", serde_json::to_string_pretty(&config)?);
+            println!(
+                "Current configuration: {}",
+                serde_json::to_string_pretty(&config)?
+            );
             Ok(())
         }
     }

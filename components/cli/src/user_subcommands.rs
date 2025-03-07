@@ -6,7 +6,6 @@ use crate::config::Config;
 pub enum UserCommands {
     /// Print information about the current user
     Get,
-
 }
 
 pub async fn handle_user_command(command: UserCommands) -> anyhow::Result<()> {

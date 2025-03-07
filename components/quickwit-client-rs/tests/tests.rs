@@ -1,8 +1,9 @@
 use chrono::Utc;
 use quickwit_client_rs::{
     indexes_api_v1::{
-        otel_logs_doc_mapping, DateTimeFieldMapping, DocMapping, DocMappingMode, FieldMapping,
-        IndexConfig, RetentionSettings, SearchSettings, TextFieldMapping,
+        otel::{otel_logs_doc_mapping, OTELLogInput, OTELResource},
+        DateTimeFieldMapping, DocMapping, DocMappingMode, FieldMapping, IndexConfig,
+        RetentionSettings, SearchSettings, TextFieldMapping,
     },
     ingest_api_v1::Commit,
     search_api_v1::SearchRequest,
@@ -19,16 +20,6 @@ struct TestDocument {
 #[derive(Serialize)]
 pub struct OTELLogBody {
     message: &'static str,
-}
-
-#[derive(Serialize)]
-struct OTELLogEvent {
-    timestamp_nanos: i64,
-    observed_timestamp_nanos: i64,
-    service_name: &'static str,
-    severity_text: &'static str,
-    severity_number: u64,
-    body: OTELLogBody,
 }
 
 #[tokio::test]
@@ -152,36 +143,61 @@ async fn integration_test_otel_logs_1() -> anyhow::Result<()> {
 
     // write documents
     let now = Utc::now();
+    let resource = {
+        let mut attributes = serde_json::Map::new();
+        attributes.insert(
+            "service.name".to_string(),
+            serde_json::Value::String("crawler".to_string()),
+        );
+        Some(OTELResource {
+            attributes,
+            dropped_attributes_count: 0,
+        })
+    };
     let documents = vec![
-        OTELLogEvent {
-            timestamp_nanos: now.timestamp_millis(),
-            observed_timestamp_nanos: now.timestamp_millis(),
-            service_name: "crawler",
-            severity_text: "debug",
-            severity_number: 0,
-            body: OTELLogBody {
-                message: "hello there",
-            },
+        OTELLogInput {
+            timestamp_unix: Some(now.timestamp()),
+            observed_timestamp_unix: now.timestamp(),
+            resource: resource.clone(),
+
+            severity_text: Some("debug".to_string()),
+            severity_number: Some(5),
+            body: Some(
+                serde_json::to_value(OTELLogBody {
+                    message: "hello there",
+                })
+                .unwrap(),
+            ),
+
+            ..Default::default()
         },
-        OTELLogEvent {
-            timestamp_nanos: now.timestamp_millis(),
-            observed_timestamp_nanos: now.timestamp_millis(),
-            service_name: "crawler",
-            severity_text: "debug",
-            severity_number: 0,
-            body: OTELLogBody {
-                message: "general kenobi",
-            },
+        OTELLogInput {
+            timestamp_unix: Some(now.timestamp()),
+            observed_timestamp_unix: now.timestamp(),
+            resource: resource.clone(),
+            severity_text: Some("debug".to_string()),
+            severity_number: Some(5),
+            body: Some(
+                serde_json::to_value(OTELLogBody {
+                    message: "general kenobi",
+                })
+                .unwrap(),
+            ),
+            ..Default::default()
         },
-        OTELLogEvent {
-            timestamp_nanos: now.timestamp_millis(),
-            observed_timestamp_nanos: now.timestamp_millis(),
-            service_name: "crawler",
-            severity_text: "error",
-            severity_number: 5,
-            body: OTELLogBody {
-                message: "SOMETHING WENT WRONG",
-            },
+        OTELLogInput {
+            timestamp_unix: Some(now.timestamp()),
+            observed_timestamp_unix: now.timestamp(),
+            resource,
+            severity_text: Some("error".to_string()),
+            severity_number: Some(18),
+            body: Some(
+                serde_json::to_value(OTELLogBody {
+                    message: "SOMETHING WENT WRONG",
+                })
+                .unwrap(),
+            ),
+            ..Default::default()
         },
     ];
 
@@ -191,7 +207,7 @@ async fn integration_test_otel_logs_1() -> anyhow::Result<()> {
         .ingest_documents(&index_id, documents, Commit::Force)
         .await?;
 
-    // search documents
+    // search documents by message
     let res = client
         .search_api_v1()
         .search(
@@ -213,6 +229,7 @@ async fn integration_test_otel_logs_1() -> anyhow::Result<()> {
     assert_eq!(res.hits.len(), 1);
     println!("{:#?}", res.hits);
 
+    // search documents by severity
     let res = client
         .search_api_v1()
         .search(
@@ -232,6 +249,28 @@ async fn integration_test_otel_logs_1() -> anyhow::Result<()> {
 
     assert_eq!(res.num_hits, 2);
     assert_eq!(res.hits.len(), 2);
+    println!("{:#?}", res.hits);
+
+    // search documents by service
+    let res = client
+        .search_api_v1()
+        .search(
+            &index_id,
+            &SearchRequest {
+                query: "resource_attributes.service.name:crawler".to_string(),
+                start_timestamp: None,
+                end_timestamp: None,
+                start_offset: 0,
+                max_hits: 10,
+                search_fields: None,
+                snippet_fields: None,
+                sort_by: None,
+            },
+        )
+        .await?;
+
+    assert_eq!(res.num_hits, 3);
+    assert_eq!(res.hits.len(), 3);
     println!("{:#?}", res.hits);
 
     Ok(())

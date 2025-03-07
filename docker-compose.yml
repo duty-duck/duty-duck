@@ -21,6 +21,19 @@ services:
     ports:
       - 50051:50051
 
+  ingestor:
+    build:
+      context: .
+      dockerfile: components/ingestor/Dockerfile
+    pull_policy: missing
+    image: ghcr.io/duty-duck/ingestor:latest
+    environment:
+      # for dev purposes, expect the server to be running inside the dev container (started with `cargo run`), not as its own container
+      - MAIN_SERVER_URL=http://dev-container:3000
+      - QUICKWIT_CLUSTER_DEFAULT=http://quickwit:7280
+    ports:
+      - 50052:50051 
+
   fake-internet:
     build:
       context: .

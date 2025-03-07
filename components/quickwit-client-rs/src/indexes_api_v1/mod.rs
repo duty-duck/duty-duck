@@ -1,5 +1,8 @@
 use anyhow::Context;
-use serde::Serialize;
+use reqwest::StatusCode;
+use serde::{Deserialize, Serialize};
+
+pub mod otel;
 
 use crate::QuickwitClient;
 
@@ -46,7 +49,7 @@ pub struct IndexingSettings {
 pub struct IndexingResources {
     /// Defaults to "2 GB"
     #[serde(skip_serializing_if = "Option::is_none")]
-    heap_size: Option<String>,
+    pub heap_size: Option<String>,
 }
 
 #[derive(Debug, Serialize)]
@@ -233,6 +236,20 @@ pub struct DocMapping {
     pub field_mappings: Vec<FieldMapping>,
 }
 
+#[derive(Debug, Deserialize)]
+pub struct DescribeIndexResponse {
+    pub description: Option<String>,
+    pub index_id: String,
+    pub idnex_uri: String,
+    pub min_timestamp: Option<u64>,
+    pub max_timestamp: Option<u64>,
+    pub num_published_docs: u64,
+    pub num_published_splits: u64,
+    pub size_published_docs_uncompressed: u64,
+    pub size_published_splits: u64,
+    pub timestamp_field_name: Option<String>,
+}
+
 #[derive(Clone)]
 pub struct IndexesAPIV1 {
     pub(crate) client: QuickwitClient,
@@ -271,6 +288,30 @@ impl IndexesAPIV1 {
         Ok(())
     }
 
+    pub async fn describe_index(
+        &self,
+        index_id: &str,
+    ) -> anyhow::Result<Option<DescribeIndexResponse>> {
+        let url = self
+            .client
+            .base_url
+            .join(&format!("/api/v1/indexes/{index_id}/describe"))?;
+        let res = self.client.client.get(url).send().await?;
+
+        if res.status() == StatusCode::NOT_FOUND {
+            Ok(None)
+        } else {
+            let res = res
+                .error_for_status()
+                .context("Clear index invaild HTTP status")?
+                .json()
+                .await
+                .context("Failed to deserialize describe index response")?;
+
+            Ok(Some(res))
+        }
+    }
+
     pub async fn clear_index(&self, index_id: &str) -> anyhow::Result<()> {
         let url = self
             .client
@@ -284,168 +325,5 @@ impl IndexesAPIV1 {
             .error_for_status()
             .context("Clear index invaild HTTP status")?;
         Ok(())
-    }
-}
-
-/// The doc mapping of indices to store OTEL Logs, as described in [Quickwit's documentation](https://quickwit.io/docs/log-management/otel-service#opentelemetry-logs-data-model)
-/// and derived from ÓTEL's data model
-pub fn otel_logs_doc_mapping() -> DocMapping {
-    DocMapping {
-        mode: DocMappingMode::Strict,
-        partition_key: None,
-        max_num_partitions: None,
-        tag_fields: None,
-        store_source: false,
-        timestamp_field: Some("timestamp_nanos".to_string()),
-        field_mappings: vec![
-            FieldMapping::DateTime(DateTimeFieldMapping {
-                name: "timestamp_nanos".to_string(),
-                description: None,
-                input_formats: Some(vec!["unix_timestamp".to_string()]),
-                output_format: Some("unix_timestamp_nanos".to_string()),
-                indexed: false,
-                fast: true,
-                fast_precision: Some(DateTimeFastPrecision::MilliSeconds),
-                stored: true,
-            }),
-            FieldMapping::DateTime(DateTimeFieldMapping {
-                name: "observed_timestamp_nanos".to_string(),
-                description: None,
-                input_formats: Some(vec!["unix_timestamp".to_string()]),
-                output_format: Some("unix_timestamp_nanos".to_string()),
-                indexed: true,
-                stored: true,
-                fast: false,
-                fast_precision: None,
-            }),
-            FieldMapping::Text(TextFieldMapping {
-                name: "service_name".to_string(),
-                description: None,
-                stored: true,
-                indexed: true,
-                tokenizer: Some("raw".to_string()),
-                record: None,
-                fieldnorms: false,
-                fast: true,
-            }),
-            FieldMapping::Text(TextFieldMapping {
-                name: "severity_text".to_string(),
-                description: None,
-                stored: true,
-                indexed: true,
-                tokenizer: Some("raw".to_string()),
-                record: None,
-                fieldnorms: false,
-                fast: true,
-            }),
-            FieldMapping::Unsigned64(NumericFieldMapping {
-                name: "severity_number".to_string(),
-                description: None,
-                stored: true,
-                indexed: true,
-                fast: true,
-                coerce: true,
-            }),
-            FieldMapping::Json(JsonFieldMapping {
-                name: "body".to_string(),
-                description: None,
-                stored: true,
-                indexed: true,
-                fast: false,
-                tokenizer: Some("default".to_string()),
-                record: Some(Record::Position),
-                expand_dots: true,
-            }),
-            FieldMapping::Unsigned64(NumericFieldMapping {
-                name: "dropped_attributes_count".to_string(),
-                description: None,
-                stored: true,
-                indexed: false,
-                fast: false,
-                coerce: true,
-            }),
-            FieldMapping::Bytes(BytesFieldMapping {
-                name: "trace_id".to_string(),
-                description: None,
-                stored: true,
-                indexed: true,
-                fast: true,
-                input_format: BytesEncoding::Hex,
-                output_format: BytesEncoding::Hex,
-            }),
-            FieldMapping::Bytes(BytesFieldMapping {
-                name: "span_id".to_string(),
-                description: None,
-                stored: true,
-                indexed: true,
-                fast: true,
-                input_format: BytesEncoding::Hex,
-                output_format: BytesEncoding::Hex,
-            }),
-            FieldMapping::Unsigned64(NumericFieldMapping {
-                name: "trace_flags".to_string(),
-                description: None,
-                stored: true,
-                indexed: false,
-                fast: false,
-                coerce: true,
-            }),
-            FieldMapping::Json(JsonFieldMapping {
-                name: "resource_attributes".to_string(),
-                description: None,
-                stored: true,
-                indexed: true,
-                fast: true,
-                tokenizer: Some("raw".to_string()),
-                record: Some(Record::Basic),
-                expand_dots: true,
-            }),
-            FieldMapping::Unsigned64(NumericFieldMapping {
-                name: "resource_dropped_attributes_count".to_string(),
-                description: None,
-                stored: true,
-                indexed: false,
-                fast: false,
-                coerce: true,
-            }),
-            FieldMapping::Text(TextFieldMapping {
-                name: "scope_name".to_string(),
-                description: None,
-                indexed: false,
-                stored: true,
-                fast: false,
-                tokenizer: None,
-                fieldnorms: false,
-                record: None,
-            }),
-            FieldMapping::Text(TextFieldMapping {
-                name: "scope_version".to_string(),
-                description: None,
-                indexed: false,
-                stored: true,
-                fast: false,
-                tokenizer: None,
-                fieldnorms: false,
-                record: None,
-            }),
-            FieldMapping::Json(JsonFieldMapping {
-                name: "scope_attributes".to_string(),
-                description: None,
-                stored: true,
-                indexed: false,
-                fast: false,
-                tokenizer: None,
-                record: None,
-                expand_dots: true,
-            }),
-            FieldMapping::Unsigned64(NumericFieldMapping {
-                name: "scope_dropped_attributes_count".to_string(),
-                description: None,
-                stored: true,
-                indexed: false,
-                fast: false,
-                coerce: true,
-            }),
-        ],
     }
 }

@@ -28,6 +28,7 @@ prost.workspace = true
 axum.workspace = true
 itertools.workspace = true
 moka.workspace = true
+serde_with.workspace = true
 
 lettre = { version = "0.11.8", features = ["tokio1", "tokio1-native-tls"] }
 veil = "0.1.7"
@@ -39,7 +40,6 @@ nanoid = "0.4.0"
 enum_derive = "0.1.7"
 custom_derive = "0.1.7"
 openidconnect = "3.5.0"
-serde_with = "3.11.0"
 backon = "0.4"
 tracing-test = "0.2.5"
 ts-rs = { version = "10.0.0", features = [

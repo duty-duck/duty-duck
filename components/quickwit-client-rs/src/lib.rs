@@ -28,6 +28,10 @@ impl QuickwitClient {
         })
     }
 
+    pub fn base_url(&self) -> &Url {
+        &self.base_url
+    }
+
     pub fn ingest_api_v1(&self) -> IngestAPIV1 {
         IngestAPIV1 {
             client: self.clone(),

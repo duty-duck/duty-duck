@@ -1,10 +1,13 @@
 use std::{sync::Arc, time::Duration};
 
+use anyhow::Context;
 use dutyduck_api_client_rs::{ClientError, DutyDuckApiClient};
 
 use moka::future::{Cache, CacheBuilder};
 use reqwest::{IntoUrl, StatusCode};
 use thiserror::Error;
+use tonic::{Request, Status};
+use tracing::error;
 use uuid::Uuid;
 
 #[derive(Clone)]
@@ -13,6 +16,7 @@ pub struct AuthenticatedToken {
     pub org_name: String,
 }
 
+#[derive(Clone)]
 pub struct Authenticator {
     api_client: DutyDuckApiClient,
     authenticated_token_cache: Arc<Cache<(String, String), AuthenticatedToken>>,
@@ -24,6 +28,20 @@ pub enum AuthenticationError {
     FailedAuthentication,
     #[error("An internal failure occured while processing the request: {0}")]
     TechnicalFailure(#[from] anyhow::Error),
+}
+
+impl From<AuthenticationError> for tonic::Status {
+    fn from(value: AuthenticationError) -> Self {
+        match value {
+            AuthenticationError::FailedAuthentication => {
+                Status::permission_denied(value.to_string())
+            }
+            AuthenticationError::TechnicalFailure(error) => {
+                error!(?error, "Technical failure while authenticating a request");
+                Status::internal("An internal error occured, please try again")
+            }
+        }
+    }
 }
 
 impl Authenticator {
@@ -59,6 +77,7 @@ impl Authenticator {
         let client = self
             .api_client
             .with_api_token(token_pair.0.clone(), token_pair.1.clone());
+
         match client.auth().get_current_user().await {
             Ok(user) => {
                 let authenticated_token = AuthenticatedToken {
@@ -78,5 +97,26 @@ impl Authenticator {
             )) => Err(AuthenticationError::FailedAuthentication),
             Err(e) => Err(AuthenticationError::TechnicalFailure(e.into())),
         }
+    }
+
+    pub async fn authenticate_tonic_request<T>(
+        &self,
+        request: &Request<T>,
+    ) -> Result<AuthenticatedToken, tonic::Status> {
+        let metadata = request.metadata();
+        let token_id = metadata
+            .get("X-Api-Token-Id")
+            .ok_or(AuthenticationError::FailedAuthentication)?
+            .to_str()
+            .context("Failed to convert token id to str")
+            .map_err(AuthenticationError::TechnicalFailure)?;
+        let secret_key = metadata
+            .get("X-Api-Token-Secret-Key")
+            .ok_or(AuthenticationError::FailedAuthentication)?
+            .to_str()
+            .context("Failed to convert secrey key to str")
+            .map_err(AuthenticationError::TechnicalFailure)?;
+
+        Ok(self.authenticate_token(token_id, secret_key).await?)
     }
 }

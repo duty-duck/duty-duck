@@ -6,6 +6,8 @@ publish = false
 
 [dependencies]
 dutyduck-api-client-rs.workspace = true
+quickwit-client-rs.workspace = true
+
 axum.workspace = true
 futures.workspace = true
 futures-util.workspace = true
@@ -29,6 +31,8 @@ opentelemetry-proto = { version = "=0.28.0", features = [
     "with-serde",
     "logs",
 ] }
+crc32fast = "1.4.2"
+hex = "0.4.3"
 
 [build-dependencies]
 built = { version = "0.7.3", features = ["chrono", "git2"] }
