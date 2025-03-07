@@ -12,7 +12,7 @@ use utoipa::ToSchema;
 
 use crate::domain::{
     entities::{
-        authorization::{AuthContext, Permission},
+        authorization::{AuthContext, OriginalAuthenticationToken, Permission},
         task::{
             get_task_aggregate, save_task_aggregate, RunningTaskAggregate, TaskAggregate, TaskId,
         },
@@ -31,6 +31,8 @@ pub enum SendTaskLogsError {
     TaskIsNotRunning,
     #[error("User is not allowed to send a heartbeat for this task")]
     Forbidden,
+    #[error("This endpoint does not support Bearer token authentication. Please use an API Token instead")]
+    InvalidAuthenticationMethod,
     #[error("Technical error")]
     TechnicalFailure(#[from] anyhow::Error),
 }
@@ -76,6 +78,13 @@ where
         return Err(SendTaskLogsError::Forbidden);
     }
 
+    if !matches!(
+        auth_context.original_auth_token,
+        Some(OriginalAuthenticationToken::APITokenPair { .. })
+    ) {
+        return Err(SendTaskLogsError::InvalidAuthenticationMethod);
+    }
+
     let mut tx = task_repository.begin_transaction().await?;
     let aggregate = get_task_aggregate(
         task_repository,
@@ -112,19 +121,22 @@ where
     task_repository.commit_transaction(tx).await?;
 
     logs_ingestor
-        .ingest_logs(vec![ResourceLogs {
-            schema_url: String::new(),
-            resource: Some(resource),
-            scope_logs: vec![ScopeLogs {
-                scope: None,
+        .ingest_logs(
+            auth_context,
+            vec![ResourceLogs {
                 schema_url: String::new(),
-                log_records: request
-                    .events
-                    .into_iter()
-                    .map(log_event_to_log_record)
-                    .collect(),
+                resource: Some(resource),
+                scope_logs: vec![ScopeLogs {
+                    scope: None,
+                    schema_url: String::new(),
+                    log_records: request
+                        .events
+                        .into_iter()
+                        .map(log_event_to_log_record)
+                        .collect(),
+                }],
             }],
-        }])
+        )
         .await?;
 
     Ok(())

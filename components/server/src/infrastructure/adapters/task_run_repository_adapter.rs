@@ -23,10 +23,6 @@ impl TaskRunRepositoryAdapter {
             .execute(&self.pool)
             .await
             .context("Failed to create task run partition for month")?;
-        sqlx::query!("SELECT create_task_run_events_partition_for_month()")
-            .execute(&self.pool)
-            .await
-            .context("Failed to create task run events partition for month")?;
         Ok(())
     }
 }
@@ -153,7 +149,7 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
                 heartbeat_timeout_seconds
             )
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-            ON CONFLICT (organization_id, task_id, started_at) DO UPDATE SET
+            ON CONFLICT (organization_id, id, started_at) DO UPDATE SET
                 status = $4,
                 completed_at = $6,
                 exit_code = $7,

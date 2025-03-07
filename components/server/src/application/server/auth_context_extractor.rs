@@ -10,7 +10,9 @@ use tracing::error;
 use uuid::Uuid;
 
 use crate::application::application_state::ApplicationState;
-use crate::domain::entities::authorization::{ApiAccessToken, AuthContext};
+use crate::domain::entities::authorization::{
+    ApiAccessToken, AuthContext, OriginalAuthenticationToken,
+};
 use crate::domain::entities::organization::OrganizationRoleSet;
 use crate::domain::ports::api_access_token_repository::ApiAccessTokenRepository;
 use crate::domain::ports::organization_repository::OrganizationRepository;
@@ -49,12 +51,12 @@ async fn bearer_token_authentication(
         .headers
         .get("authorization")
         .ok_or((StatusCode::UNAUTHORIZED, "Authorization header is missing"))?;
-    let token = authorization_header
+    let bearer_token = authorization_header
         .to_str()
         .map_err(|_| (StatusCode::BAD_REQUEST, "Invalid Authorization header"))?
         .strip_prefix("Bearer ")
         .ok_or((StatusCode::BAD_REQUEST, "Invalid Authorization header"))?;
-    let header = jsonwebtoken::decode_header(token)
+    let header = jsonwebtoken::decode_header(bearer_token)
         .map_err(|_| (StatusCode::BAD_REQUEST, "Invalid Authorization header"))?;
     let kid = header
         .kid
@@ -82,7 +84,7 @@ async fn bearer_token_authentication(
     })?;
     let mut validation = Validation::new(jsonwebtoken::Algorithm::RS256);
     validation.set_audience(&state.access_token_audience);
-    let token = jsonwebtoken::decode::<Claims>(token, &key, &validation).map_err(|e| {
+    let token = jsonwebtoken::decode::<Claims>(bearer_token, &key, &validation).map_err(|e| {
         match e.kind() {
             ErrorKind::InvalidAudience =>  error!(error = ?e, "Failed to decode access token because of invalid audience. Verify the ACCESS_TOKEN_AUDIENCE configuration variable."),
             _ =>  error!(error = ?e, "Failed to decode access token. This should not happen, maybe scopes are missing in Keycloak ?")
@@ -95,6 +97,9 @@ async fn bearer_token_authentication(
         active_user_id: token.claims.sub,
         active_organization_roles: token.claims.active_organization.role.into(),
         restricted_to_scopes: vec![],
+        original_auth_token: Some(OriginalAuthenticationToken::BearerToken {
+            bearer_token: bearer_token.to_string(),
+        }),
     };
 
     Ok(auth_context)
@@ -175,5 +180,9 @@ async fn api_token_authentication(
         active_user_id: access_token.user_id,
         active_organization_roles,
         restricted_to_scopes: access_token.scopes,
+        original_auth_token: Some(OriginalAuthenticationToken::APITokenPair {
+            id: api_token_id,
+            secret_key: hex::encode(api_token_secret_key),
+        }),
     })
 }

@@ -2,9 +2,12 @@ use opentelemetry_proto::tonic::{
     collector::logs::v1::{logs_service_client::LogsServiceClient, ExportLogsServiceRequest},
     logs::v1::ResourceLogs,
 };
-use tonic::transport::Channel;
+use tonic::{metadata::MetadataValue, transport::Channel, Request};
 
-use crate::domain::ports::logs_ingestor::LogsIngestor;
+use crate::domain::{
+    entities::authorization::{AuthContext, OriginalAuthenticationToken},
+    ports::logs_ingestor::LogsIngestor,
+};
 
 #[derive(Clone)]
 pub struct LogsIngestorAdapter {
@@ -13,10 +16,33 @@ pub struct LogsIngestorAdapter {
 
 #[async_trait::async_trait]
 impl LogsIngestor for LogsIngestorAdapter {
-    async fn ingest_logs(&self, logs: Vec<ResourceLogs>) -> anyhow::Result<()> {
-        let request = ExportLogsServiceRequest {
+    async fn ingest_logs(
+        &self,
+        auth_context: &AuthContext,
+        logs: Vec<ResourceLogs>,
+    ) -> anyhow::Result<()> {
+        let mut request = Request::new(ExportLogsServiceRequest {
             resource_logs: logs,
-        };
+        });
+
+        match &auth_context.original_auth_token {
+            Some(OriginalAuthenticationToken::APITokenPair { id, secret_key }) => {
+                request
+                    .metadata_mut()
+                    .insert("x-api-token-id", MetadataValue::try_from(&id.to_string())?);
+                request.metadata_mut().insert(
+                    "x-api-token-secret-key",
+                    MetadataValue::try_from(secret_key)?,
+                );
+            }
+            Some(OriginalAuthenticationToken::BearerToken { bearer_token }) => {
+                request.metadata_mut().insert(
+                    "authentication",
+                    MetadataValue::try_from(&format!("Bearer {bearer_token}"))?,
+                );
+            }
+            None => (),
+        }
 
         self.client.clone().export(request).await?;
         Ok(())

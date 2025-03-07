@@ -10,6 +10,7 @@ use quickwit_client_rs::{
     QuickwitClient,
 };
 use serde::Serialize;
+use serde_json::Value;
 
 #[derive(Serialize)]
 struct TestDocument {
@@ -20,6 +21,15 @@ struct TestDocument {
 #[derive(Serialize)]
 pub struct OTELLogBody {
     message: &'static str,
+}
+
+impl OTELLogBody {
+    fn into_object(self) -> serde_json::Map<String, Value> {
+        match serde_json::to_value(&self) {
+            Ok(serde_json::Value::Object(obj)) => obj,
+            _ => panic!("failed to serialize body"),
+        }
+    }
 }
 
 #[tokio::test]
@@ -163,10 +173,10 @@ async fn integration_test_otel_logs_1() -> anyhow::Result<()> {
             severity_text: Some("debug".to_string()),
             severity_number: Some(5),
             body: Some(
-                serde_json::to_value(OTELLogBody {
+                OTELLogBody {
                     message: "hello there",
-                })
-                .unwrap(),
+                }
+                .into_object(),
             ),
 
             ..Default::default()
@@ -178,10 +188,10 @@ async fn integration_test_otel_logs_1() -> anyhow::Result<()> {
             severity_text: Some("debug".to_string()),
             severity_number: Some(5),
             body: Some(
-                serde_json::to_value(OTELLogBody {
+                OTELLogBody {
                     message: "general kenobi",
-                })
-                .unwrap(),
+                }
+                .into_object(),
             ),
             ..Default::default()
         },
@@ -192,10 +202,10 @@ async fn integration_test_otel_logs_1() -> anyhow::Result<()> {
             severity_text: Some("error".to_string()),
             severity_number: Some(18),
             body: Some(
-                serde_json::to_value(OTELLogBody {
+                OTELLogBody {
                     message: "SOMETHING WENT WRONG",
-                })
-                .unwrap(),
+                }
+                .into_object(),
             ),
             ..Default::default()
         },

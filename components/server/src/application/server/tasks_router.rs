@@ -295,16 +295,17 @@ async fn send_task_logs_handler(
     .await
     {
         Ok(_) => StatusCode::OK.into_response(),
-        Err(SendTaskLogsError::Forbidden) => (
-            StatusCode::FORBIDDEN,
-            "User is not allowed to send logs for this task",
-        )
-            .into_response(),
-        Err(SendTaskLogsError::TaskNotFound) => {
-            (StatusCode::NOT_FOUND, "Task not found").into_response()
+        Err(e @ SendTaskLogsError::Forbidden) => {
+            (StatusCode::FORBIDDEN, e.to_string()).into_response()
         }
-        Err(SendTaskLogsError::TaskIsNotRunning) => {
-            (StatusCode::BAD_REQUEST, "Task is not running").into_response()
+        Err(e @ SendTaskLogsError::TaskNotFound) => {
+            (StatusCode::NOT_FOUND, e.to_string()).into_response()
+        }
+        Err(e @ SendTaskLogsError::InvalidAuthenticationMethod) => {
+            (StatusCode::UNAUTHORIZED, e.to_string()).into_response()
+        }
+        Err(e @ SendTaskLogsError::TaskIsNotRunning) => {
+            (StatusCode::BAD_REQUEST, e.to_string()).into_response()
         }
         Err(SendTaskLogsError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while sending a logs");

@@ -16,6 +16,22 @@ pub struct AuthContext {
     pub active_user_id: Uuid,
     pub active_organization_roles: OrganizationRoleSet,
     pub restricted_to_scopes: Vec<Permission>,
+    #[serde(skip)]
+    pub original_auth_token: Option<OriginalAuthenticationToken>,
+}
+
+#[derive(veil::Redact)]
+pub enum OriginalAuthenticationToken {
+    APITokenPair {
+        #[redact]
+        id: Uuid,
+        #[redact]
+        secret_key: String,
+    },
+    BearerToken {
+        #[redact]
+        bearer_token: String,
+    },
 }
 
 impl AuthContext {
@@ -88,6 +104,7 @@ impl AuthContext {
             active_organization_roles: OrganizationRoleSet::test_context(user_roles),
             // Then specifically restrict the permissions if needed
             restricted_to_scopes: restricted_to_scopes.to_vec(),
+            original_auth_token: None,
         }
     }
 }

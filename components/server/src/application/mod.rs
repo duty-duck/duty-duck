@@ -269,7 +269,7 @@ async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationSt
             .context("Failed to create file storage adapter")?,
         task_repository: TaskRepositoryAdapter { pool: pool.clone() },
         task_run_repository: TaskRunRepositoryAdapter { pool: pool.clone() },
-        logs_ingestor: LogsIngestorAdapter::new(config.ingestor.ingestors_grpc_url.values.clone())
+        logs_ingestor: LogsIngestorAdapter::new(config.ingestor.INGESTORS_GRPC_URLS.values.clone())
             .await
             .context("Failed to create logs ingestor adapter")?,
     };

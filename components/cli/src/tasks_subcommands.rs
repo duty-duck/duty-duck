@@ -150,12 +150,12 @@ async fn run_task(client: &DutyDuckApiClient, command: RunCommand) -> anyhow::Re
                     };
 
                     if let Some(Err(error)) = result {
-                        tracing::info!(?error, "Failed to send logs to the platform");
+                        tracing::warn!(?error, "Failed to send logs to the platform");
                     }
                 };
 
                 if let Some(Err(error)) = last_result {
-                    tracing::info!(?error, "Failed to send logs to the platform");
+                    tracing::warn!(?error, "Failed to send logs to the platform");
                 }
             }
         });

@@ -4,7 +4,12 @@ import { resolve } from "path"
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   devServer: {
-    port: 5173
+    port: 5173,
+    cors: {
+      origin: "*",
+      methods: "*",
+      allowHeaders: "*"
+    }
   },
 
   devtools: { enabled: true },
@@ -13,7 +18,6 @@ export default defineNuxtConfig({
     defaults: {
     }
   },
-
   app: {
     head: {
       charset: 'utf-8',

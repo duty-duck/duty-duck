@@ -208,7 +208,7 @@ pub struct OTELLogInput {
 
     /// A value containing the body of the log record. Can be for example a human-readable string message (including multi-line) describing the event in a free form
     /// or it can be a structured data composed of arrays and maps of other values
-    pub body: Option<Value>,
+    pub body: Option<serde_json::Map<String, Value>>,
 
     /// Describes the source of the log, aka resource. Multiple occurrences of events coming from the same event source can happen across time and they all have the same value of Resource.
     /// Can contain for example information about the application that emits the record or about the infrastructure where the application runs.

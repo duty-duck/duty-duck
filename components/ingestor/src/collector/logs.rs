@@ -156,7 +156,17 @@ fn convert_otel_log(log: ResourceLogs) -> (Vec<OTELLogInput>, Option<OTELResourc
                     observed_timestamp_unix: record.observed_time_unix_nano as i64,
                     severity_text: Some(record.severity_text).filter(|t| !t.is_empty()),
                     severity_number: Some(record.severity_number).filter(|s| *s > 0),
-                    body: record.body.and_then(convert_any_value),
+                    body: record
+                        .body
+                        .and_then(convert_any_value)
+                        .map(|value| match value {
+                            Value::Object(obj) => obj,
+                            value => {
+                                let mut obj = serde_json::Map::new();
+                                obj.insert("payload".to_string(), value);
+                                obj
+                            }
+                        }),
                     trace_id_hex: Some(record.trace_id)
                         .filter(|t| !t.is_empty())
                         .map(hex::encode),

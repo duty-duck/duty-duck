@@ -240,7 +240,7 @@ pub struct DocMapping {
 pub struct DescribeIndexResponse {
     pub description: Option<String>,
     pub index_id: String,
-    pub idnex_uri: String,
+    pub index_uri: String,
     pub min_timestamp: Option<u64>,
     pub max_timestamp: Option<u64>,
     pub num_published_docs: u64,

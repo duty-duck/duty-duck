@@ -69,7 +69,7 @@ export default defineNuxtPlugin({
          * @param options - Optional Keycloak login options.
          */
         const login = async (options?: KeycloakLoginOptions) => {
-            console.log("[KeycloakClient] Calling 'login'", options);
+            console.log("[KeycloakClient] Calling 'login' with options", options);
             await keycloak!.login(options)
         }
 

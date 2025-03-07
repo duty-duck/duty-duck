@@ -100,19 +100,20 @@ impl Authenticator {
         }
     }
 
+    // TODO: add suppoort for bearer authentication
     pub async fn authenticate_tonic_request<T>(
         &self,
         request: &Request<T>,
     ) -> Result<AuthenticatedToken, tonic::Status> {
         let metadata = request.metadata();
         let token_id = metadata
-            .get("X-Api-Token-Id")
+            .get("x-api-token-id")
             .ok_or(AuthenticationError::FailedAuthentication)?
             .to_str()
             .context("Failed to convert token id to str")
             .map_err(AuthenticationError::TechnicalFailure)?;
         let secret_key = metadata
-            .get("X-Api-Token-Secret-Key")
+            .get("x-api-token-secret-key")
             .ok_or(AuthenticationError::FailedAuthentication)?
             .to_str()
             .context("Failed to convert secrey key to str")
