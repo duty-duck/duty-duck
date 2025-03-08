@@ -1,4 +1,4 @@
-use opentelemetry_proto::tonic::{
+use opentelemetry::proto::{
     collector::logs::v1::{logs_service_client::LogsServiceClient, ExportLogsServiceRequest},
     logs::v1::ResourceLogs,
 };
@@ -6,7 +6,7 @@ use tonic::{metadata::MetadataValue, transport::Channel, Request};
 
 use crate::domain::{
     entities::authorization::{AuthContext, OriginalAuthenticationToken},
-    ports::logs_ingestor::LogsIngestor,
+    ports::logs::LogsIngestor,
 };
 
 #[derive(Clone)]

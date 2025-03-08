@@ -31,7 +31,7 @@ pub struct DbConfig {
 #[derive(Envconfig)]
 pub struct IngestorConfig {
     #[envconfig(from = "INGESTORS_GRPC_URLS")]
-    pub INGESTORS_GRPC_URLS: CommaSeperated<String>,
+    pub ingestors_grpc_urls: CommaSeperated<String>,
 }
 
 #[derive(Envconfig)]

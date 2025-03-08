@@ -38,8 +38,8 @@ pub struct ListTaskRunsResponse {
 
 #[derive(Error, Debug)]
 pub enum ListTaskRunsError {
-    #[error("Task not found")]
-    TaskNotFound,
+    #[error("Task not found with id {0}")]
+    TaskNotFound(TaskId),
     #[error("User is not allowed to list task runs")]
     Forbidden,
     #[error("Technical failure occured while listing task runs")]
@@ -71,7 +71,7 @@ pub async fn list_task_runs_use_case<
             &task_id,
         )
         .await?
-        .ok_or(ListTaskRunsError::TaskNotFound)?;
+        .ok_or(ListTaskRunsError::TaskNotFound(task_id))?;
 
     let ListTaskRunsOutput {
         runs,

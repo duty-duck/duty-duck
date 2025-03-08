@@ -24,8 +24,8 @@ pub enum GetTaskError {
     TechnicalFailure(#[from] anyhow::Error),
     #[error("Current user doesn't have the privilege to read tasks")]
     Forbidden,
-    #[error("Task not found")]
-    NotFound,
+    #[error("Task not found with id {0}")]
+    NotFound(TaskId),
 }
 
 /// Get a task by its ID (user-defined or UUID)
@@ -48,7 +48,7 @@ pub async fn get_task(
         .get_task_by_id(&mut tx, auth_context.active_organization_id, &task_id)
         .await
         .map_err(GetTaskError::TechnicalFailure)?
-        .ok_or(GetTaskError::NotFound)?;
+        .ok_or(GetTaskError::NotFound(task_id))?;
 
     Ok(GetTaskResponse { task })
 }

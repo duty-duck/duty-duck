@@ -2596,7 +2596,7 @@ dependencies = [
  "futures-util",
  "hex",
  "moka",
- "opentelemetry-proto",
+ "opentelemetry 0.0.0",
  "quickwit-client-rs",
  "reqwest 0.12.9",
  "serde",
@@ -3252,6 +3252,17 @@ dependencies = [
 
 [[package]]
 name = "opentelemetry"
+version = "0.0.0"
+dependencies = [
+ "hex",
+ "opentelemetry-proto",
+ "serde",
+ "serde_json",
+ "serde_with",
+]
+
+[[package]]
+name = "opentelemetry"
 version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "236e667b670a5cdf90c258f5a55794ec5ac5027e960c224bff8367a59e1e6426"
@@ -3272,7 +3283,7 @@ checksum = "56f8870d3024727e99212eb3bb1762ec16e255e3e6f58eeb3dc8db1aa226746d"
 dependencies = [
  "base64 0.22.1",
  "hex",
- "opentelemetry",
+ "opentelemetry 0.28.0",
  "opentelemetry_sdk",
  "prost",
  "serde",
@@ -3291,7 +3302,7 @@ dependencies = [
  "futures-executor",
  "futures-util",
  "glob",
- "opentelemetry",
+ "opentelemetry 0.28.0",
  "percent-encoding",
  "rand",
  "serde_json",
@@ -3755,6 +3766,7 @@ dependencies = [
  "futures",
  "futures-util",
  "itertools 0.13.0",
+ "opentelemetry 0.0.0",
  "reqwest 0.12.9",
  "serde",
  "serde_json",
@@ -4539,9 +4551,10 @@ dependencies = [
  "moka",
  "nanoid",
  "openidconnect",
- "opentelemetry-proto",
+ "opentelemetry 0.0.0",
  "phonenumber",
  "prost",
+ "quickwit-client-rs",
  "rand",
  "regex",
  "reqwest 0.12.9",

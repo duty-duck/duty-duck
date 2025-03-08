@@ -40,6 +40,9 @@ use crate::domain::{
         tasks_router::list_task_runs_handler,
         tasks_router::send_task_heartbeat_handler,
         tasks_router::archive_task_handler,
+        tasks_router::get_task_run_handler,
+        tasks_router::send_task_logs_handler,
+        tasks_router::get_task_run_logs_handler
     ),
     components(schemas(
         ListIncidentsResponse,

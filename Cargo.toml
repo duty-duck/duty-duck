@@ -2,6 +2,7 @@
 edition = "2021"
 resolver = "2"
 members = [
+    "components/opentelemetry",
     "components/server",
     "components/cli",
     "components/dutyduck-api-client-rs",
@@ -16,6 +17,7 @@ opt-level = 1
 opt-level = 3
 
 [workspace.dependencies]
+opentelemetry = { path = "components/opentelemetry" }
 dutyduck-api-client-rs = { path = "components/dutyduck-api-client-rs" }
 quickwit-client-rs = { path = "components/quickwit-client-rs" }
 
@@ -44,8 +46,3 @@ dotenv = "0.15.0"
 tonic = "0.12.3"
 prost = "0.13.3"
 moka = { version = "0.7.1", features = ["future"] }
-opentelemetry-proto = { version = "=0.28.0", features = [
-    "gen-tonic",
-    "with-serde",
-    "logs",
-] }

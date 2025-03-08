@@ -8,12 +8,12 @@ use crate::{ClientResult, DutyDuckApiClient, ResponseExtention};
 /// A request to store the logs associated with a running task so they can be consulted and searched.
 #[derive(Debug, Serialize, Default)]
 pub struct SendTaskLogsRequest {
-    pub events: Vec<TaskLogEvent>,
+    pub events: Vec<TaskRunLogEvent>,
 }
 
 /// A single log event from a task run. (By default, each new line in the standard output is considered a seperate event)
 #[derive(Debug, Serialize)]
-pub struct TaskLogEvent {
+pub struct TaskRunLogEvent {
     /// severity text (also known as log level). This is the original string representation of the severity as it is known at the source, for instance "DEBUG", or "ERROR".
     pub severity_text: Option<String>,
     /// SeverityNumber is an integer number. Smaller numerical values correspond to less severe events (such as debug events), larger numerical values correspond to more severe events (such as errors and critical events).

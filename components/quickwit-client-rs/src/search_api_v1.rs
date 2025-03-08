@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use anyhow::Context;
 use serde::{Deserialize, Serialize};
 
@@ -32,7 +30,7 @@ pub struct SearchRequest {
 #[derive(Debug, Deserialize)]
 pub struct SearchResponse {
     /// Results of the query
-    pub hits: Vec<HashMap<String, serde_json::Value>>,
+    pub hits: Vec<serde_json::Map<String, serde_json::Value>>,
     /// Total number of matches
     pub num_hits: u64,
     /// Processing time of the query

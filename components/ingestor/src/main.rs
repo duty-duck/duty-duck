@@ -10,8 +10,8 @@ use tracing::*;
 use tracing_subscriber::{EnvFilter, FmtSubscriber};
 
 mod auth;
-mod collector;
 mod config;
+mod logs_ingestor;
 mod quickwit;
 
 #[tokio::main]
@@ -42,18 +42,23 @@ async fn main() -> anyhow::Result<()> {
     let authenticator = Authenticator::new(config.server_config.main_server_url)
         .context("Failed to build authenticator. Maybe the server URL is invalid ?")?;
 
-    let logs_ingestor = collector::logs::LogsIngestorService::new(
-        quickwit_clusters.clone(),
-        authenticator.clone(),
-    )?;
+    let logs_ingestor =
+        logs_ingestor::LogsIngestorService::new(quickwit_clusters.clone(), authenticator.clone())?;
 
     info!(
         "Launching gRPC server on  0.0.0.0:{}",
         config.grpc_config.grpc_port
     );
     Server::builder()
-        .add_service(opentelemetry_proto::tonic::collector::logs::v1::logs_service_server::LogsServiceServer::new(logs_ingestor))
-        .serve(SocketAddr::V4(SocketAddrV4::new(Ipv4Addr::UNSPECIFIED, config.grpc_config.grpc_port)))
+        .add_service(
+            opentelemetry::proto::collector::logs::v1::logs_service_server::LogsServiceServer::new(
+                logs_ingestor,
+            ),
+        )
+        .serve(SocketAddr::V4(SocketAddrV4::new(
+            Ipv4Addr::UNSPECIFIED,
+            config.grpc_config.grpc_port,
+        )))
         .await?;
 
     Ok(())

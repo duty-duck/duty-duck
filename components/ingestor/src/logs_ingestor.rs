@@ -1,18 +1,18 @@
 use std::sync::Arc;
 
 use moka::future::Cache;
-use opentelemetry_proto::tonic::{
-    collector::logs::v1::{
-        logs_service_server::LogsService, ExportLogsServiceRequest, ExportLogsServiceResponse,
-    },
-    common::v1::{any_value, AnyValue, KeyValue},
-    logs::v1::ResourceLogs,
+use opentelemetry::json::*;
+
+use opentelemetry::proto::collector::logs::v1::logs_service_server::LogsService;
+use opentelemetry::proto::collector::logs::v1::ExportLogsServiceRequest;
+use opentelemetry::proto::{
+    collector::logs::v1::ExportLogsServiceResponse, logs::v1::ResourceLogs,
 };
 use quickwit_client_rs::indexes_api_v1::{
-    otel::{otel_logs_doc_mapping, OTELInstrumentationScope, OTELLogInput, OTELResource},
-    IndexConfig, IndexingResources, IndexingSettings, RetentionSettings, SearchSettings,
+    otel::otel_logs_doc_mapping, IndexConfig, IndexingResources, IndexingSettings,
+    RetentionSettings, SearchSettings,
 };
-use serde_json::{Number, Value};
+use serde_json::Value;
 use tonic::{Request, Response, Status};
 use tracing::error;
 use uuid::Uuid;
@@ -53,12 +53,18 @@ impl LogsService for LogsIngestorService {
 
         let request = request.into_inner();
 
-        for (logs, resource) in request.resource_logs.into_iter().map(convert_otel_log) {
+        for (logs, resource) in request
+            .resource_logs
+            .into_iter()
+            .map(otel_proto_to_quickwit_document)
+        {
             let partition_key = resource_partition_key(resource.as_ref(), &auth_context);
+
             let client = self
                 .quickwit_client(auth_context.org_id)
                 .get_client(&partition_key)
                 .ingest_api_v1();
+
             client
                 .ingest_documents(
                     &index_id,
@@ -130,53 +136,20 @@ impl LogsIngestorService {
     }
 }
 
-fn convert_otel_log(log: ResourceLogs) -> (Vec<OTELLogInput>, Option<OTELResource>) {
-    let resource = log.resource.map(|r| OTELResource {
-        attributes: convert_attributes(r.attributes),
-        dropped_attributes_count: r.dropped_attributes_count,
-    });
+fn otel_proto_to_quickwit_document(
+    log: ResourceLogs,
+) -> (Vec<OTELLogDocument>, Option<OTELResource>) {
+    let resource = log.resource.map(OTELResource::from);
 
     let logs = log
         .scope_logs
         .into_iter()
         .flat_map(|logs| {
-            let scope = logs.scope.map(|s| OTELInstrumentationScope {
-                name: s.name,
-                version: s.version,
-                attributes: convert_attributes(s.attributes),
-                dropped_attributes_count: s.dropped_attributes_count,
-            });
+            let scope = logs.scope.map(OTELInstrumentationScope::from);
 
             logs.log_records
                 .into_iter()
-                .map(|record| OTELLogInput {
-                    resource: resource.clone(),
-                    scope: scope.clone(),
-                    timestamp_unix: Some(record.time_unix_nano as i64).filter(|ts| *ts > 0),
-                    observed_timestamp_unix: record.observed_time_unix_nano as i64,
-                    severity_text: Some(record.severity_text).filter(|t| !t.is_empty()),
-                    severity_number: Some(record.severity_number).filter(|s| *s > 0),
-                    body: record
-                        .body
-                        .and_then(convert_any_value)
-                        .map(|value| match value {
-                            Value::Object(obj) => obj,
-                            value => {
-                                let mut obj = serde_json::Map::new();
-                                obj.insert("payload".to_string(), value);
-                                obj
-                            }
-                        }),
-                    trace_id_hex: Some(record.trace_id)
-                        .filter(|t| !t.is_empty())
-                        .map(hex::encode),
-                    span_id_hex: Some(record.span_id)
-                        .filter(|t| !t.is_empty())
-                        .map(hex::encode),
-                    trace_flags: Some(record.flags),
-                    attributes: Some(convert_attributes(record.attributes)),
-                    dropped_attributes_count: record.dropped_attributes_count,
-                })
+                .map(|record| OTELLogDocument::from_proto(scope.clone(), resource.clone(), record))
                 .collect::<Vec<_>>()
         })
         .collect();
@@ -207,34 +180,6 @@ fn resource_partition_key(
         (org, Some(Value::String(resource))) => format!("{org}:{resource}"),
         (org, Some(Value::Number(resource))) => format!("{org}:{resource}"),
         (org, _) => org,
-    }
-}
-
-fn convert_attributes(attributes: Vec<KeyValue>) -> serde_json::Map<String, Value> {
-    attributes
-        .into_iter()
-        .filter_map(|kv| Some((kv.key, kv.value.and_then(convert_any_value)?)))
-        .collect()
-}
-
-fn convert_any_value(value: AnyValue) -> Option<Value> {
-    match value.value {
-        Some(any_value::Value::StringValue(v)) => Some(Value::String(v)),
-        Some(any_value::Value::BoolValue(v)) => Some(Value::Bool(v)),
-        Some(any_value::Value::IntValue(v)) => Some(Value::Number(Number::from(v))),
-        Some(any_value::Value::DoubleValue(v)) => Some(Value::Number(Number::from_f64(v)?)),
-        Some(any_value::Value::ArrayValue(arr)) => Some(Value::Array(
-            arr.values
-                .into_iter()
-                .filter_map(convert_any_value)
-                .collect(),
-        )),
-        Some(any_value::Value::KvlistValue(kv_list)) => {
-            Some(Value::Object(convert_attributes(kv_list.values)))
-        }
-        // We do not support indexing bytes at the moment
-        Some(any_value::Value::BytesValue(_)) => None,
-        None => None,
     }
 }
 

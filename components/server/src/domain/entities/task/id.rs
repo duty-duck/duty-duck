@@ -15,6 +15,15 @@ pub enum TaskId {
     UserId(TaskUserId),
 }
 
+impl Display for TaskId {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            TaskId::Uuid(id) => write!(f, "{id} (uuid)"),
+            TaskId::UserId(id) => write!(f, "{id}"),
+        }
+    }
+}
+
 /// A user-defined ID for a task
 #[derive(Debug, Serialize, ToSchema, Clone, PartialEq, Eq, Hash)]
 #[serde(transparent)]

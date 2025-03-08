@@ -5,7 +5,7 @@ use anyhow::Context;
 use chrono::Utc;
 use clap::*;
 use dutyduck_api_client_rs::{
-    ClientError, DutyDuckApiClient, NewTask, SendTaskLogsRequest, TaskLogEvent,
+    ClientError, DutyDuckApiClient, NewTask, SendTaskLogsRequest, TaskRunLogEvent,
 };
 use futures::StreamExt;
 use reqwest::StatusCode;
@@ -246,12 +246,12 @@ enum LogLineSeverity {
 }
 
 // todo: enhance parsing to allow users to exatract structured data from their logs
-fn log_line_to_event(line: String, severity: LogLineSeverity) -> TaskLogEvent {
+fn log_line_to_event(line: String, severity: LogLineSeverity) -> TaskRunLogEvent {
     let (sevrity_text, severity_number) = match severity {
         LogLineSeverity::Error => ("ERROR".to_string(), 17),
         LogLineSeverity::Info => ("INFO".to_string(), 9),
     };
-    TaskLogEvent {
+    TaskRunLogEvent {
         timestamp: Utc::now(),
         severity_number: Some(severity_number),
         severity_text: Some(sevrity_text),

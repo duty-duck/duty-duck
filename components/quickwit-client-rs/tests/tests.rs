@@ -1,9 +1,9 @@
 use chrono::Utc;
+use opentelemetry::json::*;
 use quickwit_client_rs::{
     indexes_api_v1::{
-        otel::{otel_logs_doc_mapping, OTELLogInput, OTELResource},
-        DateTimeFieldMapping, DocMapping, DocMappingMode, FieldMapping, IndexConfig,
-        RetentionSettings, SearchSettings, TextFieldMapping,
+        otel::otel_logs_doc_mapping, DateTimeFieldMapping, DocMapping, DocMappingMode,
+        FieldMapping, IndexConfig, RetentionSettings, SearchSettings, TextFieldMapping,
     },
     ingest_api_v1::Commit,
     search_api_v1::SearchRequest,
@@ -165,7 +165,7 @@ async fn integration_test_otel_logs_1() -> anyhow::Result<()> {
         })
     };
     let documents = vec![
-        OTELLogInput {
+        OTELLogDocument {
             timestamp_unix: Some(now.timestamp()),
             observed_timestamp_unix: now.timestamp(),
             resource: resource.clone(),
@@ -181,7 +181,7 @@ async fn integration_test_otel_logs_1() -> anyhow::Result<()> {
 
             ..Default::default()
         },
-        OTELLogInput {
+        OTELLogDocument {
             timestamp_unix: Some(now.timestamp()),
             observed_timestamp_unix: now.timestamp(),
             resource: resource.clone(),
@@ -195,7 +195,7 @@ async fn integration_test_otel_logs_1() -> anyhow::Result<()> {
             ),
             ..Default::default()
         },
-        OTELLogInput {
+        OTELLogDocument {
             timestamp_unix: Some(now.timestamp()),
             observed_timestamp_unix: now.timestamp(),
             resource,

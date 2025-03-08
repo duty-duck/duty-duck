@@ -35,8 +35,13 @@ pub(crate) fn tasks_router() -> Router<ApplicationState> {
                 .route("/finish", post(finish_task_handler))
                 .route("/heartbeat", post(send_task_heartbeat_handler))
                 .route("/logs", post(send_task_logs_handler))
-                .route("/runs/{started_at}", get(get_task_run_handler))
-                .route("/runs", get(list_task_runs_handler)),
+                .route("/runs", get(list_task_runs_handler))
+                .nest(
+                    "/runs/{task_run_id}",
+                    Router::new()
+                        .route("/", get(get_task_run_handler))
+                        .route("/logs", get(get_task_run_logs_handler)),
+                ),
         )
 }
 
@@ -141,8 +146,10 @@ async fn get_task_handler(
 ) -> impl IntoResponse {
     match get_task(&auth_context, &app_state.adapters.task_repository, user_id).await {
         Ok(response) => Json(response).into_response(),
-        Err(GetTaskError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
-        Err(GetTaskError::NotFound) => StatusCode::NOT_FOUND.into_response(),
+        Err(e @ GetTaskError::Forbidden) => (StatusCode::FORBIDDEN, e.to_string()).into_response(),
+        Err(e @ GetTaskError::NotFound(_)) => {
+            (StatusCode::NOT_FOUND, e.to_string()).into_response()
+        }
         Err(GetTaskError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while getting a task");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
@@ -160,6 +167,7 @@ async fn get_task_handler(
     params(ListTaskRunsParams),
     responses(
         (status = 200, body = ListTaskRunsResponse),
+        (status = 404, description = "Task not found"),
         (status = 403, description = "User is not allowed to list task runs"),
         (status = 500, description = "Technical failure occured while listing task runs")
     )
@@ -181,7 +189,7 @@ async fn list_task_runs_handler(
     {
         Ok(response) => Json(response).into_response(),
         Err(ListTaskRunsError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
-        Err(ListTaskRunsError::TaskNotFound) => StatusCode::NOT_FOUND.into_response(),
+        Err(ListTaskRunsError::TaskNotFound(_)) => StatusCode::NOT_FOUND.into_response(),
         Err(ListTaskRunsError::TechnicalFailure(e)) => {
             warn!("Technical failure occured while listing task runs: {e}");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
@@ -448,6 +456,47 @@ async fn get_task_run_handler(
         Err(GetTaskRunError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
         Err(GetTaskRunError::NotFound) => StatusCode::NOT_FOUND.into_response(),
         Err(GetTaskRunError::TechnicalFailure(e)) => {
+            warn!(error = ?e, "Technical failure occured while getting a task run");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
+}
+
+/// Get the recorded logs for a single task run
+///
+/// Users have the possibility to send logs whhile a task is running and retrieve them later. When using the DutyDuck CLI, logs are recorded automatically.
+///
+/// The provided task id can be either the user-defined id (the `user-id` field) or the technical UUID (the `id` field).
+#[utoipa::path(
+    get,
+    path = "/tasks/:task_id/runs/:task_run_id/logs",
+    responses(
+        (status = 200, body = GetTaskRunLogsResponse),
+        (status = 403, description = "User is not authorized to get a task run"),
+        (status = 404, description = "Task run not found")
+    )
+)]
+async fn get_task_run_logs_handler(
+    State(app_state): ExtractAppState,
+    auth_context: AuthContext,
+    Path((task_id, task_run_id)): Path<(TaskId, Uuid)>,
+    Query(params): Query<GetTaskRunLogsParams>,
+) -> impl IntoResponse {
+    match get_task_run_logs_use_case(
+        &auth_context,
+        &app_state.adapters.task_repository,
+        &app_state.adapters.task_run_repository,
+        &app_state.adapters.logs_searcher,
+        task_id,
+        task_run_id,
+        params,
+    )
+    .await
+    {
+        Ok(response) => Json(response).into_response(),
+        Err(GetTaskRunLogsError::Forbidden) => StatusCode::FORBIDDEN.into_response(),
+        Err(GetTaskRunLogsError::NotFound) => StatusCode::NOT_FOUND.into_response(),
+        Err(GetTaskRunLogsError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while getting a task run");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
