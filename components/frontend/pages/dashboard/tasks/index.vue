@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TaskCard } from '#build/components';
-import { refDebounced, useIntervalFn } from '@vueuse/core';
+import { refDebounced } from '@vueuse/core';
 import { useRouteQuery } from '@vueuse/router';
 import type { ListTasksParams } from 'bindings/ListTasksParams';
 import type { TaskStatus } from 'bindings/TaskStatus';
@@ -15,7 +15,6 @@ const { data: metadataFilter, clear: clearMetadataFilter } = useMetadataFilterQu
 const localePath = useLocalePath();
 
 const showFacetsOffcanvas = ref(false);
-const cards = ref<InstanceType<typeof TaskCard>[]>([]);
 
 const listTasksParams = computed<ListTasksParams>(() => ({
   pageNumber: pageNumber.value,
@@ -42,15 +41,8 @@ const hiddenTasksCount = computed(() => {
 
 const { data: filterableMetadataFields } = await taskRepository.useFilterableMetadataFields();
 
-// Every 10 seconds, refresh the tasks, and then for each rendered task card, refresh the task runs
-useIntervalFn(() => {
-  refreshTasks();
-  cards.value.forEach(c => {
-    if (c.refresh) {
-      c.refresh();
-    }
-  });
-}, 10000);
+// Every 10 seconds, refresh the tasks
+useDataRefreshInterval(refreshTasks);
 </script>
 
 <template>
@@ -58,10 +50,10 @@ useIntervalFn(() => {
     <BBreadcrumb>
       <BBreadcrumbItem :to="localePath('/dashboard')">{{
         $t("dashboard.mainSidebar.home")
-      }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
       <BBreadcrumbItem active>{{
         $t("dashboard.mainSidebar.tasks")
-      }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
     </BBreadcrumb>
     <div class="d-flex align-items-center justify-content-between">
       <h2>{{ $t("dashboard.tasks.pageTitle") }}</h2>
@@ -84,7 +76,7 @@ useIntervalFn(() => {
     <TaskFilteringBar v-model:includeStatuses="includeStatuses" v-model:query="query" @clear-filters="onClearFilters"
       @toggle-metadata="showFacetsOffcanvas = true" :metadata-filter="metadataFilter" />
     <div class="d-grid row-gap-3 mt-3" v-if="tasks?.items.length">
-      <TaskCard animated v-for="t in tasks?.items" :task="t" :key="t.id" ref="cards" />
+      <TaskCard animated v-for="t in tasks?.items" :task="t" :key="t.id" />
       <BPagination v-if="tasks?.totalNumberOfFilteredResults! > 10" v-model="pageNumber"
         :prev-text="$t('pagination.prev')" :next-text="$t('pagination.next')"
         :total-rows="tasks?.totalNumberOfFilteredResults" :per-page="10" />

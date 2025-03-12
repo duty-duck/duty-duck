@@ -196,7 +196,7 @@ fn logs_index_v1_config(index_name: &str) -> IndexConfig {
             default_search_fields: Some(vec!["body.message".to_string()]),
         }),
         indexing_settings: Some(IndexingSettings {
-            commit_timeout_secs: Some(30),
+            commit_timeout_secs: Some(10),
             docstore_blocksize: None,
             resources: Some(IndexingResources {
                 heap_size: Some("256 MB".to_string()),

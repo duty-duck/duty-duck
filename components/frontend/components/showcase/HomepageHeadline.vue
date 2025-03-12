@@ -5,10 +5,9 @@ const { tm } = useI18n();
 const currentQuestionIndex = ref(0);
 const questions = computed(() => tm('homepage.hero.headlines') as string[]);
 
-
 useIntervalFn(() => {
     currentQuestionIndex.value = (currentQuestionIndex.value + 1) % questions.value.length;
-}, 3500);
+}, 3000);
 </script>
 
 <template>

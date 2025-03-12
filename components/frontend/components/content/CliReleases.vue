@@ -1,6 +1,8 @@
 <!-- A Component to display the CLI releases, fetched from the API endpoint, which itself fetches the data from the S3 bucket -->
-<script setup lang="ts">
+<script lang="ts">
 import { type Response } from '@/server/routes/api/list-cli-releases';
+</script>
+<script setup lang="ts">
 const { data } = await useFetch<Response>('/api/list-cli-releases');
 </script>
 

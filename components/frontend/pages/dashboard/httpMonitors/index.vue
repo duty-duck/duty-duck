@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { useIntervalFn } from "@vueuse/core";
 import { usePermissionGrant } from "~/composables/authComposables";
 
 await usePermissionGrant("readHttpMonitors");
@@ -27,9 +26,8 @@ watchEffect(() => {
   }
 })
 
-useIntervalFn(() => {
-  refresh();
-}, 10000);
+// refresh monitor regularly
+useDataRefreshInterval(refresh);
 </script>
 
 <template>

@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { useIntervalFn } from "@vueuse/core";
 import { useRouteQuery } from "@vueuse/router";
 import type { IncidentStatus } from "bindings/IncidentStatus";
 import type { ListIncidentsParams } from "bindings/ListIncidentsParams";
@@ -7,15 +6,12 @@ import type { OrderDirection } from "bindings/OrderDirection";
 import type { OrderIncidentsBy } from "bindings/OrderIncidentsBy";
 import { allStatuses } from "~/components/incident/StatusDropdown.vue";
 
-const oneWeekAgo = new Date(new Date().getTime() - 3600 * 1000 * 24 * 7);
-
 const itemsPerPage = 10;
 const localePath = useLocalePath();
 const pageNumber = useRouteQuery("pageNumber", 1, { transform: Number });
 
 
 const dateRange = useDateRangeQuery();
-
 const includeStatuses = useRouteQuery<IncidentStatus[]>("statuses", ["ongoing"]);
 const orderBy = useRouteQuery<OrderIncidentsBy>("orderBy", "createdAt");
 const orderDirection = useRouteQuery<OrderDirection>("orderDirection", "desc");
@@ -64,9 +60,8 @@ if (data.value?.items.length == 0 && pageNumber.value > 1) {
   navigateTo({ query: { pageNumber: 1 } });
 }
 
-useIntervalFn(() => {
-  refresh();
-}, 10000);
+// refresh incidents regularly
+useDataRefreshInterval(refresh);
 </script>
 
 <template>

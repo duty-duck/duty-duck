@@ -13,6 +13,7 @@ pub struct SendTaskLogsRequest {
 
 /// A single log event from a task run. (By default, each new line in the standard output is considered a seperate event)
 #[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct TaskRunLogEvent {
     /// severity text (also known as log level). This is the original string representation of the severity as it is known at the source, for instance "DEBUG", or "ERROR".
     pub severity_text: Option<String>,

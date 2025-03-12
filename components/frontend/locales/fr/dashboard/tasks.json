@@ -85,7 +85,19 @@
         "exitCode": "Code de sortie",
         "startedAt": "Début",
         "completedAt": "Fin",
-        "taskId": "ID de la tâche"
+        "taskId": "ID de la tâche",
+        "runTitle": "Éxécution du {date}",
+        "logs": {
+            "title": "Journaux d'éxécution",
+            "error": {
+                "title": "Impossible de récupérer les journaux",
+                "description": "Une erreur est survenue pendant la récupération des logs. Utilisez le bouton ci-dessous pour réessayer."
+            },
+            "noLogs": {
+                "title": "Aucun log disponible",
+                "description": "Nous ne disposons d'aucun log à afficher pour cette éxécution. Consultez la documentation pour savoir comment collecter les logs."
+            }
+        }
     },
     "taskStatus": {
         "due": "À venir",

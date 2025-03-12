@@ -9,7 +9,21 @@ $navbar-height: 55px;
 $settings-bar-height: 30px;
 
 @import "bootstrap/scss/bootstrap.scss";
+
+// load the poppins font, used for some titles (maybe this isn't needed ?)
 @import url('https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+
+// load the monospace url
+@import url('https://fonts.googleapis.com/css2?family=Martian+Mono:wdth,wght@87.5,100..800&display=swap');
+
+@mixin monospace {
+  font-family: "Martian Mono", monospace;
+  font-optical-sizing: auto;
+  font-weight: normal;
+  font-style: normal;
+  font-variation-settings:
+    "wdth" 87.5;
+}
 
 @mixin blurry-gray-background {
   backdrop-filter: blur(10px);

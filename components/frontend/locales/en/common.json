@@ -12,5 +12,6 @@
     },
     "cancel": "Cancel",
     "create": "Create",
-    "close": "Close"
+    "close": "Close",
+    "retry": "Retry"
 }

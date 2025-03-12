@@ -24,7 +24,7 @@ pub struct SearchRequest {
     /// Fields to sort the query results on. You can sort by one or two fast fields or by BM25 _score (requires fieldnorms).
     /// By default, hits are sorted by their document ID.
     #[serde(skip_serializing_if = "Option::is_none")]
-    pub sort_by: Option<Vec<String>>,
+    pub sort_by: Option<String>,
 }
 
 #[derive(Debug, Deserialize)]
@@ -58,7 +58,7 @@ impl SearchAPIV1 {
         if res_status.is_client_error() {
             let body = res.text().await?;
             anyhow::bail!(
-                "Client error occured when creating index, status = {}, body = {}",
+                "Client error occured when searching index, status = {}, body = {}",
                 res_status.as_u16(),
                 body
             );

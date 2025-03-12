@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useIntervalFn, useNow } from "@vueuse/core";
+import { useNow } from "@vueuse/core";
 import { usePermissionGrant } from "~/composables/authComposables";
 import type { LazyHttpMonitorIncidentsCard } from '#build/components';
 import HttpMonitorToggleButton from '~/components/httpMonitor/ToggleButton.vue';
@@ -44,7 +44,8 @@ const refreshEverything = () => {
   }
 }
 
-useIntervalFn(() => refreshMonitorResponse(), 5000);
+// refresh monitor data regularly
+useDataRefreshInterval(refreshMonitorResponse)
 </script>
 
 <template>

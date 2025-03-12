@@ -2,14 +2,12 @@ import { createSharedComposable } from "@vueuse/core";
 import type { Permission } from "bindings/Permission"
 
 export const useKeycloak = async () => {
-    console.log("[useKeycloak] Obtaining Keycloak instance");
     const app = useNuxtApp();
     if (!app.$keycloak) {
         throw new Error(`Keycloak is not initialized. Rendered on the server page: ${!import.meta.client}. This composable cannot be used on the server. Check your nuxt.config.ts file.`)
     }
     const keycloak = app.$keycloak;
     const keycloakInstance = await keycloak.getKeycloakInstance();
-    console.log("[useKeycloak] Obtained Keycloak instance");
 
     return {
         login: keycloak.login,

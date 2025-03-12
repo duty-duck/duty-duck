@@ -24,6 +24,7 @@ pub struct TaskRunLogEvents<'aggregate> {
 /// A single log event from a task run. (By default, each new line in the standard output is considered a seperate event)
 /// This type has a conversion from and to the OpenTelemetry format, which we can use to ingest task run logs and retrieve them back later
 #[derive(Debug, Deserialize, Serialize, ToSchema, TS)]
+#[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct TaskRunLogEvent {
     /// severity text (also known as log level). This is the original string representation of the severity as it is known at the source, for instance "DEBUG", or "ERROR".
@@ -40,6 +41,17 @@ pub struct TaskRunLogEvent {
     pub body: serde_json::Value,
     /// The timestamp at which the log occured, as measured by the orgin clock
     pub timestamp: DateTime<Utc>,
+}
+
+/// A single task run even, along with a numeric index to indicate the position of the log event in result set (0 is the first log event)
+
+#[derive(Debug, Deserialize, Serialize, ToSchema, TS)]
+#[ts(export)]
+pub struct IndexedTaskRunLogEvent {
+    #[serde(flatten)]
+    pub event: TaskRunLogEvent,
+    #[ts(type = "number")]
+    pub index: u64,
 }
 
 impl<'a> From<TaskRunLogEvents<'a>> for ResourceLogs {

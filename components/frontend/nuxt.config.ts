@@ -14,10 +14,6 @@ export default defineNuxtConfig({
 
   devtools: { enabled: true },
 
-  experimental: {
-    defaults: {
-    }
-  },
   app: {
     head: {
       charset: 'utf-8',

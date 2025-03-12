@@ -101,8 +101,8 @@ export default defineNuxtPlugin({
                 // Modify the login URL to include the `prompt=select_account` parameter that triggers the Active organization authenticator
                 // See https://github.com/p2-inc/keycloak-orgs/blob/main/docs/active-organization-authenticator.md for documentation.
                 const originalKeycloakCreateLoginUrl = keycloak.createLoginUrl
-                keycloak.createLoginUrl = (options: KeycloakLoginOptions) => {
-                    return `${originalKeycloakCreateLoginUrl(options)}&prompt=select_account`
+                keycloak.createLoginUrl = async (options: KeycloakLoginOptions) => {
+                    return `${await originalKeycloakCreateLoginUrl(options)}&prompt=select_account`
                 }
                 keycloak.onReady = () => {
                     console.log("[KeycloakClient] Keycloak is ready");

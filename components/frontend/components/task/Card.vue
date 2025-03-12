@@ -7,11 +7,8 @@ const { task, animated } = defineProps<{ task: Task; animated?: boolean }>();
 const { data: taskRuns, refresh: refreshTaskRuns } = await taskRepository.useTaskRuns(task.id, { pageNumber: 1, itemsPerPage: 12, includeStatuses: [] });
 const reversedRuns = computed(() => taskRuns.value?.runs.toReversed());
 
-defineExpose({
-  refresh: async () => {
-    await refreshTaskRuns();
-  }
-});
+// refresh the task runs regularly
+useDataRefreshInterval(refreshTaskRuns);
 </script>
 
 <template>

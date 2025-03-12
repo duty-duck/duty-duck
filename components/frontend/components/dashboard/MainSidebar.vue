@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { useIntervalFn } from '@vueuse/core';
 const route = useRoute();
-let incidentRepo = await useIncidentRepository();
+let incidentRepo = useIncidentRepository();
 const localePath = useLocalePath()
 const { userHasPermissionComputed } = await useAuth();
 const canReadHttpMonitors = userHasPermissionComputed('readHttpMonitors');
@@ -10,8 +9,16 @@ const canReadTasks = userHasPermissionComputed('readTasks');
 const documentationPath = await useDocumentationFirstPage();
 
 let { refresh: refreshIncidentCount, data: incidentCount } = await incidentRepo.useOngoingIncidentsCount();
-useIntervalFn(() => refreshIncidentCount(), 20000);
-watch(() => route.path, () => refreshIncidentCount());
+
+// refresh incident count regularly
+useDataRefreshInterval(refreshIncidentCount);
+
+// refresh incident count when navigating to the incidents page
+watch(() => route.path, (newPath, oldPath) => {
+  if (!oldPath.includes('/incidents') && newPath.includes('/incidents')) {
+    refreshIncidentCount();
+  }
+});
 </script>
 
 <template>

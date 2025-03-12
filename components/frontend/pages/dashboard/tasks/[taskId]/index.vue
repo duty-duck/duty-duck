@@ -51,8 +51,8 @@ const refreshEverything = () => {
     </BBreadcrumb>
 
     <!-- Task name and status -->
-    <div class="my-5 py-3">
-      <h2 class="h4">
+    <section class="my-5 py-3">
+      <h2 class="h2">
         {{ taskResponse.task.name }}
       </h2>
       <TaskStatusLabel :status="taskResponse.task.status" />
@@ -60,7 +60,7 @@ const refreshEverything = () => {
       <span v-if="lastTaskRun" class="small text-secondary">
         {{ $t("dashboard.tasks.lastRunOn", { date: $d(new Date(lastTaskRun.startedAt!), "long") }) }}
       </span>
-    </div>
+    </section>
 
     <!-- Task actions -->
     <section v-if="taskResponse.task.status != 'archived'">
@@ -180,7 +180,7 @@ const refreshEverything = () => {
       <div class="text-center text-muted">
         {{ $t("dashboard.tasks.startRunCommandCta") }}
         <br />
-        <code>{{ $t("dashboard.tasks.startRunCommand", { taskId: taskResponse.task.id }) }}</code>
+        <code>{{ $t("dashboard.tasks.startRunCommand", { taskId: taskResponse.task.userId }) }}</code>
       </div>
     </section>
   </BContainer>

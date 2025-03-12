@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useRoute } from "vue-router";
 import type IncidentTimeline from "@/components/incident/Timeline.vue";
-import { useNow, useIntervalFn } from "@vueuse/core";
+import { useNow } from "@vueuse/core";
 
 const route = useRoute();
 const incidentId = route.params.incidentId as string;
@@ -37,7 +37,8 @@ const incidentLengthDuration = computed(() => {
   return formatDuration(duration, locale.value);
 });
 
-useIntervalFn(() => refresh(), 10000);
+// refresh incident data regularly
+useDataRefreshInterval(refresh);
 </script>
 
 <template>
@@ -46,12 +47,12 @@ useIntervalFn(() => refresh(), 10000);
       <BBreadcrumb>
         <BBreadcrumbItem :to="localePath('/dashboard')">{{
           $t("dashboard.mainSidebar.home")
-        }}</BBreadcrumbItem>
+          }}</BBreadcrumbItem>
         <BBreadcrumbItem :to="localePath('/dashboard/incidents')">{{
           $t("dashboard.mainSidebar.incidents")
-        }}</BBreadcrumbItem>
+          }}</BBreadcrumbItem>
         <BBreadcrumbItem active>{{ $t("dashboard.incidents.incidentDetails")
-        }}</BBreadcrumbItem>
+          }}</BBreadcrumbItem>
       </BBreadcrumb>
       <section class="mb-5">
         <h1 class="mb-4 fs-2">{{ $t("dashboard.incidents.defaultIncidentTitle", {

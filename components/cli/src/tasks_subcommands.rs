@@ -5,15 +5,13 @@ use anyhow::Context;
 use chrono::Utc;
 use clap::*;
 use dutyduck_api_client_rs::{
-    ClientError, DutyDuckApiClient, NewTask, SendTaskLogsRequest, TaskRunLogEvent,
+    ClientError, ClientResult, DutyDuckApiClient, NewTask, SendTaskLogsRequest, TaskRunLogEvent,
 };
 use futures::StreamExt;
 use reqwest::StatusCode;
+use serde_json::json;
 use tokio::process::Child;
-use tokio_util::{
-    codec::{FramedRead, LinesCodec},
-    sync::CancellationToken,
-};
+use tokio_util::codec::{FramedRead, LinesCodec};
 
 #[derive(Subcommand)]
 pub enum TasksCommands {
@@ -66,9 +64,19 @@ pub async fn handle_tasks_command(command: TasksCommands) -> anyhow::Result<()> 
 }
 
 async fn run_task(client: &DutyDuckApiClient, command: RunCommand) -> anyhow::Result<()> {
+    fn log_send_logs_result(result: ClientResult<()>) {
+        if let Err(e) = result {
+            tracing::warn!(error = ?e, "Failed to send logs to the platform");
+        }
+    }
+
     let client = client.tasks();
+
+    let started_at = Utc::now();
+    let command_string = format!("{} {}", command.command, command.args.join(" "));
+
     let mut process: Child = tokio::process::Command::new(&command.command)
-        .args(command.args)
+        .args(&command.args)
         .stdout(Stdio::piped())
         .stderr(Stdio::piped())
         // kill the process if the child handle is dropped, which allows the task to stop
@@ -83,7 +91,7 @@ async fn run_task(client: &DutyDuckApiClient, command: RunCommand) -> anyhow::Re
     }
     if command.create {
         request = request.with_new_task(NewTask {
-            name: command.name.or(Some(command.command)),
+            name: command.name.or(Some(command.command.clone())),
             description: command.description,
             cron_schedule: command.cron_schedule,
             start_window_seconds: command.start_window_seconds,
@@ -98,69 +106,65 @@ async fn run_task(client: &DutyDuckApiClient, command: RunCommand) -> anyhow::Re
         .context("Failed to send start task request")?;
 
     // launch a background task to capture the process output
-    let (capture_output_task, capture_output_task_cancellation_token) = {
-        let cancellation_token = CancellationToken::new();
+    let capture_output_task = tokio::spawn({
+        let client = client.clone();
+        let task_id = command.task_id.clone();
 
-        let task_handle = tokio::spawn({
-            let client = client.clone();
-            let task_id = command.task_id.clone();
-            let cancellation_token = cancellation_token.clone();
+        let stdout_events = FramedRead::new(process.stdout.take().unwrap(), LinesCodec::new())
+            .filter_map(|line| async move { line.ok() })
+            .map(|line| log_line_to_event(line, LogLineSeverity::Info));
+        let stderr_events = FramedRead::new(process.stderr.take().unwrap(), LinesCodec::new())
+            .filter_map(|line| async move { line.ok() })
+            .map(|line| log_line_to_event(line, LogLineSeverity::Error));
+        let mut merged_stream = futures::stream::select(stdout_events, stderr_events).boxed();
 
-            let stdout_events = FramedRead::new(process.stdout.take().unwrap(), LinesCodec::new())
-                .filter_map(|line| async move { line.ok() })
-                .map(|line| log_line_to_event(line, LogLineSeverity::Info));
-            let stderr_events = FramedRead::new(process.stderr.take().unwrap(), LinesCodec::new())
-                .filter_map(|line| async move { line.ok() })
-                .map(|line| log_line_to_event(line, LogLineSeverity::Error));
+        async move {
+            // Begin the lgos by an event describing the launched command
+            let mut current_batch = SendTaskLogsRequest {
+                events: vec![TaskRunLogEvent {
+                    severity_text: Some("INFO".to_string()),
+                    severity_number: Some(9),
+                    body: json!({
+                        "message": format!("[DutyDuck CLI] Starting task with command: {command_string}"),
+                        "command": command.command,
+                        "command_args": command.args,
+                        "pwd": std::env::current_dir().ok()
+                    }),
+                    timestamp: started_at,
+                }],
+            };
+            let mut send_current_batch_interval = tokio::time::interval(Duration::from_secs(2));
 
-            let mut merged_stream = futures::stream::select(stdout_events, stderr_events).boxed();
+            loop {
+                tokio::select! {
+                    event = merged_stream.next() => {
+                        match event {
+                            Some(event) => {
+                                current_batch.events.push(event);
 
-            async move {
-                let mut current_batch = SendTaskLogsRequest::default();
-                let mut send_current_batch_interval = tokio::time::interval(Duration::from_secs(5));
-
-                let last_result = loop {
-                    let result = tokio::select! {
-                        Some(event) = merged_stream.next() => {
-                            current_batch.events.push(event);
-
-                            if current_batch.events.len() >= 100 {
-
-                               Some(client.send_logs(&task_id, &std::mem::take(&mut current_batch)).await)
-                            } else {
-                                None
+                                if current_batch.events.len() >= 100 {
+                                    log_send_logs_result(client.send_logs(&task_id, &std::mem::take(&mut current_batch)).await);
+                                }
+                            },
+                            None => {
+                                tracing::info!("Task finished");
+                                if !current_batch.events.is_empty() {
+                                    tracing::info!("Sending last log events");
+                                    log_send_logs_result(client.send_logs(&task_id, &current_batch).await);
+                                }
+                                break;
                             }
                         }
-                        _ = send_current_batch_interval.tick() => {
-                            if !current_batch.events.is_empty() {
-                               Some(client.send_logs(&task_id, &std::mem::take(&mut current_batch)).await)
-                            } else {
-                                None
-                            }
+                    }
+                    _ = send_current_batch_interval.tick() => {
+                        if !current_batch.events.is_empty() {
+                            log_send_logs_result(client.send_logs(&task_id, &std::mem::take(&mut current_batch)).await);
                         }
-                        _ = cancellation_token.cancelled() => {
-                            let result = if !current_batch.events.is_empty() {
-                               Some(client.send_logs(&task_id, &std::mem::take(&mut current_batch)).await)
-                            } else {
-                               None
-                            };
-                            break result
-                        }
-
-                    };
-
-                    if let Some(Err(error)) = result {
-                        tracing::warn!(?error, "Failed to send logs to the platform");
                     }
                 };
-
-                if let Some(Err(error)) = last_result {
-                    tracing::warn!(?error, "Failed to send logs to the platform");
-                }
             }
-        });
-        (task_handle, cancellation_token)
-    };
+        }
+    });
 
     // launch a background task to send periodic heartbeats
     let send_heartbeat_task = tokio::spawn({
@@ -187,9 +191,9 @@ async fn run_task(client: &DutyDuckApiClient, command: RunCommand) -> anyhow::Re
         }
     });
 
-    // Add ctrl+c signal handler
+    // Wait for the child to finish. The child can either finish on its own, or we can kill it
+    // when a CTRL+C signal is received.
     let ctrl_c = tokio::signal::ctrl_c();
-
     let finish_task_request = tokio::select! {
         child_exit = process.wait() => {
             match child_exit {
@@ -225,17 +229,18 @@ async fn run_task(client: &DutyDuckApiClient, command: RunCommand) -> anyhow::Re
         }
     };
 
-    // send a signal to the logs task to abort and wait for it to send the last logs
-    capture_output_task_cancellation_token.cancel();
+    // wait for the logs task to terminate
     capture_output_task.await?;
+
+    // abort the send heartbeat task and wait of it to finish
+    send_heartbeat_task.abort();
+    let _ = send_heartbeat_task.await;
 
     // send a request to mark the task as fnished
     // this has to be done after the last logs have been sent, because we can't send logs once the task has finished
     finish_task_request.send().await?;
 
-    // abort the send heartbeat task and wait of it to finish
-    send_heartbeat_task.abort();
-    let _ = send_heartbeat_task.await;
+    tracing::info!("Done!");
 
     Ok(())
 }

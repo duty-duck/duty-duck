@@ -85,7 +85,19 @@
         "exitCode": "Exit code",
         "startedAt": "Started at",
         "completedAt": "Completed at",
-        "taskId": "Task Id"
+        "taskId": "Task Id",
+        "runTitle": "Task run for {date}",
+        "logs": {
+            "title": "Logs",
+            "error": {
+                "title": "Failed to retrieve logs",
+                "description": "An error occurred while trying to retrieve logs for this task run. Use the button below to try again."
+            },
+            "noLogs": {
+                "title": "No log available",
+                "description": "We don't have any log to display for this task run. You can learn how to collect task run logs in our documentation."
+            }
+        }
     },
     "taskStatus": {
         "due": "Due",

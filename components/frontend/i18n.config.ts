@@ -35,6 +35,23 @@ function validateTranslations() {
 
 export default defineI18nConfig(() => {
   validateTranslations();
+  const commonDateTimeFormat = {
+    short: {
+      year: 'numeric', month: 'short', day: 'numeric'
+    },
+    long: {
+      year: 'numeric', month: 'short', day: 'numeric',
+      weekday: 'short', hour: 'numeric', minute: 'numeric'
+    },
+    verbose: {
+      year: 'numeric', month: 'short', day: 'numeric',
+      weekday: 'long', hour: 'numeric', minute: 'numeric', second: 'numeric'
+    },
+    log: {
+      year: 'numeric', month: '2-digit', day: '2-digit',
+      hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false
+    }
+  };
 
   return {
     legacy: false,
@@ -44,24 +61,9 @@ export default defineI18nConfig(() => {
       fr
     },
     datetimeFormats: {
-      'fr': {
-        short: {
-          year: 'numeric', month: 'short', day: 'numeric'
-        },
-        long: {
-          year: 'numeric', month: 'short', day: 'numeric',
-          weekday: 'short', hour: 'numeric', minute: 'numeric'
-        }
-      },
-      'en': {
-        short: {
-          year: 'numeric', month: 'short', day: 'numeric'
-        },
-        long: {
-          year: 'numeric', month: 'short', day: 'numeric',
-          weekday: 'short', hour: 'numeric', minute: 'numeric'
-        }
-      }
+      'fr': commonDateTimeFormat,
+      'en': commonDateTimeFormat
+
     }
   }
 });

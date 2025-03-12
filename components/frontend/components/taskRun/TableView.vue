@@ -24,7 +24,7 @@
 
     <!-- Table rows -->
     <NuxtLink class="card mb-3 shadow-sm slide-up-fade-in" v-for="taskRun in taskRuns" :key="taskRun.taskId"
-      :to="localePath(`/dashboard/tasks/${taskRun.taskId}/runs/${taskRun.startedAt}`)">
+      :to="localePath(`/dashboard/tasks/${taskRun.taskId}/runs/${taskRun.id}`)">
       <div class="card-body">
         <div class="row row-gap-2">
           <!-- Started At -->
@@ -101,8 +101,14 @@ const { taskRuns, showColumns = ["startedAt", "completedAt", "duration", "status
 </script>
 
 <style lang="scss" scoped>
+@import "~/assets/main.scss";
+
 .card {
   text-decoration: none;
+
+  &:hover {
+    background-color: $gray-200;
+  }
 }
 
 @for $i from 1 through 10 {

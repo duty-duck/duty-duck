@@ -59,10 +59,11 @@ impl LogsSearcher for LogsSearcherAdapter {
             max_hits: options.max_hits,
             search_fields: None,
             snippet_fields: None,
-            sort_by: None,
+            sort_by: Some("-timestamp_nanos".to_string()),
         };
 
         tracing::debug!(request = ?quickwit_request, "executing quickwik request");
+        println!("{:#?}", quickwit_request);
 
         let response = dest_client
             .search(&destination_index_name, &quickwit_request)

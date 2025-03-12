@@ -20,7 +20,8 @@ const computeLinkDest = useComputeContentLinkDest();
                             <BCardImg v-if="article.image" :src="article.image" alt="Image" class="rounded-0" />
                             <BCardBody>
                                 <p>{{ article.description }}</p>
-                                <NuxtLink :to="computeLinkDest({ _path: article._path! })">{{ $t('blog.readMore') }}</NuxtLink>
+                                <NuxtLink :to="computeLinkDest({ _path: article._path! })">{{ $t('blog.readMore') }}
+                                </NuxtLink>
                             </BCardBody>
                         </BCard>
                     </ContentList>

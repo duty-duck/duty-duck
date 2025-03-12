@@ -2,6 +2,9 @@ import type { UseFetchOptions } from "#app"
 import type { CreateTaskCommand } from "bindings/CreateTaskCommand"
 import type { FilterableMetadata } from "bindings/FilterableMetadata"
 import type { GetTaskResponse } from "bindings/GetTaskResponse"
+import type { GetTaskRunLogsParams } from "bindings/GetTaskRunLogsParams"
+import type { GetTaskRunLogsResponse } from "bindings/GetTaskRunLogsResponse"
+import type { GetTaskRunResponse } from "bindings/GetTaskRunResponse"
 import type { ListTaskRunsParams } from "bindings/ListTaskRunsParams"
 import type { ListTaskRunsResponse } from "bindings/ListTaskRunsResponse"
 import type { ListTasksParams } from "bindings/ListTasksParams"
@@ -22,6 +25,17 @@ export const useTasksRepository = () => {
         },
         async useTask(taskId: string) {
             return useServerFetch<GetTaskResponse>(`/tasks/${taskId}`, { retry: 3, dedupe: "cancel" })
+        },
+        async useTaskRun(taskId: string, runId: string) {
+            return useServerFetch<GetTaskRunResponse>(`/tasks/${taskId}/runs/${runId}`, { retry: 3, dedupe: "cancel" })
+        },
+        async fetchTaskRunLogs(taskId: string, runId: string, offset: number = 0) {
+            const $fetch = await useServer$fetch();
+            let query: GetTaskRunLogsParams = {
+                limit: 200,
+                offset,
+            };
+            return await $fetch<GetTaskRunLogsResponse>(`/tasks/${taskId}/runs/${runId}/logs`, { method: 'get', retry: 3, query });
         },
         async createTask(task: CreateTaskCommand) {
             const $fetch = await useServer$fetch();
