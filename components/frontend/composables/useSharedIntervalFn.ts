@@ -25,6 +25,6 @@ export const useSharedIntervalFn = (fn: () => void, intervalMs: number) => {
 }
 
 /**
- * `useSharedIntervalFn`, partially applied with an interval of 10 seconds
+ * `useSharedIntervalFn`, partially applied with an interval of 6 seconds
  */
-export const useDataRefreshInterval = (fn: () => void) => useSharedIntervalFn(fn, 6500);
+export const useDataRefreshInterval = (fn: () => void) => useSharedIntervalFn(fn, 6000);

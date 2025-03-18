@@ -1,4 +1,4 @@
-use std::time::Duration;
+use std::{fmt::Display, time::Duration};
 
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
@@ -21,6 +21,26 @@ pub struct User {
     pub phone_number_verified: bool,
     #[ts(skip)]
     pub phone_number_otp: Option<UserPhoneOTP>,
+    pub preferred_communicaton_language: PreferredCommunicationLanguage,
+}
+
+#[derive(Clone, Copy, Serialize, TS, Default, Debug)]
+#[ts(export)]
+#[serde(rename_all = "camelCase")]
+pub enum PreferredCommunicationLanguage {
+    #[default]
+    En,
+    #[allow(unused)]
+    Fr,
+}
+
+impl Display for PreferredCommunicationLanguage {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::En => write!(f, "en"),
+            Self::Fr => write!(f, "fr"),
+        }
+    }
 }
 
 #[derive(Serialize, Deserialize, TS, Debug, Clone, ToSchema)]

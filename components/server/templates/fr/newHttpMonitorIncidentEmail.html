@@ -1,0 +1,15 @@
+{% extends "emailBase.html" %}
+
+{% block title %}
+Nouvel incident HTTP pour l'URL {{ url }}
+{% endblock title %}
+
+{% block body %}
+Bonjour {{userName}}<br />
+Un incident réclame votre attention:<br />
+
+Un moniteur HTTP pour l'url {{url}} est en panne.<br />
+Rendez-vous sur <a href="https://dutyduck.net">DutyDuck.net</a> pour investiguer l'incident.
+<hr>
+Ceci est un e-mail automatique, ne répondez pas à cet e-mail.
+{% endblock body %}

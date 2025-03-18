@@ -166,6 +166,8 @@ impl TryFrom<keycloak_client::UserItem> for User {
                 .attributes
                 .get("phoneNumberOtp")
                 .and_then(|attr| serde_json::from_str(attr).ok()),
+            // TODO: change this to retrieve this info from Keycloak
+            preferred_communicaton_language: PreferredCommunicationLanguage::En,
         })
     }
 }

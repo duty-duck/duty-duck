@@ -1,0 +1,18 @@
+{% extends "emailBase.html" %}
+{% block title %}
+Une éxécution de la tâche '%{taskName}' a échoué
+{% endblock title %}
+{% block body %}
+Bonjour %{userName},
+
+<br />
+Un incident réclame votre attention:
+<br />
+Une éxécution de la tâche '%{taskName}' a échoué.
+<br />
+Rendez-vous sur <a href="https://dutyduck.net">DutyDuck.net</a> pour investiguer l'incident.
+<hr>
+Vous recevez cette alerte car vous êtes membre de l'organisation '%{org}'.
+<br />
+Ceci est un e-mail automatique, ne répondez pas à cet e-mail.
+{% endblock body %}

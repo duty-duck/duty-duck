@@ -1,0 +1,60 @@
+<mjml>
+  <mj-head>
+    <mj-title>Say hello to card</mj-title>
+    <mj-font name="Poppins" href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap"></mj-font>
+  <title> Say hello to card </title>
+  <title> Task States </title>
+      <mj-all font-family="Poppins, Helvetica, Arial, sans-serif"></mj-all>
+      <mj-text font-weight="400" font-size="16px" color="#000000" line-height="24px"></mj-text>
+      <mj-section padding="0px"></mj-section>
+    </mj-attributes>
+  </mj-head>
+  <mj-body background-color="#F2F2F2">
+    <mj-section padding="10px 0 20px 0">
+      <mj-column>
+        <mj-text align="center" color="#9B9B9B" font-size="11px">
+          HEADLINE
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section padding="20px 20px 0 20px" background-color="#FFFFFF">
+      <mj-group>
+        <mj-column vertical-align="middle">
+          <mj-image align="right" src="https://preprod.dutyduck.net/_nuxt/navbar-duck.DvCwVn1c.png" height="40px" width="80px" />
+        </mj-column>
+        <mj-column vertical-align="middle">
+          <mj-text color="#5FA91D" font-size="16px">
+            Duty Duck
+          </mj-text>
+        </mj-column>
+      </mj-group>
+    </mj-section>
+    <mj-section padding="15px" background-color="#72C04F">
+      <mj-column>
+        <mj-text align="center" font-weight="300" font-size="32px" line-height="40px" color="#FFF">
+          TITLE
+        </mj-text>
+      </mj-column>
+    </mj-section>
+    <mj-section padding="10px 20px" background-color="#FFFFFF">
+      <mj-column>
+        <mj-divider width="30px" border-width="3px" border-color="#9B9B9B"></mj-divider>
+      </mj-column>
+    </mj-section>
+
+    <mj-section background-color="#fff" padding="16px 32px 32px 32px">
+      <mj-text>
+        BODY
+      </mj-text>
+    </mj-section>
+
+    <mj-section padding="10px 0 20px 0">
+      <mj-column>
+        <mj-text align="center" color="#9B9B9B" font-size="11px">
+          You are receiving this e-mail because you are a member of an organization on the DutyDuck
+          monitoring software. Head over to <a style="color: inherit;" href="https://dutyduck.net">https://duyduck.net</a> to manage your notification preferences.
+        </mj-text>
+      </mj-column>
+    </mj-section>
+  </mj-body>
+</mjml>

@@ -1,0 +1,19 @@
+{% extends "emailBase.html" %}
+
+{% block title %}
+You are invited to join {{ org }} on DutyDuck
+{% endblock title %}
+
+{% block body %}
+Hello,<br />
+
+You are invited to join the {{ org }} organization on DutyDuck.
+Visit the following URL to accept or reject the invitation:
+<a href="{{ callbackUrl }}">{{ callbackUrl }}</a>
+{% endblock body %}
+
+{% block footer %}
+You are receiving this e-mail because you have been invited to use the DutyDuck monitoring software by a collaborator of
+your organization. Is this an error?
+Contact us at the following address: <a href="mailto:contact@dutyduck.net">contact@dutyduck.net</a>.
+{% endblock footer %}

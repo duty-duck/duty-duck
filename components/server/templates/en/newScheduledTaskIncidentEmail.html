@@ -1,0 +1,17 @@
+{% extends "emailBase.html" %}
+
+{% block title %}
+The scheduled task {{ taskName }} is not running
+{% endblock title %}
+
+{% block body %}
+Hello {{userName}}<br />
+There is an ongoing incident that requires your attention:<br />
+
+The scheduled task {{ taskName }} should be running but it isn't.<br />
+Head over to <a href="https://dutyduck.net">DutyDuck.net</a> to investigate the incident.
+<hr>
+You are receiving this alert because you are a member of the {{ org }} organization.<br />
+This is an automated e-mail, do not reply to this e-mail.
+
+{% endblock body %}

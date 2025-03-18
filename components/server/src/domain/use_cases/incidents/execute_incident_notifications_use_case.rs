@@ -2,31 +2,34 @@ use std::{collections::HashMap, time::Duration};
 
 use anyhow::Context;
 use chrono::Utc;
-use lettre::Message;
+use lettre::{message::SinglePart, Message};
 use tokio::task::JoinSet;
 use tracing::*;
 use uuid::Uuid;
 
-use crate::domain::{
-    entities::{
-        incident::IncidentCause,
-        incident_event::{
-            IncidentEvent, IncidentEventPayload, IncidentEventType, NotificationEventPayload,
+use crate::{
+    application::templates::TEMPLATES,
+    domain::{
+        entities::{
+            incident::IncidentCause,
+            incident_event::{
+                IncidentEvent, IncidentEventPayload, IncidentEventType, NotificationEventPayload,
+            },
+            incident_notification::IncidentNotification,
+            organization::Organization,
+            push_notification::{PushNotification, PushNotificationToken},
+            user::User,
+            user_device::UserDevice,
         },
-        incident_notification::IncidentNotification,
-        organization::Organization,
-        push_notification::{PushNotification, PushNotificationToken},
-        user::User,
-        user_device::UserDevice,
-    },
-    ports::{
-        incident_event_repository::IncidentEventRepository,
-        incident_notification_repository::IncidentNotificationRepository,
-        mailer::Mailer,
-        organization_repository::OrganizationRepository,
-        push_notification_server::PushNotificationServer,
-        sms_notification_server::{Sms, SmsNotificationServer},
-        user_devices_repository::UserDevicesRepository,
+        ports::{
+            incident_event_repository::IncidentEventRepository,
+            incident_notification_repository::IncidentNotificationRepository,
+            mailer::Mailer,
+            organization_repository::OrganizationRepository,
+            push_notification_server::PushNotificationServer,
+            sms_notification_server::{Sms, SmsNotificationServer},
+            user_devices_repository::UserDevicesRepository,
+        },
     },
 };
 
@@ -301,50 +304,48 @@ where
     ) -> anyhow::Result<Message> {
         let subject;
         let body;
+        let lang = user.preferred_communicaton_language.to_string();
+
+        let mut context = tera::Context::new();
+        context.insert("userName", &user.first_name);
+        context.insert("org", &user_org.display_name);
 
         match &notification.notification_payload.incident_cause {
             IncidentCause::HttpMonitorIncidentCause { .. } => {
                 let url = notification.notification_payload.incident_http_monitor_url.as_ref().context("Cannot build e-mail message, cause is HttpMonitorIncidentCause but HTTP monitor URL is not set")?;
+                context.insert("url", url);
+
                 subject = t!("newHttpMonitorIncidentEmailSubject", url = url).to_string();
-                body = t!(
-                    "newHttpMonitorIncidentEmailBody",
-                    url = url,
-                    userName = user.first_name,
-                    org = user_org.display_name
-                )
-                .to_string();
+                body = TEMPLATES.render(
+                    &format!("{lang}/newHttpMonitorIncidentEmail.html"),
+                    &context,
+                )?;
             }
             IncidentCause::ScheduledTaskIncidentCause { .. } => {
                 let task_name = notification.notification_payload.incident_task_id.as_ref().context("Cannot build e-mail message, cause is ScheduledTaskIncidentCause but task ID is not set")?;
-                let task_name = task_name.to_string();
+                context.insert("taskName", &task_name.to_string());
+
                 subject =
                     t!("newScheduledTaskIncidentEmailSubject", taskName = task_name).to_string();
-                body = t!(
-                    "newScheduledTaskIncidentEmailBody",
-                    taskName = task_name,
-                    userName = user.first_name,
-                    org = user_org.display_name
-                )
-                .to_string();
+                body = TEMPLATES.render(
+                    &format!("{lang}/newScheduledTaskIncidentEmail.html"),
+                    &context,
+                )?;
             }
             IncidentCause::TaskRunIncidentCause { .. } => {
                 let task_name = notification.notification_payload.incident_task_id.as_ref().context("Cannot build e-mail message, cause is TaskRunIncidentCause but task ID is not set")?;
-                let task_name = task_name.to_string();
+                context.insert("taskName", &task_name.to_string());
+
                 subject = t!("newTaskRunIncidentEmailSubject", taskName = task_name).to_string();
-                body = t!(
-                    "newTaskRunIncidentEmailBody",
-                    taskName = task_name,
-                    userName = user.first_name,
-                    org = user_org.display_name
-                )
-                .to_string();
+                body =
+                    TEMPLATES.render(&format!("{lang}/newTaskRunIncidentEmail.html"), &context)?;
             }
         }
 
         M::builder()
             .to(user.email.parse()?)
             .subject(subject)
-            .body(body)
+            .singlepart(SinglePart::html(body))
             .with_context(|| "Failed to build message")
     }
 

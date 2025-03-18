@@ -1,95 +1,26 @@
 _version: 2
 
-# E-mails
+# E-mail subjects
 
 ## Invitation e-mail
 invitationEmailTitle:
     en: "You are invited to join %{org} on DutyDuck"
     fr: "Vous êtes invité à rejoindre %{org} sur DutyDuck"
-invitationEmailBody:
-    en: |
-        Hello,
-        You are invited to join the %{org} organization on DutyDuck.
-        Visit the following URL to accept or reject the invitation:
-        %{callbackUrl}
-    fr: |
-        Bonjour,
-        Vous êtes invité à rejoindre l'organisation %{org} sur DutyDuck.
-        Visitez le lien suivant pour accepter ou refuser l'invitation:
-        %{callbackUrl}
 
 ## Http monitor incident email
 newHttpMonitorIncidentEmailSubject:
     en: "New incident for URL %{url}"
     fr: "Nouvel incident pour l'URL %{url}"
-newHttpMonitorIncidentEmailBody:
-    en: |
-        Hello %{userName},
-        There is an ongoing incident that requires your attention.
-
-        An HTTP monitor for the URL %{url} is down.
-        
-        Head over to DutyDuck.net to investigate the incident.
-
-        You are receiving this alert because you are a member of the '%{org}' organization. 
-        This is an automated e-mail, do not reply to this e-mail.
-    fr: |
-        Bonjour %{userName},
-        Un incident réclame votre attention:
-
-        Un moniteur HTTP pour l'url %{url} est en panne. 
-        Rendez-vous sur DutyDuck.net pour investiguer l'incident.
-
-        Vous recevez cette alerte car vous êtes membre de l'organisation '%{org}'.
-        Ceci est un e-mail automatique, ne répondez pas à cet e-mail.
 
 ## Scheduled task incident email
 newScheduledTaskIncidentEmailSubject:
     en: "The scheduled task '%{taskName}' is not running"
     fr: "La tâche planifiée '%{taskName}' ne démarre pas"
-newScheduledTaskIncidentEmailBody:
-    en: |
-        Hello %{userName},
-        There is an ongoing incident that requires your attention.
-
-        The scheduled task '%{taskName}' should be running but it isn't.
-        Head over to DutyDuck to investigate the incident.
-
-        You are receiving this alert because you are a member of the '%{org}' organization. 
-        This is an automated e-mail, do not reply to this e-mail.
-    fr: |
-        Bonjour %{userName},
-
-        Un incident réclame votre attention:
-        La tâche planifiée '%{taskName}' devrait démarrer mais elle ne démarre pas.
-        Rendez-vous sur DutyDuck pour investiguer l'incident.
-
-        Vous recevez cette alerte car vous êtes membre de l'organisation '%{org}'.
-        Ceci est un e-mail automatique, ne répondez pas à cet e-mail.
 
 # Task run incident email
 newTaskRunIncidentEmailSubject:
     en: "A task run for task '%{taskName}' has failed"
     fr: "Une éxécution de la tâche '%{taskName}' a échoué"
-newTaskRunIncidentEmailBody:
-    en: |
-        Hello %{userName},
-        There is an ongoing incident that requires your attention.
-
-        A task run for task '%{taskName}' has failed.
-        Head over to DutyDuck to investigate the incident.
-
-        You are receiving this alert because you are a member of the '%{org}' organization. 
-        This is an automated e-mail, do not reply to this e-mail.
-    fr: |
-        Bonjour %{userName},
-
-        Un incident réclame votre attention:
-        Une éxécution de la tâche '%{taskName}' a échoué.
-        Rendez-vous sur DutyDuck pour investiguer l'incident.
-
-        Vous recevez cette alerte car vous êtes membre de l'organisation '%{org}'.
-        Ceci est un e-mail automatique, ne répondez pas à cet e-mail.
 
 # Push notifications
 
