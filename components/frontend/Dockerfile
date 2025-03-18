@@ -1,6 +1,6 @@
 # This dockerfile is meant to be built from the context of the parent folder
 # e.g.: docker build -t duty-duck-frontend:latest -f frontend/Dockerfile . 
-FROM node:20-alpine AS base
+FROM node:20 AS base
 ENV NODE_ENV=production
 RUN npm i --location=global pnpm
 WORKDIR /app
