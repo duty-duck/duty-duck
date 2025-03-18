@@ -2,7 +2,7 @@
 import { BAlert as BaseComponent } from 'bootstrap-vue-next';
 
 const props = defineProps<{
-    variant: 'info' | 'warning' | 'danger';
+    variant: 'info' | 'warning' | 'danger' | 'primary' | 'light';
 }>();
 </script>
 

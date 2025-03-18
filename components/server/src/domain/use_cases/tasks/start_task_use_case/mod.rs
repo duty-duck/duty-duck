@@ -140,7 +140,7 @@ where
             let command = command.ok_or(StartTaskError::TaskNotFound)?;
             let new_task = command.new_task.ok_or(StartTaskError::TaskNotFound)?;
             let new_task = CreateTaskCommand {
-                id: match task_id {
+                user_id: match task_id {
                     TaskId::UserId(user_id) => user_id,
                     TaskId::Uuid(uuid) => TaskUserId::from_uuid(uuid),
                 },

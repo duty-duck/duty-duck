@@ -14,6 +14,11 @@ every time you install keycloak with a fresh database.
 - Check the theme configuration for the realm. To see the organization swticher, the admin theme phasetwo.v2 must be enabled **on the master realm**
 - Make sure e-mail verification is enabled for the realm
 - Make sure registration is disabled for the realm
+- Make sure the login theme is "dutyduck-keycloak-theme" and check the display name of the realm
+  - You can make it so the displayed name of the realm is also a link to the website's homepage, like so: 
+    ```html
+    <a href="http://localhost:5173" class="text-primary text-decoration-none"><h1>DutyDuck</h1></a>
+    ```
 
 ### Create clients
 

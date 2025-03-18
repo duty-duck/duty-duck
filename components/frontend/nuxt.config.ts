@@ -76,6 +76,11 @@ export default defineNuxtConfig({
   },
 
   content: {
+    markdown: {
+      remarkPlugins: {
+        "remark-mermaidjs": {}
+      }
+    },
     highlight: {
       theme: 'github-light',
       langs: [

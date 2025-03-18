@@ -6,7 +6,7 @@ export type UpdateTaskCommand = {
  * A unique, user-friendly identifier for the task.
  * Will keep the id of the existing task if null
  */
-userId: string, 
+userId: string | null, 
 /**
  * The name of the task.
  * Will keep the name of the existing task if null

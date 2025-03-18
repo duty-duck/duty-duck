@@ -33,8 +33,8 @@ impl HealthyTask {
                 now,
             )?,
             base: TaskBase {
-                name: command.name.unwrap_or_else(|| command.id.to_string()),
-                user_id: command.id,
+                name: command.name.unwrap_or_else(|| command.user_id.to_string()),
+                user_id: command.user_id,
                 id: Uuid::new_v4(),
                 metadata: command.metadata.unwrap_or_default(),
                 organization_id,

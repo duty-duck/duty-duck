@@ -14,4 +14,9 @@ RUN /opt/keycloak/bin/kc.sh build \
 
 FROM quay.io/phasetwo/phasetwo-keycloak:26.0.6
 COPY --from=builder /opt/keycloak/ /opt/keycloak/
+
+# Copy the built theme
+# The theme source is located in a seperate repository
+COPY ./components/keycloak/keycloak-theme.jar /opt/keycloak/providers/keycloak-theme.jar
+
 CMD ["start", "--optimized"]

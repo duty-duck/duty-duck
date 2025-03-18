@@ -9,7 +9,7 @@ import type { NotificationSettings } from '../NotificationSettingsForm.vue';
  * the props and the state of the component. The props are used to populate the form when first rendered.
  */
 export type TaskFormData = {
-  id: string;
+  userId: string;
   name: string;
   description: string | null
   cronSchedule: string | null;
@@ -28,7 +28,7 @@ type TaskFormProps = {
 // Define the props for the component
 // The props are used to populate the form when first rendered
 const { data = {
-  id: "",
+  userId: "",
   name: "",
   description: "",
   scheduleTimezone: "UTC/Utc",
@@ -48,19 +48,19 @@ const { data = {
 
 // Define the external events the form will emit
 const emits = defineEmits<{
-  submit: [form: FormData]
+  submit: [form: TaskFormData]
 }>();
 
 // Here's the internal state of the form, populated from the props
-const form = reactive({ ...data });
+const form = reactive<TaskFormData>({ ...data });
 
 // Check if the task is new when the form is mounted
-const isNewTask = !data.id;
+const isNewTask = !data.userId;
 
 // Define the form rules for validation
 const taskIdAvailable = useTaskIdAvailableValidator();
 const rules = {
-  id: {
+  userId: {
     required,
     mustBeValidId: (id: string) => /^[a-zA-Z0-9][a-zA-Z0-9-]*[a-zA-Z0-9]$/.test(id),
     // If the task is new, we need to check if the task id is available
@@ -98,7 +98,7 @@ const v$ = useVuelidate(rules, form);
 
 // Automatically update the ID when the name changes
 watch(() => form.name, (name) => {
-  v$.value.id.$model = name.trim().toLowerCase().replace(/[^a-z0-9]/g, '-');
+  v$.value.userId.$model = name.trim().toLowerCase().replace(/[^a-z0-9]/g, '-');
 });
 </script>
 
@@ -184,10 +184,10 @@ watch(() => form.name, (name) => {
     <BAccordion flush class="mb-3">
       <!-- ID Group -->
       <BAccordionItem :title="$t('dashboard.tasks.form.id')">
-        <BFormGroup :invalid-feedback="v$.id.$errors[0]?.$message.toString()">
+        <BFormGroup :invalid-feedback="v$.userId.$errors[0]?.$message.toString()">
           <label for="idInput">{{ $t('dashboard.tasks.form.id') }}</label>
-          <BInput id="idInput" type="text" v-model="v$.id.$model" :state="v$.id.$dirty ? !v$.id.$invalid : null"
-            size="sm" />
+          <BInput id="idInput" type="text" v-model="v$.userId.$model"
+            :state="v$.userId.$dirty ? !v$.userId.$invalid : null" size="sm" />
         </BFormGroup>
         <FormHelp :text="$t('dashboard.tasks.form.idDescription')" />
       </BAccordionItem>

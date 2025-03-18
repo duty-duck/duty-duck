@@ -26,7 +26,7 @@ const onSubmit = async (task: TaskFormData) => {
 const formData = computed<TaskFormData>(() => {
     const task = taskData.value!.task;
     return {
-        id: task.userId,
+        userId: task.userId,
         name: task.name,
         description: task.description,
         cronSchedule: task.cronSchedule,
@@ -48,10 +48,10 @@ const formData = computed<TaskFormData>(() => {
         <BBreadcrumb>
             <BBreadcrumbItem :to="localePath('/dashboard')">{{
                 $t("dashboard.mainSidebar.home")
-            }}</BBreadcrumbItem>
+                }}</BBreadcrumbItem>
             <BBreadcrumbItem :to="localePath('/dashboard/tasks')">{{
                 $t("dashboard.mainSidebar.tasks")
-            }}</BBreadcrumbItem>
+                }}</BBreadcrumbItem>
             <BBreadcrumbItem active>
                 {{ $t("dashboard.tasks.createTaskTitle") }}
             </BBreadcrumbItem>

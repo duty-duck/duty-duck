@@ -8,7 +8,7 @@ export type CreateTaskCommand = {
 /**
  * A unique, human-readable identifier for the task
  */
-id: string, 
+userId: string, 
 /**
  * A human-readable name for the task
  */

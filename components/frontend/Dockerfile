@@ -8,6 +8,10 @@ WORKDIR /app
 # Build
 FROM base AS build
 
+# Install Playwirght
+RUN pnpm install playwright
+RUN npx playwright install --with-deps chromium
+
 # Install dependencies in a seperate step for caching
 COPY components/frontend/package*.json  ./components/frontend/
 COPY package.json ./

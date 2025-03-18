@@ -31,7 +31,7 @@ pub enum CreateTaskError {
 pub struct CreateTaskCommand {
     #[ts(type = "string")]
     /// A unique, human-readable identifier for the task
-    pub id: TaskUserId,
+    pub user_id: TaskUserId,
     /// A human-readable name for the task
     pub name: Option<String>,
     /// A description of the task
@@ -72,11 +72,15 @@ pub async fn create_task_use_case(
     let mut tx = task_repository.begin_transaction().await?;
 
     let existing_task = task_repository
-        .get_task_by_user_id(&mut tx, auth_context.active_organization_id, &command.id)
+        .get_task_by_user_id(
+            &mut tx,
+            auth_context.active_organization_id,
+            &command.user_id,
+        )
         .await?;
 
     if existing_task.is_some() {
-        return Err(CreateTaskError::TaskAlreadyExists(command.id));
+        return Err(CreateTaskError::TaskAlreadyExists(command.user_id));
     }
 
     let new_task = HealthyTask::new(auth_context.active_organization_id, command)?;

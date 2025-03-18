@@ -38,7 +38,7 @@ pub enum UpdateTaskError {
 #[serde(rename_all = "camelCase")]
 #[ts(export)]
 pub struct UpdateTaskCommand {
-    #[ts(type = "string")]
+    #[ts(type = "string | null")]
     /// A unique, user-friendly identifier for the task.
     /// Will keep the id of the existing task if null
     pub user_id: Option<TaskUserId>,

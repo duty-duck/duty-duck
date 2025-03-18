@@ -15,6 +15,8 @@ pub enum Version {
 #[derive(Debug, Serialize)]
 pub struct IndexConfig {
     pub index_id: String,
+    /// the path of the index on the storage (use a s3:// url to store splits in S3)
+    pub index_uri: Option<String>,
     pub version: Version,
     pub doc_mapping: DocMapping,
     #[serde(skip_serializing_if = "Option::is_none")]
