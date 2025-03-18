@@ -42,8 +42,11 @@ async fn main() -> anyhow::Result<()> {
     let authenticator = Authenticator::new(config.server_config.main_server_url)
         .context("Failed to build authenticator. Maybe the server URL is invalid ?")?;
 
-    let logs_ingestor =
-        logs_ingestor::LogsIngestorService::new(quickwit_clusters.clone(), authenticator.clone())?;
+    let logs_ingestor = logs_ingestor::LogsIngestorService::new(
+        quickwit_clusters.clone(),
+        authenticator.clone(),
+        config.storage_config.storage_path,
+    )?;
 
     info!(
         "Launching gRPC server on  0.0.0.0:{}",

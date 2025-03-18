@@ -31,6 +31,7 @@ services:
       # for dev purposes, expect the server to be running inside the dev container (started with `cargo run`), not as its own container
       - MAIN_SERVER_URL=http://dev-container:3000
       - QUICKWIT_CLUSTER_DEFAULT=http://quickwit:7280
+      - STORAGE_PATH=file:///quickwit/qwdata/indexes
     ports:
       - 50052:50051 
 
@@ -76,7 +77,11 @@ services:
       - 1025:1025
       - 1080:1080
   keycloak:
-    image: quay.io/phasetwo/phasetwo-keycloak:24.0.4
+    build:
+      context: .
+      dockerfile: components/keycloak/Dockerfile
+    pull_policy: missing
+    image: ghcr.io/duty-duck/keycloak:latest
     ports:
       - 8080:8080
     command:

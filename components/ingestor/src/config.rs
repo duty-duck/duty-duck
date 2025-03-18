@@ -20,9 +20,16 @@ pub struct QuickwitCluster {
     pub indexers: Vec<Url>,
 }
 
+#[derive(Envconfig, Debug, Clone)]
+pub struct StorageConfig {
+    #[envconfig(from = "STORAGE_PATH")]
+    pub storage_path: String,
+}
+
 #[derive(Debug, Clone)]
 pub struct IngestorConfig {
     pub quickwit_clusters: Vec<QuickwitCluster>,
+    pub storage_config: StorageConfig,
     pub grpc_config: GrpcConfig,
     pub server_config: ServerConfig,
 }
@@ -33,6 +40,7 @@ impl IngestorConfig {
 
         let grpc_config = GrpcConfig::init_from_env()?;
         let server_config = ServerConfig::init_from_env()?;
+        let storage_config = StorageConfig::init_from_env()?;
 
         let mut quickwit_clusters = std::env::vars()
             .filter_map(|(key, value)| {
@@ -62,6 +70,7 @@ impl IngestorConfig {
 
         Ok(Self {
             grpc_config,
+            storage_config,
             server_config,
             quickwit_clusters,
         })

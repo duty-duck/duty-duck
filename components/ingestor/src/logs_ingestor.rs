@@ -26,6 +26,7 @@ use crate::{
 #[derive(Clone)]
 pub struct LogsIngestorService {
     authenticator: Authenticator,
+    s3_storage_path: String,
     quickwit_clients: Vec<QuickwitClusterClient>,
     /// a cache to store the fact that the logs index for a given organization exists, and obtain its name
     /// if an entry exists in this cache for a given organization, we can route ingest requests directly to the index without querying the indexes API first to ensure it exists
@@ -90,6 +91,7 @@ impl LogsIngestorService {
     pub fn new(
         quickwit_clients: Vec<QuickwitClusterClient>,
         authenticator: Authenticator,
+        storage_path: String,
     ) -> anyhow::Result<Self> {
         if quickwit_clients.is_empty() {
             anyhow::bail!("cannot create logs ingestor with 0 quickwit clusters");
@@ -98,6 +100,7 @@ impl LogsIngestorService {
         Ok(Self {
             quickwit_clients,
             authenticator,
+            s3_storage_path: storage_path,
             logs_index_v1_cache: Arc::new(Cache::new(1000)),
         })
     }
@@ -126,7 +129,7 @@ impl LogsIngestorService {
             .await?
             .is_none()
         {
-            let index_config = logs_index_v1_config(&destination_index_name);
+            let index_config = logs_index_v1_config(&destination_index_name, &self.s3_storage_path);
             client.create_index(&index_config).await?;
         }
         self.logs_index_v1_cache
@@ -183,9 +186,10 @@ fn resource_partition_key(
     }
 }
 
-fn logs_index_v1_config(index_name: &str) -> IndexConfig {
+fn logs_index_v1_config(index_name: &str, storage_path: &str) -> IndexConfig {
     IndexConfig {
         index_id: index_name.to_string(),
+        index_uri: Some(format!("{storage_path}/{index_name}")),
         version: quickwit_client_rs::indexes_api_v1::Version::V08,
         doc_mapping: otel_logs_doc_mapping(),
         retention: Some(RetentionSettings {
