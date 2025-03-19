@@ -17,19 +17,19 @@ COPY components/frontend/package*.json  ./components/frontend/
 COPY package.json ./
 COPY pnpm*.yaml ./
 
+# Switch the frontend directory
 WORKDIR /app/components/frontend
-RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
+RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install
 
 COPY ./components/server/bindings ../server/bindings
 COPY components/frontend .
 
+# Build the app
 RUN pnpm run build
 
 # Run
 FROM base
 ENV PORT=3000
 COPY --from=build /app/components/frontend/.output /app/components/frontend/.output
-# Optional, only needed if you rely on unbundled dependencies
-# COPY --from=build /src/node_modules /src/node_modules
 
 CMD [ "node", "/app/components/frontend/.output/server/index.mjs" ]

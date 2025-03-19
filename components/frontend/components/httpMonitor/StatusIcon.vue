@@ -28,9 +28,8 @@ const icon = computed(() => {
         'text-danger': props.status == 'down',
         'text-warning': props.status == 'suspicious',
         'text-info': props.status == 'recovering',
-        'text-secondary': props.status == 'unknown' || props.status == 'inactive',
+        'text-secondary': props.status == 'unknown' || props.status == 'inactive' || props.status == 'archived',
         'text-success': props.status == 'up',
-        'text-secondary': props.status == 'archived'
     }">
         <template v-if="status != 'archived'">
             <Icon name="ph:circle-fill" :size="big ? '6rem' : '4rem'" class="secondary" v-show="animated" />

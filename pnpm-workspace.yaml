@@ -1,4 +1,10 @@
 packages:
-  - 'components/frontend'
-  - 'components/fake-internet'
-  - 'components/browser'
+  - components/frontend
+  - components/fake-internet
+  - components/browser
+onlyBuiltDependencies:
+  - '@parcel/watcher'
+  - esbuild
+  - grpc-tools
+  - protobufjs
+  - vue-demi
