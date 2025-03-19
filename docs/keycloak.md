@@ -23,6 +23,7 @@ every time you install keycloak with a fresh database.
 - Make sure registration is enabled for the realm
 - Make sure to enable password policies
 - In "Authentication -> Required actions", make sure to enable the "Invitation" action so that user are prompted to join organizations
+- Make sure to bind the `Org Browser Flow` flow to use as the browser flow instead of the default one, so that users can be prompted to chose an organization upon login
 
 ### Create clients
 

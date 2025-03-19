@@ -10,6 +10,12 @@ pub trait OrganizationRepository: Clone + Send + Sync + 'static {
         command: CreateOrgnizationCommand,
     ) -> Result<Organization, CreateOrganizationError>;
 
+    /// List organizations that a given user is a member of
+    async fn list_user_organizations(
+        &self,
+        user_id: Uuid,
+    ) -> Result<Vec<Organization>, ReadOrganizationError>;
+
     /// Retrieves an organization by its ID
     async fn get_organization(&self, id: Uuid) -> Result<Organization, ReadOrganizationError>;
 

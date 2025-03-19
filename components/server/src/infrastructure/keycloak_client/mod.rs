@@ -474,6 +474,26 @@ impl KeycloakClient {
         Ok(orgs)
     }
 
+    /// Lists the organizations of a specific user
+    #[tracing::instrument(skip(self))]
+    pub(super) async fn list_user_organizations(&self, user_id: Uuid) -> Result<Vec<Organization>> {
+        let auth_token = self.get_current_access_token().await;
+        let res = (|| {
+            self.http_client
+                .get(format!("{}/users/{}/orgs", self.private_realm_url, user_id))
+                .bearer_auth(auth_token.access_token.secret())
+                .send()
+        })
+        .retry(&Self::retry_strategy())
+        .notify(|err, dur| {
+            warn!("Failed to list organizations for a user: {err}. Retrying in {dur:?}");
+        })
+        .await?;
+
+        let orgs = res.json().await?;
+        Ok(orgs)
+    }
+
     /// Adds a user to an organization.
     ///
     /// Returns Ok(()) on success or an error if the operation fails.

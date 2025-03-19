@@ -45,6 +45,28 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
         }
     }
 
+    /// List organizations that a given user is a member of
+    #[tracing::instrument(skip(self))]
+    async fn list_user_organizations(
+        &self,
+        user_id: Uuid,
+    ) -> Result<Vec<Organization>, ReadOrganizationError> {
+        match self.keycloak_client.list_user_organizations(user_id).await {
+            Ok(orgs) => {
+                let orgs: Result<Vec<Organization>, _> =
+                    orgs.into_iter().map(|o| o.try_into()).collect();
+                Ok(orgs?)
+            }
+            Err(keycloak_client::Error::NotFound) => {
+                Err(ReadOrganizationError::OrganizationNotFound)
+            }
+            Err(e) => {
+                warn!(error = ?e, "Failed to get organization");
+                Err(ReadOrganizationError::TechnicalFailure(e.into()))
+            }
+        }
+    }
+
     /// Creates a new organization.
     #[tracing::instrument(skip(self))]
     async fn create_organization(

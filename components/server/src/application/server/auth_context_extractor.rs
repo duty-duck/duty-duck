@@ -16,6 +16,7 @@ use crate::domain::entities::authorization::{
 use crate::domain::entities::organization::OrganizationRoleSet;
 use crate::domain::ports::api_access_token_repository::ApiAccessTokenRepository;
 use crate::domain::ports::organization_repository::OrganizationRepository;
+use crate::domain::use_cases::users::pick_or_create_default_org;
 
 #[derive(Deserialize)]
 struct Claims {
@@ -37,10 +38,25 @@ impl FromRequestParts<ApplicationState> for AuthContext {
         parts: &mut Parts,
         state: &ApplicationState,
     ) -> Result<Self, Self::Rejection> {
-        if let Ok(auth_context) = bearer_token_authentication(parts, state).await {
-            return Ok(auth_context);
+        let mut auth_context = match bearer_token_authentication(parts, state).await {
+            Ok(auth_context) => auth_context,
+            _ => api_token_authentication(parts, state).await?,
+        };
+
+        if auth_context.active_organization_id.is_none() {
+            let (org_id, roles) = pick_or_create_default_org(
+                &state.adapters.organization_repository,
+                &state.adapters.user_repository,
+                auth_context.active_user_id,
+            )
+            .await
+            .map_err(|_| (StatusCode::INTERNAL_SERVER_ERROR, "Missing active organization and could not create default organization for user"))?;
+
+            auth_context.active_organization_id = Some(org_id);
+            auth_context.active_organization_roles = roles;
         }
-        api_token_authentication(parts, state).await
+
+        Ok(auth_context)
     }
 }
 
