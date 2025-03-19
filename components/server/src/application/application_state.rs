@@ -32,6 +32,7 @@ pub struct ApplicationState {
     pub access_token_audience: Vec<String>,
     pub adapters: Adapters,
     pub keycloak_client: Arc<KeycloakClient>,
+    #[allow(unused)]
     pub config: Arc<AppConfig>,
 }
 

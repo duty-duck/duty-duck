@@ -1,5 +1,3 @@
-use anyhow::Context;
-use lettre::Message;
 use serde::Deserialize;
 use thiserror::Error;
 use tracing::info;
@@ -7,18 +5,12 @@ use ts_rs::TS;
 use uuid::Uuid;
 use veil::Redact;
 
-use crate::{
-    application::application_config::AppConfig,
-    domain::{
-        entities::{
-            authorization::{AuthContext, Permission},
-            organization::{
-                Organization, OrganizationUserRole, ReadOrganizationError, UserInvitation,
-                WriteOrganizationError,
-            },
-        },
-        ports::{mailer::Mailer, organization_repository::OrganizationRepository},
+use crate::domain::{
+    entities::{
+        authorization::{AuthContext, Permission},
+        organization::{OrganizationUserRole, ReadOrganizationError, WriteOrganizationError},
     },
+    ports::organization_repository::OrganizationRepository,
 };
 
 #[derive(Redact, Deserialize, TS)]
@@ -40,11 +32,9 @@ pub enum InviteOrganizationMemberError {
     TechnicalFailure(#[from] anyhow::Error),
 }
 
-pub async fn invite_organization_member_use_case<M: Mailer>(
-    application_config: &AppConfig,
+pub async fn invite_organization_member_use_case(
     auth_context: &AuthContext,
     organization_repository: &impl OrganizationRepository,
-    mailer: &M,
     organization_id: Uuid,
     command: InviteOrganizationMemberCommand,
 ) -> Result<(), InviteOrganizationMemberError> {
@@ -68,7 +58,7 @@ pub async fn invite_organization_member_use_case<M: Mailer>(
 
     info!(command = ?command, "Inviting user to organization");
 
-    let organization = match organization_repository
+    let _organization = match organization_repository
         .get_organization(organization_id)
         .await
     {
@@ -81,7 +71,7 @@ pub async fn invite_organization_member_use_case<M: Mailer>(
         }
     };
 
-    let invitation = match organization_repository
+    let _invitation = match organization_repository
         .invite_organization_member(
             organization_id,
             auth_context.active_user_id,
@@ -99,37 +89,5 @@ pub async fn invite_organization_member_use_case<M: Mailer>(
         }
     };
 
-    let email = build_invitation_message::<M>(application_config, &invitation, &organization)?;
-    mailer
-        .send(email)
-        .await
-        .with_context(|| "Failed to send invitation email")?;
-
     Ok(())
-}
-
-fn build_redirect_url(app_config: &AppConfig, invitation: &UserInvitation) -> String {
-    format!(
-        "{}/invitationCallback?organizationId={}&invitationId={}",
-        app_config.public_url, invitation.organization_id, invitation.id
-    )
-}
-
-fn build_invitation_message<M: Mailer>(
-    app_config: &AppConfig,
-    invitation: &UserInvitation,
-    user_org: &Organization,
-) -> anyhow::Result<Message> {
-    let callback_url = build_redirect_url(app_config, invitation);
-    let body = t!(
-        "invitationEmailBody",
-        org = user_org.display_name,
-        callbackUrl = callback_url
-    )
-    .to_string();
-    M::builder()
-        .to(invitation.email.parse()?)
-        .subject(t!("invitationEmailTitle", org = user_org.display_name))
-        .body(body)
-        .with_context(|| "Failed to build invitation email")
 }

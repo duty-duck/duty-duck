@@ -238,6 +238,7 @@ async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationSt
 
     let adapters = Adapters {
         organization_repository: OrganizationRepositoryAdapter {
+            public_url: config.public_url.clone(),
             keycloak_client: keycloak_client.clone(),
         },
         user_repository: UserRepositoryAdapter::new(keycloak_client.clone()),

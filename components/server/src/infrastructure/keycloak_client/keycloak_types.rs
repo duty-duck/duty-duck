@@ -119,7 +119,10 @@ pub struct Invitation {
 #[serde(rename_all = "camelCase")]
 pub struct InviteUserRequest {
     pub email: String,
+    /// Wether to send the invitation email
     pub send: bool,
+    /// the link that will appear in the invitation email
+    pub redirect_uri: String,
     pub inviter_id: Uuid,
     pub roles: Vec<String>,
     pub attributes: AttributeMap,

@@ -25,6 +25,7 @@ use crate::{
 #[derive(Clone)]
 pub struct OrganizationRepositoryAdapter {
     pub keycloak_client: Arc<KeycloakClient>,
+    pub public_url: String,
 }
 
 #[async_trait::async_trait]
@@ -128,7 +129,8 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
     ) -> Result<UserInvitation, WriteOrganizationError> {
         let req = InviteUserRequest {
             email: invited_user_email,
-            send: false,
+            send: true,
+            redirect_uri: format!("{}/dashboard", self.public_url),
             inviter_id: inviter_user_id,
             roles: vec![invited_user_role.to_string()],
             attributes: AttributeMap::default(),

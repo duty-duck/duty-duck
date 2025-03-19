@@ -2,11 +2,6 @@ _version: 2
 
 # E-mail subjects
 
-## Invitation e-mail
-invitationEmailTitle:
-    en: "You are invited to join %{org} on DutyDuck"
-    fr: "Vous êtes invité à rejoindre %{org} sur DutyDuck"
-
 ## Http monitor incident email
 newHttpMonitorIncidentEmailSubject:
     en: "New incident for URL %{url}"

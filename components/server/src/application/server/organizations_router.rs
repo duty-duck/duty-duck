@@ -69,10 +69,8 @@ async fn invite_member_handler(
     Json(command): Json<organizations::InviteOrganizationMemberCommand>,
 ) -> impl IntoResponse {
     match organizations::invite_organization_member_use_case(
-        &app_state.config,
         &auth_context,
         &app_state.adapters.organization_repository,
-        &app_state.adapters.mailer,
         organization_id,
         command,
     )
