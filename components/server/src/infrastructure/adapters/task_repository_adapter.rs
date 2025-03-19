@@ -281,7 +281,10 @@ impl TaskRepository for TaskRepositoryAdapter {
                 lateness_window_seconds = $12,
                 heartbeat_timeout_seconds = $13,
                 last_status_change_at = $14,
-                metadata = $15
+                metadata = $15,
+                email_notification_enabled = $16,
+                push_notification_enabled = $16,
+                sms_notification_enabled = $16
             "#,
             task.organization_id,                   // $1
             task.id,                                // $2

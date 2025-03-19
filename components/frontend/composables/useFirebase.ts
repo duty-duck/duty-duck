@@ -1,6 +1,7 @@
 import { initializeApp, type FirebaseApp } from "firebase/app";
 import { getMessaging, getToken as getFirebaseToken, onMessage as firebaseOnMessage, type MessagePayload } from "firebase/messaging";
 import { createSharedComposable } from "@vueuse/core";
+import { useToastController } from "bootstrap-vue-next";
 
 // TODO: Add SDKs for Firebase products that you want to use
 // https://firebase.google.com/docs/web/setup#available-libraries
@@ -9,7 +10,7 @@ import { createSharedComposable } from "@vueuse/core";
 let app: FirebaseApp | undefined;
 
 export const useFirebaseMessageHandler = () => {
-    const { show } = useToast();
+    const { show } = useToastController();
     return (payload: MessagePayload) => {
         console.log("Received a new Firebase message:", payload);
         show?.({

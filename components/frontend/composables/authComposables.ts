@@ -1,5 +1,6 @@
 import { createSharedComposable } from "@vueuse/core";
 import type { Permission } from "bindings/Permission"
+import { useToastController } from "bootstrap-vue-next";
 
 export const useKeycloak = async () => {
     const app = useNuxtApp();
@@ -73,7 +74,7 @@ export const useAuth = createSharedComposable(async () => {
 export const usePermissionGrant = async (permission: Permission | Permission[]) => {
     const localePath = useLocalePath();
     const permissions: Permission[] = typeof permission == "string" ? [permission] : permission;
-    const { show } = useToast();
+    const { show } = useToastController();
     const { t } = useI18n();
     const { userHasPermission } = await useAuth();
 

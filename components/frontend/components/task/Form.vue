@@ -31,7 +31,7 @@ const { data = {
   userId: "",
   name: "",
   description: "",
-  scheduleTimezone: "UTC/Utc",
+  scheduleTimezone: "Etc/UTC",
   cronSchedule: null,
   startWindowSeconds: 30,
   latenessWindowSeconds: 120,

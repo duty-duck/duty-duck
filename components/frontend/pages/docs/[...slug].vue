@@ -39,19 +39,6 @@ definePageMeta({
             </div>
             <ShowcaseDocumentationMenuButton />
         </BContainer>
-
-        <!-- 
-        A dirty workaround for a bug in mermaid or remark-mermaidjs causing arrow heads not to show on state diagrams 
-        We redefine the arrow head marker here, and use CSS (see the style below) to force the marker to appear on elements that have the "markerend" attribute 
-        -->
-        <svg>
-            <defs>
-                <marker markerHeight="14" markerUnits="userSpaceOnUse" markerWidth="20" orient="auto" refX="19" refY="7"
-                    id="mermaid-arrow">
-                    <path d="M 19,7 L9,13 L14,7 L9,1 Z"></path>
-                </marker>
-            </defs>
-        </svg>
     </ShowcaseDocumentationLayout>
 </template>
 
@@ -89,9 +76,5 @@ pre.shiki {
         border: 4px solid white;
         box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
     }
-}
-
-svg path[markerend] {
-    marker-end: url(#mermaid-arrow);
 }
 </style>

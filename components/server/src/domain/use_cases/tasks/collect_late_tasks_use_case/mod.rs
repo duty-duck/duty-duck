@@ -1,11 +1,13 @@
 use crate::domain::{
     entities::{
-        incident::*, incident_event::*, incident_notification::IncidentNotificationPayload, task::*,
+        entity_metadata::MetadataFilter, incident::*, incident_event::*,
+        incident_notification::IncidentNotificationPayload, task::*,
     },
     ports::{
         incident_event_repository::IncidentEventRepository,
         incident_notification_repository::IncidentNotificationRepository,
-        incident_repository::IncidentRepository, task_repository::TaskRepository,
+        incident_repository::{IncidentRepository, ListIncidentsOpts},
+        task_repository::TaskRepository,
         task_run_repository::TaskRunRepository,
     },
     use_cases::incidents::{create_incident, NotificationOpts},
@@ -107,7 +109,7 @@ where
             };
 
             // Create an incident for the late task
-            self.create_incident_for_late_aggregate(&mut transaction, &late_aggregate, now)
+            self.process_late_aggregate(&mut transaction, &late_aggregate, now)
                 .await?;
 
             // Save the late task aggregate
@@ -129,12 +131,41 @@ where
         Ok(task_aggregates_len)
     }
 
-    async fn create_incident_for_late_aggregate(
+    async fn process_late_aggregate(
         &self,
         transaction: &mut TR::Transaction,
         aggregate: &LateTaskAggregate,
         task_ran_late_at: DateTime<Utc>,
     ) -> anyhow::Result<()> {
+        let task_id = *aggregate.task_base().id();
+        let organization_id = *aggregate.task_base().organization_id();
+        let incident_sources = [IncidentSource::Task { id: task_id }];
+
+        // check if an incident already exists for the task in the database
+        let ongoing_related_incident_from_db = self
+            .incident_repository
+            .list_incidents(
+                transaction,
+                organization_id,
+                ListIncidentsOpts {
+                    include_statuses: &[IncidentStatus::Ongoing],
+                    include_priorities: &IncidentPriority::ALL,
+                    include_sources: &incident_sources,
+                    metadata_filter: MetadataFilter::default(),
+                    limit: 1,
+                    ..Default::default()
+                },
+            )
+            .await?
+            .incidents
+            .into_iter()
+            .next();
+
+        // do not create a new incident if it already exists
+        if ongoing_related_incident_from_db.is_some() {
+            return Ok(());
+        }
+
         create_incident_for_late_aggregate(CreateIncidentForLateTaskOpts {
             incident_repository: &self.incident_repository,
             incident_event_repository: &self.incident_event_repository,

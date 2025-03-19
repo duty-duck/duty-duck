@@ -33,6 +33,7 @@ function validateTranslations() {
   }
 }
 
+// @ts-ignore
 export default defineI18nConfig(() => {
   validateTranslations();
   const commonDateTimeFormat = {

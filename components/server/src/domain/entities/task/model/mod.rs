@@ -276,6 +276,20 @@ impl From<TaskBase> for BoundaryTask {
 }
 
 #[test]
+fn test_parse_timezone() {
+    let zones = ["Etc/UTC", "Europe/Paris", "UTC"];
+
+    for zone in zones {
+        let result = parse_schedule_timezone(zone);
+        assert!(
+            result.is_ok(),
+            "Failed to parse timezone: {:?}",
+            result.err().unwrap()
+        );
+    }
+}
+
+#[test]
 fn test_parse_cron_schedule() {
     let schedules = ["0 0 * * *", "0 0 * * 2,5", "*/10 * * * *", "* * * * *"];
     let now = Utc::now();

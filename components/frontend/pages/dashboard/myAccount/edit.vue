@@ -2,10 +2,11 @@
 import useVuelidate from "@vuelidate/core";
 import { email, helpers, required, sameAs } from "@vuelidate/validators";
 import type { UpdateProfileCommand } from "bindings/UpdateProfileCommand";
+import { useToastController } from "bootstrap-vue-next";
 import PhoneInput from "~/components/PhoneInput.vue";
 
 const { t } = useI18n();
-const { show } = useToast();
+const { show } = useToastController();
 const auth = await useAuth();
 const localePath = useLocalePath();
 const repo = await useUserRepository();
@@ -91,7 +92,7 @@ const onSubmit = async () => {
     lastName: state.lastName != userInfo.lastName ? state.lastName : null,
     phoneNumber:
       state.phoneNumber.formattedNumber != userInfo.phoneNumber &&
-      state.phoneNumber.formattedNumber != ""
+        state.phoneNumber.formattedNumber != ""
         ? state.phoneNumber.formattedNumber
         : null,
     email: state.email != userInfo.email ? state.email : null,
@@ -110,7 +111,7 @@ const onSubmit = async () => {
         body: t("dashboard.myAccount.edit.sessionInvalidationToast.body"),
       },
     });
-    
+
     setTimeout(() => {
       auth.logout();
     }, 8000)
@@ -145,115 +146,47 @@ const onSubmit = async () => {
       </h2>
 
       <BForm @submit.prevent="onSubmit">
-        <BFormGroup
-          class="mb-4"
-          id="firstNameGroup"
-          :label="$t('dashboard.myAccount.firstName')"
-          label-for="firstNameInput"
-          :invalid-feedback="v$.firstName.$errors[0]?.$message.toString()"
-        >
-          <BFormInput
-            v-model="v$.firstName.$model"
-            id="firstNameInput"
-            :state="v$.firstName.$dirty ? !v$.firstName.$invalid : null"
-          />
+        <BFormGroup class="mb-4" id="firstNameGroup" :label="$t('dashboard.myAccount.firstName')"
+          label-for="firstNameInput" :invalid-feedback="v$.firstName.$errors[0]?.$message.toString()">
+          <BFormInput v-model="v$.firstName.$model" id="firstNameInput"
+            :state="v$.firstName.$dirty ? !v$.firstName.$invalid : null" />
         </BFormGroup>
-        <BFormGroup
-          class="mb-4"
-          id="lastNameGroup"
-          :label="$t('dashboard.myAccount.lastName')"
-          label-for="lastNameInput"
-          :invalid-feedback="v$.lastName.$errors[0]?.$message.toString()"
-        >
-          <BFormInput
-            v-model="v$.lastName.$model"
-            id="lastNameInput"
-            :state="v$.lastName.$dirty ? !v$.lastName.$invalid : null"
-          />
+        <BFormGroup class="mb-4" id="lastNameGroup" :label="$t('dashboard.myAccount.lastName')"
+          label-for="lastNameInput" :invalid-feedback="v$.lastName.$errors[0]?.$message.toString()">
+          <BFormInput v-model="v$.lastName.$model" id="lastNameInput"
+            :state="v$.lastName.$dirty ? !v$.lastName.$invalid : null" />
         </BFormGroup>
-        <BFormGroup
-          class="mb-4"
-          id="emailGroup"
-          :label="$t('dashboard.myAccount.email')"
-          label-for="emailInput"
-          :invalid-feedback="v$.email.$errors[0]?.$message.toString()"
-        >
-          <BFormInput
-            v-model="v$.email.$model"
-            id="emailInput"
-            :state="v$.email.$dirty ? !v$.email.$invalid : null"
-          />
+        <BFormGroup class="mb-4" id="emailGroup" :label="$t('dashboard.myAccount.email')" label-for="emailInput"
+          :invalid-feedback="v$.email.$errors[0]?.$message.toString()">
+          <BFormInput v-model="v$.email.$model" id="emailInput" :state="v$.email.$dirty ? !v$.email.$invalid : null" />
         </BFormGroup>
-        <BFormGroup
-          v-if="state.email != userProfile!.user.email"
-          class="mb-4"
-          id="emailConfirmationGroup"
-          :label="$t('dashboard.myAccount.emailConfirmation')"
-          label-for="emailConfirmationInput"
-          :invalid-feedback="
-            v$.emailConfirmation.$errors[0]?.$message.toString()
-          "
-        >
-          <BFormInput
-            v-model="v$.emailConfirmation.$model"
-            id="emailConfirmationInput"
-            :state="
-              v$.emailConfirmation.$dirty
-                ? !v$.emailConfirmation.$invalid
-                : null
-            "
-          />
+        <BFormGroup v-if="state.email != userProfile!.user.email" class="mb-4" id="emailConfirmationGroup"
+          :label="$t('dashboard.myAccount.emailConfirmation')" label-for="emailConfirmationInput" :invalid-feedback="v$.emailConfirmation.$errors[0]?.$message.toString()
+            ">
+          <BFormInput v-model="v$.emailConfirmation.$model" id="emailConfirmationInput" :state="v$.emailConfirmation.$dirty
+            ? !v$.emailConfirmation.$invalid
+            : null
+            " />
         </BFormGroup>
-        <BFormGroup
-          class="mb-4"
-          id="emailGroup"
-          :label="$t('dashboard.myAccount.password')"
-          label-for="passwordInput"
-          :invalid-feedback="v$.password.$errors[0]?.$message.toString()"
-        >
-          <BFormInput
-            v-model="v$.password.$model"
-            id="passwordInput"
-            type="password"
-            :state="v$.password.$dirty ? !v$.password.$invalid : null"
-          />
+        <BFormGroup class="mb-4" id="emailGroup" :label="$t('dashboard.myAccount.password')" label-for="passwordInput"
+          :invalid-feedback="v$.password.$errors[0]?.$message.toString()">
+          <BFormInput v-model="v$.password.$model" id="passwordInput" type="password"
+            :state="v$.password.$dirty ? !v$.password.$invalid : null" />
         </BFormGroup>
-        <BFormGroup
-          v-if="state.password != ''"
-          class="mb-4"
-          id="passwordConfirmationGroup"
-          :label="$t('dashboard.myAccount.passwordConfirmation')"
-          label-for="passwordConfirmationInput"
-          :invalid-feedback="
-            v$.passwordConfirmation.$errors[0]?.$message.toString()
-          "
-        >
-          <BFormInput
-            v-model="v$.passwordConfirmation.$model"
-            type="password"
-            id="passwordConfirmationInput"
-            :state="
-              v$.passwordConfirmation.$dirty
-                ? !v$.passwordConfirmation.$invalid
-                : null
-            "
-          />
+        <BFormGroup v-if="state.password != ''" class="mb-4" id="passwordConfirmationGroup"
+          :label="$t('dashboard.myAccount.passwordConfirmation')" label-for="passwordConfirmationInput"
+          :invalid-feedback="v$.passwordConfirmation.$errors[0]?.$message.toString()
+            ">
+          <BFormInput v-model="v$.passwordConfirmation.$model" type="password" id="passwordConfirmationInput" :state="v$.passwordConfirmation.$dirty
+            ? !v$.passwordConfirmation.$invalid
+            : null
+            " />
         </BFormGroup>
-        <BFormGroup
-          class="mb-4"
-          id="phoneNumberGroup"
-          :label="$t('dashboard.myAccount.phoneNumber')"
-          label-for="phoneNumberInput"
-          :description="$t('dashboard.myAccount.phoneNumberDescription')"
-          :invalid-feedback="v$.phoneNumber.$errors[0]?.$message.toString()"
-          :state="v$.phoneNumber.$model.isValid"
-        >
-          <PhoneInput
-            id="phoneNumberInput"
-            :value="state.phoneNumber.value"
-            @change="(data) => (v$.phoneNumber.$model = data)"
-            @blur="v$.phoneNumber.$touch"
-          />
+        <BFormGroup class="mb-4" id="phoneNumberGroup" :label="$t('dashboard.myAccount.phoneNumber')"
+          label-for="phoneNumberInput" :description="$t('dashboard.myAccount.phoneNumberDescription')"
+          :invalid-feedback="v$.phoneNumber.$errors[0]?.$message.toString()" :state="v$.phoneNumber.$model.isValid">
+          <PhoneInput id="phoneNumberInput" :value="state.phoneNumber.value"
+            @change="(data) => (v$.phoneNumber.$model = data)" @blur="v$.phoneNumber.$touch" />
         </BFormGroup>
         <BButton type="submit" class="icon-link" :disabled="v$.$invalid">
           <Icon name="ph:floppy-disk" />

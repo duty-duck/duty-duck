@@ -3,6 +3,7 @@ import useVuelidate from '@vuelidate/core';
 import { email, minLength, required } from '@vuelidate/validators';
 import type { OrganizationUserRole } from 'bindings/OrganizationUserRole';
 import StatusLabel from '../httpMonitor/StatusLabel.vue';
+import { useToastController } from 'bootstrap-vue-next';
 
 const showModal = defineModel<boolean>();
 const emit = defineEmits<{
@@ -12,7 +13,7 @@ const emit = defineEmits<{
 const isLoading = ref<boolean>(false);
 const repo = await useOrganizationRepository();
 const { t } = useI18n();
-const { show } = useToast();
+const { show } = useToastController();
 const { userProfile: { active_organization, organization_roles } } = await useAuth();
 
 const roleOptions: { text: string, value: OrganizationUserRole, disabled?: boolean }[] = [

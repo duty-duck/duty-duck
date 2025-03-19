@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import type { RegisterUserDeviceCommand } from "bindings/RegisterUserDeviceCommand";
 import type { UserDevice } from "bindings/UserDevice";
+import { useToastController } from "bootstrap-vue-next";
 
-const { show } = useToast();
+const { show } = useToastController();
 const { t } = useI18n();
 const firebaseMessaging = useFirebaseMessaging();
 const devicesRepository = await useUserDevicesRepository();
@@ -62,11 +63,9 @@ const removeDevice = async (deviceId: string) => {
   <BCard no-body>
     <BCardBody>
       <BCardTitle>{{ $t("dashboard.pushNotifications.title") }}</BCardTitle>
-      <div
-        v-if="
-          firebaseMessaging.token == 'loading' || devicesStatus == 'pending'
-        "
-      >
+      <div v-if="
+        firebaseMessaging.token == 'loading' || devicesStatus == 'pending'
+      ">
         {{ $t("dashboard.pushNotifications.loading") }}
       </div>
       <div v-else-if="thisDevice">
@@ -78,18 +77,11 @@ const removeDevice = async (deviceId: string) => {
         </p>
         <div class="row">
           <div class="col-lg-7 mb-2">
-            <BFormInput
-              id="deviceName"
-              :placeholder="$t('dashboard.pushNotifications.deviceNamePlaceholder')"
-              v-model="newDeviceName"
-            />
+            <BFormInput id="deviceName" :placeholder="$t('dashboard.pushNotifications.deviceNamePlaceholder')"
+              v-model="newDeviceName" />
           </div>
           <div class="col-lg-5">
-            <BButton
-              variant="primary"
-              @click="enableNotifications"
-              :disabled="!newDeviceName"
-            >
+            <BButton variant="primary" @click="enableNotifications" :disabled="!newDeviceName">
               <Icon name="ph:bell" />
               {{ $t("dashboard.pushNotifications.enableButton") }}
             </BButton>
@@ -98,11 +90,8 @@ const removeDevice = async (deviceId: string) => {
       </div>
     </BCardBody>
     <BListGroup flush v-if="devicesRes?.devices.length">
-      <BListGroupItem
-        v-for="device in devicesRes?.devices"
-        :key="device.id"
-        class="d-flex justify-content-between align-items-center"
-      >
+      <BListGroupItem v-for="device in devicesRes?.devices" :key="device.id"
+        class="d-flex justify-content-between align-items-center">
         <div>
           <Icon :name="deviceIcon(device)" />
           {{ device.label }}
