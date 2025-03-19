@@ -1,5 +1,5 @@
-import en from './locales/en'
-import fr from './locales/fr'
+import en from './en'
+import fr from './fr'
 
 function flattenKeys(obj: any, prefix = ''): string[] {
   return Object.keys(obj).reduce((keys: string[], key: string) => {

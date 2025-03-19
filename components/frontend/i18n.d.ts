@@ -1,4 +1,4 @@
-import en from "~/locales/en";
+import en from "~/i18n/en";
 
 type StringKey<T> = Extract<keyof T, string>;
 type GenerateKeyPaths<T, Prefix extends string = ""> = T extends object
