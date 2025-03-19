@@ -45,6 +45,7 @@ async fn integration_test_1() -> anyhow::Result<()> {
         .indexes_api_v1()
         .create_index(&IndexConfig {
             index_id: index_id.clone(),
+            index_uri: None,
             version: quickwit_client_rs::indexes_api_v1::Version::V08,
             retention: Some(RetentionSettings {
                 period: "1 day".to_string(),
@@ -140,6 +141,7 @@ async fn integration_test_otel_logs_1() -> anyhow::Result<()> {
     client
         .indexes_api_v1()
         .create_index(&IndexConfig {
+            index_uri: None,
             index_id: index_id.clone(),
             version: quickwit_client_rs::indexes_api_v1::Version::V08,
             retention: None,
