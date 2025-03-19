@@ -15,7 +15,7 @@ pub async fn get_filterable_incident_metadata<IR: IncidentRepository>(
     incident_repo: &IR,
 ) -> Result<FilterableMetadata, GetFilterableIncidentMetadataError> {
     incident_repo
-        .get_filterable_metadata(auth_context.active_organization_id)
+        .get_filterable_metadata(auth_context.active_organization_id()?)
         .await
         .map_err(GetFilterableIncidentMetadataError::TechnicalFailure)
 }

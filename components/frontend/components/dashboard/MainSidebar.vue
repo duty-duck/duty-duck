@@ -32,22 +32,21 @@ watch(() => route.path, (newPath, oldPath) => {
         </NuxtLink>
       </li>
       <li class="nav-item">
-        <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/httpMonitors')"
-          :disabled="!canReadHttpMonitors"
+        <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/httpMonitors')" v-if="canReadHttpMonitors"
           :class="{ 'active': route.path.startsWith(localePath('/dashboard/httpMonitors')) }">
           <Icon name="ph:globe-duotone" size="22px" />
           {{ $t("dashboard.mainSidebar.monitors") }}
         </NuxtLink>
       </li>
       <li class="nav-item">
-        <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/tasks')" :disabled="!canReadTasks"
+        <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/tasks')" v-if="canReadTasks"
           :class="{ 'active': route.path.startsWith(localePath('/dashboard/tasks')) }">
           <Icon name="ph:pulse-duotone" size="22px" />
           {{ $t('dashboard.mainSidebar.tasks') }}
         </NuxtLink>
       </li>
       <li class="nav-item" id="incidents-nav-item">
-        <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/incidents')" :disabled="!canReadIncidents"
+        <NuxtLink class="nav-link icon-link" :to="localePath('/dashboard/incidents')" v-if="canReadIncidents"
           :class="{ 'active': route.path.startsWith(localePath('/dashboard/incidents')) }">
           <Icon name="ph:seal-warning-duotone" size="22px" />
           {{ $t("dashboard.mainSidebar.incidents") }}

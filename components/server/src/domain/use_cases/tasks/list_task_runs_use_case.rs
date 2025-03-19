@@ -67,7 +67,7 @@ pub async fn list_task_runs_use_case<
     let task = task_repository
         .get_task_by_id(
             &mut transaction,
-            auth_context.active_organization_id,
+            auth_context.active_organization_id()?,
             &task_id,
         )
         .await?
@@ -80,7 +80,7 @@ pub async fn list_task_runs_use_case<
     } = task_run_repository
         .list_task_runs(
             &mut transaction,
-            auth_context.active_organization_id,
+            auth_context.active_organization_id()?,
             ListTaskRunsOpts {
                 task_id: task.id,
                 include_statuses: &params.include_statuses.unwrap_or_default(),

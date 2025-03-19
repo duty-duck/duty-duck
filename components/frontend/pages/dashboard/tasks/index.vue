@@ -1,10 +1,13 @@
 <script setup lang="ts">
-import type { TaskCard } from '#build/components';
 import { refDebounced } from '@vueuse/core';
 import { useRouteQuery } from '@vueuse/router';
 import type { ListTasksParams } from 'bindings/ListTasksParams';
 import type { TaskStatus } from 'bindings/TaskStatus';
 import { allStatuses } from '~/components/task/StatusDropdown.vue';
+
+definePageMeta({
+  permissions: ['readTasks']
+});
 
 const taskRepository = useTasksRepository();
 const query = useRouteQuery("query", "");

@@ -1,4 +1,4 @@
-use anyhow::anyhow;
+use anyhow::{anyhow, Context};
 use chrono::{DateTime, Utc};
 use custom_derive::custom_derive;
 use enum_derive::*;
@@ -12,12 +12,19 @@ use super::organization::{OrganizationRoleSet, OrganizationUserRole};
 
 #[derive(Serialize, Debug)]
 pub struct AuthContext {
-    pub active_organization_id: Uuid,
+    pub active_organization_id: Option<Uuid>,
     pub active_user_id: Uuid,
     pub active_organization_roles: OrganizationRoleSet,
     pub restricted_to_scopes: Vec<Permission>,
     #[serde(skip)]
     pub original_auth_token: Option<OriginalAuthenticationToken>,
+}
+
+impl AuthContext {
+    pub fn active_organization_id(&self) -> anyhow::Result<Uuid> {
+        self.active_organization_id
+            .context("MIssing active organization id")
+    }
 }
 
 #[derive(veil::Redact)]
@@ -98,7 +105,7 @@ impl AuthContext {
         restricted_to_scopes: &[Permission],
     ) -> Self {
         Self {
-            active_organization_id: org_id,
+            active_organization_id: Some(org_id),
             active_user_id: user_id,
             // Give the user owner permissions by default so they have all permissions
             active_organization_roles: OrganizationRoleSet::test_context(user_roles),

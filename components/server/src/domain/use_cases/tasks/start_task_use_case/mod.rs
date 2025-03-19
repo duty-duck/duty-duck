@@ -126,7 +126,7 @@ where
         task_repository,
         task_run_repository,
         &mut tx,
-        auth_context.active_organization_id,
+        auth_context.active_organization_id()?,
         &task_id,
     )
     .await
@@ -156,8 +156,9 @@ where
                 sms_notification_enabled: new_task.sms_notification_enabled,
                 metadata: None,
             };
-            let new_task = HealthyTaskAggregate::new(auth_context.active_organization_id, new_task)
-                .context("failed to create a new task")?;
+            let new_task =
+                HealthyTaskAggregate::new(auth_context.active_organization_id()?, new_task)
+                    .context("failed to create a new task")?;
             let (running_aggregate, _) = new_task.start(now).context("failed to start new task")?;
             (running_aggregate, false)
         }
@@ -208,7 +209,7 @@ where
             incident_repository,
             incident_event_repository,
             incident_notification_repository,
-            auth_context.active_organization_id,
+            auth_context.active_organization_id()?,
             *running_aggregate.task().base().id(),
             &mut tx,
             now,

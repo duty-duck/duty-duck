@@ -34,7 +34,7 @@ pub async fn change_member_role_use_case(
     member_id: Uuid,
     command: ChangeMemberRoleCommand,
 ) -> Result<(), ChangeMemberRoleError> {
-    if auth_context.active_organization_id != organization_id
+    if auth_context.active_organization_id != Some(organization_id)
         || !auth_context.can(Permission::EditOrganizationMember)
     {
         return Err(ChangeMemberRoleError::Forbidden);

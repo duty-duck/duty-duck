@@ -74,7 +74,7 @@ pub async fn create_task_use_case(
     let existing_task = task_repository
         .get_task_by_user_id(
             &mut tx,
-            auth_context.active_organization_id,
+            auth_context.active_organization_id()?,
             &command.user_id,
         )
         .await?;
@@ -83,7 +83,7 @@ pub async fn create_task_use_case(
         return Err(CreateTaskError::TaskAlreadyExists(command.user_id));
     }
 
-    let new_task = HealthyTask::new(auth_context.active_organization_id, command)?;
+    let new_task = HealthyTask::new(auth_context.active_organization_id()?, command)?;
     let new_task: BoundaryTask = new_task.try_into()?;
     task_repository.upsert_task(&mut tx, new_task).await?;
     task_repository.commit_transaction(tx).await?;

@@ -2,11 +2,14 @@
 const httpMonitorRepo = useHttpMonitorRepository();
 const incidentRepo = useIncidentRepository();
 const auth = await useAuth();
-const localePath = useLocalePath();
-const thisDevice = await useThisDevice();
 const suggestedActions = await useSuggestedActions();
 const { refresh: refreshIncidentCount, data: incidentCount } = await incidentRepo.useOngoingIncidentsCount();
 const { refresh: refreshDownMonitorsCount, data: downMonitorsCount } = await httpMonitorRepo.useDownMonitorsCount();
+
+useDataRefreshInterval(() => {
+  refreshDownMonitorsCount();
+  refreshIncidentCount();
+});
 </script>
 <template>
   <BContainer>

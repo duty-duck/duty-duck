@@ -41,6 +41,10 @@ pub async fn create_api_access_token(
     repository: &impl ApiAccessTokenRepository,
     request: CreateApiTokenRequest,
 ) -> Result<CreateApiTokenResponse, CreateApiAccessTokenError> {
+    let organization_id = auth_context
+        .active_organization_id
+        .ok_or(CreateApiAccessTokenError::InsufficientPermissions)?;
+
     // Check if the user has the necessary permissions
     for scope in &request.scopes {
         if !auth_context.can(*scope) {
@@ -63,7 +67,7 @@ pub async fn create_api_access_token(
 
     let id = repository
         .create_api_token(NewApiAccessToken {
-            organization_id: auth_context.active_organization_id,
+            organization_id,
             user_id: auth_context.active_user_id,
             label: request.label,
             scopes: request.scopes,

@@ -1,7 +1,9 @@
 <script lang="ts" setup>
 import type { HttpMonitorFormData } from "~/components/httpMonitor/Form.vue";
 
-await usePermissionGrant("writeHttpMonitors");
+definePageMeta({
+  permissions: ['writeHttpMonitors']
+});
 
 const localePath = useLocalePath();
 const httpMonitorsRepository = useHttpMonitorRepository();
@@ -20,10 +22,10 @@ const onSubmit = async (data: HttpMonitorFormData) => {
     <BBreadcrumb>
       <BBreadcrumbItem :to="localePath('/dashboard')">{{
         $t("dashboard.mainSidebar.home")
-      }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
       <BBreadcrumbItem :to="localePath('/dashboard/httpMonitors')">{{
         $t("dashboard.mainSidebar.monitors")
-      }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
       <BBreadcrumbItem active>
         {{ $t("dashboard.monitors.createMonitorTitle") }}
       </BBreadcrumbItem>

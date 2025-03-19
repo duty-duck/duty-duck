@@ -22,7 +22,7 @@ pub async fn revoke_organization_member_use_case(
     organization_id: Uuid,
     user_id: Uuid,
 ) -> Result<(), RevokeOrganizationMemberError> {
-    if auth_context.active_organization_id != organization_id
+    if auth_context.active_organization_id != Some(organization_id)
         || !auth_context.can(Permission::RemoveOrganizationMember)
     {
         return Err(RevokeOrganizationMemberError::Forbidden);

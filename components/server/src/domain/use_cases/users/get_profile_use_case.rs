@@ -24,7 +24,7 @@ pub enum GetProfileError {
 pub struct GetProfileResponse {
     user: User,
     permissions: Vec<Permission>,
-    active_organization: Organization,
+    active_organization: Option<Organization>,
     organization_roles: Vec<OrganizationUserRole>,
 }
 
@@ -33,15 +33,17 @@ pub async fn get_user_profile(
     organization_repository: &impl OrganizationRepository,
     user_repository: &impl UserRepository,
 ) -> Result<GetProfileResponse, GetProfileError> {
-    let organization = match organization_repository
-        .get_organization(auth_context.active_organization_id)
-        .await
-    {
-        Ok(organization) => organization,
-        Err(ReadOrganizationError::OrganizationNotFound) => return Err(GetProfileError::NotFound),
-        Err(ReadOrganizationError::TechnicalFailure(e)) => {
-            return Err(GetProfileError::TechnicalFailure(e))
-        }
+    let organization = match auth_context.active_organization_id {
+        Some(id) => match organization_repository.get_organization(id).await {
+            Ok(organization) => Some(organization),
+            Err(ReadOrganizationError::OrganizationNotFound) => {
+                return Err(GetProfileError::NotFound)
+            }
+            Err(ReadOrganizationError::TechnicalFailure(e)) => {
+                return Err(GetProfileError::TechnicalFailure(e))
+            }
+        },
+        None => None,
     };
 
     let user = match user_repository
@@ -53,15 +55,22 @@ pub async fn get_user_profile(
         Err(e) => return Err(GetProfileError::TechnicalFailure(e)),
     };
 
-    let organization_roles = match organization_repository
-        .list_organization_roles_for_user(organization.id, user.id)
-        .await
-    {
-        Ok(roles) => roles,
-        Err(ReadOrganizationError::OrganizationNotFound) => return Err(GetProfileError::NotFound),
-        Err(ReadOrganizationError::TechnicalFailure(e)) => {
-            return Err(GetProfileError::TechnicalFailure(e))
+    let organization_roles = match auth_context.active_organization_id {
+        Some(org_id) => {
+            match organization_repository
+                .list_organization_roles_for_user(org_id, user.id)
+                .await
+            {
+                Ok(roles) => roles,
+                Err(ReadOrganizationError::OrganizationNotFound) => {
+                    return Err(GetProfileError::NotFound)
+                }
+                Err(ReadOrganizationError::TechnicalFailure(e)) => {
+                    return Err(GetProfileError::TechnicalFailure(e))
+                }
+            }
         }
+        None => vec![],
     };
 
     let response = GetProfileResponse {

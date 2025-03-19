@@ -87,7 +87,7 @@ pub async fn list_tasks(
         total_filtered_tasks,
     } = repository
         .list_tasks(
-            auth_context.active_organization_id,
+            auth_context.active_organization_id()?,
             ListTasksOpts {
                 metadata_filter: params.metadata_filter(),
                 include_statuses: &params.include.unwrap_or_default(),

@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import type { UpdateTaskCommand } from "bindings/UpdateTaskCommand";
 import type { TaskFormData } from "~/components/task/Form.vue";
-import { usePermissionGrant } from "~/composables/authComposables";
 
-await usePermissionGrant("writeTasks");
+definePageMeta({
+    permissions: ['writeTasks']
+});
 
 const repo = useTasksRepository();
 const route = useRoute();

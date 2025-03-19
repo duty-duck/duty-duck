@@ -44,7 +44,7 @@ pub async fn get_incident(
     match incident_repository
         .get_incident(
             &mut transaction,
-            auth_context.active_organization_id,
+            auth_context.active_organization_id()?,
             incident_id,
         )
         .await?

@@ -37,7 +37,7 @@ pub async fn list_invitations_use_case(
     params: ListInvitationsParams,
 ) -> Result<Vec<UserInvitation>, ListInvitationsError> {
     if !auth_context.can(Permission::ListOrganizationInvitations)
-        || organization_id != auth_context.active_organization_id
+        || organization_id != auth_context.active_organization_id()?
     {
         return Err(ListInvitationsError::PermissionDenied);
     }

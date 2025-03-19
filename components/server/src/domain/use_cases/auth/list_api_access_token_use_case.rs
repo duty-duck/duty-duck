@@ -26,7 +26,7 @@ pub async fn list_api_access_tokens(
 ) -> Result<ListApiAccessTokensResponse, ListApiAccessTokensError> {
     let api_tokens = repository
         .list_api_tokens(
-            auth_context.active_organization_id,
+            auth_context.active_organization_id()?,
             auth_context.active_user_id,
         )
         .await?;

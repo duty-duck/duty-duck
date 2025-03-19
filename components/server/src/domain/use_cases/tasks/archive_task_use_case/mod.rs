@@ -61,7 +61,7 @@ where
         task_repository,
         task_run_repository,
         &mut tx,
-        auth_context.active_organization_id,
+        auth_context.active_organization_id()?,
         &task_id,
     )
     .await
@@ -95,7 +95,7 @@ where
     let ongoing_incidents = incident_repository
         .list_incidents(
             &mut tx,
-            auth_context.active_organization_id,
+            auth_context.active_organization_id()?,
             ListIncidentsOpts {
                 include_statuses: &[IncidentStatus::Ongoing, IncidentStatus::ToBeConfirmed],
                 include_priorities: &IncidentPriority::ALL,

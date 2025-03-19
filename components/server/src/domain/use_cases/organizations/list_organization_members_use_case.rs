@@ -53,7 +53,7 @@ pub async fn list_organization_members_use_case(
     organization_id: Uuid,
     params: ListOrganizationMembersParams,
 ) -> Result<ListOrganizationMembersResponse, ListOrganizationMembersError> {
-    if auth_context.active_organization_id != organization_id
+    if auth_context.active_organization_id != Some(organization_id)
         || !auth_context.can(Permission::ListOrganizationMembers)
     {
         return Err(ListOrganizationMembersError::Forbidden);

@@ -65,30 +65,3 @@ export const useAuth = createSharedComposable(async () => {
         ...keycloak,
     });
 });
-
-/**
- * Ensures the user has the required permission(s) before mounting the component.
- * Redirects to the dashboard if the user lacks the necessary permissions.
- * @param permission - A single permission or an array of permissions to check.
- */
-export const usePermissionGrant = async (permission: Permission | Permission[]) => {
-    const localePath = useLocalePath();
-    const permissions: Permission[] = typeof permission == "string" ? [permission] : permission;
-    const { show } = useToastController();
-    const { t } = useI18n();
-    const { userHasPermission } = await useAuth();
-
-    console.log("checking permissions", permissions);
-
-    if (!userHasPermission(permissions)) {
-        show?.({
-            props: {
-                title: t('permissions.deniedToastNotification.title'),
-                body: t('permissions.deniedToastNotification.body'),
-                variant: 'danger',
-                value: 5000
-            }
-        })
-        return navigateTo(localePath("/dashboard"))
-    }
-}

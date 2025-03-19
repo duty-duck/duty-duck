@@ -100,7 +100,7 @@ where
         task_repository,
         task_run_repository,
         &mut tx,
-        auth_context.active_organization_id,
+        auth_context.active_organization_id()?,
         &task_id,
     )
     .await?

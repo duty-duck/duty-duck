@@ -28,8 +28,8 @@ export const useIncidentRepository = () => {
                 orderBy: null,
                 orderDirection: null,
                 metadataFilter: null
-            }, { lazy: true });
-            return { refresh: res.refresh, data: computed(() => res.data.value?.totalNumberOfFilteredResults) }
+            }, { lazy: true, ignoreResponseError: true });
+            return { refresh: res.refresh, data: computed(() => res.data.value?.totalNumberOfFilteredResults ?? 0) }
         },
         async useIncident(incidentId: string, opts?: UseFetchOptions<GetIncidentResponse>) {
             return await useServerFetch<GetIncidentResponse>(`/incidents/${incidentId}`, { retry: 3, retryDelay: 5000, ...(opts || {}) });

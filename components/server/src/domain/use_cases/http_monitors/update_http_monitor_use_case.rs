@@ -69,7 +69,7 @@ pub async fn update_http_monitor(
     let mut tx = repository.begin_transaction().await?;
 
     match repository
-        .get_http_monitor(&mut tx, auth_context.active_organization_id, id)
+        .get_http_monitor(&mut tx, auth_context.active_organization_id()?, id)
         .await
     {
         Ok(Some(monitor)) if monitor.archived_at.is_some() => {
@@ -81,7 +81,7 @@ pub async fn update_http_monitor(
     }?;
 
     let new_monitor = NewHttpMonitor {
-        organization_id: auth_context.active_organization_id,
+        organization_id: auth_context.active_organization_id()?,
         url: url.to_string(),
         status: if command.is_active {
             HttpMonitorStatus::Unknown

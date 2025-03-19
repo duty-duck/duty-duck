@@ -45,7 +45,7 @@ pub async fn get_task(
         .map_err(GetTaskError::TechnicalFailure)?;
 
     let task = repository
-        .get_task_by_id(&mut tx, auth_context.active_organization_id, &task_id)
+        .get_task_by_id(&mut tx, auth_context.active_organization_id()?, &task_id)
         .await
         .map_err(GetTaskError::TechnicalFailure)?
         .ok_or(GetTaskError::NotFound(task_id))?;

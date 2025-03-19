@@ -72,7 +72,7 @@ pub async fn create_http_monitor(
     let url = Url::parse(&command.url)?;
 
     let new_monitor = NewHttpMonitor {
-        organization_id: auth_context.active_organization_id,
+        organization_id: auth_context.active_organization_id()?,
         url: url.to_string(),
         status: if command.is_active {
             HttpMonitorStatus::Unknown

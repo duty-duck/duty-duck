@@ -20,7 +20,7 @@ pub async fn serve_file(
     file_id: Uuid,
 ) -> Result<Url, ServeFileUseCaseError> {
     let key = FileStorageKey {
-        organization_id: auth_context.active_organization_id,
+        organization_id: auth_context.active_organization_id()?,
         file_id,
     };
     let url = repository

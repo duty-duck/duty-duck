@@ -15,7 +15,7 @@ export const useSuggestedActions = async () => {
     const monitorRepo = useHttpMonitorRepository();
     const auth = await useAuth();
 
-    const { data: monitorsRes } = await monitorRepo.useHttpMonitors();
+    const { data: monitorsRes } = await monitorRepo.useHttpMonitors(undefined, { lazy: true, ignoreResponseError: true });
 
     return computed(() => {
         const actions: SuggestedAction[] = [];

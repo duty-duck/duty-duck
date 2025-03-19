@@ -15,7 +15,7 @@ pub async fn get_filterable_task_metadata<IR: TaskRepository>(
     task_repo: &IR,
 ) -> Result<FilterableMetadata, GetFilterableTaskMetadataError> {
     task_repo
-        .get_filterable_metadata(auth_context.active_organization_id)
+        .get_filterable_metadata(auth_context.active_organization_id()?)
         .await
         .map_err(GetFilterableTaskMetadataError::TechnicalFailure)
 }

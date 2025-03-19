@@ -25,7 +25,7 @@ pub async fn list_user_devices(
 ) -> Result<ListUserDevicesResponse, ListUserDevicesError> {
     match repository
         .list_user_devices(
-            auth_context.active_organization_id,
+            auth_context.active_organization_id()?,
             auth_context.active_user_id,
         )
         .await

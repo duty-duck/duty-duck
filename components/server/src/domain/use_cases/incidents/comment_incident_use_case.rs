@@ -46,7 +46,7 @@ pub async fn comment_incident<
     }
     let mut tx = incident_event_repo.begin_transaction().await?;
     let incident = incident_repo
-        .get_incident(&mut tx, auth_context.active_organization_id, incident_id)
+        .get_incident(&mut tx, auth_context.active_organization_id()?, incident_id)
         .await?;
 
     if incident.is_none() {
@@ -54,7 +54,7 @@ pub async fn comment_incident<
     }
 
     let event = IncidentEvent {
-        organization_id: auth_context.active_organization_id,
+        organization_id: auth_context.active_organization_id()?,
         incident_id,
         created_at: Utc::now(),
         user_id: Some(auth_context.active_user_id),

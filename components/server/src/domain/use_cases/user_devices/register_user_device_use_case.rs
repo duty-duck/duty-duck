@@ -28,7 +28,7 @@ pub async fn register_user_device(
     command: RegisterUserDeviceCommand,
 ) -> Result<(), RegisterUserDeviceError> {
     let new_device = NewUserDevice {
-        organization_id: auth_context.active_organization_id,
+        organization_id: auth_context.active_organization_id()?,
         user_id: auth_context.active_user_id,
         label: command.label,
         push_notification_token: command.push_notification_token,

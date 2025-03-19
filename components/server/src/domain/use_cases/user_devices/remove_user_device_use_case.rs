@@ -19,7 +19,7 @@ pub async fn remove_user_device(
     user_device_id: Uuid,
 ) -> Result<(), RemoveUserDeviceError> {
     match repository
-        .remove_device(auth_context.active_organization_id, user_device_id)
+        .remove_device(auth_context.active_organization_id()?, user_device_id)
         .await
     {
         Ok(true) => Ok(()),

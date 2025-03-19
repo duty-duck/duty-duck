@@ -70,13 +70,13 @@ where
     let mut tx = task_repository.begin_transaction().await?;
 
     let task = task_repository
-        .get_task_by_id(&mut tx, auth_context.active_organization_id, &task_id)
+        .get_task_by_id(&mut tx, auth_context.active_organization_id()?, &task_id)
         .await
         .context("Failed to get task from repository")?
         .ok_or(GetTaskRunLogsError::NotFound)?;
 
     let task_run = task_run_repository
-        .get_task_run(&mut tx, auth_context.active_organization_id, task_run_id)
+        .get_task_run(&mut tx, auth_context.active_organization_id()?, task_run_id)
         .await
         .context("Failed to get task run from repository")?
         .ok_or(GetTaskRunLogsError::NotFound)?;
@@ -93,7 +93,7 @@ where
     let task_run_id_str = task_run_id.to_string();
     let output = logs_searcher
         .search_logs(
-            auth_context.active_organization_id,
+            auth_context.active_organization_id()?,
             SearchLogsOpts {
                 // we can use the task run's timestamps as bondaries to retrieve logs, so the query is more efficient
                 from_timestamp: Some(task_run.started_at),

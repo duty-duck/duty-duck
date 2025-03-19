@@ -50,7 +50,7 @@ where
     let mut tx = http_monitor_repository.begin_transaction().await?;
 
     let monitor = match http_monitor_repository
-        .get_http_monitor(&mut tx, auth_context.active_organization_id, monitor_id)
+        .get_http_monitor(&mut tx, auth_context.active_organization_id()?, monitor_id)
         .await
     {
         Ok(Some(monitor)) if monitor.archived_at.is_some() => {
@@ -72,7 +72,7 @@ where
         .update_http_monitor_status(
             &mut tx,
             UpdateHttpMonitorStatusCommand {
-                organization_id: auth_context.active_organization_id,
+                organization_id: auth_context.active_organization_id()?,
                 monitor_id,
                 status,
                 next_ping_at,

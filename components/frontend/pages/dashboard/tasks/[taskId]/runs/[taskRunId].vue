@@ -1,5 +1,7 @@
 <script setup lang="ts">
-await usePermissionGrant("readTaskRuns");
+definePageMeta({
+    permissions: ['readTaskRuns']
+});
 
 const { params: { taskId, taskRunId } } = useRoute();
 const localePath = useLocalePath();

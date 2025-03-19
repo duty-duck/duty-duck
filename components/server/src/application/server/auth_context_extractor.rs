@@ -19,13 +19,14 @@ use crate::domain::ports::organization_repository::OrganizationRepository;
 
 #[derive(Deserialize)]
 struct Claims {
-    active_organization: ActiveOrganizationClaim,
+    active_organization: Option<ActiveOrganizationClaim>,
     sub: Uuid,
 }
 
 #[derive(Deserialize)]
 struct ActiveOrganizationClaim {
-    id: Uuid,
+    id: Option<Uuid>,
+    #[serde(default)]
     role: Vec<String>,
 }
 
@@ -93,9 +94,17 @@ async fn bearer_token_authentication(
         (StatusCode::FORBIDDEN, "Failed to decode access token")
     })?;
     let auth_context = AuthContext {
-        active_organization_id: token.claims.active_organization.id,
+        active_organization_id: token
+            .claims
+            .active_organization
+            .as_ref()
+            .and_then(|org| org.id),
         active_user_id: token.claims.sub,
-        active_organization_roles: token.claims.active_organization.role.into(),
+        active_organization_roles: token
+            .claims
+            .active_organization
+            .map(|org| org.role.into())
+            .unwrap_or_default(),
         restricted_to_scopes: vec![],
         original_auth_token: Some(OriginalAuthenticationToken::BearerToken {
             bearer_token: bearer_token.to_string(),
@@ -176,7 +185,7 @@ async fn api_token_authentication(
     let active_organization_roles = OrganizationRoleSet::from_roles(active_organization_roles);
 
     Ok(AuthContext {
-        active_organization_id: access_token.organization_id,
+        active_organization_id: Some(access_token.organization_id),
         active_user_id: access_token.user_id,
         active_organization_roles,
         restricted_to_scopes: access_token.scopes,

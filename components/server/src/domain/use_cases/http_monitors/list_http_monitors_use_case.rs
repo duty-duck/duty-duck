@@ -70,7 +70,7 @@ pub async fn list_http_monitors(
         total_monitors,
     } = repository
         .list_http_monitors(
-            auth_context.active_organization_id,
+            auth_context.active_organization_id()?,
             include_statuses,
             params.query.unwrap_or_default(),
             metadata_filter,

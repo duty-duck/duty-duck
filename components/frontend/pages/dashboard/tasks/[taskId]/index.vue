@@ -5,6 +5,11 @@ import { useRouteQuery } from '@vueuse/router';
 import cronstrue from 'cronstrue';
 import 'cronstrue/locales/fr';
 
+definePageMeta({
+  permissions: ['readTasks']
+});
+
+const auth = await useAuth();
 const { locale } = useI18n();
 const localePath = useLocalePath();
 const { params: { taskId } } = useRoute();
@@ -13,6 +18,7 @@ const now = useNow();
 
 const pageNumber = useRouteQuery("pageNumber", 1, { transform: Number });
 const taskRunsParams = computed(() => ({ itemsPerPage: 10, pageNumber: pageNumber.value, includeStatuses: null }));
+const canWriteTasks = auth.userHasPermissionComputed('writeTasks');
 
 const { data: taskResponse, refresh: refreshTaskResponse } = await taskRepo.useTask(taskId as string);
 const { data: lastTaskRunResponse, refresh: refreshLastTaskRun } = await taskRepo.useTaskRuns(taskId as string, { itemsPerPage: 1, pageNumber: 1, includeStatuses: null });
@@ -65,11 +71,12 @@ const refreshEverything = () => {
     <!-- Task actions -->
     <section v-if="taskResponse.task.status != 'archived'">
       <div class="mb-3 d-flex gap-2">
-        <BButton class="icon-link" variant="outline-secondary" :to="localePath(`/dashboard/tasks/${taskId}/edit`)">
+        <BButton class="icon-link" variant="outline-secondary" :to="localePath(`/dashboard/tasks/${taskId}/edit`)"
+          v-if="canWriteTasks">
           <Icon name="ph:pencil" />
           {{ $t('dashboard.tasks.edit') }}
         </BButton>
-        <TaskArchiveButton :task-id="taskId as string" @archived="refreshEverything" />
+        <TaskArchiveButton :task-id="taskId as string" @archived="refreshEverything" v-if="canWriteTasks" />
       </div>
     </section>
 

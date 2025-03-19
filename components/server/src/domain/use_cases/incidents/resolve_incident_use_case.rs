@@ -52,7 +52,7 @@ where
 
     let mut tx = incident_repo.begin_transaction().await?;
     let incident = match incident_repo
-        .get_incident(&mut tx, auth_context.active_organization_id, incident_id)
+        .get_incident(&mut tx, auth_context.active_organization_id()?, incident_id)
         .await?
     {
         Some(incident) => incident,

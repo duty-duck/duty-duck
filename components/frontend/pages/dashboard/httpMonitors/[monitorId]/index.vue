@@ -1,17 +1,21 @@
 <script lang="ts" setup>
 import { useNow } from "@vueuse/core";
-import { usePermissionGrant } from "~/composables/authComposables";
 import type { LazyHttpMonitorIncidentsCard } from '#build/components';
 import HttpMonitorToggleButton from '~/components/httpMonitor/ToggleButton.vue';
 
-await usePermissionGrant("readHttpMonitors");
+definePageMeta({
+  permissions: ['readHttpMonitors']
+});
 
+const auth = await useAuth();
 const localePath = useLocalePath();
 const repo = useHttpMonitorRepository();
 const route = useRoute();
 const now = useNow();
 const incidentsCard = ref<InstanceType<typeof LazyHttpMonitorIncidentsCard>>();
 const { locale } = useI18n();
+
+const canWriteMonitors = auth.userHasPermissionComputed('writeHttpMonitors');
 
 const { refresh: refreshMonitorResponse, data: monitorResponse } =
   await repo.useHttpMonitor(route.params.monitorId as string);
@@ -80,10 +84,11 @@ useDataRefreshInterval(refreshMonitorResponse)
     </div>
     <section v-if="monitorResponse.monitor.status != 'archived'">
       <div class="mb-3 d-flex gap-2">
-        <HttpMonitorToggleButton :monitor-id="monitorResponse.monitor.id" :status="monitorResponse.monitor.status"
-          @toggled="refreshEverything" />
-        <HttpMonitorArchiveButton :monitor-id="monitorResponse.monitor.id" @archived="refreshEverything" />
-        <BButton class="icon-link" variant="outline-secondary"
+        <HttpMonitorToggleButton v-if="canWriteMonitors" :monitor-id="monitorResponse.monitor.id"
+          :status="monitorResponse.monitor.status" @toggled="refreshEverything" />
+        <HttpMonitorArchiveButton v-if="canWriteMonitors" :monitor-id="monitorResponse.monitor.id"
+          @archived="refreshEverything" />
+        <BButton v-if="canWriteMonitors" class="icon-link" variant="outline-secondary"
           :to="localePath(`/dashboard/httpMonitors/${route.params.monitorId}/edit`)">
           <Icon name="ph:pencil" />
           {{ $t('dashboard.monitors.edit') }}

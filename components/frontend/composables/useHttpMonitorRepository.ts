@@ -14,8 +14,8 @@ export const useHttpMonitorRepository = () => {
         async useFilterableMetadataFields() {
             return await useServerFetch<FilterableMetadata>("/http-monitors/filterable-metadata");
         },
-        async useHttpMonitors(params?: Ref<ListHttpMonitorsParams> | ListHttpMonitorsParams) {
-            return await useServerFetch<ListHttpMonitorsResponse>(`/http-monitors`, { retry: 3, retryDelay: 5000, query: params });
+        async useHttpMonitors(params?: Ref<ListHttpMonitorsParams> | ListHttpMonitorsParams, options?: UseFetchOptions<ListHttpMonitorsResponse>) {
+            return await useServerFetch<ListHttpMonitorsResponse>(`/http-monitors`, { retry: 3, retryDelay: 5000, query: params, ...(options || {}) });
         },
         async createHttpMonitor(command: CreateHttpMonitorCommand) {
             const $fetch = await useServer$fetch();
@@ -48,8 +48,8 @@ export const useHttpMonitorRepository = () => {
                 itemsPerPage: 0,
                 query: null,
                 metadataFilter: null
-            });
-            return { refresh: res.refresh, data: computed(() => res.data.value?.totalNumberOfFilteredResults) }
+            }, { lazy: true, ignoreResponseError: true });
+            return { refresh: res.refresh, data: computed(() => res.data.value?.totalNumberOfFilteredResults ?? 0) }
         }
     }
 }

@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 import type { UpdateHttpMonitorCommand } from "bindings/UpdateHttpMonitorCommand";
 import type { HttpMonitorFormData } from "~/components/httpMonitor/Form.vue";
-import { usePermissionGrant } from "~/composables/authComposables";
 
-await usePermissionGrant("writeHttpMonitors");
+definePageMeta({
+  permissions: ['writeHttpMonitors']
+});
 
-const repo =  useHttpMonitorRepository();
+const repo = useHttpMonitorRepository();
 const route = useRoute();
 const localePath = useLocalePath();
 
@@ -38,20 +39,15 @@ const onSubmit = async (monitor: HttpMonitorFormData) => {
         {{ $t("dashboard.monitors.edit") }}
       </BBreadcrumbItem>
     </BBreadcrumb>
-    <HttpMonitorForm
-      @submit="onSubmit"
-      :url="monitorData.monitor.url"
-      :metadata="monitorData.monitor.metadata"
+    <HttpMonitorForm @submit="onSubmit" :url="monitorData.monitor.url" :metadata="monitorData.monitor.metadata"
       :interval-seconds="monitorData.monitor.intervalSeconds"
       :downtime-confirmation-threshold="monitorData.monitor.downtimeConfirmationThreshold"
       :recovery-confirmation-threshold="monitorData.monitor.recoveryConfirmationThreshold"
-      :request-headers="monitorData.monitor.requestHeaders"
-      :request-timeout-ms="monitorData.monitor.requestTimeoutMs"
+      :request-headers="monitorData.monitor.requestHeaders" :request-timeout-ms="monitorData.monitor.requestTimeoutMs"
       :notification-settings="{
         pushNotificationEnabled: monitorData.monitor.pushNotificationEnabled,
         emailNotificationEnabled: monitorData.monitor.emailNotificationEnabled,
         smsNotificationEnabled: monitorData.monitor.smsNotificationEnabled,
-      }"
-    />
+      }" />
   </BContainer>
 </template>

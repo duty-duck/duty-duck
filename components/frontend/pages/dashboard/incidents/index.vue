@@ -10,6 +10,9 @@ const itemsPerPage = 10;
 const localePath = useLocalePath();
 const pageNumber = useRouteQuery("pageNumber", 1, { transform: Number });
 
+definePageMeta({
+  permissions: ['readIncidents']
+});
 
 const dateRange = useDateRangeQuery();
 const includeStatuses = useRouteQuery<IncidentStatus[]>("statuses", ["ongoing"]);
@@ -69,10 +72,10 @@ useDataRefreshInterval(refresh);
     <BBreadcrumb>
       <BBreadcrumbItem :to="localePath('/dashboard')">{{
         $t("dashboard.mainSidebar.home")
-      }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
       <BBreadcrumbItem active>{{
         $t("dashboard.mainSidebar.incidents")
-      }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
     </BBreadcrumb>
     <h2>{{ $t("dashboard.incidents.pageTitle") }}</h2>
     <div class="small text-secondary mb-2">

@@ -129,7 +129,7 @@ impl OrganizationUserRole {
 }
 
 /// A list of organization roles assigned to a user
-#[derive(Serialize, Deserialize, Clone, Debug)]
+#[derive(Serialize, Deserialize, Clone, Debug, Default)]
 #[serde(transparent)]
 pub struct OrganizationRoleSet {
     roles: Vec<OrganizationUserRole>,

@@ -45,7 +45,7 @@ pub async fn acknowledge_incident<
     }
     let mut tx = incident_event_repo.begin_transaction().await?;
     let incident = incident_repo
-        .get_incident(&mut tx, auth_context.active_organization_id, incident_id)
+        .get_incident(&mut tx, auth_context.active_organization_id()?, incident_id)
         .await?;
 
     match incident {
@@ -58,7 +58,7 @@ pub async fn acknowledge_incident<
         }
         Some(_) => {
             let event = IncidentEvent {
-                organization_id: auth_context.active_organization_id,
+                organization_id: auth_context.active_organization_id()?,
                 incident_id,
                 created_at: Utc::now(),
                 user_id: Some(auth_context.active_user_id),
@@ -73,7 +73,7 @@ pub async fn acknowledge_incident<
             incident_repo
                 .acknowledge_incident(
                     &mut tx,
-                    auth_context.active_organization_id,
+                    auth_context.active_organization_id()?,
                     incident_id,
                     auth_context.active_user_id,
                 )
@@ -85,7 +85,7 @@ pub async fn acknowledge_incident<
             incident_notification_repo
                 .cancel_all_notifications_for_incident(
                     &mut tx,
-                    auth_context.active_organization_id,
+                    auth_context.active_organization_id()?,
                     incident_id,
                 )
                 .await?;

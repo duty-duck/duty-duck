@@ -47,12 +47,12 @@ useDataRefreshInterval(refresh);
       <BBreadcrumb>
         <BBreadcrumbItem :to="localePath('/dashboard')">{{
           $t("dashboard.mainSidebar.home")
-          }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
         <BBreadcrumbItem :to="localePath('/dashboard/incidents')">{{
           $t("dashboard.mainSidebar.incidents")
-          }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
         <BBreadcrumbItem active>{{ $t("dashboard.incidents.incidentDetails")
-          }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
       </BBreadcrumb>
       <section class="mb-5">
         <h1 class="mb-4 fs-2">{{ $t("dashboard.incidents.defaultIncidentTitle", {

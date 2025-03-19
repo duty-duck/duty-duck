@@ -55,7 +55,7 @@ pub async fn invite_organization_member_use_case<M: Mailer>(
     // and it makes sense to have the organizationId in the path. In the future, privileged users might be able to
     // invite users to other organizations too.
     if !auth_context.can(Permission::InviteOrganizationMember)
-        || auth_context.active_organization_id != organization_id
+        || auth_context.active_organization_id != Some(organization_id)
     {
         return Err(InviteOrganizationMemberError::Forbidden);
     }

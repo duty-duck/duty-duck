@@ -15,7 +15,7 @@ pub async fn get_filterable_http_monitor_metadata<IR: HttpMonitorRepository>(
     http_monitor_repo: &IR,
 ) -> Result<FilterableMetadata, GetFilterableHttpMonitorMetadataError> {
     http_monitor_repo
-        .get_filterable_metadata(auth_context.active_organization_id)
+        .get_filterable_metadata(auth_context.active_organization_id()?)
         .await
         .map_err(GetFilterableHttpMonitorMetadataError::TechnicalFailure)
 }

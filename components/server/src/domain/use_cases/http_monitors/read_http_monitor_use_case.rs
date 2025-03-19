@@ -49,7 +49,7 @@ where
     let mut tx = http_monitor_repository.begin_transaction().await?;
 
     let monitor = match http_monitor_repository
-        .get_http_monitor(&mut tx, auth_context.active_organization_id, monitor_id)
+        .get_http_monitor(&mut tx, auth_context.active_organization_id()?, monitor_id)
         .await
     {
         Ok(Some(monitor)) => Ok(monitor),
@@ -61,7 +61,7 @@ where
     let ongoing_incident = incident_repository
         .list_incidents(
             &mut tx,
-            auth_context.active_organization_id,
+            auth_context.active_organization_id()?,
             ListIncidentsOpts {
                 include_statuses: &[IncidentStatus::Ongoing],
                 include_priorities: &IncidentPriority::ALL,

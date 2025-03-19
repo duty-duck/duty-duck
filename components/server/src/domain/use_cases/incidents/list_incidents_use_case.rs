@@ -96,7 +96,7 @@ pub async fn list_incidents(
     } = incident_repository
         .list_incidents(
             &mut tx,
-            auth_context.active_organization_id,
+            auth_context.active_organization_id()?,
             ListIncidentsOpts {
                 include_statuses: &include_statuses,
                 include_priorities: &include_priorities,

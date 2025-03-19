@@ -1,7 +1,8 @@
 <script lang="ts" setup>
-import { usePermissionGrant } from "~/composables/authComposables";
 
-await usePermissionGrant("readHttpMonitors");
+definePageMeta({
+  permissions: ['readHttpMonitors']
+});
 
 const localePath = useLocalePath();
 const showFacetsOffcanvas = ref(false);
