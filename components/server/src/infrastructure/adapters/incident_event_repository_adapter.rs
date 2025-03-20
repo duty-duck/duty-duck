@@ -26,6 +26,7 @@ crate::postgres_transactional_repo!(IncidentEventRepositoryAdapter);
 
 #[async_trait::async_trait]
 impl IncidentEventRepository for IncidentEventRepositoryAdapter {
+    #[tracing::instrument(skip(self, tx), err)]
     async fn create_incident_event(
         &self,
         tx: &mut Self::Transaction,
@@ -55,6 +56,7 @@ impl IncidentEventRepository for IncidentEventRepositoryAdapter {
         Ok(())
     }
 
+    #[tracing::instrument(skip(self), err)]
     async fn get_incident_timeline(
         &self,
         organization_id: Uuid,

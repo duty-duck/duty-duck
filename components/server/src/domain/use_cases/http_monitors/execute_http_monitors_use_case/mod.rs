@@ -84,6 +84,7 @@ where
         join_set
     }
 
+    #[tracing::instrument(skip(self))]
     pub async fn fetch_and_execute_due_http_monitors(
         &self,
         task_index: usize,

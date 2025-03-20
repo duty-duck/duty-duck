@@ -19,6 +19,7 @@ postgres_transactional_repo!(IncidentNotificationRepositoryAdapter);
 
 #[async_trait::async_trait]
 impl IncidentNotificationRepository for IncidentNotificationRepositoryAdapter {
+    #[tracing::instrument(skip(self, tx), err)]
     async fn get_next_notifications_to_send(
         &self,
         tx: &mut Self::Transaction,
@@ -60,6 +61,7 @@ impl IncidentNotificationRepository for IncidentNotificationRepositoryAdapter {
         Ok(notifications)
     }
 
+    #[tracing::instrument(skip(self, tx), err)]
     async fn upsert_incident_notification(
         &self,
         tx: &mut Self::Transaction,
@@ -105,12 +107,18 @@ impl IncidentNotificationRepository for IncidentNotificationRepositoryAdapter {
         Ok(())
     }
 
+    #[tracing::instrument(skip(self, tx), err)]
     async fn cancel_all_notifications_for_incident(
         &self,
         tx: &mut Self::Transaction,
         organization_id: Uuid,
         incident_id: Uuid,
     ) -> anyhow::Result<()> {
+        tracing::debug!(
+            ?organization_id,
+            ?incident_id,
+            "Cancelling all notifications for incident"
+        );
         sqlx::query!(
             r#"
             DELETE FROM incidents_notifications

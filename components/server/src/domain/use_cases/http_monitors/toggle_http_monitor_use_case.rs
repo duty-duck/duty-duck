@@ -30,6 +30,16 @@ pub enum ToggleMonitorError {
     TechnicalFailure(#[from] anyhow::Error),
 }
 
+#[tracing::instrument(
+    skip(
+        auth_context,
+        http_monitor_repository,
+        incident_repository,
+        incident_event_repository,
+        incident_notification_repository
+    ),
+    err
+)]
 pub async fn toggle_http_monitor<HMR, IR, IER, INR>(
     auth_context: &AuthContext,
     http_monitor_repository: &HMR,
@@ -49,6 +59,7 @@ where
     }
     let mut tx = http_monitor_repository.begin_transaction().await?;
 
+    tracing::debug!(?monitor_id, "Toggling HTTP monitor");
     let monitor = match http_monitor_repository
         .get_http_monitor(&mut tx, auth_context.active_organization_id()?, monitor_id)
         .await
@@ -68,6 +79,7 @@ where
         (HttpMonitorStatus::Inactive, None)
     };
 
+    tracing::debug!(?monitor_id, "Updating http monitor status");
     http_monitor_repository
         .update_http_monitor_status(
             &mut tx,
@@ -115,5 +127,6 @@ where
     }
 
     incident_repository.commit_transaction(tx).await?;
+    tracing::debug!(?monitor_id, "Finished toggling monitor");
     Ok(())
 }

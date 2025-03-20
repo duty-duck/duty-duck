@@ -18,7 +18,7 @@ use crate::domain::{
         transactional_repository::TransactionalRepository,
     },
 };
-use anyhow::*;
+use anyhow::Context;
 
 #[derive(Clone)]
 pub struct HttpMonitorRepositoryAdapter {
@@ -29,7 +29,7 @@ crate::postgres_transactional_repo!(HttpMonitorRepositoryAdapter);
 
 #[async_trait]
 impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn get_http_monitor(
         &self,
         transaction: &mut Self::Transaction,
@@ -44,10 +44,10 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
         )
         .fetch_optional(transaction.as_mut())
         .await
-        .with_context(|| "Failed to get single http monitor from the database")
+        .context("Failed to get single http monitor from the database")
     }
 
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn list_http_monitors(
         &self,
         organization_id: uuid::Uuid,
@@ -154,7 +154,7 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
         })
     }
 
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn create_http_monitor(
         &self,
         monitor: http_monitor_repository::NewHttpMonitor,
@@ -198,6 +198,7 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
         Ok(new_monitor_id)
     }
 
+    #[tracing::instrument(skip(self, transaction), err)]
     async fn list_due_http_monitors(
         &self,
         transaction: &mut Self::Transaction,
@@ -219,6 +220,7 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
         Ok(http_monitors)
     }
 
+    #[tracing::instrument(skip(self, transaction), err)]
     async fn update_http_monitor_status(
         &self,
         transaction: &mut Self::Transaction,
@@ -252,6 +254,7 @@ impl HttpMonitorRepository for HttpMonitorRepositoryAdapter {
         Ok(())
     }
 
+    #[tracing::instrument(skip(self, transaction), err)]
     async fn update_http_monitor(
         &self,
         transaction: &mut Self::Transaction,

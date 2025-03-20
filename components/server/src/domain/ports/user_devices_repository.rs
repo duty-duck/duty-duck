@@ -19,10 +19,13 @@ pub trait UserDevicesRepository: Clone + Send + Sync + 'static {
     ) -> anyhow::Result<Vec<UserDevice>>;
 }
 
+#[derive(veil::Redact)]
 pub struct NewUserDevice {
     pub organization_id: Uuid,
     pub user_id: Uuid,
+    #[redact(partial)]
     pub label: String,
+    #[redact]
     pub push_notification_token: Option<String>,
     pub device_type: UserDeviceType,
 }

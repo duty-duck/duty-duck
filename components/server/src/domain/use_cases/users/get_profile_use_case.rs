@@ -28,11 +28,14 @@ pub struct GetProfileResponse {
     organization_roles: Vec<OrganizationUserRole>,
 }
 
+#[tracing::instrument(skip(auth_context, organization_repository, user_repository), err)]
 pub async fn get_user_profile(
     auth_context: &AuthContext,
     organization_repository: &impl OrganizationRepository,
     user_repository: &impl UserRepository,
 ) -> Result<GetProfileResponse, GetProfileError> {
+    tracing::debug!(user_id = ?auth_context.active_user_id, "Retrieveing current user profile");
+
     let organization = match auth_context.active_organization_id {
         Some(id) => match organization_repository.get_organization(id).await {
             Ok(organization) => Some(organization),

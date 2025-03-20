@@ -1,4 +1,4 @@
-use anyhow::*;
+use anyhow::Context;
 use sqlx::PgPool;
 use uuid::Uuid;
 
@@ -14,6 +14,7 @@ pub struct UserDevicesRepositoryAdapter {
 
 #[async_trait::async_trait]
 impl UserDevicesRepository for UserDevicesRepositoryAdapter {
+    #[tracing::instrument(skip(self), err)]
     async fn register_device(&self, device: NewUserDevice) -> anyhow::Result<Uuid> {
         let id = sqlx::query!(
             "INSERT INTO user_devices (organization_id, user_id, label, device_type, push_notification_token) values ($1, $2, $3, $4, $5) RETURNING id",
@@ -27,6 +28,7 @@ impl UserDevicesRepository for UserDevicesRepositoryAdapter {
         Ok(id)
     }
 
+    #[tracing::instrument(skip(self), err)]
     async fn remove_device(&self, organization_id: Uuid, device_id: Uuid) -> anyhow::Result<bool> {
         let result = sqlx::query!(
             "DELETE FROM user_devices WHERE organization_id = $1 AND id = $2",
@@ -38,6 +40,7 @@ impl UserDevicesRepository for UserDevicesRepositoryAdapter {
         Ok(result.rows_affected() > 0)
     }
 
+    #[tracing::instrument(skip(self), err)]
     async fn list_user_devices(
         &self,
         organization_id: Uuid,
@@ -51,9 +54,10 @@ impl UserDevicesRepository for UserDevicesRepositoryAdapter {
         )
         .fetch_all(&self.pool)
         .await
-        .with_context(|| "Failed to list devices from the database")
+        .context("Failed to list devices from the database")
     }
 
+    #[tracing::instrument(skip(self), err)]
     async fn list_organization_devices(
         &self,
         organization_id: Uuid,
@@ -65,6 +69,6 @@ impl UserDevicesRepository for UserDevicesRepositoryAdapter {
         )
         .fetch_all(&self.pool)
         .await
-        .with_context(|| "Failed to list devices from the database")
+        .context("Failed to list devices from the database")
     }
 }

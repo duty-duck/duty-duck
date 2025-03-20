@@ -48,6 +48,7 @@ pub enum UpdateHttpMonitorError {
     InvalidRequestTimeout,
 }
 
+#[tracing::instrument(skip(repository))]
 pub async fn update_http_monitor(
     auth_context: &AuthContext,
     repository: &impl HttpMonitorRepository,
@@ -67,6 +68,7 @@ pub async fn update_http_monitor(
     }
 
     let mut tx = repository.begin_transaction().await?;
+    tracing::debug!(?id, "Updating HTTP monitor");
 
     match repository
         .get_http_monitor(&mut tx, auth_context.active_organization_id()?, id)

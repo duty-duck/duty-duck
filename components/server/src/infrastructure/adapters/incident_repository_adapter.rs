@@ -20,6 +20,7 @@ crate::postgres_transactional_repo!(IncidentRepositoryAdapter);
 
 #[async_trait]
 impl IncidentRepository for IncidentRepositoryAdapter {
+    #[tracing::instrument(skip(self, transaction), err)]
     async fn create_incident(
         &self,
         transaction: &mut Self::Transaction,
@@ -75,6 +76,7 @@ impl IncidentRepository for IncidentRepositoryAdapter {
     ///
     /// A `ListIncidentsOutput` struct containing the incidents, total number of incidents, and total number of filtered incidents.
     #[allow(clippy::too_many_arguments)]
+    #[tracing::instrument(skip(self, transaction), err)]
     async fn list_incidents<'a>(
         &self,
         transaction: &mut Self::Transaction,
@@ -247,6 +249,7 @@ impl IncidentRepository for IncidentRepositoryAdapter {
     /// # Returns
     ///
     /// An `Option<Incident>` containing the incident if it exists, or `None` if it does not.
+    #[tracing::instrument(skip(self, transaction), err)]
     async fn get_incident(
         &self,
         transaction: &mut Self::Transaction,
@@ -286,6 +289,7 @@ impl IncidentRepository for IncidentRepositoryAdapter {
     /// * `organization_id` - The ID of the organization to acknowledge incidents for.
     /// * `incident_id` - The ID of the incident to acknowledge.
     /// * `user_id` - The ID of the user acknowledging the incident.
+    #[tracing::instrument(skip(self, transaction), err)]
     async fn acknowledge_incident(
         &self,
         transaction: &mut Self::Transaction,
@@ -300,6 +304,7 @@ impl IncidentRepository for IncidentRepositoryAdapter {
     }
 
     /// Updates the incident with the given ID.
+    #[tracing::instrument(skip(self, transaction), err)]
     async fn update_incident(
         &self,
         transaction: &mut Self::Transaction,
@@ -332,12 +337,14 @@ impl IncidentRepository for IncidentRepositoryAdapter {
     }
 
     /// Deletes an incident with the given ID.
+    #[tracing::instrument(skip(self, transaction), err)]
     async fn delete_incident(
         &self,
         transaction: &mut Self::Transaction,
         organization_id: Uuid,
         incident_id: Uuid,
     ) -> anyhow::Result<()> {
+        tracing::debug!(?organization_id, ?incident_id, "Deleting incident");
         sqlx::query!(
             "DELETE FROM incidents WHERE organization_id = $1 AND id = $2",
             organization_id,
@@ -349,6 +356,7 @@ impl IncidentRepository for IncidentRepositoryAdapter {
     }
 
     /// Get the filterable metadata for all the incidents of an organization
+    #[tracing::instrument(skip(self), err)]
     async fn get_filterable_metadata(
         &self,
         organization_id: Uuid,

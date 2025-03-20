@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use anyhow::Context;
 use futures::future::try_join_all;
 use lettre::*;
@@ -41,6 +43,7 @@ impl MailerAdapter {
                 .with_context(|| "Cannot send SMTP username without a corresponding password")?;
             builder = builder
                 .authentication(vec![Mechanism::Plain])
+                .timeout(Some(Duration::from_secs(10)))
                 .credentials(Credentials::new(username, password));
         }
 
@@ -52,14 +55,18 @@ impl MailerAdapter {
 
 #[async_trait::async_trait]
 impl Mailer for MailerAdapter {
+    #[tracing::instrument(skip(self))]
     async fn send(&self, message: Message) -> anyhow::Result<()> {
         self.inner.send(message).await?;
         Ok(())
     }
 
+    #[tracing::instrument(skip(self))]
     async fn send_batch(&self, messages: Vec<Message>) -> anyhow::Result<()> {
+        let messages_len = messages.len();
         let futures = messages.into_iter().map(|m| self.send(m));
         try_join_all(futures).await?;
+        tracing::debug!("Sent {} e-mails", messages_len);
         Ok(())
     }
 

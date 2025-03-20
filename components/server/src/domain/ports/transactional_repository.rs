@@ -25,26 +25,53 @@ macro_rules! postgres_transactional_repo {
         impl $crate::domain::ports::transactional_repository::TransactionalRepository for $t {
             type Transaction = sqlx::Transaction<'static, sqlx::Postgres>;
 
+            #[tracing::instrument(skip(self))]
             async fn begin_transaction(&self) -> anyhow::Result<Self::Transaction> {
-                use ::anyhow::*;
-                self.pool
+                use ::anyhow::Context;
+
+                tracing::trace!("Beginning SQL transaction");
+                match self
+                    .pool
                     .begin()
                     .await
-                    .with_context(|| "Cannot begin transaction")
+                    .context("Cannot begin transaction")
+                {
+                    std::result::Result::Ok(tx) => std::result::Result::Ok(tx),
+                    std::result::Result::Err(error) => {
+                        tracing::error!(error = ?error, "Failed to begin SQL transaction: {:?}", error);
+                        std::result::Result::Err(error)
+                    },
+                }
             }
 
+            #[tracing::instrument(skip(self))]
             async fn rollback_transaction(&self, tx: Self::Transaction) -> anyhow::Result<()> {
-                use ::anyhow::*;
-                tx.rollback()
+                use ::anyhow::Context;
+                tracing::trace!("Rollbacking SQL transaction");
+                match tx.rollback()
                     .await
-                    .with_context(|| "Cannot rollback transaction")
+                    .context("Cannot rollback transaction") {
+                        Err(error) => {
+                            tracing::error!(error = ?error, "Failed to rollback SQL transaction: {:?}", error);
+                            Err(error)
+                        },
+                        _ => Ok(())
+                    }
             }
 
+            #[tracing::instrument(skip(self))]
             async fn commit_transaction(&self, tx: Self::Transaction) -> anyhow::Result<()> {
-                use ::anyhow::*;
-                tx.commit()
+                use ::anyhow::Context;
+                tracing::trace!("Committing SQL transaction");
+                match tx.commit()
                     .await
-                    .with_context(|| "Cannot commit transaction")
+                    .context("Cannot commit transaction") {
+                        Err(error) => {
+                            tracing::error!(error = ?error, "Failed to commit SQL transaction: {:?}", error);
+                            Err(error)
+                        },
+                        _ => Ok(())
+                    }
             }
         }
     };

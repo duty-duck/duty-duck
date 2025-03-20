@@ -31,7 +31,7 @@ pub struct OrganizationRepositoryAdapter {
 #[async_trait::async_trait]
 impl OrganizationRepository for OrganizationRepositoryAdapter {
     /// Retrieves an organization by its ID.
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn get_organization(&self, id: Uuid) -> Result<Organization, ReadOrganizationError> {
         match self.keycloak_client.get_organization(id).await {
             Ok(org) => Ok(org.try_into()?),
@@ -46,7 +46,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
     }
 
     /// List organizations that a given user is a member of
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn list_user_organizations(
         &self,
         user_id: Uuid,
@@ -68,7 +68,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
     }
 
     /// Creates a new organization.
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn create_organization(
         &self,
         command: crate::domain::entities::organization::CreateOrgnizationCommand,
@@ -103,6 +103,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
     }
 
     /// Removes a member from an organization.
+    #[tracing::instrument(skip(self), err)]
     async fn remove_an_organization_member(
         &self,
         org_id: Uuid,
@@ -122,6 +123,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
     }
 
     /// Adds a member to an organization.
+    #[tracing::instrument(skip(self), err)]
     async fn add_an_organization_member(
         &self,
         org_id: Uuid,
@@ -141,7 +143,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
     }
 
     /// Invites a member to an organization.
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn invite_organization_member(
         &self,
         org_id: Uuid,
@@ -172,7 +174,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
     }
 
     /// Updates an organization's details.
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn update_organization(
         &self,
         id: uuid::Uuid,
@@ -203,7 +205,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
     }
 
     /// Lists members of an organization.
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn list_organization_members(
         &self,
         org_id: uuid::Uuid,
@@ -238,7 +240,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
     }
 
     /// Deletes an organization.
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn delete_organization(
         &self,
         id: uuid::Uuid,
@@ -253,7 +255,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
     }
 
     /// Creates a role within an organization.
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn create_organization_role(
         &self,
         org_id: uuid::Uuid,
@@ -273,7 +275,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
     }
 
     /// Grants a role to a user within an organization.
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn grant_organization_role(
         &self,
         org_id: uuid::Uuid,
@@ -294,7 +296,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
     }
 
     /// Revokes a role from a user within an organization.
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn revoke_organization_role(
         &self,
         org_id: uuid::Uuid,
@@ -315,7 +317,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
     }
 
     /// Lists roles assigned to a user within an organization.
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn list_organization_roles_for_user(
         &self,
         org_id: uuid::Uuid,
@@ -333,7 +335,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
     }
 
     /// Retrieves a pending invitation by its ID.
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn get_pending_invitation(
         &self,
         org_id: Uuid,
@@ -353,7 +355,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
     }
 
     /// Lists pending invitations for an organization.
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn list_pending_invitations(
         &self,
         org_id: Uuid,
@@ -374,7 +376,7 @@ impl OrganizationRepository for OrganizationRepositoryAdapter {
     }
 
     /// Deletes a pending invitation by its ID.
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn delete_pending_invitation(
         &self,
         org_id: Uuid,

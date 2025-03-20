@@ -30,6 +30,12 @@ pub enum ArchiveMonitorError {
     TechnicalFailure(#[from] anyhow::Error),
 }
 
+#[tracing::instrument(skip(
+    http_monitor_repository,
+    incident_repository,
+    incident_event_repository,
+    incident_notification_repository
+))]
 pub async fn archive_http_monitor<HMR, IR, IER, INR>(
     auth_context: &AuthContext,
     http_monitor_repository: &HMR,
@@ -48,6 +54,7 @@ where
         return Err(ArchiveMonitorError::Forbidden);
     }
     let mut tx = http_monitor_repository.begin_transaction().await?;
+    tracing::debug!(?monitor_id, "Archiving HTTP monitor");
 
     let monitor = match http_monitor_repository
         .get_http_monitor(&mut tx, auth_context.active_organization_id()?, monitor_id)

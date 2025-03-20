@@ -16,6 +16,7 @@ pub struct LogsIngestorAdapter {
 
 #[async_trait::async_trait]
 impl LogsIngestor for LogsIngestorAdapter {
+    #[tracing::instrument(skip(self, auth_context))]
     async fn ingest_logs(
         &self,
         auth_context: &AuthContext,

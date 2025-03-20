@@ -20,8 +20,12 @@ use openapi::redoc_router;
 use organizations_router::organizations_router;
 use tasks_router::tasks_router;
 use tokio::signal;
-use tower_http::{cors::CorsLayer, timeout::TimeoutLayer, trace::TraceLayer};
-use tracing::info;
+use tower_http::{
+    cors::CorsLayer,
+    timeout::TimeoutLayer,
+    trace::{DefaultOnFailure, DefaultOnResponse, TraceLayer},
+};
+use tracing::{info, Level};
 use users_router::users_router;
 
 use super::{application_state::ApplicationState, built_info::build_info_json};
@@ -37,10 +41,20 @@ pub async fn start_server(application_state: ApplicationState, port: u16) -> any
         .nest("/openapi", redoc_router())
         .nest("/api-tokens", api_tokens_router())
         .route("/", get(|| async { Json(build_info_json()) }))
-        .layer(CorsLayer::permissive())
         .with_state(application_state)
+        .layer(CorsLayer::permissive())
         .layer((
-            TraceLayer::new_for_http(),
+            TraceLayer::new_for_http()
+                .on_failure(
+                    DefaultOnFailure::new()
+                        .level(Level::ERROR)
+                        .latency_unit(tower_http::LatencyUnit::Millis),
+                )
+                .on_response(
+                    DefaultOnResponse::new()
+                        .level(Level::DEBUG)
+                        .latency_unit(tower_http::LatencyUnit::Millis),
+                ),
             // Graceful shutdown will wait for outstanding requests to complete. Add a timeout so
             // requests don't hang forever.
             TimeoutLayer::new(Duration::from_secs(30)),

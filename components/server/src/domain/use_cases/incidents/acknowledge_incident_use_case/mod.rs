@@ -44,6 +44,9 @@ pub async fn acknowledge_incident<
         return Err(AcknowledgeIncidentError::Forbidden);
     }
     let mut tx = incident_event_repo.begin_transaction().await?;
+    let organization_id = auth_context.active_organization_id()?;
+
+    tracing::debug!(?organization_id, ?incident_id, "Acknowwledging incident");
     let incident = incident_repo
         .get_incident(&mut tx, auth_context.active_organization_id()?, incident_id)
         .await?;
@@ -58,7 +61,7 @@ pub async fn acknowledge_incident<
         }
         Some(_) => {
             let event = IncidentEvent {
-                organization_id: auth_context.active_organization_id()?,
+                organization_id,
                 incident_id,
                 created_at: Utc::now(),
                 user_id: Some(auth_context.active_user_id),
@@ -79,9 +82,11 @@ pub async fn acknowledge_incident<
                 )
                 .await?;
 
+            tracing::debug!("Creating incident event");
             incident_event_repo
                 .create_incident_event(&mut tx, event)
                 .await?;
+            tracing::debug!("Cancelling all pending notifications");
             incident_notification_repo
                 .cancel_all_notifications_for_incident(
                     &mut tx,

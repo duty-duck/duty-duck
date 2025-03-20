@@ -1,4 +1,4 @@
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 use anyhow::Context;
 use gcp_auth::TokenProvider;
@@ -25,7 +25,7 @@ impl PushNotificationServerAdapter {
         })
     }
 
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn send(
         &self,
         PushNotificationToken(token): &PushNotificationToken,
@@ -38,7 +38,7 @@ impl PushNotificationServerAdapter {
                 "https://www.googleapis.com/auth/firebase.messaging",
             ])
             .await
-            .with_context(|| "Failed to obtain Firebase auth token")?;
+            .context("Failed to obtain Firebase auth token")?;
 
         let project_id = self.token_provider.project_id().await?;
         let request_body = MessageRequest {
@@ -58,8 +58,16 @@ impl PushNotificationServerAdapter {
                 project_id
             ))
             .bearer_auth(api_key.as_str())
-            .json(&request_body);
-        let response = request.send().await?;
+            .json(&request_body)
+            .timeout(Duration::from_secs(10));
+
+        tracing::debug!("Sending request to the Firebase Messaging Push Notification API");
+
+        let response = request
+            .send()
+            .await
+            .context("Failed request to the Firebase Messaging Push Notification API")?;
+
         match response.status() {
             reqwest::StatusCode::OK
             // The API will return NOT_FOUND if the service worker is unregistered, which should not be considered as an error
@@ -88,6 +96,7 @@ impl PushNotificationServerAdapter {
 
 #[async_trait::async_trait]
 impl PushNotificationServer for PushNotificationServerAdapter {
+    #[tracing::instrument(skip(self), err)]
     async fn send(
         &self,
         devices_tokens: &[PushNotificationToken],
@@ -97,6 +106,10 @@ impl PushNotificationServer for PushNotificationServerAdapter {
             .iter()
             .map(|token| self.send(token, notification));
         futures_util::future::try_join_all(futures).await?;
+        tracing::debug!(
+            "Sent a push notification to {} devices",
+            devices_tokens.len()
+        );
         Ok(())
     }
 }

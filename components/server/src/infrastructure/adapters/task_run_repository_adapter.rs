@@ -18,6 +18,7 @@ pub struct TaskRunRepositoryAdapter {
 }
 
 impl TaskRunRepositoryAdapter {
+    #[tracing::instrument(skip(self))]
     pub async fn create_task_run_partition_for_month(&self) -> anyhow::Result<()> {
         sqlx::query!("SELECT create_task_runs_partition_for_month()")
             .execute(&self.pool)
@@ -31,6 +32,7 @@ crate::postgres_transactional_repo!(TaskRunRepositoryAdapter);
 
 #[async_trait]
 impl TaskRunRepository for TaskRunRepositoryAdapter {
+    #[tracing::instrument(skip(self, transaction))]
     async fn list_task_runs<'a>(
         &self,
         transaction: &mut Self::Transaction,
@@ -106,6 +108,7 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
         })
     }
 
+    #[tracing::instrument(skip(self, transaction))]
     async fn get_task_run(
         &self,
         transaction: &mut Self::Transaction,
@@ -129,6 +132,7 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
         .context("Failed to get task run")
     }
 
+    #[tracing::instrument(skip(self, transaction))]
     async fn upsert_task_run(
         &self,
         transaction: &mut Self::Transaction,
@@ -176,6 +180,7 @@ impl TaskRunRepository for TaskRunRepositoryAdapter {
     }
 
     /// List task runs that should transition to dead, along with their respective tasks
+    #[tracing::instrument(skip(self, transaction))]
     async fn list_dead_task_runs(
         &self,
         transaction: &mut Self::Transaction,

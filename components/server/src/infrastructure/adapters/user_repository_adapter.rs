@@ -26,7 +26,7 @@ impl UserRepositoryAdapter {
 }
 
 impl UserRepository for UserRepositoryAdapter {
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn get_user(&self, id: Uuid, allow_stale_reads: bool) -> anyhow::Result<Option<User>> {
         if allow_stale_reads {
             let user = self.cache.get(&id);
@@ -46,7 +46,7 @@ impl UserRepository for UserRepositoryAdapter {
         }
     }
 
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn get_user_by_email(&self, email: &str) -> anyhow::Result<Option<User>> {
         match self.keycloak_client.get_user_by_email(email).await {
             Ok(user) => Ok(Some(user.try_into()?)),
@@ -55,7 +55,7 @@ impl UserRepository for UserRepositoryAdapter {
         }
     }
 
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn create_user(&self, command: CreateUserCommand) -> Result<User, CreateUserError> {
         let mut attributes = AttributeMap::default();
         if let Some(number) = command.phone_number {
@@ -83,7 +83,7 @@ impl UserRepository for UserRepositoryAdapter {
         }
     }
 
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn update_user(
         &self,
         id: Uuid,

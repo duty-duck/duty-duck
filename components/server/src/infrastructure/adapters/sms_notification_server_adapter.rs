@@ -22,7 +22,7 @@ impl SmsNotificationServerAdapter {
 
 #[async_trait::async_trait]
 impl SmsNotificationServer for SmsNotificationServerAdapter {
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), self)]
     async fn send_sms(
         &self,
         Sms {

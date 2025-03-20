@@ -80,7 +80,7 @@ where
                                 Ok(notifications) if notifications > 0 => {
                                     info!(
                                         notifications,
-                                        "Send {} incident notifications", notifications
+                                        "Sent {} incident notifications", notifications
                                     );
                                 }
                                 Err(e) => {
@@ -120,7 +120,53 @@ where
             "{} incident notifications are due to be sent", incident_notifications_len
         );
 
-        for notification in incident_notifications {
+        // Send all notifications
+        // Put a timeout on this step to avoid blocking the database with long running transactions
+        match tokio::time::timeout(
+            Duration::from_secs(15),
+            self.send_notifications(
+                &mut tx,
+                incident_notifications,
+                &mut user_devices_cache,
+                &mut org_cache,
+            ),
+        )
+        .await
+        {
+            Err(e) => {
+                tracing::error!("send_notifications timed out! Aborting transaction to avoid blocking the database. There is an issue to investigate with the notifications system");
+                self.incident_notification_repository
+                    .rollback_transaction(tx)
+                    .await?;
+                Err(e).context("send_notifications timed out")
+            }
+            Ok(Err(e)) => {
+                self.incident_notification_repository
+                    .rollback_transaction(tx)
+                    .await?;
+                Err(e)
+            }
+            Ok(Ok(_)) => {
+                // Commit the transaction.
+                // Once the transaction is committed, the due notifications are deleted from the database
+                self.incident_notification_repository
+                    .commit_transaction(tx)
+                    .await?;
+
+                Ok(incident_notifications_len)
+            }
+        }
+    }
+
+    #[tracing::instrument(skip(self, tx, user_devices_cache, org_cache), err)]
+    async fn send_notifications(
+        &self,
+        tx: &mut INR::Transaction,
+        notifications: Vec<IncidentNotification>,
+        user_devices_cache: &mut UserDevicesByOrgCache,
+        org_cache: &mut OrgCache,
+    ) -> anyhow::Result<()> {
+        for notification in notifications {
             let should_create_event = notification.send_email
                 || notification.send_push_notification
                 || notification.send_sms;
@@ -140,23 +186,16 @@ where
                 )),
             };
 
-            self.send_notification(notification, &mut user_devices_cache, &mut org_cache)
+            self.send_notification(notification, user_devices_cache, org_cache)
                 .await?;
 
             if should_create_event {
                 self.incident_event_repository
-                    .create_incident_event(&mut tx, event)
+                    .create_incident_event(tx, event)
                     .await?;
             }
         }
-
-        // Commit the transaction.
-        // Once the transaction is committed, the due notifications are deleted from the database
-        self.incident_notification_repository
-            .commit_transaction(tx)
-            .await?;
-
-        Ok(incident_notifications_len)
+        Ok(())
     }
 
     /// Sends an event notification, if any notification channel is enabled
@@ -425,6 +464,7 @@ where
     /// # Returns
     ///
     /// Returns a Result containing a tuple of the Organization and its Users.
+    #[tracing::instrument(skip(self, cache), err)]
     async fn fetch_organization_and_users(
         &self,
         org_id: Uuid,
@@ -478,6 +518,7 @@ where
     /// # Returns
     ///
     /// A Result containing a vector of PushNotificationTokens, or an error
+    #[tracing::instrument(skip(self, user_devices_cache), err)]
     async fn fetch_organization_devices_token(
         &self,
         user_devices_cache: &mut UserDevicesByOrgCache,

@@ -33,7 +33,7 @@ impl LogsSearcherAdapter {
 }
 
 impl LogsSearcher for LogsSearcherAdapter {
-    #[tracing::instrument(skip(self))]
+    #[tracing::instrument(skip(self), err)]
     async fn search_logs<'a>(
         &self,
         organization_id: Uuid,

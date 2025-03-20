@@ -78,6 +78,12 @@ where
 /// If the incident is already resolved, it returns an error
 /// If the incident is to be confirmed, it deletes the incident without sending any notifications
 /// This function is used in several other use cases where incidents are resolved automatically, and also as the foundation of the "resolve_incident_manually" use case
+#[tracing::instrument(skip(
+    transaction,
+    incident_repo,
+    incident_event_repo,
+    incident_notification_repo
+))]
 pub async fn resolve_incident<IR, IER, INR>(
     transaction: &mut IR::Transaction,
     incident_repo: &IR,
@@ -91,6 +97,7 @@ where
     IER: IncidentEventRepository<Transaction = IR::Transaction>,
     INR: IncidentNotificationRepository<Transaction = IR::Transaction>,
 {
+    tracing::debug!(incident_id = ?incident.id, "Resolving incident");
     match incident.status {
         IncidentStatus::Resolved => Err(ResolveIncidentError::IncidentAlreadyResolved),
         IncidentStatus::ToBeConfirmed => {

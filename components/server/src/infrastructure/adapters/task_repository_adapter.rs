@@ -15,7 +15,7 @@ use crate::domain::{
     },
     use_cases::{shared::OrderDirection, tasks::OrderTasksBy},
 };
-use anyhow::*;
+use anyhow::Context;
 
 #[derive(Clone)]
 pub struct TaskRepositoryAdapter {
@@ -26,6 +26,7 @@ crate::postgres_transactional_repo!(TaskRepositoryAdapter);
 
 #[async_trait]
 impl TaskRepository for TaskRepositoryAdapter {
+    #[tracing::instrument(skip(self, transaction), err)]
     async fn get_task_by_uuid(
         &self,
         transaction: &mut Self::Transaction,
@@ -42,7 +43,7 @@ impl TaskRepository for TaskRepositoryAdapter {
         )
         .fetch_optional(transaction.as_mut())
         .await
-        .with_context(|| "Failed to get task from database")?;
+        .context("Failed to get task from database")?;
 
         let task = record.map(|row| BoundaryTask {
             organization_id: row.organization_id,
@@ -69,6 +70,7 @@ impl TaskRepository for TaskRepositoryAdapter {
         Ok(task)
     }
 
+    #[tracing::instrument(skip(self, transaction), err)]
     async fn get_task_by_user_id(
         &self,
         transaction: &mut Self::Transaction,
@@ -88,7 +90,7 @@ impl TaskRepository for TaskRepositoryAdapter {
         )
         .fetch_optional(transaction.as_mut())
         .await
-        .with_context(|| "Failed to get task from database")?;
+        .context("Failed to get task from database")?;
 
         let task = record.map(|row| BoundaryTask {
             organization_id: row.organization_id,
@@ -115,6 +117,7 @@ impl TaskRepository for TaskRepositoryAdapter {
         Ok(task)
     }
 
+    #[tracing::instrument(skip(self), err)]
     async fn list_tasks<'a>(
         &self,
         organization_id: Uuid,
@@ -199,7 +202,7 @@ impl TaskRepository for TaskRepositoryAdapter {
         .fetch_one(&mut *tx)
         .await?
         .count
-        .ok_or_else(|| anyhow!("Count should not be null"))?;
+        .ok_or_else(|| anyhow::anyhow!("Count should not be null"))?;
 
         let total_filtered_count = rows
             .first()
@@ -241,6 +244,7 @@ impl TaskRepository for TaskRepositoryAdapter {
         })
     }
 
+    #[tracing::instrument(skip(self, transaction), err)]
     async fn upsert_task(
         &self,
         transaction: &mut Self::Transaction,
@@ -312,6 +316,7 @@ impl TaskRepository for TaskRepositoryAdapter {
     }
 
     /// List scheduled tasks that should transition to Due
+    #[tracing::instrument(skip(self, transaction), err)]
     async fn list_next_due_tasks(
         &self,
         transaction: &mut Self::Transaction,
@@ -366,6 +371,7 @@ impl TaskRepository for TaskRepositoryAdapter {
     }
 
     /// List due tasks that should transition to Late
+    #[tracing::instrument(skip(self, transaction), err)]
     async fn list_due_tasks_running_late(
         &self,
         transaction: &mut Self::Transaction,
@@ -416,6 +422,7 @@ impl TaskRepository for TaskRepositoryAdapter {
     }
 
     /// List late tasks that should transition to Absent
+    #[tracing::instrument(skip(self, transaction), err)]
     async fn list_next_absent_tasks(
         &self,
         transaction: &mut Self::Transaction,
@@ -466,6 +473,7 @@ impl TaskRepository for TaskRepositoryAdapter {
     }
 
     /// Get the filterable metadata for all the tasks of an organization
+    #[tracing::instrument(skip(self), err)]
     async fn get_filterable_metadata(
         &self,
         organization_id: Uuid,
