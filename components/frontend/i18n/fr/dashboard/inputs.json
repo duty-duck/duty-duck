@@ -41,7 +41,8 @@
         "success": "Succès",
         "failed": "Échec",
         "thisDevice": "(cet appareil)",
-        "removeDevice": "Supprimer l'appareil"
+        "removeDevice": "Supprimer l'appareil",
+        "notSupported": "Votre appareil ne supporte pas les notifications push."
     },
     "notificationSettingsForm": {
         "pushNotification": "Notifications Push",

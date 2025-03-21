@@ -1,5 +1,5 @@
 import { initializeApp, type FirebaseApp } from "firebase/app";
-import { getMessaging, getToken as getFirebaseToken, onMessage as firebaseOnMessage, type MessagePayload } from "firebase/messaging";
+import { getMessaging, getToken as getFirebaseToken, onMessage as firebaseOnMessage, type MessagePayload, isSupported } from "firebase/messaging";
 import { createSharedComposable } from "@vueuse/core";
 import { useToastController } from "bootstrap-vue-next";
 
@@ -43,7 +43,12 @@ const useApp = (): FirebaseApp => {
 
 export type TokenState = null | "loading" | { token: string };
 
-export const useFirebaseMessaging = createSharedComposable(() => {
+export const useFirebaseMessaging = createSharedComposable(async () => {
+    if (!(await isSupported())) {
+        console.warn("Firebase messaging is not supported in this browser");
+        return null;
+    }
+
     const messaging = getMessaging(useApp());
     const token = ref<TokenState>(null);
 
@@ -98,5 +103,4 @@ export const useFirebaseMessaging = createSharedComposable(() => {
         requestPermission,
         onMessage
     })
-
 })

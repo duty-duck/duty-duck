@@ -5,7 +5,7 @@ import { useToastController } from "bootstrap-vue-next";
 
 const { show } = useToastController();
 const { t } = useI18n();
-const firebaseMessaging = useFirebaseMessaging();
+const firebaseMessaging = await useFirebaseMessaging();
 const devicesRepository = await useUserDevicesRepository();
 const thisDevice = await useThisDevice();
 const thisDeviceType = useThisDeviceType();
@@ -20,6 +20,16 @@ const deviceIcon = (device: UserDevice) =>
   device.deviceType == "desktop" ? "ph:desktop-fill" : "ph:device-mobile-fill";
 
 const enableNotifications = async () => {
+  if (!firebaseMessaging) {
+    show?.({
+      props: {
+        title: t("dashboard.pushNotifications.failed"),
+        body: t("dashboard.pushNotifications.notSupported"),
+      },
+    });
+    return;
+  }
+
   show?.({
     props: {
       body: t("dashboard.pushNotifications.askingPermission"),
@@ -63,7 +73,10 @@ const removeDevice = async (deviceId: string) => {
   <BCard no-body>
     <BCardBody>
       <BCardTitle>{{ $t("dashboard.pushNotifications.title") }}</BCardTitle>
-      <div v-if="
+      <div v-if="!firebaseMessaging">
+        {{ $t("dashboard.pushNotifications.notSupported") }}
+      </div>
+      <div v-else-if="
         firebaseMessaging.token == 'loading' || devicesStatus == 'pending'
       ">
         {{ $t("dashboard.pushNotifications.loading") }}

@@ -1,4 +1,4 @@
-FROM quay.io/phasetwo/phasetwo-keycloak:26.0.6
+FROM quay.io/phasetwo/phasetwo-keycloak:26.1.4
 
 ENV KC_DB=postgres
 ENV KC_HTTP_ENABLED=true
