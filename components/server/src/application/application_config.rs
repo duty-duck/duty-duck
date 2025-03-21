@@ -1,4 +1,4 @@
-use std::str::FromStr;
+use std::{path::PathBuf, str::FromStr};
 
 use anyhow::anyhow;
 use envconfig::Envconfig;
@@ -64,6 +64,8 @@ pub struct NotificationsExecutorConfig {
     pub notifications_tasks_interval_seconds: u64,
     #[envconfig(from = "NOTIFICATIONS_TASKS_SELECT_LIMIT", default = "500")]
     pub notifications_tasks_select_limit: u32,
+    #[envconfig(from = "TEST_NOTIFICATION_RECIPIENT")]
+    pub test_notification_recipient: Option<String>,
 }
 
 #[derive(Envconfig)]
@@ -130,6 +132,9 @@ pub struct FileStorageConfig {
 pub struct AppConfig {
     #[envconfig(from = "SERVER_PORT")]
     pub server_port: u16,
+
+    #[envconfig(from = "TEMPLATES_FOLDER", default = "templates")]
+    pub templates_folder: PathBuf,
 
     #[envconfig(nested = true)]
     pub db: DbConfig,

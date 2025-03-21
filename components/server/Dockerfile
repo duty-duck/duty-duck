@@ -39,4 +39,6 @@ RUN cargo build --release --bin server
 
 FROM gcr.io/distroless/cc-debian12
 COPY --from=builder /app/target/release/server /app/server
-CMD ["/app/server"]
+COPY --from=builder /app/components/server/templates /app/templates
+ENV TEMPLATES_FOLDER=/app/templates
+ENTRYPOINT [ "/app/server" ]

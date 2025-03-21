@@ -7,8 +7,11 @@ use tokio::task::JoinSet;
 use tracing::*;
 use uuid::Uuid;
 
+#[cfg(test)]
+mod tests;
+
 use crate::{
-    application::templates::TEMPLATES,
+    application::templates::Templates,
     domain::{
         entities::{
             incident::IncidentCause,
@@ -43,6 +46,7 @@ pub struct ExecuteIncidentNotificationsUseCase<OR, INR, IER, PNS, SNS, UDR, M> {
     pub mailer: M,
     pub user_devices_repository: UDR,
     pub select_limit: u32,
+    pub templates: Templates,
 }
 
 impl<OR, INR, IER, PNS, SNS, UDR, M>
@@ -213,7 +217,7 @@ where
             let messages = org_users
             .iter()
             .filter_map(
-                |user| match Self::build_email_message(&notification, user, &org) {
+                |user| match Self::build_email_message(&self.templates, &notification, user, &org) {
                     Ok(message) => Some(message),
                     Err(e) => {
                         warn!(error = ?e, user = ?user, "Failed to build e-mail message for user");
@@ -337,6 +341,7 @@ where
     ///
     /// Returns a `Result` containing the `lettre::Message` if successful, or an error if message building fails.
     fn build_email_message(
+        templates: &Templates,
         notification: &IncidentNotification,
         user: &User,
         user_org: &Organization,
@@ -355,7 +360,7 @@ where
                 context.insert("url", url);
 
                 subject = t!("newHttpMonitorIncidentEmailSubject", url = url).to_string();
-                body = TEMPLATES.render(
+                body = templates.render(
                     &format!("{lang}/newHttpMonitorIncidentEmail.html"),
                     &context,
                 )?;
@@ -366,7 +371,7 @@ where
 
                 subject =
                     t!("newScheduledTaskIncidentEmailSubject", taskName = task_name).to_string();
-                body = TEMPLATES.render(
+                body = templates.render(
                     &format!("{lang}/newScheduledTaskIncidentEmail.html"),
                     &context,
                 )?;
@@ -377,7 +382,7 @@ where
 
                 subject = t!("newTaskRunIncidentEmailSubject", taskName = task_name).to_string();
                 body =
-                    TEMPLATES.render(&format!("{lang}/newTaskRunIncidentEmail.html"), &context)?;
+                    templates.render(&format!("{lang}/newTaskRunIncidentEmail.html"), &context)?;
             }
         }
 

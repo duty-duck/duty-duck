@@ -5,10 +5,12 @@ use application_config::AppConfig;
 use application_state::{Adapters, ApplicationState};
 use reqwest::Url;
 use sqlx::postgres::PgPoolOptions;
+use templates::Templates;
 
 use crate::{
     domain::{
-        ports::mailer::Mailer,
+        entities::push_notification::{PushNotification, PushNotificationToken},
+        ports::{mailer::Mailer, push_notification_server::PushNotificationServer},
         use_cases::{
             http_monitors::ExecuteHttpMonitorsUseCase,
             incidents::ExecuteIncidentNotificationsUseCase,
@@ -61,7 +63,29 @@ pub async fn start_server() -> anyhow::Result<()> {
                 .context("Failed to parse test mail recipient")?)
             .subject("DutyDuck Server startup test email")
             .body("DutyDuck server has just started!".to_string())?;
-        application_state.adapters.mailer.send(message).await?;
+        application_state
+            .adapters
+            .mailer
+            .send(message)
+            .await
+            .context("Failed to send test e-mail")?;
+    }
+
+    // Send a test push notification
+    if let Some(recipient) = &config.notifications_executor.test_notification_recipient {
+        let notification = PushNotification {
+            title: "DutyDuck server has just started".to_string(),
+            body: "This is a test notification".to_string(),
+        };
+        application_state
+            .adapters
+            .push_notification_server
+            .send(
+                &[PushNotificationToken(recipient.to_string())],
+                &notification,
+            )
+            .await
+            .context("Failed to send test notification")?;
     }
 
     // Create monthly partitions
@@ -102,6 +126,7 @@ pub async fn start_server() -> anyhow::Result<()> {
     );
 
     let execute_incident_notifications = ExecuteIncidentNotificationsUseCase {
+        templates: application_state.templates.clone(),
         organization_repository: application_state.adapters.organization_repository.clone(),
         incident_notification_repository: application_state
             .adapters
@@ -236,6 +261,8 @@ async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationSt
         .await
         .with_context(|| "Failed to connect to the database")?;
 
+    let templates = Templates::new(config.templates_folder.clone())?;
+
     let keycloak_client = Arc::new(
         KeycloakClient::new(
             Url::parse(&config.keycloak.public_url)
@@ -298,6 +325,7 @@ async fn build_app_state(config: Arc<AppConfig>) -> anyhow::Result<ApplicationSt
     Ok(ApplicationState {
         config: config.clone(),
         adapters,
+        templates,
         keycloak_client: keycloak_client.clone(),
         access_token_audience: config
             .keycloak

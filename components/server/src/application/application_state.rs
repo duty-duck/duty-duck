@@ -23,7 +23,7 @@ use crate::infrastructure::{
     keycloak_client::KeycloakClient,
 };
 
-use super::application_config::AppConfig;
+use super::{application_config::AppConfig, templates::Templates};
 
 pub type ExtractAppState = State<ApplicationState>;
 
@@ -32,6 +32,7 @@ pub struct ApplicationState {
     pub access_token_audience: Vec<String>,
     pub adapters: Adapters,
     pub keycloak_client: Arc<KeycloakClient>,
+    pub templates: Templates,
     #[allow(unused)]
     pub config: Arc<AppConfig>,
 }
