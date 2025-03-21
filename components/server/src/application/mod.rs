@@ -7,12 +7,15 @@ use reqwest::Url;
 use sqlx::postgres::PgPoolOptions;
 
 use crate::{
-    domain::use_cases::{
-        http_monitors::ExecuteHttpMonitorsUseCase,
-        incidents::ExecuteIncidentNotificationsUseCase,
-        tasks::{
-            CollectAbsentTasksUseCase, CollectDeadTaskRunsUseCase, CollectDueTasksUseCase,
-            CollectLateTasksUseCase,
+    domain::{
+        ports::mailer::Mailer,
+        use_cases::{
+            http_monitors::ExecuteHttpMonitorsUseCase,
+            incidents::ExecuteIncidentNotificationsUseCase,
+            tasks::{
+                CollectAbsentTasksUseCase, CollectDeadTaskRunsUseCase, CollectDueTasksUseCase,
+                CollectLateTasksUseCase,
+            },
         },
     },
     infrastructure::{
@@ -49,6 +52,17 @@ pub mod templates;
 pub async fn start_server() -> anyhow::Result<()> {
     let config = Arc::new(AppConfig::load()?);
     let application_state = build_app_state(Arc::clone(&config)).await?;
+
+    // Send a test e-mail
+    if let Some(recipient) = &config.smtp.test_email_recipient {
+        let message = MailerAdapter::builder()
+            .to(recipient
+                .parse()
+                .context("Failed to parse test mail recipient")?)
+            .subject("DutyDuck Server startup test email")
+            .body("DutyDuck server has just started!".to_string())?;
+        application_state.adapters.mailer.send(message).await?;
+    }
 
     // Create monthly partitions
     application_state

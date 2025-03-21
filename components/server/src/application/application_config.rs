@@ -52,6 +52,8 @@ pub struct SmtpConfig {
     pub username: Option<String>,
     #[envconfig(from = "SMTP_PASSWORD")]
     pub password: Option<String>,
+    #[envconfig(from = "TEST_EMAIL_RECIPIENT")]
+    pub test_email_recipient: Option<String>,
 }
 
 #[derive(Envconfig)]
