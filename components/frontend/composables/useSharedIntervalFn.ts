@@ -1,5 +1,4 @@
 import { useNow } from "@vueuse/core"
-import { addMilliseconds } from "date-fns";
 
 /**
  * A comopsable to execute a function on a regular basis. Unlike `useIntervalFn` from vue-use,
@@ -11,12 +10,17 @@ import { addMilliseconds } from "date-fns";
  * @returns 
  */
 export const useSharedIntervalFn = (fn: () => void, intervalMs: number) => {
+    const computeNextExecution = () => {
+        const nowMs = new Date().getTime();
+        const nextExecutionMs = (nowMs + intervalMs) - (nowMs % intervalMs)
+        return new Date(nextExecutionMs)
+    }
     const { now, pause, resume } = useNow({ controls: true });
-    let nextExecution = addMilliseconds(new Date(), intervalMs);
+    let nextExecution = computeNextExecution();
 
     watch(now, (now) => {
         if (now >= nextExecution) {
-            nextExecution = addMilliseconds(now, intervalMs);
+            nextExecution = computeNextExecution();
             fn();
         }
     });
