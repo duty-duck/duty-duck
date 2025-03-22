@@ -21,8 +21,7 @@ pub(crate) fn organizations_router() -> Router<ApplicationState> {
                 .route(
                     "/{invitation_id}",
                     delete(remove_invitation_handler).get(get_invitation_handler),
-                )
-                .route("/{invitation_id}/accept", post(accept_invitation_handler)),
+                ),
         )
         .nest(
             "/{organization_id}/members",
@@ -226,37 +225,6 @@ async fn remove_invitation_handler(
         }
         Err(organizations::RejectInvitationError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while rejecting organization invitation");
-            StatusCode::INTERNAL_SERVER_ERROR.into_response()
-        }
-    }
-}
-
-async fn accept_invitation_handler(
-    State(app_state): ExtractAppState,
-    Path((organization_id, invitation_id)): Path<(Uuid, Uuid)>,
-    Json(command): Json<organizations::AcceptInvitationCommand>,
-) -> impl IntoResponse {
-    match organizations::accept_invitation_use_case(
-        &app_state.adapters.organization_repository,
-        &app_state.adapters.user_repository,
-        organization_id,
-        invitation_id,
-        command,
-    )
-    .await
-    {
-        Ok(_) => StatusCode::OK.into_response(),
-        Err(organizations::AcceptInvitationError::InvitationNotFound) => {
-            StatusCode::NOT_FOUND.into_response()
-        }
-        Err(organizations::AcceptInvitationError::UserCannotBeEmpty) => {
-            StatusCode::BAD_REQUEST.into_response()
-        }
-        Err(organizations::AcceptInvitationError::UserAlreadyExists) => {
-            StatusCode::CONFLICT.into_response()
-        }
-        Err(organizations::AcceptInvitationError::TechnicalFailure(e)) => {
-            warn!(error = ?e, "Technical failure occured while accepting organization invitation");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }

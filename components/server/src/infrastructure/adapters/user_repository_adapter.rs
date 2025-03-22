@@ -6,7 +6,7 @@ use uuid::Uuid;
 use crate::domain::entities::user::*;
 use crate::domain::ports::user_repository::UserRepository;
 use crate::infrastructure::keycloak_client::{
-    self, AttributeMap, CreateUserRequest, Credentials, KeycloakClient, UpdateUserRequest,
+    self, Credentials, KeycloakClient, UpdateUserRequest,
 };
 use moka::future::Cache;
 
@@ -52,34 +52,6 @@ impl UserRepository for UserRepositoryAdapter {
             Ok(user) => Ok(Some(user.try_into()?)),
             Err(keycloak_client::Error::NotFound) => Ok(None),
             Err(e) => Err(e.into()),
-        }
-    }
-
-    #[tracing::instrument(skip(self), err)]
-    async fn create_user(&self, command: CreateUserCommand) -> Result<User, CreateUserError> {
-        let mut attributes = AttributeMap::default();
-        if let Some(number) = command.phone_number {
-            attributes.put("phoneNumber", number);
-        }
-        let request = CreateUserRequest {
-            first_name: Some(command.first_name),
-            last_name: Some(command.last_name),
-            email: Some(command.email),
-            email_verified: false,
-            enabled: true,
-            groups: vec![],
-            attributes,
-            credentials: vec![Credentials {
-                credentials_type: crate::infrastructure::keycloak_client::CredentialsType::Password,
-                value: command.password,
-                temporary: false,
-            }],
-        };
-
-        match self.keycloak_client.create_user(&request).await {
-            Ok(response) => Ok(response.try_into()?),
-            Err(keycloak_client::Error::Conflict) => Err(CreateUserError::UserAlreadyExists),
-            Err(e) => Err(CreateUserError::TechnicalFailure(e.into())),
         }
     }
 

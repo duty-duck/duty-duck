@@ -83,26 +83,6 @@ impl UserPhoneOTP {
     }
 }
 
-#[derive(Redact, Clone)]
-pub struct CreateUserCommand {
-    pub first_name: String,
-    pub last_name: String,
-    #[redact(partial)]
-    pub email: String,
-    #[redact]
-    pub password: String,
-    #[redact(partial)]
-    pub phone_number: Option<String>,
-}
-
-#[derive(Debug, Error)]
-pub enum CreateUserError {
-    #[error("User already exists")]
-    UserAlreadyExists,
-    #[error("Technical failure: {0}")]
-    TechnicalFailure(#[from] anyhow::Error),
-}
-
 #[derive(Debug, Clone, Default)]
 pub struct UpdateUserCommand {
     pub first_name: Option<String>,
