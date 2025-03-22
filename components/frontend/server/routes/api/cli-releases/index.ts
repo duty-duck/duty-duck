@@ -1,4 +1,5 @@
 import { S3Client, ListObjectsCommand, CommonPrefix } from "@aws-sdk/client-s3";
+import type { H3Event } from "h3";
 
 export type Release = {
     name: string,
@@ -18,11 +19,11 @@ const buildRelease = async (s3CommonPrefix: CommonPrefix, s3Client: S3Client, aw
         Prefix: s3CommonPrefix.Prefix,
         Delimiter: "/"
     }));
-    
+
     const releasePlatforms = releasePlatformsResponse.Contents?.map((object) => {
         const [_, version, fileName] = object.Key!.split("/");
         const [os, arch] = fileName.split("-");
-        return { 
+        return {
             fileName,
             version,
             storageKey: object.Key!,
@@ -44,7 +45,7 @@ const lastResponseCache: { response: Response | null, builtAt: Date | null } = {
     builtAt: null
 }
 
-export default defineEventHandler(async (event) => {
+export const listReleases = async (event: H3Event): Promise<Response> => {
     // Return the cached response if it's still valid
     if (lastResponseCache.response && lastResponseCache.builtAt && lastResponseCache.builtAt.getTime() + cacheDuration > Date.now()) {
         return lastResponseCache.response;
@@ -63,10 +64,10 @@ export default defineEventHandler(async (event) => {
     const listReleasesCommand = new ListObjectsCommand({
         Bucket: "dutyduck-releases",
         Prefix: "cli/",
-        Delimiter: "/"
+        Delimiter: "/",
     });
     const releasesFolders = (await client.send(listReleasesCommand)).CommonPrefixes ?? [];
-    const releases = await Promise.all(releasesFolders.map((folder) => buildRelease(folder, client, awsRegion)));
+    const releases = (await Promise.all(releasesFolders.map((folder) => buildRelease(folder, client, awsRegion)))).sort((a, b) => b.name.localeCompare(a.name));
 
     const response: Response = {
         releases
@@ -74,8 +75,8 @@ export default defineEventHandler(async (event) => {
 
     lastResponseCache.response = response;
     lastResponseCache.builtAt = new Date();
-
     console.log(`Fetched ${releases.length} CLI releases from S3`);
     return response;
+}
 
-})
+export default defineEventHandler(listReleases);
