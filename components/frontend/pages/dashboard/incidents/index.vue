@@ -19,8 +19,7 @@ const includeStatuses = useRouteQuery<IncidentStatus[]>("statuses", ["ongoing"])
 const orderBy = useRouteQuery<OrderIncidentsBy>("orderBy", "createdAt");
 const orderDirection = useRouteQuery<OrderDirection>("orderDirection", "desc");
 const { data: metadataFilter, clear: clearMetadataFilter } = useMetadataFilterQuery();
-
-const showFacetsOffcanvas = ref(false);
+const showMetadataOffcanvas = useBoolQueryParam("metadataOpen");
 
 // @ts-ignore
 const fetchParams = computed<ListIncidentsParams>(() => {
@@ -98,7 +97,7 @@ useDataRefreshInterval(refresh);
 
     <IncidentFilteringBar v-model:includeStatuses="includeStatuses" v-model:date-range="dateRange"
       v-model:orderBy="orderBy" v-model:orderDirection="orderDirection" :metadata-filter="metadataFilter"
-      @clearFilters="onClearFilters" @toggle-metadata="showFacetsOffcanvas = true"
+      @clearFilters="onClearFilters" @toggle-metadata="showMetadataOffcanvas = true"
       :shown-filters="['statuses', 'metadata', 'orderBy', 'timeRange']">
     </IncidentFilteringBar>
 
@@ -125,8 +124,8 @@ useDataRefreshInterval(refresh);
         :total-rows="data?.totalNumberOfFilteredResults" :per-page="itemsPerPage" />
     </div>
 
-    <BOffcanvas v-model="showFacetsOffcanvas" placement="end" body-class="p-0">
-      <template #header>
+    <BOffcanvas v-model="showMetadataOffcanvas" placement="end" body-class="p-0">
+      <template #title>
         <h6 class="d-flex align-items-center gap-2 mb-0">
           <Icon name="ph:funnel" aria-hidden />
           {{ $t('dashboard.facets.title') }}

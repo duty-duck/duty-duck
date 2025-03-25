@@ -1,11 +1,13 @@
 <script lang="ts" setup>
+import { useRouteQuery } from '@vueuse/router';
+
 
 definePageMeta({
   permissions: ['readHttpMonitors']
 });
 
 const localePath = useLocalePath();
-const showFacetsOffcanvas = ref(false);
+const showMetadataOffcanvas = useBoolQueryParam("metadataOpen");
 const { clearFilters, listMonitorsParams, query, metadataFilter, includeStatuses, pageNumber } = await useHttpMonitorsFilters();
 
 const repository = useHttpMonitorRepository();
@@ -61,7 +63,7 @@ useDataRefreshInterval(refresh);
     </div>
 
     <HttpMonitorFilteringBar v-model:includeStatuses="includeStatuses" v-model:query="query"
-      @clear-filters="clearFilters" @toggle-metadata="showFacetsOffcanvas = true" :metadata-filter="metadataFilter" />
+      @clear-filters="clearFilters" @toggle-metadata="showMetadataOffcanvas = true" :metadata-filter="metadataFilter" />
 
     <div v-if="data?.totalNumberOfResults == 0" class="text-secondary text-center my-5">
       <Icon name="ph:globe-duotone" size="120px" />
@@ -86,8 +88,8 @@ useDataRefreshInterval(refresh);
         :prev-text="$t('pagination.prev')" :next-text="$t('pagination.next')"
         :total-rows="data?.totalNumberOfFilteredResults" :per-page="10" />
     </div>
-    <BOffcanvas v-model="showFacetsOffcanvas" placement="end" body-class="p-0">
-      <template #header>
+    <BOffcanvas v-model="showMetadataOffcanvas" placement="end" body-class="p-0">
+      <template #title>
         <h6 class="d-flex align-items-center gap-2 mb-0">
           <Icon name="ph:funnel" aria-hidden />
           {{ $t('dashboard.facets.title') }}

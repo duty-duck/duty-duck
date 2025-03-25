@@ -16,8 +16,7 @@ const pageNumber = useRouteQuery("pageNumber", 1, { transform: Number });
 const includeStatuses = useRouteQuery<TaskStatus[]>("statuses", ["failing", "healthy", "late", "running", "due", "absent"]);
 const { data: metadataFilter, clear: clearMetadataFilter } = useMetadataFilterQuery();
 const localePath = useLocalePath();
-
-const showFacetsOffcanvas = ref(false);
+const showMetadataOffcanvas = useBoolQueryParam("metadataOpen");
 
 const listTasksParams = computed<ListTasksParams>(() => ({
   pageNumber: pageNumber.value,
@@ -53,10 +52,10 @@ useDataRefreshInterval(refreshTasks);
     <BBreadcrumb>
       <BBreadcrumbItem :to="localePath('/dashboard')">{{
         $t("dashboard.mainSidebar.home")
-        }}</BBreadcrumbItem>
+      }}</BBreadcrumbItem>
       <BBreadcrumbItem active>{{
         $t("dashboard.mainSidebar.tasks")
-        }}</BBreadcrumbItem>
+      }}</BBreadcrumbItem>
     </BBreadcrumb>
     <div class="d-flex align-items-center justify-content-between">
       <h2>{{ $t("dashboard.tasks.pageTitle") }}</h2>
@@ -77,7 +76,7 @@ useDataRefreshInterval(refreshTasks);
       </span>
     </div>
     <TaskFilteringBar v-model:includeStatuses="includeStatuses" v-model:query="query" @clear-filters="onClearFilters"
-      @toggle-metadata="showFacetsOffcanvas = true" :metadata-filter="metadataFilter" />
+      @toggle-metadata="showMetadataOffcanvas = true" :metadata-filter="metadataFilter" />
     <div class="d-grid row-gap-3 mt-3" v-if="tasks?.items.length">
       <TaskCard animated v-for="t in tasks?.items" :task="t" :key="t.id" />
       <BPagination v-if="tasks?.totalNumberOfFilteredResults! > 10" v-model="pageNumber"
@@ -108,8 +107,8 @@ useDataRefreshInterval(refreshTasks);
     </div>
 
     <!-- metadata filter offcanvas -->
-    <BOffcanvas v-model="showFacetsOffcanvas" placement="end" body-class="p-0">
-      <template #header>
+    <BOffcanvas v-model="showMetadataOffcanvas" placement="end" body-class="p-0">
+      <template #title>
         <h6 class="d-flex align-items-center gap-2 mb-0">
           <Icon name="ph:funnel" aria-hidden />
           {{ $t('dashboard.facets.title') }}

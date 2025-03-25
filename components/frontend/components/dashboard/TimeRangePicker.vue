@@ -80,7 +80,8 @@ const datePickerRange = computed<[Date, Date] | null>({
                         :select-text="t('dashboard.timeRangeInput.select')" />
                 </div>
                 <div class="time-range-picker-ranges">
-                    <BButton v-for="[label, range] in rangeButtons" size="sm" variant="light" @click="model = range()">
+                    <BButton v-for="[label, range] in rangeButtons" size="sm" variant="light"
+                        @click="model = range(); isOpen = false">
                         <Icon v-if="label == 'dashboard.timeRangeInput.noTimeRange'" name="ph:x-square-fill"
                             aria-hidden />
                         {{ $t(label) }}

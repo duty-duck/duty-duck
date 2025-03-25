@@ -26,6 +26,19 @@ export const useDateRangeQuery = () => {
     })
 }
 
+export const useBoolQueryParam = (name: string) => {
+    return useRouteQuery("metadataOpen", null, {
+        transform: {
+            get(value: string | null) {
+                return value === "true";
+            },
+            set(value: boolean) {
+                return value ? "true" : null
+            }
+        }
+    });
+}
+
 export const useMetadataFilterQuery = () => {
     const searchParams = useUrlSearchParams<{ [key: string]: string | string[] }>("history");
     return {

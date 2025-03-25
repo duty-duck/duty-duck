@@ -130,6 +130,8 @@ onBeforeMount(() => {
   @extend .mt-4;
   @extend .px-xxl-4;
   padding-bottom: 5rem;
+  position: relative;
+  z-index: 10;
 }
 
 .navbar .navbar-collapse.show {
@@ -143,7 +145,7 @@ onBeforeMount(() => {
 #dashboard-navbar {
   height: $navbar-height;
   @include blurry-gray-background;
-  z-index: 1;
+  z-index: 20;
 
   #auth-menu {
     height: $navbar-height;
