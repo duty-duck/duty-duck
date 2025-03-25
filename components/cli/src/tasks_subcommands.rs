@@ -112,10 +112,18 @@ async fn run_task(client: &DutyDuckApiClient, command: RunCommand) -> anyhow::Re
 
         let stdout_events = FramedRead::new(process.stdout.take().unwrap(), LinesCodec::new())
             .filter_map(|line| async move { line.ok() })
-            .map(|line| log_line_to_event(line, LogLineSeverity::Info));
+            .map(|line| {
+                // print the line to the standard output
+                println!("{line}");
+                log_line_to_event(line, LogLineSeverity::Info)
+            });
         let stderr_events = FramedRead::new(process.stderr.take().unwrap(), LinesCodec::new())
             .filter_map(|line| async move { line.ok() })
-            .map(|line| log_line_to_event(line, LogLineSeverity::Error));
+            .map(|line| {
+                // print the line to standard error
+                eprintln!("{line}");
+                log_line_to_event(line, LogLineSeverity::Error)
+            });
         let mut merged_stream = futures::stream::select(stdout_events, stderr_events).boxed();
 
         async move {
