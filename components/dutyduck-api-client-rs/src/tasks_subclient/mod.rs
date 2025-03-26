@@ -13,7 +13,7 @@ pub struct TasksSubclient {
 
 impl TasksSubclient {
     pub async fn create_task(&self, command: CreateTaskCommand) -> ClientResult<()> {
-        let url = self.client.base_url.join("/tasks").unwrap();
+        let url = self.client.base_url.join("tasks").unwrap();
         self.client
             .request(Method::POST, url)?
             .json(&command)
@@ -36,7 +36,7 @@ impl TasksSubclient {
         let url = self
             .client
             .base_url
-            .join(&format!("/tasks/{}/heartbeat", task_id.to_string()))
+            .join(&format!("tasks/{}/heartbeat", task_id.to_string()))
             .unwrap();
         self.client
             .request(Method::POST, url)?
@@ -54,7 +54,7 @@ impl TasksSubclient {
         let url = self
             .client
             .base_url
-            .join(&format!("/tasks/{}/logs", task_id.to_string()))
+            .join(&format!("tasks/{}/logs", task_id.to_string()))
             .unwrap();
         self.client
             .request(Method::POST, url)?

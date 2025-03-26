@@ -1504,6 +1504,7 @@ dependencies = [
  "dutyduck-api-client-rs",
  "futures",
  "futures-util",
+ "itertools 0.13.0",
  "reqwest 0.12.9",
  "serde",
  "serde_json",

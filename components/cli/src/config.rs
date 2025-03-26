@@ -3,6 +3,7 @@ use std::path::PathBuf;
 use anyhow::Context;
 use dirs::config_dir;
 use dutyduck_api_client_rs::DutyDuckApiClient;
+use itertools::Itertools;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -13,6 +14,12 @@ pub struct Config {
 }
 
 impl Config {
+    pub const AVAILABLE_KEYS: &[(&'static str, &'static str)] = &[
+        ("api_token_id", "The ID of the token used to make API calls"),
+        ("api_token_secret_key", "The secret key of the token used to make API calls"),
+        ("api_url", "The API endpoint to use to make API calls, default value is 'https://api.dutyduck.net'")
+    ];
+
     pub fn get_api_client(&self) -> anyhow::Result<DutyDuckApiClient> {
         let api_token_id = self.api_token_id.as_ref().context("missing api token id")?;
         let secret_key = self
@@ -38,7 +45,7 @@ impl Config {
     }
 
     pub async fn save(&self) -> anyhow::Result<()> {
-        let config_file = get_config_file()?;
+        let config_file = Self::get_config_file()?;
         let config_dir = config_file
             .parent()
             .context("Failed to get config directory")?;
@@ -57,7 +64,14 @@ impl Config {
             "api_url" => Ok(&self.api_url),
             "api_token_id" => Ok(self.api_token_id.as_deref().unwrap_or("null")),
             "api_token_secret_key" => Ok(self.api_token_secret_key.as_deref().unwrap_or("null")),
-            _ => Err(anyhow::anyhow!("Invalid key: {}", key)),
+            _ => Err(anyhow::anyhow!(
+                "Invalid key: {}\nValid config keys are:\n{}",
+                key,
+                Self::AVAILABLE_KEYS
+                    .iter()
+                    .map(|(key, help)| format!("{key} ({help})"))
+                    .join("\n")
+            )),
         }
     }
 
@@ -66,9 +80,23 @@ impl Config {
             "api_url" => self.api_url = value.to_string(),
             "api_token_id" => self.api_token_id = Some(value.to_string()),
             "api_token_secret_key" => self.api_token_secret_key = Some(value.to_string()),
-            _ => return Err(anyhow::anyhow!("Invalid key: {}", key)),
+            _ => {
+                return Err(anyhow::anyhow!(
+                    "Invalid key: {}\nValid config keys are:\n{}",
+                    key,
+                    Self::AVAILABLE_KEYS
+                        .iter()
+                        .map(|(key, help)| format!("{key} ({help})"))
+                        .join("\n")
+                ))
+            }
         }
         Ok(())
+    }
+
+    pub fn get_config_file() -> anyhow::Result<PathBuf> {
+        let dir = get_config_dir()?;
+        Ok(dir.join("config.json"))
     }
 }
 
@@ -89,13 +117,8 @@ fn get_config_dir() -> anyhow::Result<PathBuf> {
     Ok(dir)
 }
 
-fn get_config_file() -> anyhow::Result<PathBuf> {
-    let dir = get_config_dir()?;
-    Ok(dir.join("config.json"))
-}
-
 async fn get_config_from_file() -> anyhow::Result<Config> {
-    let file = get_config_file()?;
+    let file = Config::get_config_file()?;
     let config = std::fs::read_to_string(file).context("Failed to read config file")?;
     let config: Config = serde_json::from_str(&config).context("Failed to parse config file")?;
     Ok(config)

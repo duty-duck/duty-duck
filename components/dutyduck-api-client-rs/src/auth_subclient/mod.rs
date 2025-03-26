@@ -18,7 +18,7 @@ impl AuthSubclient {
                 Method::GET,
                 self.client
                     .base_url
-                    .join("/users/me")
+                    .join("users/me")
                     .context("failed to build url")?,
             )?
             .send()

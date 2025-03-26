@@ -35,9 +35,11 @@ pub async fn handle_config_command(command: ConfigCommands) -> anyhow::Result<()
             Ok(())
         }
         ConfigCommands::Print => {
+            let path = Config::get_config_file()?;
             let config = Config::load().await?;
             println!(
-                "Current configuration: {}",
+                "Current configuration (located at {}):\n{}",
+                path.to_string_lossy(),
                 serde_json::to_string_pretty(&config)?
             );
             Ok(())

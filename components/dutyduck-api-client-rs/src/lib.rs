@@ -132,11 +132,12 @@ impl ResponseExtention for reqwest::Response {
         if status.is_success() {
             Ok(())
         } else {
+            let url = self.url().clone();
             let body = self
                 .text()
                 .await
                 .unwrap_or_else(|_| "<no body>".to_string());
-            Err(ClientError::InvalidStatusCode(status, body))
+            Err(ClientError::InvalidStatusCode(url, status, body))
         }
     }
 
@@ -145,8 +146,10 @@ impl ResponseExtention for reqwest::Response {
         if status.is_success() {
             Ok(self.json().await?)
         } else {
-            let body = self.text().await.unwrap_or_default();
-            Err(ClientError::InvalidStatusCode(status, body))
+            let url = self.url().clone();
+            let mut body = self.text().await.unwrap_or_default();
+            body.truncate(1000);
+            Err(ClientError::InvalidStatusCode(url, status, body))
         }
     }
 }
@@ -162,6 +165,6 @@ pub enum ClientError {
     AnyhowError(#[from] anyhow::Error),
     #[error(transparent)]
     ReqwestError(#[from] reqwest::Error),
-    #[error("API responded with an invalid status code: {0} and body: {1}")]
-    InvalidStatusCode(reqwest::StatusCode, String),
+    #[error("API endpoint '{0}' responded with an invalid status code: {1} and body: {2}")]
+    InvalidStatusCode(reqwest::Url, reqwest::StatusCode, String),
 }

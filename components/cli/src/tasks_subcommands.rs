@@ -187,7 +187,7 @@ async fn run_task(client: &DutyDuckApiClient, command: RunCommand) -> anyhow::Re
                     Ok(_) => (),
                     // If the platform reports that the task is no longer running (i.e. it has been aborted),
                     // we can stop sending heartbeats and we can kill the local process
-                    Err(ClientError::InvalidStatusCode(StatusCode::BAD_REQUEST, _)) => {
+                    Err(ClientError::InvalidStatusCode(_, StatusCode::BAD_REQUEST, _)) => {
                         eprintln!(
                             "Tried to send a heartbeat but the task is no longer running. Maybe it was aborted?"
                         );

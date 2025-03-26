@@ -93,6 +93,7 @@ impl Authenticator {
                 Ok(authenticated_token)
             }
             Err(ClientError::InvalidStatusCode(
+                _,
                 StatusCode::FORBIDDEN | StatusCode::UNAUTHORIZED,
                 _,
             )) => Err(AuthenticationError::FailedAuthentication),
