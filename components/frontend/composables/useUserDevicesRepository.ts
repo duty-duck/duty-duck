@@ -16,12 +16,12 @@ export const useThisDeviceType = (): UserDeviceType => {
 }
 
 export const useThisDevice = async () => {
-    const messaging = useFirebaseMessaging();
-    const repo = await useUserDevicesRepository();
+    const messaging = await useFirebaseMessaging();
+    const repo = useUserDevicesRepository();
     const { data } = await repo.useDevices();
 
     return computed<UserDevice | null>(() => {
-        if (!messaging.token || messaging.token == 'loading') {
+        if (!messaging || !messaging.token || messaging.token == 'loading') {
             return null
         }
         const { token: thisDeviceToken } = messaging.token;
@@ -34,18 +34,23 @@ export const useThisDevice = async () => {
     })
 }
 
-export const useUserDevicesRepository = async () => {
-    const $fetch = await useServer$fetch();
+export const useUserDevicesRepository = () => {
 
     return {
         async registerDevice(command: RegisterUserDeviceCommand) {
+            const $fetch = await useServer$fetch();
             return $fetch("/users/me/devices", { method: 'post', body: command })
         },
         async removeDevice(deviceId: string) {
+            const $fetch = await useServer$fetch();
             return $fetch(`/users/me/devices/${deviceId}`, { method: 'delete' })
         },
         async useDevices() {
             return await useServerFetch<ListUserDevicesResponse>(`/users/me/devices`, { retry: 3, retryDelay: 5000, dedupe: "cancel" });
         },
+        async sendTestPushNotification(deviceId: string) {
+            const $fetch = await useServer$fetch();
+            return await $fetch(`/users/me/devices/${deviceId}/testNotification`, { method: 'post' })
+        }
     }
 }

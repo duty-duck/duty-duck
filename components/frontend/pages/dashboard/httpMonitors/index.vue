@@ -1,7 +1,4 @@
 <script lang="ts" setup>
-import { useRouteQuery } from '@vueuse/router';
-
-
 definePageMeta({
   permissions: ['readHttpMonitors']
 });
@@ -38,10 +35,10 @@ useDataRefreshInterval(refresh);
     <BBreadcrumb>
       <BBreadcrumbItem :to="localePath('/dashboard')">{{
         $t("dashboard.mainSidebar.home")
-        }}</BBreadcrumbItem>
+      }}</BBreadcrumbItem>
       <BBreadcrumbItem active>{{
         $t("dashboard.mainSidebar.monitors")
-        }}</BBreadcrumbItem>
+      }}</BBreadcrumbItem>
     </BBreadcrumb>
     <div class="d-flex align-items-center justify-content-between">
       <h2>{{ $t("dashboard.monitors.pageTitle") }}</h2>

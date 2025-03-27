@@ -52,10 +52,10 @@ useDataRefreshInterval(refreshTasks);
     <BBreadcrumb>
       <BBreadcrumbItem :to="localePath('/dashboard')">{{
         $t("dashboard.mainSidebar.home")
-      }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
       <BBreadcrumbItem active>{{
         $t("dashboard.mainSidebar.tasks")
-      }}</BBreadcrumbItem>
+        }}</BBreadcrumbItem>
     </BBreadcrumb>
     <div class="d-flex align-items-center justify-content-between">
       <h2>{{ $t("dashboard.tasks.pageTitle") }}</h2>

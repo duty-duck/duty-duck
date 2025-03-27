@@ -57,10 +57,10 @@ useDataRefreshInterval(refreshEverything)
     <BBreadcrumb>
       <BBreadcrumbItem :to="localePath('/dashboard')">{{
         $t("dashboard.mainSidebar.home")
-        }}</BBreadcrumbItem>
+      }}</BBreadcrumbItem>
       <BBreadcrumbItem :to="localePath('/dashboard/httpMonitors')">{{
         $t("dashboard.mainSidebar.monitors")
-        }}</BBreadcrumbItem>
+      }}</BBreadcrumbItem>
       <BBreadcrumbItem active>
         {{ $t("dashboard.monitors.details") }}
       </BBreadcrumbItem>

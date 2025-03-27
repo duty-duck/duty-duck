@@ -16,7 +16,7 @@ watch(route, () => {
 
 onBeforeMount(() => {
   // Register message handler
-  if (firebaseMessaging) { firebaseMessaging.onMessage(messageHandler); }
+  if (firebaseMessaging) { firebaseMessaging.registerMessageHandler(messageHandler); }
 });
 </script>
 
@@ -45,7 +45,7 @@ onBeforeMount(() => {
         </nav>
         <div id="dashboard-container">
           <DashboardErrorBoundary>
-            <NuxtPage :fall :transition="{ name: 'page', mode: 'out-in' }" />
+            <NuxtPage :transition="{ name: 'page', mode: 'out-in' }" />
           </DashboardErrorBoundary>
         </div>
       </div>

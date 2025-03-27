@@ -64,11 +64,25 @@ const enableNotifications = async () => {
   }
 };
 
+const testNotificationState = ref<null | { loading: string } | { done: string }>(null);
+
 const removeDevice = async (deviceId: string) => {
   await devicesRepository.removeDevice(deviceId);
   await refreshDevices();
 };
+
+const sendTestNotification = async (deviceId: string) => {
+  if (testNotificationState.value) return;
+
+  testNotificationState.value = { loading: deviceId }
+  await devicesRepository.sendTestPushNotification(deviceId);
+  testNotificationState.value = { done: deviceId }
+  setTimeout(() => {
+    testNotificationState.value = null
+  }, 5000)
+}
 </script>
+
 <template>
   <BCard no-body>
     <BCardBody>
@@ -110,8 +124,16 @@ const removeDevice = async (deviceId: string) => {
           {{ device.label }}
           <span v-if="device.id == thisDevice?.id">{{ $t("dashboard.pushNotifications.thisDevice") }}</span>
         </div>
-        <div>
-          <BButton size="sm" @click="removeDevice(device.id)">
+        <div class="d-flex gap-1">
+          <BButton size="sm" @click="sendTestNotification(device.id)" class="d-flex align-items-center gap-1"
+            :loading="testNotificationState && (testNotificationState as any).loading == device.id"
+            v-if="device.pushNotificationToken" variant="outline-info" :disabled="testNotificationState !== null">
+            <Icon name="ph:bell-ringing" />
+            {{ $t("dashboard.pushNotifications.sendTestNotification") }}
+          </BButton>
+          <BButton size="sm" @click="removeDevice(device.id)" class="d-flex align-items-center gap-1"
+            variant="outline-danger">
+            <Icon name="ph:trash" />
             {{ $t("dashboard.pushNotifications.removeDevice") }}
           </BButton>
         </div>

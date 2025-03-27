@@ -2,7 +2,7 @@ use axum::{
     extract::{Path, State},
     http::StatusCode,
     response::IntoResponse,
-    routing::{delete, get},
+    routing::{delete, get, post},
     Json, Router,
 };
 use tracing::warn;
@@ -14,7 +14,7 @@ use crate::{
         entities::authorization::AuthContext,
         use_cases::user_devices::{
             self, ListUserDevicesError, RegisterUserDeviceCommand, RegisterUserDeviceError,
-            RemoveUserDeviceError,
+            RemoveUserDeviceError, SendTestNotificationError,
         },
     },
 };
@@ -26,6 +26,10 @@ pub fn user_devices_router() -> Router<ApplicationState> {
             get(list_user_devices_handler).post(register_user_device_handler),
         )
         .route("/{user_device_id}", delete(remove_user_device_handler))
+        .route(
+            "/{user_device_id}/testNotification",
+            post(send_test_push_notification_handler),
+        )
 }
 
 async fn remove_user_device_handler(
@@ -82,6 +86,30 @@ async fn list_user_devices_handler(
         Ok(res) => Json(res).into_response(),
         Err(ListUserDevicesError::TechnicalFailure(e)) => {
             warn!(error = ?e, "Technical failure occured while listing user devices from the database");
+            StatusCode::INTERNAL_SERVER_ERROR.into_response()
+        }
+    }
+}
+
+async fn send_test_push_notification_handler(
+    auth_context: AuthContext,
+    State(app_state): ExtractAppState,
+    Path(user_device_id): Path<Uuid>,
+) -> impl IntoResponse {
+    match user_devices::send_test_notification(
+        &app_state.adapters.user_devices_repository,
+        &app_state.adapters.push_notification_server,
+        &auth_context,
+        user_device_id,
+    )
+    .await
+    {
+        Ok(()) => StatusCode::OK.into_response(),
+        Err(e @ SendTestNotificationError::DeviceNotFound) => {
+            (StatusCode::NOT_FOUND, e.to_string()).into_response()
+        }
+        Err(SendTestNotificationError::TechnicalFailure(e)) => {
+            warn!(error = ?e, "Technical failure occured while sending test notification");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }

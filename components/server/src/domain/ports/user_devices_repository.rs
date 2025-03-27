@@ -8,11 +8,23 @@ pub trait UserDevicesRepository: Clone + Send + Sync + 'static {
 
     /// Removes a user device, returns whether a device actually existed and was deleted
     async fn remove_device(&self, organization_id: Uuid, device_id: Uuid) -> anyhow::Result<bool>;
+
+    async fn get_user_device(
+        &self,
+        organization_id: Uuid,
+        user_id: Uuid,
+        device_id: Uuid,
+    ) -> anyhow::Result<Option<UserDevice>> {
+        let devices = self.list_user_devices(organization_id, user_id).await?;
+        Ok(devices.into_iter().find(|d| d.id == device_id))
+    }
+
     async fn list_user_devices(
         &self,
         organization_id: Uuid,
         user_id: Uuid,
     ) -> anyhow::Result<Vec<UserDevice>>;
+
     async fn list_organization_devices(
         &self,
         organization_id: Uuid,

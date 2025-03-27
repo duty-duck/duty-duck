@@ -17,8 +17,8 @@ export const useFirebaseMessageHandler = () => {
             props: {
                 body: payload.notification?.body,
                 title: payload.notification?.title,
-                variant: "secondary",
-                value: 60000
+                variant: "light",
+                value: 10000,
             },
 
         });
@@ -49,30 +49,41 @@ export const useFirebaseMessaging = createSharedComposable(async () => {
         return null;
     }
 
+    let serviceWorkerRegistration = null as ServiceWorkerRegistration | null;
     const messaging = getMessaging(useApp());
-    const token = ref<TokenState>(null);
+    const thisDeviceToken = ref<TokenState>(null);
 
-    const onMessage = (handler: (payload: MessagePayload) => void) => {
-        console.log("Registered a new Firebase message handler")
+    const registerMessageHandler = (handler: (payload: MessagePayload) => void) => {
         firebaseOnMessage(messaging, handler);
+        console.log("Registered a new Firebase message handler")
     }
 
-    const getToken = async () => {
+    /** 
+     * Register service worker if needed, and returns the registration
+     */
+    const registerServiceWorker = async () => {
+        if (serviceWorkerRegistration) return serviceWorkerRegistration;
+
+        const serviceWorkerURL = new URL("/firebase-messaging-sw", document.baseURI).href
+        console.log("Registering service worker at:", serviceWorkerURL);
+        serviceWorkerRegistration = await navigator.serviceWorker.register(serviceWorkerURL, { type: 'classic' });
+        return serviceWorkerRegistration;
+    }
+
+    const fetchThisDeviceToken = async () => {
         const { public: { firebaseVapidKey } } = useRuntimeConfig();
-        token.value = "loading";
+        thisDeviceToken.value = "loading";
         try {
-            const serviceWorkerURL = new URL("/firebase-messaging-sw", document.baseURI).href
-            console.log("Registering service worker at:", serviceWorkerURL);
-            const serviceWorkerRegistration = await navigator.serviceWorker.register(serviceWorkerURL, { type: 'classic' });
+            const serviceWorkerRegistration = await registerServiceWorker();
             const res = await getFirebaseToken(messaging, { vapidKey: firebaseVapidKey, serviceWorkerRegistration }) || null;
             if (res) {
                 console.log("Push notification token:", res);
-                token.value = { token: res }
+                thisDeviceToken.value = { token: res }
             } else {
-                token.value = null
+                thisDeviceToken.value = null
             }
         } catch (e) {
-            token.value = null;
+            thisDeviceToken.value = null;
         }
     }
 
@@ -81,26 +92,26 @@ export const useFirebaseMessaging = createSharedComposable(async () => {
      * @returns a promise indicating whether the permission was successfully granted
      */
     const requestPermission = async (): Promise<boolean> => {
-        token.value = "loading";
+        thisDeviceToken.value = "loading";
         console.log('Requesting permission...');
         const permission = await Notification.requestPermission();
         if (permission === 'granted') {
             console.log('Notification permission granted.');
-            await getToken();
+            await fetchThisDeviceToken();
             return true
         } else {
             console.log('Unable to get permission to notify.');
-            await getToken();
+            await fetchThisDeviceToken();
             return false;
         }
     }
 
     // When the store is first initialized, load the token in the background
-    getToken();
+    fetchThisDeviceToken();
 
     return reactive({
-        token,
+        token: thisDeviceToken,
         requestPermission,
-        onMessage
+        registerMessageHandler
     })
 })

@@ -42,7 +42,8 @@
         "failed": "Failed",
         "thisDevice": "(this device)",
         "removeDevice": "Remove device",
-        "notSupported": "Push notifications are not supported on this device"
+        "notSupported": "Push notifications are not supported on this device",
+        "sendTestNotification": "Send a test notification"
     },
     "notificationSettingsForm": {
         "pushNotification": "Push Notifications",

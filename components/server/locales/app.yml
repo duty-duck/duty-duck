@@ -43,6 +43,14 @@ newTaskRunIncidentPushNotificationBody:
     en: "A task run for task '%{taskName}' has failed. Head over to DutyDuck to investigate the incident."
     fr: "Une éxécution de la tâche '%{taskName}' a échoué. Rendez-vous sur DutyDuck pour investiguer l'incident."
 
+## Test notification
+testPushNotificationTitle:
+    fr: "1, 2, est-ce que quelqu'un me reçoit ?"
+    en: "Anybody out there ?"
+testPushNotificationBody:
+    fr: "Voilà une notification de test de DutyDuck. Si vous me recevez, c'est que tout fonctionne!"
+    en: "This is a test notification from DutyDuck. If you received me, everything is working properly!"
+
 # SMS 
 smsPhoneNumberVerificationCode:
     en: "DutyDuck - Your verification code is %{code}"

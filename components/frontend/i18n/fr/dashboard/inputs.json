@@ -42,7 +42,8 @@
         "failed": "Échec",
         "thisDevice": "(cet appareil)",
         "removeDevice": "Supprimer l'appareil",
-        "notSupported": "Votre appareil ne supporte pas les notifications push."
+        "notSupported": "Votre appareil ne supporte pas les notifications push.",
+        "sendTestNotification": "Envoyer un test"
     },
     "notificationSettingsForm": {
         "pushNotification": "Notifications Push",
