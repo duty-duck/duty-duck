@@ -25,6 +25,7 @@
     "@nuxtjs/critters": "^0.7.2",
     "@nuxtjs/i18n": "^9.3.1",
     "@vite-pwa/nuxt": "0.10.8",
+    "@tanstack/vue-virtual": "^3.13.9",
     "@vuelidate/core": "^2.0.3",
     "@vuelidate/validators": "^2.0.4",
     "@vuepic/vue-datepicker": "^11.0.1",
@@ -44,8 +45,7 @@
     "ofetch": "^1.4.1",
     "ufo": "^1.5.4",
     "vue": "^3.5.13",
-    "vue-json-pretty": "^2.4.0",
-    "vue-virtual-scroller": "2.0.0-beta.8"
+    "vue-json-pretty": "^2.4.0"
   },
   "devDependencies": {
     "@iconify-json/ph": "^1.1.13",

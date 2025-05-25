@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import { RecycleScroller } from 'vue-virtual-scroller';
+import { useVirtualizer } from '@tanstack/vue-virtual';
 import type { LogEvent } from './ViewerEvent.vue';
+
+const viewerRef = ref<HTMLElement | null>(null);
 
 const props = defineProps<{
     events: LogEvent[],
@@ -13,6 +15,13 @@ const emits = defineEmits<{
 }>();
 
 const expandedEvent = ref(null as null | number);
+
+// The virtualizer
+const rowVirtualizer = useVirtualizer({
+    count: 10000,
+    getScrollElement: () => viewerRef.value,
+    estimateSize: () => 35,
+})
 
 const eventsWithSize = computed(() => {
     const lineHeight = 36;
@@ -38,20 +47,21 @@ onMounted(() => {
 </script>
 
 <template>
-    <RecycleScroller class="viewer" :items="eventsWithSize" key-field="index" size-field="size"
+    <div ref="viewerRef" class="viewer" :items="eventsWithSize" key-field="index" size-field="size"
         @scroll-end="onScrollEnd">
-        <template v-slot="{ item: { data: event } }">
+
+        <template v-slot="{ item: { data: event } }" v-for="event in rowVirtualizer.virtualItems">
             <LogViewerEvent :event="event" :body-columns="bodyColumns"
                 @toggle="expandedEvent == event.index ? expandedEvent = null : expandedEvent = event.index"
                 :expanded="expandedEvent == event.index" />
         </template>
-    </RecycleScroller>
-
+    </div>
 </template>
 
 <style lang="scss" scoped>
 .viewer {
     background-color: white;
     padding: .5rem;
+    overflow: auto;
 }
 </style>
