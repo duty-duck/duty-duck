@@ -30,7 +30,7 @@
 			"version": "latest",
 			"dockerDashComposeVersion": "v2"
 		},
-		"ghcr.io/devcontainers/features/node:1": {
+		"ghcr.io/devcontainers/features/node:2": {
 			"nodeGypDependencies": true,
 			"installYarnUsingApt": true,
 			"version": "18",
